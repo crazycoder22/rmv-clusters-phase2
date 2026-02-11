@@ -1,10 +1,8 @@
 import {
   Shield,
-  Car,
   TreePine,
-  Zap,
-  Building,
   Baby,
+  Droplets,
 } from "lucide-react";
 import SectionHeading from "@/components/ui/SectionHeading";
 
@@ -16,34 +14,22 @@ const amenities = [
       "Round-the-clock security with CCTV surveillance and trained security personnel at the gate.",
   },
   {
-    icon: Car,
-    title: "Covered Parking",
-    description:
-      "Designated covered parking spaces for residents with additional visitor parking area.",
-  },
-  {
     icon: TreePine,
     title: "Green Spaces",
     description:
-      "Beautifully landscaped gardens and green areas for residents to relax and unwind.",
-  },
-  {
-    icon: Zap,
-    title: "Power Backup",
-    description:
-      "Generator backup for common areas, lifts, and water pumps ensuring uninterrupted service.",
-  },
-  {
-    icon: Building,
-    title: "Community Hall",
-    description:
-      "Spacious community hall available for events, meetings, and celebrations.",
+      "Green areas and open spaces for residents to relax and unwind.",
   },
   {
     icon: Baby,
     title: "Children's Play Area",
     description:
-      "Safe and well-equipped play area for children with modern play equipment.",
+      "Play area for children with equipment for outdoor activities.",
+  },
+  {
+    icon: Droplets,
+    title: "Water Supply",
+    description:
+      "Reliable water supply through Cauvery connection and borewell with overhead tank storage.",
   },
 ];
 
@@ -55,7 +41,7 @@ export default function HighlightsSection() {
           title="Community Amenities"
           subtitle="Everything you need for comfortable living, right at your doorstep"
         />
-        <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-4xl mx-auto">
           {amenities.map((amenity, index) => (
             <div
               key={index}

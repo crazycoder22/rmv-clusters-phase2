@@ -87,10 +87,6 @@
       "icon": "building",
       "rules": [
         {
-          "title": "Community Hall",
-          "description": "The community hall can be booked for events through the management office. A refundable deposit is required."
-        },
-        {
           "title": "Cleanliness",
           "description": "Please keep common areas clean. Do not leave personal belongings in corridors, stairways, or lobbies."
         },
@@ -115,7 +111,7 @@
         },
         {
           "title": "Restricted Areas",
-          "description": "Pets are not allowed in the children's play area, community hall, or gymnasium."
+          "description": "Pets are not allowed in the children's play area."
         }
       ]
     },

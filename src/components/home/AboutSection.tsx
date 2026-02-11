@@ -3,7 +3,7 @@ import { MapPin, Shield, Leaf, Users } from "lucide-react";
 
 const highlights = [
   { icon: Shield, text: "24/7 Security with CCTV surveillance" },
-  { icon: Leaf, text: "Landscaped gardens and green spaces" },
+  { icon: Leaf, text: "Well-maintained common areas and green spaces" },
   { icon: Users, text: "Active and welcoming community" },
   { icon: MapPin, text: "Prime location in Devinagar, Bengaluru" },
 ];
@@ -19,10 +19,10 @@ export default function AboutSection() {
             </h2>
             <div className="h-1 w-16 bg-primary-500 rounded mb-6" />
             <p className="text-gray-700 leading-relaxed mb-6">
-              RMV Clusters Phase II is a modern apartment community located in
-              the heart of Devinagar, Bengaluru. Our community offers a
-              comfortable and secure living environment with well-maintained
-              amenities and a vibrant neighbourhood.
+              RMV Clusters Phase II is a well-established residential apartment
+              community located in the heart of Devinagar, Bengaluru. Our
+              community offers a comfortable and secure living environment
+              with a close-knit neighbourhood.
             </p>
             <ul className="space-y-3">
               {highlights.map((item, index) => (

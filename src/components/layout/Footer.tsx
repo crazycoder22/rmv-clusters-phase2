@@ -20,7 +20,7 @@ export default function Footer() {
           <div>
             <h3 className="text-lg font-semibold mb-4">{siteData.name}</h3>
             <p className="text-primary-200 text-sm leading-relaxed">
-              A vibrant apartment community in Devinagar, Bengaluru. Stay
+              A well-established apartment community in Devinagar, Bengaluru. Stay
               connected with your neighbours and stay informed about community
               happenings.
             </p>

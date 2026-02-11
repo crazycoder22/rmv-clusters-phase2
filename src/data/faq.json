@@ -32,15 +32,9 @@
       "category": "general"
     },
     {
-      "id": "faq-6",
-      "question": "Is there a community hall available for booking?",
-      "answer": "Yes, the community hall can be booked for private events and functions. Please contact the management office at least one week in advance. A refundable security deposit and usage charges apply.",
-      "category": "facilities"
-    },
-    {
       "id": "faq-7",
       "question": "What are the power backup arrangements?",
-      "answer": "The complex has a generator backup for common area lighting, lifts, and water pumps. Individual flat power backup is not provided by the association.",
+      "answer": "The complex has a generator backup for common area lighting and lifts. Individual flat power backup is not provided by the association.",
       "category": "facilities"
     },
     {
@@ -52,7 +46,7 @@
     {
       "id": "faq-9",
       "question": "Are pets allowed in the complex?",
-      "answer": "Pets are allowed with proper registration at the management office. Pet owners must provide vaccination records, keep pets leashed in common areas, and clean up after them. Pets are not permitted in the children's play area or community hall.",
+      "answer": "Pets are allowed with proper registration at the management office. Pet owners must provide vaccination records, keep pets leashed in common areas, and clean up after them. Pets are not permitted in the children's play area.",
       "category": "general"
     },
     {
