@@ -61,6 +61,8 @@ export interface Announcement {
   summary: string;
   body: string;
   author: string;
+  link?: string;
+  linkText?: string;
 }
 
 export interface GalleryImage {

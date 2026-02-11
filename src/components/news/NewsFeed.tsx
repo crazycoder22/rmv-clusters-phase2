@@ -81,6 +81,16 @@ export default function NewsFeed() {
                 <p className="mt-2 text-gray-600 text-sm leading-relaxed">
                   {announcement.body}
                 </p>
+                {announcement.link && (
+                  <a
+                    href={announcement.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 mt-3 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                  >
+                    {announcement.linkText || "View Link"}
+                  </a>
+                )}
               </details>
             </article>
           ))}

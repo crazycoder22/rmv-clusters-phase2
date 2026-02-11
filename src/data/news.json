@@ -2,43 +2,15 @@
   "announcements": [
     {
       "id": "1",
-      "title": "Community Website Launch",
-      "date": "2026-02-11",
-      "category": "general",
-      "priority": "normal",
-      "summary": "We are excited to announce the launch of the official RMV Clusters Phase II community website. Stay updated with the latest news and announcements here.",
-      "body": "Welcome to the official RMV Clusters Phase II community website! This platform will serve as the central hub for all community-related information, announcements, guidelines, and more. We encourage all residents to visit regularly for updates.",
-      "author": "Management Office"
-    },
-    {
-      "id": "2",
-      "title": "Monthly Maintenance Due Reminder",
-      "date": "2026-02-05",
-      "category": "general",
-      "priority": "normal",
-      "summary": "Monthly maintenance charges for February 2026 are due by the 10th. Please ensure timely payment to avoid late fees.",
-      "body": "This is a reminder that monthly maintenance charges are due by the 10th of every month. Payments can be made via bank transfer or UPI. Details are available at the management office.",
-      "author": "Management Office"
-    },
-    {
-      "id": "3",
-      "title": "Water Tank Cleaning - February 15",
-      "date": "2026-02-08",
-      "category": "maintenance",
-      "priority": "high",
-      "summary": "Overhead water tank cleaning is scheduled for February 15. Water supply will be interrupted from 9:00 AM to 2:00 PM.",
-      "body": "As part of regular maintenance, the overhead water tank will be cleaned on February 15, 2026. Water supply will be unavailable between 9:00 AM and 2:00 PM. Residents are advised to store sufficient water for the day.",
-      "author": "Maintenance Team"
-    },
-    {
-      "id": "4",
-      "title": "Republic Day Celebration Photos",
-      "date": "2026-01-27",
+      "title": "Sports Fest Closure",
+      "date": "2026-02-01",
       "category": "event",
       "priority": "normal",
-      "summary": "Thank you to everyone who joined the Republic Day celebration! Check out the photos from the flag hoisting ceremony and cultural programs.",
-      "body": "The Republic Day celebration on January 26 was a wonderful community event. We had a flag hoisting ceremony followed by cultural programs and breakfast. Thank you to all the residents who participated and made it a memorable occasion.",
-      "author": "Cultural Committee"
+      "summary": "The RMV Clusters Phase II Sports Fest has come to a grand close! Thank you to all residents who participated and made it a memorable event.",
+      "body": "The Sports Fest Closure event was held on February 1st with great enthusiasm from residents across all four blocks. It was a wonderful celebration of sportsmanship and community spirit. Watch the event highlights in the video below.",
+      "author": "Sports Committee",
+      "link": "https://drive.google.com/file/d/1dYWnD-mcegD6KqEDumrbKNkG4UwoZDXP/view?usp=share_link",
+      "linkText": "Watch the Event Video"
     }
   ]
 }
