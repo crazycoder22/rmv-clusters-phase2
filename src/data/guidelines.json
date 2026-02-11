@@ -1,0 +1,165 @@
+{
+  "lastUpdated": "2026-02-01",
+  "sections": [
+    {
+      "id": "parking",
+      "title": "Parking Rules",
+      "icon": "car",
+      "rules": [
+        {
+          "title": "Designated Parking",
+          "description": "Each unit is allotted one designated parking space. Please park only in your assigned spot."
+        },
+        {
+          "title": "Visitor Parking",
+          "description": "Visitors must use the designated visitor parking area. Overnight visitor parking requires prior approval from the management office."
+        },
+        {
+          "title": "Two-Wheeler Parking",
+          "description": "Two-wheelers should be parked in the designated two-wheeler parking zone only."
+        },
+        {
+          "title": "No Blocking",
+          "description": "Do not block other vehicles or common pathways. Vehicles causing obstruction may be towed at the owner's expense."
+        }
+      ]
+    },
+    {
+      "id": "maintenance",
+      "title": "Maintenance & Repairs",
+      "icon": "wrench",
+      "rules": [
+        {
+          "title": "Reporting Issues",
+          "description": "Report maintenance issues to the management office during office hours or via the community WhatsApp group for urgent matters."
+        },
+        {
+          "title": "Interior Modifications",
+          "description": "Any structural modifications to your unit require prior written approval from the association. This includes changes to walls, plumbing, and electrical systems."
+        },
+        {
+          "title": "External Workers",
+          "description": "All external workers (plumbers, electricians, etc.) must register at the security desk before entering the premises."
+        }
+      ]
+    },
+    {
+      "id": "visitors",
+      "title": "Visitor Policy",
+      "icon": "users",
+      "rules": [
+        {
+          "title": "Visitor Registration",
+          "description": "All visitors must register at the security gate with valid identification. Residents should inform security in advance about expected visitors."
+        },
+        {
+          "title": "Visiting Hours",
+          "description": "Visitors are welcome between 7:00 AM and 10:00 PM. Overnight guests should be registered with the management office."
+        },
+        {
+          "title": "Delivery Personnel",
+          "description": "Delivery personnel are allowed entry only to the ground floor lobby. Residents should collect their deliveries from the lobby area."
+        }
+      ]
+    },
+    {
+      "id": "noise",
+      "title": "Noise & Quiet Hours",
+      "icon": "volume-x",
+      "rules": [
+        {
+          "title": "Quiet Hours",
+          "description": "Quiet hours are observed from 10:00 PM to 7:00 AM. Please keep noise to a minimum during these hours."
+        },
+        {
+          "title": "Music & Events",
+          "description": "Playing loud music or hosting events with amplified sound requires prior permission from the management office and should not extend beyond 10:00 PM."
+        },
+        {
+          "title": "Construction Noise",
+          "description": "Interior renovation work producing noise is permitted only between 9:00 AM and 5:00 PM on weekdays."
+        }
+      ]
+    },
+    {
+      "id": "common-areas",
+      "title": "Common Area Usage",
+      "icon": "building",
+      "rules": [
+        {
+          "title": "Community Hall",
+          "description": "The community hall can be booked for events through the management office. A refundable deposit is required."
+        },
+        {
+          "title": "Cleanliness",
+          "description": "Please keep common areas clean. Do not leave personal belongings in corridors, stairways, or lobbies."
+        },
+        {
+          "title": "Children's Play Area",
+          "description": "Children under 10 must be supervised by an adult in the play area. Equipment should be used responsibly."
+        }
+      ]
+    },
+    {
+      "id": "pets",
+      "title": "Pet Policy",
+      "icon": "paw-print",
+      "rules": [
+        {
+          "title": "Leash Requirement",
+          "description": "All pets must be on a leash when in common areas. Pet owners are responsible for cleaning up after their pets."
+        },
+        {
+          "title": "Registration",
+          "description": "Pet owners must register their pets with the management office and provide vaccination records."
+        },
+        {
+          "title": "Restricted Areas",
+          "description": "Pets are not allowed in the children's play area, community hall, or gymnasium."
+        }
+      ]
+    },
+    {
+      "id": "waste",
+      "title": "Waste Management",
+      "icon": "trash-2",
+      "rules": [
+        {
+          "title": "Segregation",
+          "description": "All waste must be segregated into wet (green bin) and dry (blue bin) categories before disposal."
+        },
+        {
+          "title": "Collection Times",
+          "description": "Waste collection happens daily between 7:00 AM and 9:00 AM. Please keep your segregated waste ready for collection."
+        },
+        {
+          "title": "E-Waste & Hazardous",
+          "description": "E-waste and hazardous materials should not be mixed with regular waste. Contact the management office for special disposal arrangements."
+        }
+      ]
+    },
+    {
+      "id": "security",
+      "title": "Security Guidelines",
+      "icon": "shield",
+      "rules": [
+        {
+          "title": "Gate Access",
+          "description": "Use your access card/key to enter the premises. Do not share your access credentials with unauthorized persons."
+        },
+        {
+          "title": "CCTV",
+          "description": "The premises are under 24/7 CCTV surveillance for the safety of all residents. Do not tamper with or obstruct any cameras."
+        },
+        {
+          "title": "Suspicious Activity",
+          "description": "Report any suspicious activity immediately to the security desk or the management office."
+        },
+        {
+          "title": "Emergency Exits",
+          "description": "Familiarize yourself with emergency exit routes. Do not block fire exits or store items in emergency pathways."
+        }
+      ]
+    }
+  ]
+}

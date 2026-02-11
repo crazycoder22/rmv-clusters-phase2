@@ -1,0 +1,59 @@
+{
+  "images": [
+    {
+      "id": "img-001",
+      "src": "/images/gallery/IMG_2516.jpg",
+      "thumb": "/images/gallery/thumbs/IMG_2516.jpg",
+      "alt": "RMV Clusters Phase II community view",
+      "caption": "Community overview",
+      "category": "exterior",
+      "featured": true
+    },
+    {
+      "id": "img-002",
+      "src": "/images/gallery/IMG_2532.jpg",
+      "thumb": "/images/gallery/thumbs/IMG_2532.jpg",
+      "alt": "RMV Clusters Phase II building",
+      "caption": "Apartment building",
+      "category": "exterior",
+      "featured": true
+    },
+    {
+      "id": "img-003",
+      "src": "/images/gallery/IMG_2533.jpg",
+      "thumb": "/images/gallery/thumbs/IMG_2533.jpg",
+      "alt": "RMV Clusters Phase II amenities",
+      "caption": "Community amenities",
+      "category": "amenities",
+      "featured": true
+    },
+    {
+      "id": "img-004",
+      "src": "/images/gallery/IMG_2540.jpg",
+      "thumb": "/images/gallery/thumbs/IMG_2540.jpg",
+      "alt": "RMV Clusters Phase II surroundings",
+      "caption": "Community surroundings",
+      "category": "exterior",
+      "featured": true
+    },
+    {
+      "id": "img-005",
+      "src": "/images/gallery/IMG_0508.jpg",
+      "thumb": "/images/gallery/thumbs/IMG_0508.jpg",
+      "alt": "RMV Clusters Phase II interior view",
+      "caption": "Community space",
+      "category": "common-areas",
+      "featured": false
+    },
+    {
+      "id": "img-006",
+      "src": "/images/gallery/IMG_0528.jpg",
+      "thumb": "/images/gallery/thumbs/IMG_0528.jpg",
+      "alt": "RMV Clusters Phase II community area",
+      "caption": "Community area",
+      "category": "common-areas",
+      "featured": false
+    }
+  ],
+  "categories": ["all", "exterior", "amenities", "common-areas"]
+}
