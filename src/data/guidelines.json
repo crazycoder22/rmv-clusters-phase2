@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-02-01",
+  "lastUpdated": "2026-02-11",
   "sections": [
     {
       "id": "parking",
@@ -12,7 +12,7 @@
         },
         {
           "title": "Visitor Parking",
-          "description": "Visitors must use the designated visitor parking area. Overnight visitor parking requires prior approval from the management office."
+          "description": "Visitors must use the designated visitor parking area. Overnight visitor parking requires prior approval from the Common Committee."
         },
         {
           "title": "Two-Wheeler Parking",
@@ -31,15 +31,15 @@
       "rules": [
         {
           "title": "Reporting Issues",
-          "description": "Report maintenance issues to the management office during office hours or via the community WhatsApp group for urgent matters."
+          "description": "Report maintenance issues via MyGate. Use the community WhatsApp group or reach out to the Facility Manager directly only for urgent matters."
         },
         {
           "title": "Interior Modifications",
-          "description": "Any structural modifications to your unit require prior written approval from the association. This includes changes to walls, plumbing, and electrical systems."
+          "description": "Any structural modifications to your unit require prior written approval from your respective block association. The complex has four blocks and four associations."
         },
         {
-          "title": "External Workers",
-          "description": "All external workers (plumbers, electricians, etc.) must register at the security desk before entering the premises."
+          "title": "Noise & Civil Work Restrictions",
+          "description": "No noise-producing work is allowed between 2:00 PM and 4:00 PM. Civil work is not permitted on Sundays and public holidays."
         }
       ]
     },
@@ -63,25 +63,6 @@
       ]
     },
     {
-      "id": "noise",
-      "title": "Noise & Quiet Hours",
-      "icon": "volume-x",
-      "rules": [
-        {
-          "title": "Quiet Hours",
-          "description": "Quiet hours are observed from 10:00 PM to 7:00 AM. Please keep noise to a minimum during these hours."
-        },
-        {
-          "title": "Music & Events",
-          "description": "Playing loud music or hosting events with amplified sound requires prior permission from the management office and should not extend beyond 10:00 PM."
-        },
-        {
-          "title": "Construction Noise",
-          "description": "Interior renovation work producing noise is permitted only between 9:00 AM and 5:00 PM on weekdays."
-        }
-      ]
-    },
-    {
       "id": "common-areas",
       "title": "Common Area Usage",
       "icon": "building",
@@ -93,25 +74,6 @@
         {
           "title": "Children's Play Area",
           "description": "Children under 10 must be supervised by an adult in the play area. Equipment should be used responsibly."
-        }
-      ]
-    },
-    {
-      "id": "pets",
-      "title": "Pet Policy",
-      "icon": "paw-print",
-      "rules": [
-        {
-          "title": "Leash Requirement",
-          "description": "All pets must be on a leash when in common areas. Pet owners are responsible for cleaning up after their pets."
-        },
-        {
-          "title": "Registration",
-          "description": "Pet owners must register their pets with the management office and provide vaccination records."
-        },
-        {
-          "title": "Restricted Areas",
-          "description": "Pets are not allowed in the children's play area."
         }
       ]
     },
@@ -131,29 +93,6 @@
         {
           "title": "E-Waste & Hazardous",
           "description": "E-waste and hazardous materials should not be mixed with regular waste. Contact the management office for special disposal arrangements."
-        }
-      ]
-    },
-    {
-      "id": "security",
-      "title": "Security Guidelines",
-      "icon": "shield",
-      "rules": [
-        {
-          "title": "Gate Access",
-          "description": "Use your access card/key to enter the premises. Do not share your access credentials with unauthorized persons."
-        },
-        {
-          "title": "CCTV",
-          "description": "The premises are under 24/7 CCTV surveillance for the safety of all residents. Do not tamper with or obstruct any cameras."
-        },
-        {
-          "title": "Suspicious Activity",
-          "description": "Report any suspicious activity immediately to the security desk or the management office."
-        },
-        {
-          "title": "Emergency Exits",
-          "description": "Familiarize yourself with emergency exit routes. Do not block fire exits or store items in emergency pathways."
         }
       ]
     }

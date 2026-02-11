@@ -2,7 +2,6 @@ import {
   Shield,
   TreePine,
   Baby,
-  Droplets,
 } from "lucide-react";
 import SectionHeading from "@/components/ui/SectionHeading";
 
@@ -25,12 +24,6 @@ const amenities = [
     description:
       "Play area for children with equipment for outdoor activities.",
   },
-  {
-    icon: Droplets,
-    title: "Water Supply",
-    description:
-      "Reliable water supply through Cauvery connection and borewell with overhead tank storage.",
-  },
 ];
 
 export default function HighlightsSection() {
@@ -41,7 +34,7 @@ export default function HighlightsSection() {
           title="Community Amenities"
           subtitle="Everything you need for comfortable living, right at your doorstep"
         />
-        <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-4xl mx-auto">
+        <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {amenities.map((amenity, index) => (
             <div
               key={index}

@@ -3,11 +3,8 @@ import {
   Car,
   Wrench,
   Users,
-  VolumeX,
   Building,
-  PawPrint,
   Trash2,
-  Shield,
 } from "lucide-react";
 import guidelinesData from "@/data/guidelines.json";
 import { formatDate } from "@/lib/utils";
@@ -22,11 +19,8 @@ const iconMap: Record<string, React.ComponentType<{ size?: number; className?: s
   car: Car,
   wrench: Wrench,
   users: Users,
-  "volume-x": VolumeX,
   building: Building,
-  "paw-print": PawPrint,
   "trash-2": Trash2,
-  shield: Shield,
 };
 
 export default function GuidelinesPage() {

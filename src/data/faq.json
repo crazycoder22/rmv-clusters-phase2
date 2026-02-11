@@ -16,7 +16,7 @@
     {
       "id": "faq-3",
       "question": "How do I report a maintenance issue?",
-      "answer": "Maintenance issues can be reported to the management office during office hours (Mon-Sat, 9 AM - 6 PM). For urgent issues outside office hours, please contact the security desk who will coordinate with the maintenance team.",
+      "answer": "Report maintenance issues via MyGate. For urgent issues, use the community WhatsApp group or reach out to the Facility Manager directly.",
       "category": "maintenance"
     },
     {
@@ -42,12 +42,6 @@
       "question": "How does water supply work?",
       "answer": "Water is supplied from the Cauvery connection and borewell. Regular supply is available during morning (6-9 AM) and evening (5-8 PM) hours. Overhead tanks ensure continuous availability for essential use throughout the day.",
       "category": "facilities"
-    },
-    {
-      "id": "faq-9",
-      "question": "Are pets allowed in the complex?",
-      "answer": "Pets are allowed with proper registration at the management office. Pet owners must provide vaccination records, keep pets leashed in common areas, and clean up after them. Pets are not permitted in the children's play area.",
-      "category": "general"
     },
     {
       "id": "faq-10",
