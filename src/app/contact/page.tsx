@@ -27,6 +27,7 @@ const emergencyIconMap: Record<string, React.ComponentType<{ size?: number; clas
   siren: Siren,
   zap: Zap,
   droplets: Droplets,
+  phone: Phone,
 };
 
 export default function ContactPage() {

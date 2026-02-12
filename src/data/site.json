@@ -25,34 +25,29 @@
   },
   "emergencyContacts": [
     {
-      "name": "Security Desk",
-      "phone": "+91-XXXX-XXXXXX",
+      "name": "Security at MainGate",
+      "phone": "9019903594",
       "icon": "shield"
     },
     {
-      "name": "Fire Station",
-      "phone": "101",
-      "icon": "flame"
-    },
-    {
-      "name": "Ambulance",
-      "phone": "108",
-      "icon": "heart-pulse"
-    },
-    {
-      "name": "Police",
-      "phone": "100",
+      "name": "Kodigehalli Police Station",
+      "phone": "+91 80 22943703",
       "icon": "siren"
     },
     {
-      "name": "BESCOM (Electricity)",
-      "phone": "1912",
-      "icon": "zap"
+      "name": "RMV Hospital",
+      "phone": "+91 80 42664366",
+      "icon": "heart-pulse"
     },
     {
-      "name": "BWSSB (Water)",
-      "phone": "1916",
-      "icon": "droplets"
+      "name": "MS Ramaiah Hospital",
+      "phone": "+91 80 40502000, +91 80 23609999",
+      "icon": "heart-pulse"
+    },
+    {
+      "name": "Helpline (Police, Fire or Ambulance)",
+      "phone": "112",
+      "icon": "phone"
     }
   ]
 }

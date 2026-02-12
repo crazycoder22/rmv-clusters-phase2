@@ -1,52 +1,16 @@
 {
-  "categories": ["general", "maintenance", "payments", "facilities"],
+  "categories": ["maintenance", "general"],
   "items": [
     {
       "id": "faq-1",
-      "question": "What is the monthly maintenance charge?",
-      "answer": "Monthly maintenance charges vary based on the flat size. Please contact the management office for the exact amount applicable to your unit. Payments are due by the 10th of every month.",
-      "category": "payments"
-    },
-    {
-      "id": "faq-2",
-      "question": "How can I pay my maintenance charges?",
-      "answer": "Maintenance charges can be paid via bank transfer (NEFT/IMPS) or UPI. Account details are available at the management office. Please include your flat number as the payment reference.",
-      "category": "payments"
-    },
-    {
-      "id": "faq-3",
       "question": "How do I report a maintenance issue?",
       "answer": "Report maintenance issues via MyGate. For urgent issues, use the community WhatsApp group or reach out to the Facility Manager directly.",
       "category": "maintenance"
     },
     {
-      "id": "faq-4",
+      "id": "faq-2",
       "question": "What are the move-in/move-out procedures?",
       "answer": "Moving in or out requires prior notice to the management office (at least 48 hours). Moving activities are allowed only between 8:00 AM and 6:00 PM. A no-objection certificate (NOC) from the association is required for move-out.",
-      "category": "general"
-    },
-    {
-      "id": "faq-5",
-      "question": "Can I rent out my flat?",
-      "answer": "Yes, flats can be rented out. However, tenants must be registered with the management office with proper documentation including rental agreement, ID proof, and police verification. The flat owner remains responsible for any violations by the tenant.",
-      "category": "general"
-    },
-    {
-      "id": "faq-7",
-      "question": "What are the power backup arrangements?",
-      "answer": "The complex has a generator backup for common area lighting and lifts. Individual flat power backup is not provided by the association.",
-      "category": "facilities"
-    },
-    {
-      "id": "faq-8",
-      "question": "How does water supply work?",
-      "answer": "Water is supplied from the Cauvery connection and borewell. Regular supply is available during morning (6-9 AM) and evening (5-8 PM) hours. Overhead tanks ensure continuous availability for essential use throughout the day.",
-      "category": "facilities"
-    },
-    {
-      "id": "faq-10",
-      "question": "What should I do in case of an emergency?",
-      "answer": "In case of emergency, contact the security desk immediately. Emergency numbers are displayed at the security gate and on the community notice board. For fire emergencies, use the fire extinguishers available on each floor and evacuate via stairways (do not use lifts).",
       "category": "general"
     }
   ]

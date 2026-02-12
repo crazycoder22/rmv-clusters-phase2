@@ -1,15 +1,11 @@
 {
-  "lastUpdated": "2026-02-11",
+  "lastUpdated": "2026-02-12",
   "sections": [
     {
       "id": "parking",
       "title": "Parking Rules",
       "icon": "car",
       "rules": [
-        {
-          "title": "Designated Parking",
-          "description": "Each unit is allotted one designated parking space. Please park only in your assigned spot."
-        },
         {
           "title": "Visitor Parking",
           "description": "Visitors must use the designated visitor parking area. Overnight visitor parking requires prior approval from the Common Committee."
@@ -35,7 +31,7 @@
         },
         {
           "title": "Interior Modifications",
-          "description": "Any structural modifications to your unit require prior written approval from your respective block association. The complex has four blocks and four associations."
+          "description": "Any structural modifications to your unit require prior written approval from your respective block association."
         },
         {
           "title": "Noise & Civil Work Restrictions",
@@ -50,15 +46,7 @@
       "rules": [
         {
           "title": "Visitor Registration",
-          "description": "All visitors must register at the security gate with valid identification. Residents should inform security in advance about expected visitors."
-        },
-        {
-          "title": "Visiting Hours",
-          "description": "Visitors are welcome between 7:00 AM and 10:00 PM. Overnight guests should be registered with the management office."
-        },
-        {
-          "title": "Delivery Personnel",
-          "description": "Delivery personnel are allowed entry only to the ground floor lobby. Residents should collect their deliveries from the lobby area."
+          "description": "All visitors must register at the security gate with valid identification."
         }
       ]
     },
@@ -84,7 +72,7 @@
       "rules": [
         {
           "title": "Segregation",
-          "description": "All waste must be segregated into wet (green bin) and dry (blue bin) categories before disposal."
+          "description": "All waste must be segregated into wet and dry categories before disposal."
         },
         {
           "title": "Collection Times",
