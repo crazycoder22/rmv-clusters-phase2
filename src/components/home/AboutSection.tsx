@@ -37,8 +37,8 @@ export default function AboutSection() {
           </div>
           <div className="relative h-80 lg:h-96 rounded-xl overflow-hidden shadow-lg">
             <Image
-              src="/images/gallery/IMG_2532.jpg"
-              alt="RMV Clusters Phase II building"
+              src="/images/gallery/block-1.jpg"
+              alt="Block 1 of RMV Clusters Phase II"
               fill
               className="object-cover"
               sizes="(max-width: 1024px) 100vw, 50vw"

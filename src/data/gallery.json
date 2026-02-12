@@ -2,58 +2,184 @@
   "images": [
     {
       "id": "img-001",
-      "src": "/images/gallery/IMG_2516.jpg",
-      "thumb": "/images/gallery/thumbs/IMG_2516.jpg",
-      "alt": "RMV Clusters Phase II community view",
-      "caption": "Community overview",
-      "category": "exterior",
+      "src": "/images/gallery/block-1.jpg",
+      "thumb": "/images/gallery/thumbs/block-1.jpg",
+      "alt": "Block 1 of RMV Clusters Phase II",
+      "caption": "Block 1",
+      "category": "blocks",
       "featured": true
     },
     {
       "id": "img-002",
-      "src": "/images/gallery/IMG_2532.jpg",
-      "thumb": "/images/gallery/thumbs/IMG_2532.jpg",
-      "alt": "RMV Clusters Phase II building",
-      "caption": "Apartment building",
-      "category": "exterior",
-      "featured": true
+      "src": "/images/gallery/block-2.jpg",
+      "thumb": "/images/gallery/thumbs/block-2.jpg",
+      "alt": "Block 2 of RMV Clusters Phase II",
+      "caption": "Block 2",
+      "category": "blocks",
+      "featured": false
     },
     {
       "id": "img-003",
-      "src": "/images/gallery/IMG_2533.jpg",
-      "thumb": "/images/gallery/thumbs/IMG_2533.jpg",
-      "alt": "RMV Clusters Phase II amenities",
-      "caption": "Community amenities",
-      "category": "amenities",
-      "featured": true
+      "src": "/images/gallery/block-2-side-view.jpg",
+      "thumb": "/images/gallery/thumbs/block-2-side-view.jpg",
+      "alt": "Block 2 side view of RMV Clusters Phase II",
+      "caption": "Block 2 - Side View",
+      "category": "blocks",
+      "featured": false
     },
     {
       "id": "img-004",
-      "src": "/images/gallery/IMG_2540.jpg",
-      "thumb": "/images/gallery/thumbs/IMG_2540.jpg",
-      "alt": "RMV Clusters Phase II surroundings",
-      "caption": "Community surroundings",
-      "category": "exterior",
-      "featured": true
+      "src": "/images/gallery/block-3.jpg",
+      "thumb": "/images/gallery/thumbs/block-3.jpg",
+      "alt": "Block 3 of RMV Clusters Phase II",
+      "caption": "Block 3",
+      "category": "blocks",
+      "featured": false
     },
     {
       "id": "img-005",
-      "src": "/images/gallery/IMG_0508.jpg",
-      "thumb": "/images/gallery/thumbs/IMG_0508.jpg",
-      "alt": "RMV Clusters Phase II interior view",
-      "caption": "Community space",
-      "category": "common-areas",
+      "src": "/images/gallery/block-4.jpg",
+      "thumb": "/images/gallery/thumbs/block-4.jpg",
+      "alt": "Block 4 of RMV Clusters Phase II",
+      "caption": "Block 4",
+      "category": "blocks",
       "featured": false
     },
     {
       "id": "img-006",
-      "src": "/images/gallery/IMG_0528.jpg",
-      "thumb": "/images/gallery/thumbs/IMG_0528.jpg",
-      "alt": "RMV Clusters Phase II community area",
-      "caption": "Community area",
+      "src": "/images/gallery/block-4-side-view.jpg",
+      "thumb": "/images/gallery/thumbs/block-4-side-view.jpg",
+      "alt": "Block 4 side view of RMV Clusters Phase II",
+      "caption": "Block 4 - Side View",
+      "category": "blocks",
+      "featured": false
+    },
+    {
+      "id": "img-007",
+      "src": "/images/gallery/common-area-1.jpg",
+      "thumb": "/images/gallery/thumbs/common-area-1.jpg",
+      "alt": "Common area at RMV Clusters Phase II",
+      "caption": "Common Area",
       "category": "common-areas",
+      "featured": true
+    },
+    {
+      "id": "img-008",
+      "src": "/images/gallery/common-area-2.jpg",
+      "thumb": "/images/gallery/thumbs/common-area-2.jpg",
+      "alt": "Common area at RMV Clusters Phase II",
+      "caption": "Common Area",
+      "category": "common-areas",
+      "featured": false
+    },
+    {
+      "id": "img-009",
+      "src": "/images/gallery/common-area-3.jpg",
+      "thumb": "/images/gallery/thumbs/common-area-3.jpg",
+      "alt": "Common area at RMV Clusters Phase II",
+      "caption": "Common Area",
+      "category": "common-areas",
+      "featured": false
+    },
+    {
+      "id": "img-010",
+      "src": "/images/gallery/common-area-4.jpg",
+      "thumb": "/images/gallery/thumbs/common-area-4.jpg",
+      "alt": "Common area at RMV Clusters Phase II",
+      "caption": "Common Area",
+      "category": "common-areas",
+      "featured": false
+    },
+    {
+      "id": "img-011",
+      "src": "/images/gallery/common-area-5.jpg",
+      "thumb": "/images/gallery/thumbs/common-area-5.jpg",
+      "alt": "Common area at RMV Clusters Phase II",
+      "caption": "Common Area",
+      "category": "common-areas",
+      "featured": false
+    },
+    {
+      "id": "img-012",
+      "src": "/images/gallery/common-area-6.jpg",
+      "thumb": "/images/gallery/thumbs/common-area-6.jpg",
+      "alt": "Common area at RMV Clusters Phase II",
+      "caption": "Common Area",
+      "category": "common-areas",
+      "featured": false
+    },
+    {
+      "id": "img-013",
+      "src": "/images/gallery/play-area-1.jpg",
+      "thumb": "/images/gallery/thumbs/play-area-1.jpg",
+      "alt": "Play area at RMV Clusters Phase II",
+      "caption": "Play Area",
+      "category": "play-areas",
+      "featured": true
+    },
+    {
+      "id": "img-014",
+      "src": "/images/gallery/play-area-2.jpg",
+      "thumb": "/images/gallery/thumbs/play-area-2.jpg",
+      "alt": "Play area at RMV Clusters Phase II",
+      "caption": "Play Area",
+      "category": "play-areas",
+      "featured": false
+    },
+    {
+      "id": "img-015",
+      "src": "/images/gallery/childrens-park.jpg",
+      "thumb": "/images/gallery/thumbs/childrens-park.jpg",
+      "alt": "Children's park at RMV Clusters Phase II",
+      "caption": "Children's Park",
+      "category": "play-areas",
+      "featured": false
+    },
+    {
+      "id": "img-016",
+      "src": "/images/gallery/volleyball-court.jpg",
+      "thumb": "/images/gallery/thumbs/volleyball-court.jpg",
+      "alt": "Volleyball court at RMV Clusters Phase II",
+      "caption": "Volleyball Court",
+      "category": "play-areas",
+      "featured": false
+    },
+    {
+      "id": "img-017",
+      "src": "/images/gallery/jackfruit-tree.jpg",
+      "thumb": "/images/gallery/thumbs/jackfruit-tree.jpg",
+      "alt": "Jackfruit tree at RMV Clusters Phase II",
+      "caption": "Jackfruit Tree",
+      "category": "surroundings",
+      "featured": true
+    },
+    {
+      "id": "img-018",
+      "src": "/images/gallery/naga-temple.jpg",
+      "thumb": "/images/gallery/thumbs/naga-temple.jpg",
+      "alt": "Naga Temple near RMV Clusters Phase II",
+      "caption": "Naga Temple",
+      "category": "surroundings",
+      "featured": false
+    },
+    {
+      "id": "img-019",
+      "src": "/images/gallery/rmv-side-view.jpg",
+      "thumb": "/images/gallery/thumbs/rmv-side-view.jpg",
+      "alt": "RMV Clusters Phase II side view",
+      "caption": "RMV Side View",
+      "category": "surroundings",
+      "featured": false
+    },
+    {
+      "id": "img-020",
+      "src": "/images/gallery/rmv-top-view.jpg",
+      "thumb": "/images/gallery/thumbs/rmv-top-view.jpg",
+      "alt": "RMV Clusters Phase II aerial top view",
+      "caption": "RMV Top View",
+      "category": "surroundings",
       "featured": false
     }
   ],
-  "categories": ["all", "exterior", "amenities", "common-areas"]
+  "categories": ["all", "blocks", "common-areas", "play-areas", "surroundings"]
 }
