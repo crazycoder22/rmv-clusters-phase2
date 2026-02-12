@@ -38,6 +38,21 @@ export default function GuidelinesPage() {
           <div className="mt-4 h-1 w-16 bg-primary-500 rounded mx-auto" />
         </div>
 
+        {/* Mobile TOC */}
+        <div className="lg:hidden mb-8">
+          <div className="flex flex-wrap gap-2">
+            {guidelinesData.sections.map((section) => (
+              <a
+                key={section.id}
+                href={`#${section.id}`}
+                className="px-3 py-1.5 text-xs font-medium bg-primary-50 text-primary-700 rounded-full hover:bg-primary-100 transition-colors"
+              >
+                {section.title}
+              </a>
+            ))}
+          </div>
+        </div>
+
         <div className="flex gap-8">
           {/* Table of Contents - desktop sidebar */}
           <aside className="hidden lg:block w-64 shrink-0">
@@ -63,21 +78,6 @@ export default function GuidelinesPage() {
               </ul>
             </nav>
           </aside>
-
-          {/* Mobile TOC */}
-          <div className="lg:hidden w-full mb-6">
-            <div className="flex flex-wrap gap-2">
-              {guidelinesData.sections.map((section) => (
-                <a
-                  key={section.id}
-                  href={`#${section.id}`}
-                  className="px-3 py-1.5 text-xs font-medium bg-primary-50 text-primary-700 rounded-full hover:bg-primary-100 transition-colors"
-                >
-                  {section.title}
-                </a>
-              ))}
-            </div>
-          </div>
 
           {/* Main content */}
           <div className="flex-1 min-w-0 space-y-12">
