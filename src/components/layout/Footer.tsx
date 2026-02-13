@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MapPin, Phone, Mail, Clock } from "lucide-react";
+import { MapPin, Phone, Mail, Clock, Instagram, Youtube } from "lucide-react";
 import siteData from "@/data/site.json";
 
 const quickLinks = [
@@ -19,11 +19,35 @@ export default function Footer() {
           {/* About */}
           <div>
             <h3 className="text-lg font-semibold mb-4">{siteData.name}</h3>
-            <p className="text-primary-200 text-sm leading-relaxed">
+            <p className="text-primary-200 text-sm leading-relaxed mb-4">
               A well-established apartment community in Devinagar, Bengaluru. Stay
               connected with your neighbours and stay informed about community
               happenings.
             </p>
+            <div className="flex gap-3">
+              {siteData.socialLinks.instagram && (
+                <a
+                  href={siteData.socialLinks.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-full bg-primary-800 flex items-center justify-center text-primary-200 hover:text-white hover:bg-primary-700 transition-colors"
+                  aria-label="Instagram"
+                >
+                  <Instagram size={18} />
+                </a>
+              )}
+              {siteData.socialLinks.youtube && (
+                <a
+                  href={siteData.socialLinks.youtube}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-full bg-primary-800 flex items-center justify-center text-primary-200 hover:text-white hover:bg-primary-700 transition-colors"
+                  aria-label="YouTube"
+                >
+                  <Youtube size={18} />
+                </a>
+              )}
+            </div>
           </div>
 
           {/* Quick Links */}
