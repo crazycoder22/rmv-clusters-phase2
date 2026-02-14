@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import NoticeBanner from "@/components/layout/NoticeBanner";
+import SessionProvider from "@/components/auth/SessionProvider";
 import siteData from "@/data/site.json";
 import type { NoticeBanner as NoticeBannerType } from "@/types";
 
@@ -42,14 +43,16 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {siteData.noticeBanner && (
-          <NoticeBanner
-            banner={siteData.noticeBanner as NoticeBannerType}
-          />
-        )}
-        <Navbar />
-        <main className="min-h-screen">{children}</main>
-        <Footer />
+        <SessionProvider>
+          {siteData.noticeBanner && (
+            <NoticeBanner
+              banner={siteData.noticeBanner as NoticeBannerType}
+            />
+          )}
+          <Navbar />
+          <main className="min-h-screen">{children}</main>
+          <Footer />
+        </SessionProvider>
       </body>
     </html>
   );

@@ -3,8 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { useSession, signIn, signOut } from "next-auth/react";
 import { Menu, X } from "lucide-react";
 import clsx from "clsx";
+import SignInButton from "@/components/auth/SignInButton";
+import UserMenu from "@/components/auth/UserMenu";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -18,6 +21,7 @@ const navLinks = [
 export default function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { data: session } = useSession();
 
   return (
     <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm">
@@ -27,7 +31,7 @@ export default function Navbar() {
             RMV Clusters
           </Link>
 
-          {/* Desktop links */}
+          {/* Desktop links + auth */}
           <div className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => (
               <Link
@@ -43,6 +47,9 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
+            <div className="ml-2 border-l pl-2">
+              {session ? <UserMenu /> : <SignInButton />}
+            </div>
           </div>
 
           {/* Mobile menu button */}
@@ -75,6 +82,34 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
+            <div className="border-t mt-2 pt-2">
+              {session ? (
+                <div className="px-3 py-2">
+                  <p className="text-sm font-medium text-gray-900">
+                    {session.user?.name}
+                  </p>
+                  <button
+                    onClick={() => {
+                      signOut();
+                      setMobileOpen(false);
+                    }}
+                    className="mt-1 text-sm text-gray-600 hover:text-primary-700"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    signIn("google");
+                    setMobileOpen(false);
+                  }}
+                  className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-primary-700 hover:bg-primary-50"
+                >
+                  Sign In
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
