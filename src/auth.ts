@@ -27,9 +27,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       ) {
         const resident = await prisma.resident.findUnique({
           where: { email: token.email },
-          select: { id: true },
+          select: { id: true, role: { select: { name: true } } },
         });
         token.isRegistered = !!resident;
+        token.role = resident?.role.name ?? null;
       }
 
       return token;
@@ -40,6 +41,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.email = token.email as string;
         session.user.image = token.picture as string;
         session.user.isRegistered = token.isRegistered ?? false;
+        session.user.role = (token.role as "RESIDENT" | "ADMIN" | "SUPERADMIN") ?? null;
       }
       return session;
     },

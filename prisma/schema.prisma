@@ -7,6 +7,13 @@ datasource db {
   provider = "postgresql"
 }
 
+model Role {
+  id        String     @id @default(cuid())
+  name      String     @unique // "RESIDENT", "ADMIN", "SUPERADMIN"
+  residents Resident[]
+  createdAt DateTime   @default(now())
+}
+
 model Resident {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -16,6 +23,8 @@ model Resident {
   flatNumber   String   // e.g., "101", "G2"
   residentType String   // "OWNER" or "TENANT"
   googleImage  String?
+  roleId       String
+  role         Role     @relation(fields: [roleId], references: [id])
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }

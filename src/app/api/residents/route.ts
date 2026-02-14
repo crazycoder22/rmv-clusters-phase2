@@ -45,6 +45,18 @@ export async function POST(request: Request) {
     );
   }
 
+  // Get the default RESIDENT role
+  const residentRole = await prisma.role.findUnique({
+    where: { name: "RESIDENT" },
+  });
+
+  if (!residentRole) {
+    return NextResponse.json(
+      { error: "System error: default role not found" },
+      { status: 500 }
+    );
+  }
+
   const resident = await prisma.resident.create({
     data: {
       email: session.user.email,
@@ -54,6 +66,7 @@ export async function POST(request: Request) {
       flatNumber,
       residentType,
       googleImage: session.user.image ?? null,
+      roleId: residentRole.id,
     },
   });
 
