@@ -1,18 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import clsx from "clsx";
 import Badge from "@/components/ui/Badge";
 import { formatDate, getPriorityBorder } from "@/lib/utils";
-import newsData from "@/data/news.json";
 import type { Announcement } from "@/types";
 
 const categories = ["all", "maintenance", "event", "general", "urgent"];
 
 export default function NewsFeed() {
   const [activeCategory, setActiveCategory] = useState("all");
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const announcements = newsData.announcements as Announcement[];
+  useEffect(() => {
+    async function fetchAnnouncements() {
+      try {
+        const res = await fetch("/api/announcements");
+        if (res.ok) {
+          const data = await res.json();
+          setAnnouncements(data.announcements);
+        }
+      } catch {
+        // silently fail
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchAnnouncements();
+  }, []);
+
   const filtered =
     activeCategory === "all"
       ? announcements
@@ -21,6 +38,14 @@ export default function NewsFeed() {
   const sorted = [...filtered].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
+
+  if (loading) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-500">Loading announcements...</p>
+      </div>
+    );
+  }
 
   return (
     <>

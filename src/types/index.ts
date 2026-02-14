@@ -63,6 +63,7 @@ export interface Announcement {
   author: string;
   link?: string;
   linkText?: string;
+  published?: boolean;
 }
 
 export interface GalleryImage {

@@ -49,7 +49,7 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
-            {session?.user?.role === "SUPERADMIN" && (
+            {(session?.user?.role === "SUPERADMIN" || session?.user?.role === "ADMIN") && (
               <Link
                 href="/admin"
                 className={clsx(
@@ -97,7 +97,7 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
-            {session?.user?.role === "SUPERADMIN" && (
+            {(session?.user?.role === "SUPERADMIN" || session?.user?.role === "ADMIN") && (
               <Link
                 href="/admin"
                 onClick={() => setMobileOpen(false)}

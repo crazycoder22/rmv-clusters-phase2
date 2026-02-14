@@ -14,6 +14,22 @@ model Role {
   createdAt DateTime   @default(now())
 }
 
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  date      DateTime @default(now())
+  category  String   // "maintenance", "event", "general", "urgent"
+  priority  String   @default("normal") // "low", "normal", "high"
+  summary   String
+  body      String
+  author    String
+  link      String?
+  linkText  String?
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Resident {
   id           String   @id @default(cuid())
   email        String   @unique
