@@ -49,6 +49,19 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
+            {session?.user?.role === "SUPERADMIN" && (
+              <Link
+                href="/admin"
+                className={clsx(
+                  "px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                  pathname === "/admin"
+                    ? "bg-primary-50 text-primary-700"
+                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50"
+                )}
+              >
+                Admin
+              </Link>
+            )}
             <div className="ml-2 border-l pl-2">
               {session ? <UserMenu /> : <SignInButton />}
             </div>
@@ -84,6 +97,20 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
+            {session?.user?.role === "SUPERADMIN" && (
+              <Link
+                href="/admin"
+                onClick={() => setMobileOpen(false)}
+                className={clsx(
+                  "block px-3 py-2 rounded-md text-base font-medium transition-colors",
+                  pathname === "/admin"
+                    ? "bg-primary-50 text-primary-700"
+                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50"
+                )}
+              >
+                Admin
+              </Link>
+            )}
             <div className="border-t mt-2 pt-2">
               {session ? (
                 <div className="px-3 py-2">
