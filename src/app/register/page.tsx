@@ -61,7 +61,8 @@ export default function RegisterPage() {
       // Trigger session update so isRegistered becomes true
       await update();
 
-      router.push("/");
+      // Full reload to ensure fresh session (avoids stale isRegistered race)
+      window.location.href = "/";
     } catch {
       setError("Network error. Please try again.");
     } finally {

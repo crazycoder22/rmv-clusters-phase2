@@ -20,10 +20,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.picture = profile.picture;
       }
 
-      // Check registration status on sign-in, session update, or first load
+      // Check registration status on sign-in, session update, or when not yet registered
       if (
         token.email &&
-        (trigger === "signIn" || trigger === "update" || token.isRegistered === undefined)
+        (trigger === "signIn" || trigger === "update" || !token.isRegistered)
       ) {
         const resident = await prisma.resident.findUnique({
           where: { email: token.email },
