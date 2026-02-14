@@ -8,6 +8,7 @@ import { Menu, X } from "lucide-react";
 import clsx from "clsx";
 import SignInButton from "@/components/auth/SignInButton";
 import UserMenu from "@/components/auth/UserMenu";
+import { useRegistrationGuard } from "@/hooks/useRegistrationGuard";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -22,6 +23,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const { data: session } = useSession();
+  useRegistrationGuard();
 
   return (
     <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm">
