@@ -2,8 +2,10 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRole } from "@/hooks/useRole";
+import Link from "next/link";
 import clsx from "clsx";
-import type { Announcement } from "@/types";
+import MenuItemBuilder from "@/components/admin/MenuItemBuilder";
+import type { Announcement, MenuItemFormEntry } from "@/types";
 
 interface ResidentWithRole {
   id: string;
@@ -37,6 +39,10 @@ const emptyNewsForm = {
   link: "",
   linkText: "",
   published: true,
+  enableRsvp: false,
+  mealType: "dinner",
+  rsvpDeadline: "",
+  menuItems: [] as MenuItemFormEntry[],
 };
 
 type TabId = "add" | "manage" | "news";
@@ -219,10 +225,28 @@ export default function AdminPage() {
         : "/api/admin/announcements";
       const method = editingId ? "PATCH" : "POST";
 
+      // Build payload with optional eventConfig
+      const { enableRsvp, mealType, rsvpDeadline, menuItems: menuItemsForm, ...baseForm } = newsForm;
+      const payload: Record<string, unknown> = { ...baseForm };
+
+      if (enableRsvp && baseForm.category === "event") {
+        payload.eventConfig = {
+          mealType,
+          rsvpDeadline,
+          menuItems: menuItemsForm.map((item) => ({
+            name: item.name,
+            pricePerPlate: parseFloat(item.pricePerPlate) || 0,
+          })),
+        };
+      } else if (!enableRsvp && editingId) {
+        // If editing and RSVP disabled, send null to remove existing eventConfig
+        payload.eventConfig = null;
+      }
+
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newsForm),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
@@ -254,6 +278,7 @@ export default function AdminPage() {
 
   const handleEdit = (announcement: Announcement) => {
     setEditingId(announcement.id);
+    const ec = announcement.eventConfig;
     setNewsForm({
       title: announcement.title,
       date: announcement.date
@@ -267,6 +292,16 @@ export default function AdminPage() {
       link: announcement.link || "",
       linkText: announcement.linkText || "",
       published: announcement.published ?? true,
+      enableRsvp: !!ec,
+      mealType: ec?.mealType || "dinner",
+      rsvpDeadline: ec?.rsvpDeadline
+        ? new Date(ec.rsvpDeadline).toISOString().slice(0, 16)
+        : "",
+      menuItems: ec?.menuItems?.map((item) => ({
+        tempId: crypto.randomUUID(),
+        name: item.name,
+        pricePerPlate: String(item.pricePerPlate),
+      })) || [],
     });
     // Scroll to form
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -525,6 +560,71 @@ export default function AdminPage() {
                 </label>
               </div>
 
+              {/* Event RSVP Settings */}
+              {newsForm.category === "event" && (
+                <div className="border border-gray-200 rounded-lg p-4 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="enableRsvp"
+                      name="enableRsvp"
+                      checked={newsForm.enableRsvp}
+                      onChange={handleNewsChange}
+                      className="h-4 w-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
+                    />
+                    <label
+                      htmlFor="enableRsvp"
+                      className="text-sm font-semibold text-gray-700"
+                    >
+                      Enable RSVP &amp; Food Ordering
+                    </label>
+                  </div>
+
+                  {newsForm.enableRsvp && (
+                    <div className="space-y-4 pl-6 border-l-2 border-primary-100">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Meal Type
+                          </label>
+                          <select
+                            name="mealType"
+                            value={newsForm.mealType}
+                            onChange={handleNewsChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                          >
+                            <option value="breakfast">Breakfast</option>
+                            <option value="lunch">Lunch</option>
+                            <option value="dinner">Dinner</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            RSVP Deadline
+                          </label>
+                          <input
+                            type="datetime-local"
+                            name="rsvpDeadline"
+                            value={newsForm.rsvpDeadline}
+                            onChange={handleNewsChange}
+                            required={newsForm.enableRsvp}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                          />
+                        </div>
+                      </div>
+
+                      <MenuItemBuilder
+                        items={newsForm.menuItems}
+                        onChange={(items) =>
+                          setNewsForm((prev) => ({ ...prev, menuItems: items }))
+                        }
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
               {newsError && (
                 <div className="rounded-md bg-red-50 border border-red-200 p-3">
                   <p className="text-sm text-red-800">{newsError}</p>
@@ -669,6 +769,14 @@ export default function AdminPage() {
                             >
                               {deletingId === a.id ? "..." : "Delete"}
                             </button>
+                            {a.eventConfig && (
+                              <Link
+                                href={`/admin/events/${a.id}/rsvps`}
+                                className="text-xs text-green-600 hover:text-green-700 font-medium"
+                              >
+                                RSVPs
+                              </Link>
+                            )}
                           </div>
                         </td>
                       </tr>

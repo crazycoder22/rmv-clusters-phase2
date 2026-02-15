@@ -59,9 +59,67 @@ export async function PATCH(
   if (body.published !== undefined) updateData.published = body.published;
 
   try {
+    // Handle eventConfig updates
+    if (body.eventConfig !== undefined) {
+      if (body.eventConfig === null) {
+        // Remove eventConfig (disable RSVP)
+        await prisma.eventConfig.deleteMany({ where: { announcementId: id } });
+      } else {
+        const ec = body.eventConfig;
+        // Check if eventConfig already exists
+        const existing = await prisma.eventConfig.findUnique({
+          where: { announcementId: id },
+        });
+
+        if (existing) {
+          // Delete old menu items and recreate
+          await prisma.menuItem.deleteMany({ where: { eventConfigId: existing.id } });
+          await prisma.eventConfig.update({
+            where: { id: existing.id },
+            data: {
+              mealType: ec.mealType,
+              rsvpDeadline: new Date(ec.rsvpDeadline),
+              menuItems: {
+                create: ec.menuItems.map(
+                  (item: { name: string; pricePerPlate: number }, index: number) => ({
+                    name: item.name,
+                    pricePerPlate: item.pricePerPlate,
+                    sortOrder: index,
+                  })
+                ),
+              },
+            },
+          });
+        } else {
+          // Create new eventConfig
+          await prisma.eventConfig.create({
+            data: {
+              announcementId: id,
+              mealType: ec.mealType,
+              rsvpDeadline: new Date(ec.rsvpDeadline),
+              menuItems: {
+                create: ec.menuItems.map(
+                  (item: { name: string; pricePerPlate: number }, index: number) => ({
+                    name: item.name,
+                    pricePerPlate: item.pricePerPlate,
+                    sortOrder: index,
+                  })
+                ),
+              },
+            },
+          });
+        }
+      }
+    }
+
     const announcement = await prisma.announcement.update({
       where: { id },
       data: updateData,
+      include: {
+        eventConfig: {
+          include: { menuItems: { orderBy: { sortOrder: "asc" } } },
+        },
+      },
     });
     return NextResponse.json({ success: true, announcement });
   } catch {

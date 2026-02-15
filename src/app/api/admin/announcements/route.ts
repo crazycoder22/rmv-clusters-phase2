@@ -19,6 +19,11 @@ export async function GET() {
 
   const announcements = await prisma.announcement.findMany({
     orderBy: { date: "desc" },
+    include: {
+      eventConfig: {
+        include: { menuItems: { orderBy: { sortOrder: "asc" } } },
+      },
+    },
   });
 
   return NextResponse.json({ announcements });
@@ -29,7 +34,7 @@ export async function POST(request: Request) {
   if ("error" in check && check.error) return check.error;
 
   const body = await request.json();
-  const { title, date, category, priority, summary, body: announcementBody, author, link, linkText, published } = body;
+  const { title, date, category, priority, summary, body: announcementBody, author, link, linkText, published, eventConfig } = body;
 
   // Validate required fields
   if (!title || !summary || !announcementBody || !author) {
@@ -55,6 +60,30 @@ export async function POST(request: Request) {
     );
   }
 
+  // Validate eventConfig if provided
+  if (eventConfig) {
+    const validMealTypes = ["breakfast", "lunch", "dinner"];
+    if (!validMealTypes.includes(eventConfig.mealType)) {
+      return NextResponse.json(
+        { error: `Meal type must be one of: ${validMealTypes.join(", ")}` },
+        { status: 400 }
+      );
+    }
+    if (!eventConfig.rsvpDeadline) {
+      return NextResponse.json(
+        { error: "RSVP deadline is required" },
+        { status: 400 }
+      );
+    }
+    if (!eventConfig.menuItems || eventConfig.menuItems.length === 0) {
+      return NextResponse.json(
+        { error: "At least one menu item is required" },
+        { status: 400 }
+      );
+    }
+  }
+
+  // Create announcement with optional eventConfig in a single nested create
   const announcement = await prisma.announcement.create({
     data: {
       title,
@@ -67,6 +96,28 @@ export async function POST(request: Request) {
       link: link || null,
       linkText: linkText || null,
       published: published !== undefined ? published : true,
+      ...(eventConfig && {
+        eventConfig: {
+          create: {
+            mealType: eventConfig.mealType,
+            rsvpDeadline: new Date(eventConfig.rsvpDeadline),
+            menuItems: {
+              create: eventConfig.menuItems.map(
+                (item: { name: string; pricePerPlate: number }, index: number) => ({
+                  name: item.name,
+                  pricePerPlate: item.pricePerPlate,
+                  sortOrder: index,
+                })
+              ),
+            },
+          },
+        },
+      }),
+    },
+    include: {
+      eventConfig: {
+        include: { menuItems: { orderBy: { sortOrder: "asc" } } },
+      },
     },
   });
 

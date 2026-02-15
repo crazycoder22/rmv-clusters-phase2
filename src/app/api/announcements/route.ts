@@ -7,6 +7,11 @@ export async function GET() {
   const announcements = await prisma.announcement.findMany({
     where: { published: true },
     orderBy: { date: "desc" },
+    include: {
+      eventConfig: {
+        include: { menuItems: { orderBy: { sortOrder: "asc" } } },
+      },
+    },
   });
 
   return NextResponse.json({ announcements });

@@ -64,6 +64,53 @@ export interface Announcement {
   link?: string;
   linkText?: string;
   published?: boolean;
+  eventConfig?: EventConfigType | null;
+}
+
+export interface MenuItemType {
+  id: string;
+  name: string;
+  pricePerPlate: number;
+  sortOrder: number;
+}
+
+export interface EventConfigType {
+  id: string;
+  announcementId: string;
+  mealType: "breakfast" | "lunch" | "dinner";
+  rsvpDeadline: string;
+  menuItems: MenuItemType[];
+}
+
+export interface RsvpItemType {
+  id: string;
+  menuItemId: string;
+  menuItem: MenuItemType;
+  plates: number;
+}
+
+export interface RsvpType {
+  id: string;
+  eventConfigId: string;
+  residentId: string;
+  resident: {
+    id: string;
+    name: string;
+    email: string;
+    block: number;
+    flatNumber: string;
+  };
+  items: RsvpItemType[];
+  paid: boolean;
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MenuItemFormEntry {
+  tempId: string;
+  name: string;
+  pricePerPlate: string;
 }
 
 export interface GalleryImage {
