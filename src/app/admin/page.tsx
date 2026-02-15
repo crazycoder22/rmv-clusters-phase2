@@ -42,7 +42,7 @@ const emptyNewsForm = {
 type TabId = "add" | "manage" | "news";
 
 export default function AdminPage() {
-  const { isAdmin, isSuperAdmin, isLoading } = useRole();
+  const { role, isAdmin, isSuperAdmin, isLoading } = useRole();
   const [activeTab, setActiveTab] = useState<TabId>("news");
   const [residents, setResidents] = useState<ResidentWithRole[]>([]);
   const [loadingResidents, setLoadingResidents] = useState(false);
@@ -98,16 +98,16 @@ export default function AdminPage() {
   }, []);
 
   useEffect(() => {
-    if (isSuperAdmin()) {
+    if (role === "SUPERADMIN") {
       fetchResidents();
     }
-  }, [isSuperAdmin, fetchResidents]);
+  }, [role, fetchResidents]);
 
   useEffect(() => {
-    if (isAdmin() || isSuperAdmin()) {
+    if (role === "ADMIN" || role === "SUPERADMIN") {
       fetchAnnouncements();
     }
-  }, [isAdmin, isSuperAdmin, fetchAnnouncements]);
+  }, [role, fetchAnnouncements]);
 
   if (isLoading) {
     return (
