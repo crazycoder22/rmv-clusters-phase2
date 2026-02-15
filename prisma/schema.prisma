@@ -26,9 +26,10 @@ model Announcement {
   link        String?
   linkText    String?
   published   Boolean      @default(true)
-  eventConfig EventConfig?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  eventConfig  EventConfig?
+  sportsConfig SportsConfig?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 }
 
 model Resident {
@@ -42,9 +43,10 @@ model Resident {
   googleImage  String?
   roleId       String
   role         Role     @relation(fields: [roleId], references: [id])
-  rsvps        Rsvp[]
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  rsvps                Rsvp[]
+  sportsRegistrations  SportsRegistration[]
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 }
 
 model EventConfig {
@@ -95,4 +97,60 @@ model RsvpItem {
   createdAt  DateTime @default(now())
 
   @@unique([rsvpId, menuItemId])
+}
+
+model SportsConfig {
+  id                   String               @id @default(cuid())
+  announcementId       String               @unique
+  announcement         Announcement         @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  registrationDeadline DateTime
+  sportItems           SportItem[]
+  registrations        SportsRegistration[]
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+}
+
+model SportItem {
+  id               String             @id @default(cuid())
+  sportsConfigId   String
+  sportsConfig     SportsConfig       @relation(fields: [sportsConfigId], references: [id], onDelete: Cascade)
+  name             String
+  sortOrder        Int                @default(0)
+  participantSports ParticipantSport[]
+  createdAt        DateTime           @default(now())
+}
+
+model SportsRegistration {
+  id             String       @id @default(cuid())
+  sportsConfigId String
+  sportsConfig   SportsConfig @relation(fields: [sportsConfigId], references: [id], onDelete: Cascade)
+  residentId     String
+  resident       Resident     @relation(fields: [residentId], references: [id], onDelete: Cascade)
+  participants   Participant[]
+  notes          String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([sportsConfigId, residentId])
+}
+
+model Participant {
+  id                   String             @id @default(cuid())
+  sportsRegistrationId String
+  sportsRegistration   SportsRegistration @relation(fields: [sportsRegistrationId], references: [id], onDelete: Cascade)
+  name                 String
+  ageCategory          String             // "kid", "teen", "adult"
+  sports               ParticipantSport[]
+  createdAt            DateTime           @default(now())
+}
+
+model ParticipantSport {
+  id            String      @id @default(cuid())
+  participantId String
+  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  sportItemId   String
+  sportItem     SportItem   @relation(fields: [sportItemId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+
+  @@unique([participantId, sportItemId])
 }

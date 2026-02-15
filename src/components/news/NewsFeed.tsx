@@ -7,7 +7,7 @@ import Badge from "@/components/ui/Badge";
 import { formatDate, getPriorityBorder } from "@/lib/utils";
 import type { Announcement } from "@/types";
 
-const categories = ["all", "maintenance", "event", "general", "urgent"];
+const categories = ["all", "maintenance", "event", "sports", "general", "urgent"];
 
 export default function NewsFeed() {
   const [activeCategory, setActiveCategory] = useState("all");
@@ -77,8 +77,12 @@ export default function NewsFeed() {
         <div className="space-y-4">
           {sorted.map((announcement) => {
             const ec = announcement.eventConfig;
+            const sc = announcement.sportsConfig;
             const deadlinePassed = ec
               ? new Date() > new Date(ec.rsvpDeadline)
+              : false;
+            const sportsDeadlinePassed = sc
+              ? new Date() > new Date(sc.registrationDeadline)
               : false;
 
             return (
@@ -137,6 +141,33 @@ export default function NewsFeed() {
                           <span className="text-xs text-gray-400">
                             Deadline:{" "}
                             {new Date(ec.rsvpDeadline).toLocaleDateString(
+                              "en-IN",
+                              { day: "numeric", month: "short", year: "numeric" }
+                            )}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Sports registration button */}
+                  {sc && (
+                    <div className="mt-3 flex flex-wrap items-center gap-3">
+                      {sportsDeadlinePassed ? (
+                        <span className="text-sm text-gray-400 italic">
+                          Registration closed
+                        </span>
+                      ) : (
+                        <>
+                          <Link
+                            href={`/events/${announcement.id}/sports`}
+                            className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                          >
+                            Register for Sports
+                          </Link>
+                          <span className="text-xs text-gray-400">
+                            Deadline:{" "}
+                            {new Date(sc.registrationDeadline).toLocaleDateString(
                               "en-IN",
                               { day: "numeric", month: "short", year: "numeric" }
                             )}

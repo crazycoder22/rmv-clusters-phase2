@@ -11,6 +11,9 @@ export async function GET() {
       eventConfig: {
         include: { menuItems: { orderBy: { sortOrder: "asc" } } },
       },
+      sportsConfig: {
+        include: { sportItems: { orderBy: { sortOrder: "asc" } } },
+      },
     },
   });
 

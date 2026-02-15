@@ -13,17 +13,22 @@ async function requireAdmin() {
   return { session };
 }
 
+const announcementInclude = {
+  eventConfig: {
+    include: { menuItems: { orderBy: { sortOrder: "asc" as const } } },
+  },
+  sportsConfig: {
+    include: { sportItems: { orderBy: { sortOrder: "asc" as const } } },
+  },
+};
+
 export async function GET() {
   const check = await requireAdmin();
   if ("error" in check && check.error) return check.error;
 
   const announcements = await prisma.announcement.findMany({
     orderBy: { date: "desc" },
-    include: {
-      eventConfig: {
-        include: { menuItems: { orderBy: { sortOrder: "asc" } } },
-      },
-    },
+    include: announcementInclude,
   });
 
   return NextResponse.json({ announcements });
@@ -34,7 +39,7 @@ export async function POST(request: Request) {
   if ("error" in check && check.error) return check.error;
 
   const body = await request.json();
-  const { title, date, category, priority, summary, body: announcementBody, author, link, linkText, published, eventConfig } = body;
+  const { title, date, category, priority, summary, body: announcementBody, author, link, linkText, published, eventConfig, sportsConfig } = body;
 
   // Validate required fields
   if (!title || !summary || !announcementBody || !author) {
@@ -44,7 +49,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const validCategories = ["maintenance", "event", "general", "urgent"];
+  const validCategories = ["maintenance", "event", "general", "urgent", "sports"];
   if (category && !validCategories.includes(category)) {
     return NextResponse.json(
       { error: `Category must be one of: ${validCategories.join(", ")}` },
@@ -70,20 +75,23 @@ export async function POST(request: Request) {
       );
     }
     if (!eventConfig.rsvpDeadline) {
-      return NextResponse.json(
-        { error: "RSVP deadline is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "RSVP deadline is required" }, { status: 400 });
     }
     if (!eventConfig.menuItems || eventConfig.menuItems.length === 0) {
-      return NextResponse.json(
-        { error: "At least one menu item is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "At least one menu item is required" }, { status: 400 });
     }
   }
 
-  // Create announcement with optional eventConfig in a single nested create
+  // Validate sportsConfig if provided
+  if (sportsConfig) {
+    if (!sportsConfig.registrationDeadline) {
+      return NextResponse.json({ error: "Registration deadline is required" }, { status: 400 });
+    }
+    if (!sportsConfig.sportItems || sportsConfig.sportItems.length === 0) {
+      return NextResponse.json({ error: "At least one sport is required" }, { status: 400 });
+    }
+  }
+
   const announcement = await prisma.announcement.create({
     data: {
       title,
@@ -113,12 +121,23 @@ export async function POST(request: Request) {
           },
         },
       }),
+      ...(sportsConfig && {
+        sportsConfig: {
+          create: {
+            registrationDeadline: new Date(sportsConfig.registrationDeadline),
+            sportItems: {
+              create: sportsConfig.sportItems.map(
+                (item: { name: string }, index: number) => ({
+                  name: item.name,
+                  sortOrder: index,
+                })
+              ),
+            },
+          },
+        },
+      }),
     },
-    include: {
-      eventConfig: {
-        include: { menuItems: { orderBy: { sortOrder: "asc" } } },
-      },
-    },
+    include: announcementInclude,
   });
 
   return NextResponse.json({ success: true, announcement }, { status: 201 });

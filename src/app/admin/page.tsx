@@ -5,7 +5,8 @@ import { useRole } from "@/hooks/useRole";
 import Link from "next/link";
 import clsx from "clsx";
 import MenuItemBuilder from "@/components/admin/MenuItemBuilder";
-import type { Announcement, MenuItemFormEntry } from "@/types";
+import SportItemBuilder from "@/components/admin/SportItemBuilder";
+import type { Announcement, MenuItemFormEntry, SportItemFormEntry } from "@/types";
 
 interface ResidentWithRole {
   id: string;
@@ -43,6 +44,9 @@ const emptyNewsForm = {
   mealType: "dinner",
   rsvpDeadline: "",
   menuItems: [] as MenuItemFormEntry[],
+  enableSportsRegistration: false,
+  registrationDeadline: "",
+  sportItems: [] as SportItemFormEntry[],
 };
 
 type TabId = "add" | "manage" | "news";
@@ -225,8 +229,12 @@ export default function AdminPage() {
         : "/api/admin/announcements";
       const method = editingId ? "PATCH" : "POST";
 
-      // Build payload with optional eventConfig
-      const { enableRsvp, mealType, rsvpDeadline, menuItems: menuItemsForm, ...baseForm } = newsForm;
+      // Build payload with optional eventConfig / sportsConfig
+      const {
+        enableRsvp, mealType, rsvpDeadline, menuItems: menuItemsForm,
+        enableSportsRegistration, registrationDeadline, sportItems: sportItemsForm,
+        ...baseForm
+      } = newsForm;
       const payload: Record<string, unknown> = { ...baseForm };
 
       if (enableRsvp && baseForm.category === "event") {
@@ -239,8 +247,16 @@ export default function AdminPage() {
           })),
         };
       } else if (!enableRsvp && editingId) {
-        // If editing and RSVP disabled, send null to remove existing eventConfig
         payload.eventConfig = null;
+      }
+
+      if (enableSportsRegistration && baseForm.category === "sports") {
+        payload.sportsConfig = {
+          registrationDeadline,
+          sportItems: sportItemsForm.map((item) => ({ name: item.name })),
+        };
+      } else if (!enableSportsRegistration && editingId) {
+        payload.sportsConfig = null;
       }
 
       const res = await fetch(url, {
@@ -279,6 +295,7 @@ export default function AdminPage() {
   const handleEdit = (announcement: Announcement) => {
     setEditingId(announcement.id);
     const ec = announcement.eventConfig;
+    const sc = announcement.sportsConfig;
     setNewsForm({
       title: announcement.title,
       date: announcement.date
@@ -301,6 +318,14 @@ export default function AdminPage() {
         tempId: crypto.randomUUID(),
         name: item.name,
         pricePerPlate: String(item.pricePerPlate),
+      })) || [],
+      enableSportsRegistration: !!sc,
+      registrationDeadline: sc?.registrationDeadline
+        ? new Date(sc.registrationDeadline).toISOString().slice(0, 16)
+        : "",
+      sportItems: sc?.sportItems?.map((item) => ({
+        tempId: crypto.randomUUID(),
+        name: item.name,
       })) || [],
     });
     // Scroll to form
@@ -447,6 +472,7 @@ export default function AdminPage() {
                     <option value="general">General</option>
                     <option value="maintenance">Maintenance</option>
                     <option value="event">Event</option>
+                    <option value="sports">Sports</option>
                     <option value="urgent">Urgent</option>
                   </select>
                 </div>
@@ -625,6 +651,53 @@ export default function AdminPage() {
                 </div>
               )}
 
+              {/* Sports Registration Settings */}
+              {newsForm.category === "sports" && (
+                <div className="border border-orange-200 rounded-lg p-4 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="enableSportsRegistration"
+                      name="enableSportsRegistration"
+                      checked={newsForm.enableSportsRegistration}
+                      onChange={handleNewsChange}
+                      className="h-4 w-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500"
+                    />
+                    <label
+                      htmlFor="enableSportsRegistration"
+                      className="text-sm font-semibold text-gray-700"
+                    >
+                      Enable Sports Registration
+                    </label>
+                  </div>
+
+                  {newsForm.enableSportsRegistration && (
+                    <div className="space-y-4 pl-6 border-l-2 border-orange-100">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Registration Deadline
+                        </label>
+                        <input
+                          type="datetime-local"
+                          name="registrationDeadline"
+                          value={newsForm.registrationDeadline}
+                          onChange={handleNewsChange}
+                          required={newsForm.enableSportsRegistration}
+                          className="w-full max-w-xs px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                        />
+                      </div>
+
+                      <SportItemBuilder
+                        items={newsForm.sportItems}
+                        onChange={(items) =>
+                          setNewsForm((prev) => ({ ...prev, sportItems: items }))
+                        }
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
               {newsError && (
                 <div className="rounded-md bg-red-50 border border-red-200 p-3">
                   <p className="text-sm text-red-800">{newsError}</p>
@@ -716,6 +789,8 @@ export default function AdminPage() {
                                 "bg-yellow-100 text-yellow-700",
                               a.category === "event" &&
                                 "bg-blue-100 text-blue-700",
+                              a.category === "sports" &&
+                                "bg-orange-100 text-orange-700",
                               a.category === "general" &&
                                 "bg-gray-100 text-gray-700"
                             )}
@@ -775,6 +850,14 @@ export default function AdminPage() {
                                 className="text-xs text-green-600 hover:text-green-700 font-medium"
                               >
                                 RSVPs
+                              </Link>
+                            )}
+                            {a.sportsConfig && (
+                              <Link
+                                href={`/admin/events/${a.id}/sports-registrations`}
+                                className="text-xs text-orange-600 hover:text-orange-700 font-medium"
+                              >
+                                Registrations
                               </Link>
                             )}
                           </div>

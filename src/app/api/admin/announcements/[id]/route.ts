@@ -25,7 +25,7 @@ export async function PATCH(
 
   // Validate category if provided
   if (body.category) {
-    const validCategories = ["maintenance", "event", "general", "urgent"];
+    const validCategories = ["maintenance", "event", "general", "urgent", "sports"];
     if (!validCategories.includes(body.category)) {
       return NextResponse.json(
         { error: `Category must be one of: ${validCategories.join(", ")}` },
@@ -66,13 +66,11 @@ export async function PATCH(
         await prisma.eventConfig.deleteMany({ where: { announcementId: id } });
       } else {
         const ec = body.eventConfig;
-        // Check if eventConfig already exists
         const existing = await prisma.eventConfig.findUnique({
           where: { announcementId: id },
         });
 
         if (existing) {
-          // Delete old menu items and recreate
           await prisma.menuItem.deleteMany({ where: { eventConfigId: existing.id } });
           await prisma.eventConfig.update({
             where: { id: existing.id },
@@ -91,7 +89,6 @@ export async function PATCH(
             },
           });
         } else {
-          // Create new eventConfig
           await prisma.eventConfig.create({
             data: {
               announcementId: id,
@@ -112,12 +109,61 @@ export async function PATCH(
       }
     }
 
+    // Handle sportsConfig updates
+    if (body.sportsConfig !== undefined) {
+      if (body.sportsConfig === null) {
+        // Remove sportsConfig (disable sports registration)
+        await prisma.sportsConfig.deleteMany({ where: { announcementId: id } });
+      } else {
+        const sc = body.sportsConfig;
+        const existing = await prisma.sportsConfig.findUnique({
+          where: { announcementId: id },
+        });
+
+        if (existing) {
+          await prisma.sportItem.deleteMany({ where: { sportsConfigId: existing.id } });
+          await prisma.sportsConfig.update({
+            where: { id: existing.id },
+            data: {
+              registrationDeadline: new Date(sc.registrationDeadline),
+              sportItems: {
+                create: sc.sportItems.map(
+                  (item: { name: string }, index: number) => ({
+                    name: item.name,
+                    sortOrder: index,
+                  })
+                ),
+              },
+            },
+          });
+        } else {
+          await prisma.sportsConfig.create({
+            data: {
+              announcementId: id,
+              registrationDeadline: new Date(sc.registrationDeadline),
+              sportItems: {
+                create: sc.sportItems.map(
+                  (item: { name: string }, index: number) => ({
+                    name: item.name,
+                    sortOrder: index,
+                  })
+                ),
+              },
+            },
+          });
+        }
+      }
+    }
+
     const announcement = await prisma.announcement.update({
       where: { id },
       data: updateData,
       include: {
         eventConfig: {
           include: { menuItems: { orderBy: { sortOrder: "asc" } } },
+        },
+        sportsConfig: {
+          include: { sportItems: { orderBy: { sortOrder: "asc" } } },
         },
       },
     });

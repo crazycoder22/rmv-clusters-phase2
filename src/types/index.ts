@@ -56,7 +56,7 @@ export interface Announcement {
   id: string;
   title: string;
   date: string;
-  category: "maintenance" | "event" | "general" | "urgent";
+  category: "maintenance" | "event" | "general" | "urgent" | "sports";
   priority: "low" | "normal" | "high";
   summary: string;
   body: string;
@@ -65,6 +65,7 @@ export interface Announcement {
   linkText?: string;
   published?: boolean;
   eventConfig?: EventConfigType | null;
+  sportsConfig?: SportsConfigType | null;
 }
 
 export interface MenuItemType {
@@ -111,6 +112,56 @@ export interface MenuItemFormEntry {
   tempId: string;
   name: string;
   pricePerPlate: string;
+}
+
+// Sports Event types
+export interface SportItemType {
+  id: string;
+  name: string;
+  sortOrder: number;
+}
+
+export interface SportsConfigType {
+  id: string;
+  announcementId: string;
+  registrationDeadline: string;
+  sportItems: SportItemType[];
+}
+
+export interface SportItemFormEntry {
+  tempId: string;
+  name: string;
+}
+
+export interface ParticipantFormEntry {
+  tempId: string;
+  name: string;
+  ageCategory: "kid" | "teen" | "adult";
+  sportItemIds: string[];
+}
+
+export interface ParticipantType {
+  id: string;
+  name: string;
+  ageCategory: string;
+  sports: { id: string; sportItemId: string; sportItem: SportItemType }[];
+}
+
+export interface SportsRegistrationType {
+  id: string;
+  sportsConfigId: string;
+  residentId: string;
+  resident: {
+    id: string;
+    name: string;
+    email: string;
+    block: number;
+    flatNumber: string;
+  };
+  participants: ParticipantType[];
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface GalleryImage {
