@@ -49,6 +49,19 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
+            {session?.user?.isRegistered && (
+              <Link
+                href="/dashboard"
+                className={clsx(
+                  "px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                  pathname === "/dashboard"
+                    ? "bg-primary-50 text-primary-700"
+                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50"
+                )}
+              >
+                Dashboard
+              </Link>
+            )}
             {(session?.user?.role === "SUPERADMIN" || session?.user?.role === "ADMIN") && (
               <Link
                 href="/admin"
@@ -97,6 +110,20 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
+            {session?.user?.isRegistered && (
+              <Link
+                href="/dashboard"
+                onClick={() => setMobileOpen(false)}
+                className={clsx(
+                  "block px-3 py-2 rounded-md text-base font-medium transition-colors",
+                  pathname === "/dashboard"
+                    ? "bg-primary-50 text-primary-700"
+                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50"
+                )}
+              >
+                Dashboard
+              </Link>
+            )}
             {(session?.user?.role === "SUPERADMIN" || session?.user?.role === "ADMIN") && (
               <Link
                 href="/admin"
