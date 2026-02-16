@@ -8,7 +8,7 @@ export function getNotificationUrl(
     case "sports":
       return `/events/${announcementId}/sports`;
     default:
-      return "/news";
+      return `/news/${announcementId}`;
   }
 }
 

@@ -109,12 +109,17 @@ export default function NewsFeed() {
                     &middot; {announcement.author}
                   </span>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  {announcement.title}
-                </h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  {announcement.summary}
-                </p>
+                <Link
+                  href={`/news/${announcement.id}`}
+                  className="block group"
+                >
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-primary-700 transition-colors">
+                    {announcement.title}
+                  </h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    {announcement.summary}
+                  </p>
+                </Link>
                 <details className="mt-3">
                   <summary className="text-sm text-primary-600 hover:text-primary-700 cursor-pointer font-medium">
                     Read more
