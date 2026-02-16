@@ -54,7 +54,7 @@ export default function UserMenu() {
             </p>
           </div>
           <button
-            onClick={() => signOut()}
+            onClick={() => signOut({ callbackUrl: "/" })}
             className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
           >
             <LogOut size={14} />

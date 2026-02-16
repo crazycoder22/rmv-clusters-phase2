@@ -188,7 +188,7 @@ export default function Navbar() {
                   </p>
                   <button
                     onClick={() => {
-                      signOut();
+                      signOut({ callbackUrl: "/" });
                       setMobileOpen(false);
                     }}
                     className="mt-1 text-sm text-gray-600 hover:text-primary-700"
