@@ -28,8 +28,12 @@ export default function Navbar() {
   const { data: session } = useSession();
   useRegistrationGuard();
 
+  const isApproved = session?.user?.isApproved;
+
   const visibleLinks = session
-    ? navLinks.filter((l) => l.href !== "/")
+    ? isApproved
+      ? navLinks.filter((l) => l.href !== "/")
+      : [] // Hide all nav links for unapproved users
     : navLinks.filter((l) => publicPaths.includes(l.href));
 
   return (
@@ -42,7 +46,7 @@ export default function Navbar() {
 
           {/* Desktop links + auth */}
           <div className="hidden md:flex items-center gap-1">
-            {session?.user?.isRegistered && (
+            {session?.user?.isRegistered && session?.user?.isApproved && (
               <Link
                 href="/dashboard"
                 className={clsx(
@@ -116,7 +120,7 @@ export default function Navbar() {
       {mobileOpen && (
         <div className="md:hidden bg-white border-t">
           <div className="px-4 py-2 space-y-1">
-            {session?.user?.isRegistered && (
+            {session?.user?.isRegistered && session?.user?.isApproved && (
               <Link
                 href="/dashboard"
                 onClick={() => setMobileOpen(false)}

@@ -16,6 +16,8 @@ interface ResidentWithRole {
   block: number;
   flatNumber: string;
   residentType: string;
+  isApproved?: boolean;
+  createdAt?: string;
   role: { name: string };
 }
 
@@ -49,13 +51,18 @@ const emptyNewsForm = {
   sportItems: [] as SportItemFormEntry[],
 };
 
-type TabId = "add" | "manage" | "news";
+type TabId = "approvals" | "add" | "manage" | "news";
 
 export default function AdminPage() {
   const { role, isAdmin, isSuperAdmin, isLoading } = useRole();
-  const [activeTab, setActiveTab] = useState<TabId>("news");
+  const [activeTab, setActiveTab] = useState<TabId>("approvals");
   const [residents, setResidents] = useState<ResidentWithRole[]>([]);
   const [loadingResidents, setLoadingResidents] = useState(false);
+
+  // Pending approvals state
+  const [pendingResidents, setPendingResidents] = useState<ResidentWithRole[]>([]);
+  const [loadingPending, setLoadingPending] = useState(false);
+  const [approvingId, setApprovingId] = useState<string | null>(null);
 
   // Add resident form state
   const [form, setForm] = useState(emptyForm);
@@ -92,6 +99,21 @@ export default function AdminPage() {
     }
   }, []);
 
+  const fetchPendingResidents = useCallback(async () => {
+    setLoadingPending(true);
+    try {
+      const res = await fetch("/api/admin/residents?pending=true");
+      if (res.ok) {
+        const data = await res.json();
+        setPendingResidents(data.residents);
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setLoadingPending(false);
+    }
+  }, []);
+
   const fetchAnnouncements = useCallback(async () => {
     setLoadingNews(true);
     try {
@@ -106,6 +128,12 @@ export default function AdminPage() {
       setLoadingNews(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (role === "ADMIN" || role === "SUPERADMIN") {
+      fetchPendingResidents();
+    }
+  }, [role, fetchPendingResidents]);
 
   useEffect(() => {
     if (role === "SUPERADMIN") {
@@ -200,6 +228,25 @@ export default function AdminPage() {
       // silently fail
     } finally {
       setUpdatingId(null);
+    }
+  };
+
+  const handleApproval = async (residentId: string, action: "approve" | "reject") => {
+    setApprovingId(residentId);
+    try {
+      const res = await fetch("/api/admin/residents", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ residentId, action }),
+      });
+
+      if (res.ok) {
+        setPendingResidents((prev) => prev.filter((r) => r.id !== residentId));
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setApprovingId(null);
     }
   };
 
@@ -378,6 +425,7 @@ export default function AdminPage() {
   };
 
   const tabs: { id: TabId; label: string; superOnly?: boolean }[] = [
+    { id: "approvals", label: `Pending Approvals${pendingResidents.length > 0 ? ` (${pendingResidents.length})` : ""}` },
     { id: "news", label: `Manage News (${announcements.length})` },
     { id: "add", label: "Add Resident", superOnly: true },
     { id: "manage", label: `Manage Roles (${residents.length})`, superOnly: true },
@@ -413,6 +461,103 @@ export default function AdminPage() {
             ))}
         </nav>
       </div>
+
+      {/* Tab: Pending Approvals */}
+      {activeTab === "approvals" && (
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-800">
+              Pending Registrations
+            </h2>
+            <button
+              onClick={fetchPendingResidents}
+              disabled={loadingPending}
+              className="text-sm text-primary-600 hover:text-primary-700 disabled:opacity-50"
+            >
+              {loadingPending ? "Refreshing..." : "Refresh"}
+            </button>
+          </div>
+
+          {loadingPending && pendingResidents.length === 0 ? (
+            <p className="text-gray-500 text-center py-8">
+              Loading pending registrations...
+            </p>
+          ) : pendingResidents.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500">No pending registrations.</p>
+              <p className="text-gray-400 text-sm mt-1">
+                New registrations will appear here for approval.
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200 text-left text-gray-600">
+                    <th className="pb-3 pr-4 font-medium">Name</th>
+                    <th className="pb-3 pr-4 font-medium">Email</th>
+                    <th className="pb-3 pr-4 font-medium">Block / Flat</th>
+                    <th className="pb-3 pr-4 font-medium">Type</th>
+                    <th className="pb-3 pr-4 font-medium">Registered</th>
+                    <th className="pb-3 font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pendingResidents.map((r) => (
+                    <tr
+                      key={r.id}
+                      className="border-b border-gray-100 hover:bg-gray-50"
+                    >
+                      <td className="py-3 pr-4 font-medium text-gray-900">
+                        {r.name}
+                      </td>
+                      <td className="py-3 pr-4 text-gray-600">{r.email}</td>
+                      <td className="py-3 pr-4 text-gray-600">
+                        B{r.block} - {r.flatNumber}
+                      </td>
+                      <td className="py-3 pr-4">
+                        <span
+                          className={clsx(
+                            "inline-block px-2 py-0.5 text-xs font-medium rounded-full",
+                            r.residentType === "OWNER"
+                              ? "bg-blue-100 text-blue-700"
+                              : "bg-amber-100 text-amber-700"
+                          )}
+                        >
+                          {r.residentType}
+                        </span>
+                      </td>
+                      <td className="py-3 pr-4 text-gray-500 text-xs">
+                        {r.createdAt
+                          ? new Date(r.createdAt).toLocaleDateString()
+                          : "—"}
+                      </td>
+                      <td className="py-3">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleApproval(r.id, "approve")}
+                            disabled={approvingId === r.id}
+                            className="px-3 py-1 text-xs font-medium text-white bg-green-600 rounded hover:bg-green-700 disabled:opacity-50 transition-colors"
+                          >
+                            {approvingId === r.id ? "..." : "Approve"}
+                          </button>
+                          <button
+                            onClick={() => handleApproval(r.id, "reject")}
+                            disabled={approvingId === r.id}
+                            className="px-3 py-1 text-xs font-medium text-white bg-red-600 rounded hover:bg-red-700 disabled:opacity-50 transition-colors"
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Tab: Manage News */}
       {activeTab === "news" && (

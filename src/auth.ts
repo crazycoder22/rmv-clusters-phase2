@@ -23,13 +23,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // Check registration status on sign-in, session update, or when not yet registered
       if (
         token.email &&
-        (trigger === "signIn" || trigger === "update" || !token.isRegistered)
+        (trigger === "signIn" || trigger === "update" || !token.isRegistered || !token.isApproved)
       ) {
         const resident = await prisma.resident.findUnique({
           where: { email: token.email },
-          select: { id: true, role: { select: { name: true } } },
+          select: { id: true, isApproved: true, role: { select: { name: true } } },
         });
         token.isRegistered = !!resident;
+        token.isApproved = resident?.isApproved ?? false;
         token.role = resident?.role.name ?? null;
       }
 
@@ -41,6 +42,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.email = token.email as string;
         session.user.image = token.picture as string;
         session.user.isRegistered = token.isRegistered ?? false;
+        session.user.isApproved = token.isApproved ?? false;
         session.user.role = (token.role as "RESIDENT" | "ADMIN" | "SUPERADMIN" | "SECURITY") ?? null;
       }
       return session;

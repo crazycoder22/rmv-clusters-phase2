@@ -41,6 +41,7 @@ model Resident {
   block        Int      // 1, 2, 3, or 4
   flatNumber   String   // e.g., "101", "G2"
   residentType String   // "OWNER" or "TENANT"
+  isApproved   Boolean  @default(false)
   googleImage  String?
   roleId       String
   role         Role     @relation(fields: [roleId], references: [id])

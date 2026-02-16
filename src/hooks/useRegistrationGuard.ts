@@ -10,6 +10,7 @@ export function useRegistrationGuard() {
   const pathname = usePathname();
 
   useEffect(() => {
+    // Redirect unregistered users to registration form
     if (
       status === "authenticated" &&
       session?.user &&
@@ -19,10 +20,21 @@ export function useRegistrationGuard() {
       router.push("/register");
     }
 
-    // Redirect registered users from home to their landing page
+    // Redirect registered but unapproved users to pending page
     if (
       status === "authenticated" &&
       session?.user?.isRegistered &&
+      !session.user.isApproved &&
+      pathname !== "/pending-approval"
+    ) {
+      router.push("/pending-approval");
+    }
+
+    // Redirect approved users from home to their landing page
+    if (
+      status === "authenticated" &&
+      session?.user?.isRegistered &&
+      session?.user?.isApproved &&
       pathname === "/"
     ) {
       if (session.user.role === "SECURITY") {
