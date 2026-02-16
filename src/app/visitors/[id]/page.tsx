@@ -72,8 +72,9 @@ export default function VisitorDetailPage() {
   const role = session?.user?.role;
   const isSecurityOrAdmin =
     role === "ADMIN" || role === "SUPERADMIN" || role === "SECURITY";
-  const canApprove =
-    !isSecurityOrAdmin && visitor?.status === "PENDING";
+  // Any logged-in user viewing this page can approve if status is PENDING
+  // (the API itself enforces that only residents of the target flat can approve)
+  const canApprove = visitor?.status === "PENDING";
 
   async function handleAction(newStatus: "APPROVED" | "REJECTED") {
     setActing(true);
