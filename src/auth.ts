@@ -41,7 +41,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.email = token.email as string;
         session.user.image = token.picture as string;
         session.user.isRegistered = token.isRegistered ?? false;
-        session.user.role = (token.role as "RESIDENT" | "ADMIN" | "SUPERADMIN") ?? null;
+        session.user.role = (token.role as "RESIDENT" | "ADMIN" | "SUPERADMIN" | "SECURITY") ?? null;
       }
       return session;
     },

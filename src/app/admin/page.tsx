@@ -997,6 +997,7 @@ export default function AdminPage() {
                 >
                   <option value="RESIDENT">Resident</option>
                   <option value="ADMIN">Admin</option>
+                  <option value="SECURITY">Security Manager</option>
                 </select>
               </div>
             </div>

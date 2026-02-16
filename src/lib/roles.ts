@@ -1,7 +1,8 @@
-export type UserRole = "RESIDENT" | "ADMIN" | "SUPERADMIN";
+export type UserRole = "RESIDENT" | "ADMIN" | "SUPERADMIN" | "SECURITY";
 
 const ROLE_HIERARCHY: Record<UserRole, number> = {
   RESIDENT: 1,
+  SECURITY: 1,
   ADMIN: 2,
   SUPERADMIN: 3,
 };
@@ -29,12 +30,27 @@ export function isSuperAdmin(
   return role === "SUPERADMIN";
 }
 
+/** Check if user is a security manager */
+export function isSecurity(
+  role: UserRole | string | null | undefined
+): boolean {
+  return role === "SECURITY";
+}
+
+/** Check if user can manage visitors (ADMIN, SUPERADMIN, or SECURITY) */
+export function canManageVisitors(
+  role: UserRole | string | null | undefined
+): boolean {
+  return isAdmin(role) || isSecurity(role);
+}
+
 /** Get display name for role */
 export function getRoleDisplayName(role: UserRole): string {
   const names: Record<UserRole, string> = {
     RESIDENT: "Resident",
     ADMIN: "Administrator",
     SUPERADMIN: "Super Administrator",
+    SECURITY: "Security Manager",
   };
   return names[role];
 }

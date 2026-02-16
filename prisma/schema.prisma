@@ -9,7 +9,7 @@ datasource db {
 
 model Role {
   id        String     @id @default(cuid())
-  name      String     @unique // "RESIDENT", "ADMIN", "SUPERADMIN"
+  name      String     @unique // "RESIDENT", "ADMIN", "SUPERADMIN", "SECURITY"
   residents Resident[]
   createdAt DateTime   @default(now())
 }
@@ -155,6 +155,18 @@ model ParticipantSport {
   createdAt     DateTime    @default(now())
 
   @@unique([participantId, sportItemId])
+}
+
+model Visitor {
+  id            String   @id @default(cuid())
+  name          String
+  phone         String?
+  email         String?
+  vehicleNumber String?
+  visitingBlock Int
+  visitingFlat  String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model Notification {

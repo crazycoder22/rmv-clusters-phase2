@@ -4,12 +4,12 @@ import "next-auth/jwt";
 declare module "next-auth" {
   interface User {
     isRegistered?: boolean;
-    role?: "RESIDENT" | "ADMIN" | "SUPERADMIN" | null;
+    role?: "RESIDENT" | "ADMIN" | "SUPERADMIN" | "SECURITY" | null;
   }
   interface Session {
     user: {
       isRegistered: boolean;
-      role: "RESIDENT" | "ADMIN" | "SUPERADMIN" | null;
+      role: "RESIDENT" | "ADMIN" | "SUPERADMIN" | "SECURITY" | null;
     } & {
       name?: string | null;
       email?: string | null;

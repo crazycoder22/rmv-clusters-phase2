@@ -23,7 +23,7 @@ export async function PATCH(request: Request) {
     );
   }
 
-  if (!["RESIDENT", "ADMIN"].includes(newRoleName)) {
+  if (!["RESIDENT", "ADMIN", "SECURITY"].includes(newRoleName)) {
     return NextResponse.json(
       { error: "Cannot assign SUPERADMIN role via UI" },
       { status: 400 }
