@@ -1,15 +1,8 @@
 export function getNotificationUrl(
-  category: string,
+  _category: string,
   announcementId: string
 ): string {
-  switch (category) {
-    case "event":
-      return `/events/${announcementId}/rsvp`;
-    case "sports":
-      return `/events/${announcementId}/sports`;
-    default:
-      return `/news/${announcementId}`;
-  }
+  return `/news/${announcementId}`;
 }
 
 export function getCategoryColor(category: string): string {
