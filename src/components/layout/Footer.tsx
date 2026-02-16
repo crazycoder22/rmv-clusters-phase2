@@ -4,10 +4,6 @@ import siteData from "@/data/site.json";
 
 const quickLinks = [
   { href: "/", label: "Home" },
-  { href: "/guidelines", label: "Guidelines" },
-  { href: "/news", label: "News" },
-  { href: "/gallery", label: "Gallery" },
-  { href: "/faq", label: "FAQ" },
   { href: "/contact", label: "Contact" },
 ];
 
