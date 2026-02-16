@@ -140,5 +140,21 @@ export async function POST(request: Request) {
     include: announcementInclude,
   });
 
+  // Create notifications for all residents if published
+  if (announcement.published) {
+    const residents = await prisma.resident.findMany({
+      select: { id: true },
+    });
+    if (residents.length > 0) {
+      await prisma.notification.createMany({
+        data: residents.map((r) => ({
+          residentId: r.id,
+          announcementId: announcement.id,
+        })),
+        skipDuplicates: true,
+      });
+    }
+  }
+
   return NextResponse.json({ success: true, announcement }, { status: 201 });
 }

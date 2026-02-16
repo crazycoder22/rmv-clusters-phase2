@@ -8,6 +8,7 @@ import { Menu, X } from "lucide-react";
 import clsx from "clsx";
 import SignInButton from "@/components/auth/SignInButton";
 import UserMenu from "@/components/auth/UserMenu";
+import NotificationBell from "@/components/notifications/NotificationBell";
 import { useRegistrationGuard } from "@/hooks/useRegistrationGuard";
 
 const navLinks = [
@@ -75,6 +76,7 @@ export default function Navbar() {
                 Admin
               </Link>
             )}
+            <NotificationBell />
             <div className="ml-2 border-l pl-2">
               {session ? <UserMenu /> : <SignInButton />}
             </div>
@@ -138,6 +140,9 @@ export default function Navbar() {
                 Admin
               </Link>
             )}
+            <div className="border-t mt-2 pt-2 flex items-center justify-between">
+              <NotificationBell />
+            </div>
             <div className="border-t mt-2 pt-2">
               {session ? (
                 <div className="px-3 py-2">

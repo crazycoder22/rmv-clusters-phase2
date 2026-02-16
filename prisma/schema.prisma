@@ -26,10 +26,11 @@ model Announcement {
   link        String?
   linkText    String?
   published   Boolean      @default(true)
-  eventConfig  EventConfig?
-  sportsConfig SportsConfig?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  eventConfig   EventConfig?
+  sportsConfig  SportsConfig?
+  notifications Notification[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 }
 
 model Resident {
@@ -45,6 +46,7 @@ model Resident {
   role         Role     @relation(fields: [roleId], references: [id])
   rsvps                Rsvp[]
   sportsRegistrations  SportsRegistration[]
+  notifications        Notification[]
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 }
@@ -153,4 +155,17 @@ model ParticipantSport {
   createdAt     DateTime    @default(now())
 
   @@unique([participantId, sportItemId])
+}
+
+model Notification {
+  id             String       @id @default(cuid())
+  residentId     String
+  resident       Resident     @relation(fields: [residentId], references: [id], onDelete: Cascade)
+  announcementId String
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  read           Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+
+  @@unique([residentId, announcementId])
+  @@index([residentId, read])
 }

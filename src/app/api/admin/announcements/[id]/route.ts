@@ -167,6 +167,28 @@ export async function PATCH(
         },
       },
     });
+
+    // Create notifications when publishing (draft → published)
+    if (body.published === true) {
+      const existingCount = await prisma.notification.count({
+        where: { announcementId: id },
+      });
+      if (existingCount === 0) {
+        const residents = await prisma.resident.findMany({
+          select: { id: true },
+        });
+        if (residents.length > 0) {
+          await prisma.notification.createMany({
+            data: residents.map((r) => ({
+              residentId: r.id,
+              announcementId: id,
+            })),
+            skipDuplicates: true,
+          });
+        }
+      }
+    }
+
     return NextResponse.json({ success: true, announcement });
   } catch {
     return NextResponse.json(

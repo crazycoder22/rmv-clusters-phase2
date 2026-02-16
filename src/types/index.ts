@@ -164,6 +164,19 @@ export interface SportsRegistrationType {
   updatedAt: string;
 }
 
+// Notification types
+export interface NotificationType {
+  id: string;
+  announcementId: string;
+  read: boolean;
+  createdAt: string;
+  announcement: {
+    id: string;
+    title: string;
+    category: "maintenance" | "event" | "general" | "urgent" | "sports";
+  };
+}
+
 export interface GalleryImage {
   id: string;
   src: string;
