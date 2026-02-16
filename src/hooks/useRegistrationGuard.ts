@@ -18,5 +18,18 @@ export function useRegistrationGuard() {
     ) {
       router.push("/register");
     }
+
+    // Redirect registered users from home to their landing page
+    if (
+      status === "authenticated" &&
+      session?.user?.isRegistered &&
+      pathname === "/"
+    ) {
+      if (session.user.role === "SECURITY") {
+        router.push("/visitors");
+      } else {
+        router.push("/dashboard");
+      }
+    }
   }, [status, session, pathname, router]);
 }
