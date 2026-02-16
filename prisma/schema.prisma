@@ -48,6 +48,8 @@ model Resident {
   rsvps                Rsvp[]
   sportsRegistrations  SportsRegistration[]
   notifications        Notification[]
+  issues               Issue[]
+  closedIssues         Issue[]  @relation("ClosedIssues")
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 }
@@ -186,4 +188,23 @@ model Notification {
   @@unique([residentId, announcementId])
   @@index([residentId, read])
   @@index([visitorId])
+}
+
+model Issue {
+  id               String    @id @default(cuid())
+  title            String
+  description      String
+  category         String    // "ELECTRICAL", "PLUMBING", "OTHER"
+  status           String    @default("OPEN") // "OPEN", "CLOSED"
+  residentId       String
+  resident         Resident  @relation(fields: [residentId], references: [id], onDelete: Cascade)
+  closedBy         String?
+  closedByResident Resident? @relation("ClosedIssues", fields: [closedBy], references: [id])
+  closureComment   String?
+  closedAt         DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([residentId])
+  @@index([status])
 }

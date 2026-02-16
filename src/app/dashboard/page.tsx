@@ -15,6 +15,7 @@ import {
   HelpCircle,
   Newspaper,
   ChevronRight,
+  Wrench,
 } from "lucide-react";
 import siteData from "@/data/site.json";
 import { formatDate } from "@/lib/utils";
@@ -62,6 +63,7 @@ const quickLinks = [
   { href: "/faq", label: "FAQ", icon: HelpCircle, color: "bg-amber-50 text-amber-600" },
   { href: "/contact", label: "Contact", icon: Phone, color: "bg-purple-50 text-purple-600" },
   { href: "/news", label: "News", icon: Newspaper, color: "bg-red-50 text-red-600" },
+  { href: "/issues", label: "Issues", icon: Wrench, color: "bg-orange-50 text-orange-600" },
 ];
 
 export default function DashboardPage() {

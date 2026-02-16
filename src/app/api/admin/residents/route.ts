@@ -92,9 +92,9 @@ export async function POST(request: Request) {
   }
 
   const assignRole = roleName || "RESIDENT";
-  if (!["RESIDENT", "ADMIN", "SECURITY"].includes(assignRole)) {
+  if (!["RESIDENT", "ADMIN", "SECURITY", "FACILITY_MANAGER"].includes(assignRole)) {
     return NextResponse.json(
-      { error: "Role must be RESIDENT, ADMIN, or SECURITY" },
+      { error: "Role must be RESIDENT, ADMIN, SECURITY, or FACILITY_MANAGER" },
       { status: 400 }
     );
   }

@@ -43,7 +43,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.image = token.picture as string;
         session.user.isRegistered = token.isRegistered ?? false;
         session.user.isApproved = token.isApproved ?? false;
-        session.user.role = (token.role as "RESIDENT" | "ADMIN" | "SUPERADMIN" | "SECURITY") ?? null;
+        session.user.role = (token.role as "RESIDENT" | "ADMIN" | "SUPERADMIN" | "SECURITY" | "FACILITY_MANAGER") ?? null;
       }
       return session;
     },

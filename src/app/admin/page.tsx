@@ -1143,6 +1143,7 @@ export default function AdminPage() {
                   <option value="RESIDENT">Resident</option>
                   <option value="ADMIN">Admin</option>
                   <option value="SECURITY">Security Manager</option>
+                  <option value="FACILITY_MANAGER">Facility Manager</option>
                 </select>
               </div>
             </div>
@@ -1236,6 +1237,10 @@ export default function AdminPage() {
                               "bg-purple-100 text-purple-700",
                             r.role.name === "ADMIN" &&
                               "bg-green-100 text-green-700",
+                            r.role.name === "FACILITY_MANAGER" &&
+                              "bg-orange-100 text-orange-700",
+                            r.role.name === "SECURITY" &&
+                              "bg-blue-100 text-blue-700",
                             r.role.name === "RESIDENT" &&
                               "bg-gray-100 text-gray-700"
                           )}
@@ -1257,6 +1262,8 @@ export default function AdminPage() {
                           >
                             <option value="RESIDENT">Resident</option>
                             <option value="ADMIN">Admin</option>
+                            <option value="SECURITY">Security</option>
+                            <option value="FACILITY_MANAGER">Facility Manager</option>
                           </select>
                         )}
                       </td>

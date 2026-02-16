@@ -5,13 +5,13 @@ declare module "next-auth" {
   interface User {
     isRegistered?: boolean;
     isApproved?: boolean;
-    role?: "RESIDENT" | "ADMIN" | "SUPERADMIN" | "SECURITY" | null;
+    role?: "RESIDENT" | "ADMIN" | "SUPERADMIN" | "SECURITY" | "FACILITY_MANAGER" | null;
   }
   interface Session {
     user: {
       isRegistered: boolean;
       isApproved: boolean;
-      role: "RESIDENT" | "ADMIN" | "SUPERADMIN" | "SECURITY" | null;
+      role: "RESIDENT" | "ADMIN" | "SUPERADMIN" | "SECURITY" | "FACILITY_MANAGER" | null;
     } & {
       name?: string | null;
       email?: string | null;
