@@ -11,6 +11,8 @@ import UserMenu from "@/components/auth/UserMenu";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import { useRegistrationGuard } from "@/hooks/useRegistrationGuard";
 
+const publicPaths = ["/", "/contact"];
+
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/guidelines", label: "Guidelines" },
@@ -26,6 +28,10 @@ export default function Navbar() {
   const { data: session } = useSession();
   useRegistrationGuard();
 
+  const visibleLinks = session
+    ? navLinks
+    : navLinks.filter((l) => publicPaths.includes(l.href));
+
   return (
     <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -36,7 +42,7 @@ export default function Navbar() {
 
           {/* Desktop links + auth */}
           <div className="hidden md:flex items-center gap-1">
-            {navLinks.map((link) => (
+            {visibleLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
@@ -97,7 +103,7 @@ export default function Navbar() {
       {mobileOpen && (
         <div className="md:hidden bg-white border-t">
           <div className="px-4 py-2 space-y-1">
-            {navLinks.map((link) => (
+            {visibleLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
