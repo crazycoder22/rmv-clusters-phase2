@@ -109,8 +109,8 @@ export default function NotificationBell() {
     // Navigate and close
     setOpen(false);
     const url = getNotificationUrl(
-      notification.announcement.category,
-      notification.announcement.id
+      notification.announcementId ?? null,
+      notification.visitorId ?? null
     );
     router.push(url);
   };
@@ -189,16 +189,20 @@ export default function NotificationBell() {
                           : "text-gray-600"
                       }`}
                     >
-                      {n.announcement.title}
+                      {n.announcement
+                        ? n.announcement.title
+                        : n.visitor
+                        ? `${n.visitor.name} wants to visit your flat`
+                        : "Notification"}
                     </p>
                   </div>
                   <div className="flex items-center gap-2 mt-1">
                     <span
                       className={`inline-block px-1.5 py-0.5 text-[10px] font-medium rounded capitalize ${getCategoryColor(
-                        n.announcement.category
+                        n.announcement?.category ?? "visitor"
                       )}`}
                     >
-                      {n.announcement.category}
+                      {n.announcement?.category ?? "visitor"}
                     </span>
                     <span className="text-[10px] text-gray-400">
                       {timeAgo(n.createdAt)}

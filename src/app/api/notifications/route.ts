@@ -24,6 +24,9 @@ export async function GET() {
       announcement: {
         select: { id: true, title: true, category: true },
       },
+      visitor: {
+        select: { id: true, name: true, status: true },
+      },
     },
   });
 

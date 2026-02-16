@@ -93,6 +93,29 @@ export async function POST(request: Request) {
       },
     });
 
+    // Look up all residents in the target flat
+    const residents = await prisma.resident.findMany({
+      where: { block, flatNumber: visitingFlat.trim() },
+      select: { id: true },
+    });
+
+    if (residents.length > 0) {
+      // Create notification for each resident
+      await prisma.notification.createMany({
+        data: residents.map((r) => ({
+          residentId: r.id,
+          visitorId: visitor.id,
+        })),
+      });
+    } else {
+      // No resident registered for this flat — auto-approve
+      await prisma.visitor.update({
+        where: { id: visitor.id },
+        data: { status: "APPROVED" },
+      });
+      visitor.status = "APPROVED";
+    }
+
     return NextResponse.json({ visitor }, { status: 201 });
   } catch {
     return NextResponse.json(

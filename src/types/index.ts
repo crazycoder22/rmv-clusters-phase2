@@ -167,14 +167,33 @@ export interface SportsRegistrationType {
 // Notification types
 export interface NotificationType {
   id: string;
-  announcementId: string;
+  announcementId: string | null;
+  visitorId: string | null;
   read: boolean;
   createdAt: string;
   announcement: {
     id: string;
     title: string;
     category: "maintenance" | "event" | "general" | "urgent" | "sports";
-  };
+  } | null;
+  visitor: {
+    id: string;
+    name: string;
+    status: string;
+  } | null;
+}
+
+// Visitor types
+export interface VisitorRecord {
+  id: string;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  vehicleNumber: string | null;
+  visitingBlock: number;
+  visitingFlat: string;
+  status: string;
+  createdAt: string;
 }
 
 export interface GalleryImage {

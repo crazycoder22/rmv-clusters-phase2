@@ -158,26 +158,31 @@ model ParticipantSport {
 }
 
 model Visitor {
-  id            String   @id @default(cuid())
+  id            String         @id @default(cuid())
   name          String
   phone         String?
   email         String?
   vehicleNumber String?
   visitingBlock Int
   visitingFlat  String
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  status        String         @default("PENDING") // "PENDING", "APPROVED", "REJECTED"
+  notifications Notification[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 }
 
 model Notification {
-  id             String       @id @default(cuid())
+  id             String        @id @default(cuid())
   residentId     String
-  resident       Resident     @relation(fields: [residentId], references: [id], onDelete: Cascade)
-  announcementId String
-  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
-  read           Boolean      @default(false)
-  createdAt      DateTime     @default(now())
+  resident       Resident      @relation(fields: [residentId], references: [id], onDelete: Cascade)
+  announcementId String?
+  announcement   Announcement? @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  visitorId      String?
+  visitor        Visitor?      @relation(fields: [visitorId], references: [id], onDelete: Cascade)
+  read           Boolean       @default(false)
+  createdAt      DateTime      @default(now())
 
   @@unique([residentId, announcementId])
   @@index([residentId, read])
+  @@index([visitorId])
 }

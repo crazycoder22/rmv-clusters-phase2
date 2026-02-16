@@ -1,8 +1,14 @@
 export function getNotificationUrl(
-  _category: string,
-  announcementId: string
+  announcementId: string | null,
+  visitorId: string | null
 ): string {
-  return `/news/${announcementId}`;
+  if (visitorId) {
+    return `/visitors/${visitorId}`;
+  }
+  if (announcementId) {
+    return `/news/${announcementId}`;
+  }
+  return "/";
 }
 
 export function getCategoryColor(category: string): string {
@@ -12,6 +18,7 @@ export function getCategoryColor(category: string): string {
     event: "bg-blue-100 text-blue-700",
     sports: "bg-orange-100 text-orange-700",
     general: "bg-gray-100 text-gray-700",
+    visitor: "bg-purple-100 text-purple-700",
   };
   return colors[category] || "bg-gray-100 text-gray-700";
 }

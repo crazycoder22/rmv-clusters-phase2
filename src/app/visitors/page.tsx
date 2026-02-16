@@ -4,17 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Search, UserPlus, Clock } from "lucide-react";
-
-interface VisitorRecord {
-  id: string;
-  name: string;
-  phone: string | null;
-  email: string | null;
-  vehicleNumber: string | null;
-  visitingBlock: number;
-  visitingFlat: string;
-  createdAt: string;
-}
+import type { VisitorRecord } from "@/types";
 
 export default function VisitorsPage() {
   const { data: session, status } = useSession();
@@ -59,6 +49,13 @@ export default function VisitorsPage() {
 
   useEffect(() => {
     if (hasAccess) fetchRecent();
+  }, [hasAccess, fetchRecent]);
+
+  // Poll for status updates every 30s
+  useEffect(() => {
+    if (!hasAccess) return;
+    const interval = setInterval(fetchRecent, 30000);
+    return () => clearInterval(interval);
   }, [hasAccess, fetchRecent]);
 
   // Debounced search for returning visitors
@@ -136,7 +133,14 @@ export default function VisitorsPage() {
       });
 
       if (res.ok) {
-        setSuccess("Visitor registered successfully!");
+        const data = await res.json();
+        if (data.visitor.status === "APPROVED") {
+          setSuccess(
+            "Visitor auto-approved (no resident registered for this flat)."
+          );
+        } else {
+          setSuccess("Visitor registered. Awaiting resident approval.");
+        }
         setName("");
         setPhone("");
         setEmail("");
@@ -144,7 +148,7 @@ export default function VisitorsPage() {
         setVisitingBlock("");
         setVisitingFlat("");
         fetchRecent();
-        setTimeout(() => setSuccess(""), 3000);
+        setTimeout(() => setSuccess(""), 5000);
       } else {
         const data = await res.json();
         setError(data.error || "Failed to register visitor");
@@ -374,6 +378,9 @@ export default function VisitorsPage() {
                     Visiting
                   </th>
                   <th className="text-left py-2 px-2 font-medium text-gray-600">
+                    Status
+                  </th>
+                  <th className="text-left py-2 px-2 font-medium text-gray-600">
                     Time
                   </th>
                 </tr>
@@ -382,7 +389,8 @@ export default function VisitorsPage() {
                 {recentVisitors.map((v) => (
                   <tr
                     key={v.id}
-                    className="border-b border-gray-50 hover:bg-gray-50"
+                    onClick={() => router.push(`/visitors/${v.id}`)}
+                    className="border-b border-gray-50 hover:bg-gray-50 cursor-pointer"
                   >
                     <td className="py-2 px-2 text-gray-900">{v.name}</td>
                     <td className="py-2 px-2 text-gray-600">
@@ -393,6 +401,19 @@ export default function VisitorsPage() {
                     </td>
                     <td className="py-2 px-2 text-gray-600">
                       B{v.visitingBlock}-{v.visitingFlat}
+                    </td>
+                    <td className="py-2 px-2">
+                      <span
+                        className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full ${
+                          v.status === "APPROVED"
+                            ? "bg-green-100 text-green-700"
+                            : v.status === "REJECTED"
+                            ? "bg-red-100 text-red-700"
+                            : "bg-yellow-100 text-yellow-700"
+                        }`}
+                      >
+                        {v.status}
+                      </span>
                     </td>
                     <td className="py-2 px-2 text-gray-400 text-xs whitespace-nowrap">
                       {new Date(v.createdAt).toLocaleString("en-IN", {
