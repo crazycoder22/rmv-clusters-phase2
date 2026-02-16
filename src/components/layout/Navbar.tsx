@@ -29,7 +29,7 @@ export default function Navbar() {
   useRegistrationGuard();
 
   const visibleLinks = session
-    ? navLinks
+    ? navLinks.filter((l) => l.href !== "/")
     : navLinks.filter((l) => publicPaths.includes(l.href));
 
   return (
@@ -42,6 +42,19 @@ export default function Navbar() {
 
           {/* Desktop links + auth */}
           <div className="hidden md:flex items-center gap-1">
+            {session?.user?.isRegistered && (
+              <Link
+                href="/dashboard"
+                className={clsx(
+                  "px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                  pathname === "/dashboard"
+                    ? "bg-primary-50 text-primary-700"
+                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50"
+                )}
+              >
+                Dashboard
+              </Link>
+            )}
             {visibleLinks.map((link) => (
               <Link
                 key={link.href}
@@ -56,19 +69,6 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
-            {session?.user?.isRegistered && (
-              <Link
-                href="/dashboard"
-                className={clsx(
-                  "px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                  pathname === "/dashboard"
-                    ? "bg-primary-50 text-primary-700"
-                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50"
-                )}
-              >
-                Dashboard
-              </Link>
-            )}
             {(session?.user?.role === "SUPERADMIN" || session?.user?.role === "ADMIN") && (
               <Link
                 href="/admin"
@@ -116,6 +116,20 @@ export default function Navbar() {
       {mobileOpen && (
         <div className="md:hidden bg-white border-t">
           <div className="px-4 py-2 space-y-1">
+            {session?.user?.isRegistered && (
+              <Link
+                href="/dashboard"
+                onClick={() => setMobileOpen(false)}
+                className={clsx(
+                  "block px-3 py-2 rounded-md text-base font-medium transition-colors",
+                  pathname === "/dashboard"
+                    ? "bg-primary-50 text-primary-700"
+                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50"
+                )}
+              >
+                Dashboard
+              </Link>
+            )}
             {visibleLinks.map((link) => (
               <Link
                 key={link.href}
@@ -131,20 +145,6 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
-            {session?.user?.isRegistered && (
-              <Link
-                href="/dashboard"
-                onClick={() => setMobileOpen(false)}
-                className={clsx(
-                  "block px-3 py-2 rounded-md text-base font-medium transition-colors",
-                  pathname === "/dashboard"
-                    ? "bg-primary-50 text-primary-700"
-                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50"
-                )}
-              >
-                Dashboard
-              </Link>
-            )}
             {(session?.user?.role === "SUPERADMIN" || session?.user?.role === "ADMIN") && (
               <Link
                 href="/admin"

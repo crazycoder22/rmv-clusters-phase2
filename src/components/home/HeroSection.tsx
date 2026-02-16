@@ -23,14 +23,8 @@ export default function HeroSection() {
         </p>
         <div className="flex flex-wrap items-center justify-center gap-4">
           <Link
-            href="#about"
-            className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-          >
-            Explore Our Community
-          </Link>
-          <Link
             href="/contact"
-            className="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-6 py-3 rounded-lg font-medium transition-colors border border-white/30"
+            className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
           >
             Contact Us
           </Link>
