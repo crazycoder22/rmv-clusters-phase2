@@ -1,16 +1,5 @@
 import type { Metadata } from "next";
-import {
-  MapPin,
-  Phone,
-  Mail,
-  Clock,
-  Shield,
-  Flame,
-  HeartPulse,
-  Siren,
-  Zap,
-  Droplets,
-} from "lucide-react";
+import { MapPin, Phone, Mail, Clock } from "lucide-react";
 import SectionHeading from "@/components/ui/SectionHeading";
 import siteData from "@/data/site.json";
 
@@ -18,16 +7,6 @@ export const metadata: Metadata = {
   title: "Contact Us",
   description:
     "Get in touch with RMV Clusters Phase II management. Find our location, office hours, and emergency contacts.",
-};
-
-const emergencyIconMap: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
-  shield: Shield,
-  flame: Flame,
-  "heart-pulse": HeartPulse,
-  siren: Siren,
-  zap: Zap,
-  droplets: Droplets,
-  phone: Phone,
 };
 
 export default function ContactPage() {
@@ -123,40 +102,6 @@ export default function ContactPage() {
               title="RMV Clusters Phase II Location"
               className="w-full h-[400px] lg:h-full"
             />
-          </div>
-        </div>
-
-        {/* Emergency Contacts */}
-        <div className="mt-16">
-          <SectionHeading
-            title="Emergency Contacts"
-            subtitle="Important numbers to keep handy"
-          />
-          <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {siteData.emergencyContacts.map((contact, index) => {
-              const Icon = emergencyIconMap[contact.icon] || Phone;
-              return (
-                <div
-                  key={index}
-                  className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 flex items-center gap-4"
-                >
-                  <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
-                    <Icon size={20} className="text-red-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">
-                      {contact.name}
-                    </p>
-                    <a
-                      href={`tel:${contact.phone}`}
-                      className="text-sm text-primary-600 hover:text-primary-700 font-medium"
-                    >
-                      {contact.phone}
-                    </a>
-                  </div>
-                </div>
-              );
-            })}
           </div>
         </div>
       </div>
