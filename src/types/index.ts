@@ -170,6 +170,7 @@ export interface NotificationType {
   announcementId: string | null;
   visitorId: string | null;
   issueId: string | null;
+  taskId: string | null;
   read: boolean;
   createdAt: string;
   announcement: {
@@ -187,6 +188,12 @@ export interface NotificationType {
     title: string;
     category: string;
     status: string;
+  } | null;
+  task: {
+    id: string;
+    title: string;
+    status: string;
+    priority: string;
   } | null;
 }
 

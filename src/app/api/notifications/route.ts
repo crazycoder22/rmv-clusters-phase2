@@ -30,6 +30,9 @@ export async function GET() {
       issue: {
         select: { id: true, title: true, category: true, status: true },
       },
+      task: {
+        select: { id: true, title: true, status: true, priority: true },
+      },
     },
   });
 

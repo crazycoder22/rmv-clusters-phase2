@@ -16,6 +16,7 @@ import {
   Newspaper,
   ChevronRight,
   Wrench,
+  ClipboardList,
 } from "lucide-react";
 import siteData from "@/data/site.json";
 import { formatDate } from "@/lib/utils";
@@ -64,6 +65,7 @@ const quickLinks = [
   { href: "/contact", label: "Contact", icon: Phone, color: "bg-purple-50 text-purple-600" },
   { href: "/news", label: "News", icon: Newspaper, color: "bg-red-50 text-red-600" },
   { href: "/issues", label: "Issues", icon: Wrench, color: "bg-orange-50 text-orange-600" },
+  { href: "/tasks", label: "Tasks", icon: ClipboardList, color: "bg-teal-50 text-teal-600" },
 ];
 
 export default function DashboardPage() {

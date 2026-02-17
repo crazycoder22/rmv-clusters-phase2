@@ -100,6 +100,19 @@ export default function Navbar() {
                 Visitors
               </Link>
             )}
+            {(session?.user?.role === "FACILITY_MANAGER" || session?.user?.role === "ADMIN" || session?.user?.role === "SUPERADMIN") && (
+              <Link
+                href="/tasks"
+                className={clsx(
+                  "px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                  pathname === "/tasks"
+                    ? "bg-primary-50 text-primary-700"
+                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50"
+                )}
+              >
+                Tasks
+              </Link>
+            )}
             <NotificationBell />
             <div className="ml-2 border-l pl-2">
               {session ? <UserMenu /> : <SignInButton />}
@@ -176,6 +189,20 @@ export default function Navbar() {
                 )}
               >
                 Visitors
+              </Link>
+            )}
+            {(session?.user?.role === "FACILITY_MANAGER" || session?.user?.role === "ADMIN" || session?.user?.role === "SUPERADMIN") && (
+              <Link
+                href="/tasks"
+                onClick={() => setMobileOpen(false)}
+                className={clsx(
+                  "block px-3 py-2 rounded-md text-base font-medium transition-colors",
+                  pathname === "/tasks"
+                    ? "bg-primary-50 text-primary-700"
+                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50"
+                )}
+              >
+                Tasks
               </Link>
             )}
             <div className="border-t mt-2 pt-2 flex items-center justify-between">

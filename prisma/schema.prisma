@@ -50,6 +50,9 @@ model Resident {
   notifications        Notification[]
   issues               Issue[]
   closedIssues         Issue[]  @relation("ClosedIssues")
+  tasksCreated         Task[]   @relation("TasksCreated")
+  tasksOwned           Task[]   @relation("TasksOwned")
+  taskComments         TaskComment[]
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 }
@@ -184,6 +187,8 @@ model Notification {
   visitor        Visitor?      @relation(fields: [visitorId], references: [id], onDelete: Cascade)
   issueId        String?
   issue          Issue?        @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  taskId         String?
+  task           Task?         @relation(fields: [taskId], references: [id], onDelete: Cascade)
   read           Boolean       @default(false)
   createdAt      DateTime      @default(now())
 
@@ -191,6 +196,7 @@ model Notification {
   @@index([residentId, read])
   @@index([visitorId])
   @@index([issueId])
+  @@index([taskId])
 }
 
 model Issue {
@@ -211,4 +217,46 @@ model Issue {
 
   @@index([residentId])
   @@index([status])
+}
+
+model Task {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  category    String    // "MAINTENANCE", "ELECTRICAL", "PLUMBING", "SECURITY", "GENERAL"
+  priority    String    @default("NORMAL") // "LOW", "NORMAL", "HIGH", "URGENT"
+  status      String    @default("OPEN")   // "OPEN", "IN_PROGRESS", "ON_HOLD", "BLOCKED", "CLOSED"
+  deadline    DateTime
+
+  createdById String
+  createdBy   Resident  @relation("TasksCreated", fields: [createdById], references: [id])
+
+  ownerId     String
+  owner       Resident  @relation("TasksOwned", fields: [ownerId], references: [id])
+
+  closedAt    DateTime?
+
+  comments      TaskComment[]
+  notifications Notification[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerId])
+  @@index([createdById])
+  @@index([status])
+}
+
+model TaskComment {
+  id        String   @id @default(cuid())
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    Resident @relation(fields: [authorId], references: [id])
+  content   String
+  oldStatus String?
+  newStatus String?
+  createdAt DateTime @default(now())
+
+  @@index([taskId])
 }
