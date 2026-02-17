@@ -1,7 +1,11 @@
 export function getNotificationUrl(
   announcementId: string | null,
-  visitorId: string | null
+  visitorId: string | null,
+  issueId?: string | null
 ): string {
+  if (issueId) {
+    return "/issues";
+  }
   if (visitorId) {
     return `/visitors/${visitorId}`;
   }
@@ -19,6 +23,7 @@ export function getCategoryColor(category: string): string {
     sports: "bg-orange-100 text-orange-700",
     general: "bg-gray-100 text-gray-700",
     visitor: "bg-purple-100 text-purple-700",
+    issue: "bg-orange-100 text-orange-700",
   };
   return colors[category] || "bg-gray-100 text-gray-700";
 }

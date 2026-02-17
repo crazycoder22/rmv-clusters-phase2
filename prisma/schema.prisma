@@ -182,12 +182,15 @@ model Notification {
   announcement   Announcement? @relation(fields: [announcementId], references: [id], onDelete: Cascade)
   visitorId      String?
   visitor        Visitor?      @relation(fields: [visitorId], references: [id], onDelete: Cascade)
+  issueId        String?
+  issue          Issue?        @relation(fields: [issueId], references: [id], onDelete: Cascade)
   read           Boolean       @default(false)
   createdAt      DateTime      @default(now())
 
   @@unique([residentId, announcementId])
   @@index([residentId, read])
   @@index([visitorId])
+  @@index([issueId])
 }
 
 model Issue {
@@ -202,6 +205,7 @@ model Issue {
   closedByResident Resident? @relation("ClosedIssues", fields: [closedBy], references: [id])
   closureComment   String?
   closedAt         DateTime?
+  notifications    Notification[]
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 

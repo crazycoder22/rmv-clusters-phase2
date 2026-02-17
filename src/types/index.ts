@@ -169,6 +169,7 @@ export interface NotificationType {
   id: string;
   announcementId: string | null;
   visitorId: string | null;
+  issueId: string | null;
   read: boolean;
   createdAt: string;
   announcement: {
@@ -179,6 +180,12 @@ export interface NotificationType {
   visitor: {
     id: string;
     name: string;
+    status: string;
+  } | null;
+  issue: {
+    id: string;
+    title: string;
+    category: string;
     status: string;
   } | null;
 }

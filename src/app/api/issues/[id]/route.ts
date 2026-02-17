@@ -67,5 +67,13 @@ export async function PATCH(
     },
   });
 
+  // Notify the resident who raised the issue
+  await prisma.notification.create({
+    data: {
+      residentId: issue.residentId,
+      issueId: issue.id,
+    },
+  });
+
   return NextResponse.json({ success: true, issue: updated });
 }

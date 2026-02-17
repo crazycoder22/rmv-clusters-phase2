@@ -27,6 +27,9 @@ export async function GET() {
       visitor: {
         select: { id: true, name: true, status: true },
       },
+      issue: {
+        select: { id: true, title: true, category: true, status: true },
+      },
     },
   });
 

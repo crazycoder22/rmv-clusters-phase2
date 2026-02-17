@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
-const MANAGER_ROLES = ["FACILITY_MANAGER", "ADMIN", "SUPERADMIN"];
+const ALL_MANAGER_ROLES = ["FACILITY_MANAGER", "ADMIN", "SUPERADMIN"];
 
 export async function GET() {
   const session = await auth();
@@ -19,7 +19,10 @@ export async function GET() {
     return NextResponse.json({ error: "Not registered" }, { status: 403 });
   }
 
-  const isManager = MANAGER_ROLES.includes(resident.role.name);
+  const roleName = resident.role.name;
+  const isManager = ALL_MANAGER_ROLES.includes(roleName);
+  // FM only manages, ADMIN/SUPERADMIN can also raise issues
+  const canRaise = roleName !== "FACILITY_MANAGER";
 
   const issues = await prisma.issue.findMany({
     where: isManager ? {} : { residentId: resident.id },
@@ -34,7 +37,7 @@ export async function GET() {
     orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json({ issues, isManager });
+  return NextResponse.json({ issues, isManager, canRaise });
 }
 
 export async function POST(request: Request) {
@@ -45,11 +48,19 @@ export async function POST(request: Request) {
 
   const resident = await prisma.resident.findUnique({
     where: { email: session.user.email },
-    select: { id: true, isApproved: true },
+    select: { id: true, isApproved: true, role: { select: { name: true } } },
   });
 
   if (!resident || !resident.isApproved) {
     return NextResponse.json({ error: "Not approved" }, { status: 403 });
+  }
+
+  // Facility managers cannot raise issues
+  if (resident.role.name === "FACILITY_MANAGER") {
+    return NextResponse.json(
+      { error: "Facility managers cannot raise issues" },
+      { status: 403 }
+    );
   }
 
   const body = await request.json();
@@ -85,6 +96,21 @@ export async function POST(request: Request) {
       },
     },
   });
+
+  // Notify all facility managers
+  const facilityManagers = await prisma.resident.findMany({
+    where: { role: { name: "FACILITY_MANAGER" }, isApproved: true },
+    select: { id: true },
+  });
+
+  if (facilityManagers.length > 0) {
+    await prisma.notification.createMany({
+      data: facilityManagers.map((fm) => ({
+        residentId: fm.id,
+        issueId: issue.id,
+      })),
+    });
+  }
 
   return NextResponse.json({ success: true, issue }, { status: 201 });
 }

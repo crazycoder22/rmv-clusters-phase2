@@ -30,6 +30,7 @@ export default function IssuesPage() {
   const router = useRouter();
   const [issues, setIssues] = useState<Issue[]>([]);
   const [isManager, setIsManager] = useState(false);
+  const [canRaise, setCanRaise] = useState(true);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(emptyForm);
   const [submitting, setSubmitting] = useState(false);
@@ -48,6 +49,7 @@ export default function IssuesPage() {
         const data = await res.json();
         setIssues(data.issues);
         setIsManager(data.isManager);
+        setCanRaise(data.canRaise ?? true);
       }
     } catch {
       // silently fail
@@ -146,8 +148,8 @@ export default function IssuesPage() {
           : "Raise and track maintenance issues."}
       </p>
 
-      {/* Raise Issue Form - only for non-manager residents */}
-      {!isManager && (
+      {/* Raise Issue Form - for residents and admins (not facility managers) */}
+      {canRaise && (
         <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">
             Raise New Issue
@@ -248,7 +250,7 @@ export default function IssuesPage() {
       {issues.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-gray-500">No issues found.</p>
-          {!isManager && (
+          {canRaise && (
             <p className="text-gray-400 text-sm mt-1">
               Use the form above to raise a new issue.
             </p>
