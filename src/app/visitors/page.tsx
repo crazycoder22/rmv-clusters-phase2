@@ -28,6 +28,9 @@ export default function VisitorsPage() {
   const [recentVisitors, setRecentVisitors] = useState<VisitorRecord[]>([]);
   const [loadingRecent, setLoadingRecent] = useState(true);
 
+  const [visitorFlats, setVisitorFlats] = useState<{ id: string; block: number; flatNumber: string }[]>([]);
+  const [loadingVisitorFlats, setLoadingVisitorFlats] = useState(false);
+
   const role = session?.user?.role;
   const hasAccess =
     role === "ADMIN" || role === "SUPERADMIN" || role === "SECURITY";
@@ -57,6 +60,20 @@ export default function VisitorsPage() {
     const interval = setInterval(fetchRecent, 30000);
     return () => clearInterval(interval);
   }, [hasAccess, fetchRecent]);
+
+  // Fetch flats when visiting block changes
+  useEffect(() => {
+    if (!visitingBlock) {
+      setVisitorFlats([]);
+      return;
+    }
+    setLoadingVisitorFlats(true);
+    fetch(`/api/flats?block=${visitingBlock}`)
+      .then((res) => (res.ok ? res.json() : { flats: [] }))
+      .then((data) => setVisitorFlats(data.flats || []))
+      .catch(() => setVisitorFlats([]))
+      .finally(() => setLoadingVisitorFlats(false));
+  }, [visitingBlock]);
 
   // Debounced search for returning visitors
   useEffect(() => {
@@ -313,7 +330,10 @@ export default function VisitorsPage() {
               </label>
               <select
                 value={visitingBlock}
-                onChange={(e) => setVisitingBlock(e.target.value)}
+                onChange={(e) => {
+                  setVisitingBlock(e.target.value);
+                  setVisitingFlat("");
+                }}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
                 <option value="">Select Block</option>
@@ -327,13 +347,25 @@ export default function VisitorsPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Flat Number <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
+              <select
                 value={visitingFlat}
                 onChange={(e) => setVisitingFlat(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                placeholder="e.g. 101, G2"
-              />
+                disabled={!visitingBlock || loadingVisitorFlats}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-400"
+              >
+                <option value="">
+                  {!visitingBlock
+                    ? "Select block first"
+                    : loadingVisitorFlats
+                    ? "Loading..."
+                    : "Select Flat"}
+                </option>
+                {visitorFlats.map((flat) => (
+                  <option key={flat.id} value={flat.flatNumber}>
+                    {flat.flatNumber}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 

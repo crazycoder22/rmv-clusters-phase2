@@ -14,6 +14,15 @@ model Role {
   createdAt DateTime   @default(now())
 }
 
+model Flat {
+  id         String @id @default(cuid())
+  block      Int    // 1, 2, 3, or 4
+  flatNumber String // e.g., "001/002", "103"
+
+  @@unique([block, flatNumber])
+  @@index([block])
+}
+
 model Announcement {
   id          String       @id @default(cuid())
   title       String

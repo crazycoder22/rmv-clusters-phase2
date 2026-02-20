@@ -73,6 +73,10 @@ export default function AdminPage() {
   // Role update state
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
+  // Flat options for Add Resident form
+  const [adminFlats, setAdminFlats] = useState<{ id: string; block: number; flatNumber: string }[]>([]);
+  const [loadingAdminFlats, setLoadingAdminFlats] = useState(false);
+
   // News state
   const [newsForm, setNewsForm] = useState(emptyNewsForm);
   const [newsSubmitting, setNewsSubmitting] = useState(false);
@@ -129,6 +133,20 @@ export default function AdminPage() {
     }
   }, []);
 
+  // Fetch flats when block changes in Add Resident form
+  useEffect(() => {
+    if (!form.block) {
+      setAdminFlats([]);
+      return;
+    }
+    setLoadingAdminFlats(true);
+    fetch(`/api/flats?block=${form.block}`)
+      .then((res) => (res.ok ? res.json() : { flats: [] }))
+      .then((data) => setAdminFlats(data.flats || []))
+      .catch(() => setAdminFlats([]))
+      .finally(() => setLoadingAdminFlats(false));
+  }, [form.block]);
+
   useEffect(() => {
     if (role === "ADMIN" || role === "SUPERADMIN") {
       fetchPendingResidents();
@@ -173,7 +191,13 @@ export default function AdminPage() {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+      // Reset flat when block changes
+      ...(name === "block" ? { flatNumber: "" } : {}),
+    }));
   };
 
   const handleAddResident = async (e: React.FormEvent) => {
@@ -1100,15 +1124,27 @@ export default function AdminPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Flat / Door No.
                 </label>
-                <input
-                  type="text"
+                <select
                   name="flatNumber"
                   required
                   value={form.flatNumber}
                   onChange={handleChange}
-                  placeholder="e.g., 101"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                />
+                  disabled={!form.block || loadingAdminFlats}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-50 disabled:text-gray-400"
+                >
+                  <option value="">
+                    {!form.block
+                      ? "Select block first"
+                      : loadingAdminFlats
+                      ? "Loading..."
+                      : "Select Flat"}
+                  </option>
+                  {adminFlats.map((flat) => (
+                    <option key={flat.id} value={flat.flatNumber}>
+                      {flat.flatNumber}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 

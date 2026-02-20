@@ -82,6 +82,17 @@ export async function POST(request: Request) {
       );
     }
 
+    // Validate flat exists in the Flat table
+    const flatExists = await prisma.flat.findUnique({
+      where: { block_flatNumber: { block, flatNumber: visitingFlat.trim() } },
+    });
+    if (!flatExists) {
+      return NextResponse.json(
+        { error: "Invalid flat number for the selected block" },
+        { status: 400 }
+      );
+    }
+
     const visitor = await prisma.visitor.create({
       data: {
         name: name.trim(),

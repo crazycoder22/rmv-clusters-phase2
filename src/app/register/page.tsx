@@ -4,6 +4,12 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
+interface FlatOption {
+  id: string;
+  block: number;
+  flatNumber: string;
+}
+
 export default function RegisterPage() {
   const { data: session, status, update } = useSession();
   const router = useRouter();
@@ -15,6 +21,8 @@ export default function RegisterPage() {
   });
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [flats, setFlats] = useState<FlatOption[]>([]);
+  const [loadingFlats, setLoadingFlats] = useState(false);
 
   // Redirect if not signed in
   useEffect(() => {
@@ -29,6 +37,20 @@ export default function RegisterPage() {
       router.push("/");
     }
   }, [session, router]);
+
+  // Fetch flats when block changes
+  useEffect(() => {
+    if (!form.block) {
+      setFlats([]);
+      return;
+    }
+    setLoadingFlats(true);
+    fetch(`/api/flats?block=${form.block}`)
+      .then((res) => (res.ok ? res.json() : { flats: [] }))
+      .then((data) => setFlats(data.flats || []))
+      .catch(() => setFlats([]))
+      .finally(() => setLoadingFlats(false));
+  }, [form.block]);
 
   if (status === "loading") {
     return (
@@ -73,7 +95,13 @@ export default function RegisterPage() {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+      // Reset flat when block changes
+      ...(name === "block" ? { flatNumber: "" } : {}),
+    }));
   };
 
   return (
@@ -149,15 +177,27 @@ export default function RegisterPage() {
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Flat / Door Number
           </label>
-          <input
-            type="text"
+          <select
             name="flatNumber"
             required
             value={form.flatNumber}
             onChange={handleChange}
-            placeholder="e.g., 101, G2"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-          />
+            disabled={!form.block || loadingFlats}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-50 disabled:text-gray-400"
+          >
+            <option value="">
+              {!form.block
+                ? "Select a block first"
+                : loadingFlats
+                ? "Loading flats..."
+                : "Select Flat"}
+            </option>
+            {flats.map((flat) => (
+              <option key={flat.id} value={flat.flatNumber}>
+                {flat.flatNumber}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div>

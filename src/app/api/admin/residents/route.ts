@@ -84,6 +84,17 @@ export async function POST(request: Request) {
     );
   }
 
+  // Validate flat exists in the Flat table
+  const flatExists = await prisma.flat.findUnique({
+    where: { block_flatNumber: { block: Number(block), flatNumber } },
+  });
+  if (!flatExists) {
+    return NextResponse.json(
+      { error: "Invalid flat number for the selected block" },
+      { status: 400 }
+    );
+  }
+
   if (!["OWNER", "TENANT"].includes(residentType)) {
     return NextResponse.json(
       { error: "Invalid resident type" },
