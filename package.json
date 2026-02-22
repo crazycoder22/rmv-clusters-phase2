@@ -11,6 +11,8 @@
     "db:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@capacitor/core": "^8.1.0",
+    "@capacitor/ios": "^8.1.0",
     "@prisma/adapter-pg": "^7.4.0",
     "@prisma/client": "^7.4.0",
     "clsx": "^2.1.1",
@@ -25,6 +27,7 @@
     "sharp": "^0.34.5"
   },
   "devDependencies": {
+    "@capacitor/cli": "^7.5.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/pg": "^8.16.0",
