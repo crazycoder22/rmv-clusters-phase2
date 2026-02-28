@@ -6,14 +6,6 @@ import Link from "next/link";
 import clsx from "clsx";
 import type { MenuItemType } from "@/types";
 
-interface RsvpResident {
-  id: string;
-  name: string;
-  email: string;
-  block: number;
-  flatNumber: string;
-}
-
 interface RsvpItemData {
   id: string;
   menuItemId: string;
@@ -23,7 +15,26 @@ interface RsvpItemData {
 
 interface RsvpData {
   id: string;
-  resident: RsvpResident;
+  resident: {
+    id: string;
+    name: string;
+    email: string;
+    block: number;
+    flatNumber: string;
+  };
+  items: RsvpItemData[];
+  paid: boolean;
+  notes: string | null;
+  createdAt: string;
+}
+
+interface GuestRsvpData {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  block: number;
+  flatNumber: string;
   items: RsvpItemData[];
   paid: boolean;
   notes: string | null;
@@ -39,10 +50,24 @@ interface Summary {
   itemTotals: { name: string; plates: number; amount: number }[];
 }
 
+interface UnifiedRsvp {
+  id: string;
+  isGuest: boolean;
+  name: string;
+  email: string;
+  phone?: string;
+  block: number;
+  flatNumber: string;
+  items: RsvpItemData[];
+  paid: boolean;
+  notes: string | null;
+  createdAt: string;
+}
+
 export default function AdminRsvpPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { role, isAdmin, isSuperAdmin, isLoading: roleLoading } = useRole();
-  const [rsvps, setRsvps] = useState<RsvpData[]>([]);
+  const [allRsvps, setAllRsvps] = useState<UnifiedRsvp[]>([]);
   const [summary, setSummary] = useState<Summary | null>(null);
   const [eventTitle, setEventTitle] = useState("");
   const [mealType, setMealType] = useState("");
@@ -56,7 +81,39 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
       const res = await fetch(`/api/admin/events/${id}/rsvps`);
       if (res.ok) {
         const data = await res.json();
-        setRsvps(data.rsvps);
+
+        const residentRows: UnifiedRsvp[] = (data.rsvps || []).map((r: RsvpData) => ({
+          id: r.id,
+          isGuest: false,
+          name: r.resident.name,
+          email: r.resident.email,
+          block: r.resident.block,
+          flatNumber: r.resident.flatNumber,
+          items: r.items,
+          paid: r.paid,
+          notes: r.notes,
+          createdAt: r.createdAt,
+        }));
+
+        const guestRows: UnifiedRsvp[] = (data.guestRsvps || []).map((g: GuestRsvpData) => ({
+          id: g.id,
+          isGuest: true,
+          name: g.name,
+          email: g.email,
+          phone: g.phone,
+          block: g.block,
+          flatNumber: g.flatNumber,
+          items: g.items,
+          paid: g.paid,
+          notes: g.notes,
+          createdAt: g.createdAt,
+        }));
+
+        const combined = [...residentRows, ...guestRows].sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+
+        setAllRsvps(combined);
         setSummary(data.summary);
         setEventTitle(data.announcement.title);
         setMealType(data.eventConfig.mealType);
@@ -75,24 +132,26 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
     }
   }, [role, fetchRsvps]);
 
-  const togglePaid = async (rsvpId: string, currentPaid: boolean) => {
-    setTogglingId(rsvpId);
+  const togglePaid = async (rsvp: UnifiedRsvp) => {
+    setTogglingId(rsvp.id);
     try {
-      const res = await fetch(`/api/admin/events/${id}/rsvps/${rsvpId}`, {
+      const url = rsvp.isGuest
+        ? `/api/admin/events/${id}/rsvps/guest/${rsvp.id}`
+        : `/api/admin/events/${id}/rsvps/${rsvp.id}`;
+      const res = await fetch(url, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ paid: !currentPaid }),
+        body: JSON.stringify({ paid: !rsvp.paid }),
       });
       if (res.ok) {
-        setRsvps((prev) =>
-          prev.map((r) => (r.id === rsvpId ? { ...r, paid: !currentPaid } : r))
+        setAllRsvps((prev) =>
+          prev.map((r) => (r.id === rsvp.id ? { ...r, paid: !rsvp.paid } : r))
         );
-        // Update summary counts
         if (summary) {
           setSummary({
             ...summary,
-            paidCount: currentPaid ? summary.paidCount - 1 : summary.paidCount + 1,
-            unpaidCount: currentPaid ? summary.unpaidCount + 1 : summary.unpaidCount - 1,
+            paidCount: rsvp.paid ? summary.paidCount - 1 : summary.paidCount + 1,
+            unpaidCount: rsvp.paid ? summary.unpaidCount + 1 : summary.unpaidCount - 1,
           });
         }
       }
@@ -168,7 +227,7 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                 <p className="text-xs text-gray-500 mt-1">Total Plates</p>
               </div>
               <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
-                <p className="text-2xl font-bold text-green-700">₹{summary.totalAmount.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-green-700">{"\u20B9"}{summary.totalAmount.toFixed(2)}</p>
                 <p className="text-xs text-gray-500 mt-1">Total Amount</p>
               </div>
               <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
@@ -190,7 +249,7 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                   <div key={item.name} className="flex justify-between text-sm">
                     <span className="text-gray-600">{item.name}</span>
                     <span className="text-gray-800">
-                      {item.plates} plates &middot; ₹{item.amount.toFixed(2)}
+                      {item.plates} plates &middot; {"\u20B9"}{item.amount.toFixed(2)}
                     </span>
                   </div>
                 ))}
@@ -210,14 +269,14 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
             </button>
           </div>
 
-          {rsvps.length === 0 ? (
+          {allRsvps.length === 0 ? (
             <p className="text-gray-500 text-center py-8">No RSVPs yet.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-200 text-left text-gray-600">
-                    <th className="pb-3 pr-4 font-medium">Resident</th>
+                    <th className="pb-3 pr-4 font-medium">Name</th>
                     <th className="pb-3 pr-4 font-medium">Block / Flat</th>
                     <th className="pb-3 pr-4 font-medium">Items</th>
                     <th className="pb-3 pr-4 font-medium">Total</th>
@@ -226,22 +285,32 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                   </tr>
                 </thead>
                 <tbody>
-                  {rsvps.map((rsvp) => {
+                  {allRsvps.map((rsvp) => {
                     const rsvpTotal = rsvp.items.reduce(
                       (sum, item) => sum + item.plates * item.menuItem.pricePerPlate,
                       0
                     );
                     return (
                       <tr
-                        key={rsvp.id}
+                        key={`${rsvp.isGuest ? "g" : "r"}-${rsvp.id}`}
                         className="border-b border-gray-100 hover:bg-gray-50"
                       >
                         <td className="py-3 pr-4">
-                          <p className="font-medium text-gray-900">{rsvp.resident.name}</p>
-                          <p className="text-xs text-gray-400">{rsvp.resident.email}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium text-gray-900">{rsvp.name}</p>
+                            {rsvp.isGuest && (
+                              <span className="inline-block px-1.5 py-0.5 text-[10px] font-medium rounded bg-purple-100 text-purple-700">
+                                Guest
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-400">{rsvp.email}</p>
+                          {rsvp.phone && (
+                            <p className="text-xs text-gray-400">{rsvp.phone}</p>
+                          )}
                         </td>
                         <td className="py-3 pr-4 text-gray-600">
-                          B{rsvp.resident.block} - {rsvp.resident.flatNumber}
+                          B{rsvp.block} - {rsvp.flatNumber}
                         </td>
                         <td className="py-3 pr-4 text-gray-600">
                           {rsvp.items.map((item) => (
@@ -251,14 +320,14 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                           ))}
                         </td>
                         <td className="py-3 pr-4 font-medium text-gray-800">
-                          ₹{rsvpTotal.toFixed(2)}
+                          {"\u20B9"}{rsvpTotal.toFixed(2)}
                         </td>
                         <td className="py-3 pr-4 text-gray-500 text-xs max-w-[120px] truncate">
-                          {rsvp.notes || "—"}
+                          {rsvp.notes || "\u2014"}
                         </td>
                         <td className="py-3">
                           <button
-                            onClick={() => togglePaid(rsvp.id, rsvp.paid)}
+                            onClick={() => togglePaid(rsvp)}
                             disabled={togglingId === rsvp.id}
                             className={clsx(
                               "inline-block px-2 py-0.5 text-xs font-medium rounded-full cursor-pointer transition-colors disabled:opacity-50",

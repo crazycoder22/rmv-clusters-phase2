@@ -39,6 +39,14 @@ export async function GET(
             },
             orderBy: { createdAt: "desc" },
           },
+          guestRsvps: {
+            include: {
+              items: {
+                include: { menuItem: true },
+              },
+            },
+            orderBy: { createdAt: "desc" },
+          },
         },
       },
     },
@@ -53,8 +61,9 @@ export async function GET(
 
   const ec = announcement.eventConfig;
   const rsvps = ec.rsvps;
+  const guestRsvps = ec.guestRsvps;
 
-  // Compute summary
+  // Compute summary across both resident and guest RSVPs
   let totalPlates = 0;
   let totalAmount = 0;
   let paidCount = 0;
@@ -63,11 +72,10 @@ export async function GET(
   const itemTotals: Record<string, { name: string; plates: number; amount: number }> = {};
 
   for (const rsvp of rsvps) {
-    let rsvpAmount = 0;
     for (const item of rsvp.items) {
       totalPlates += item.plates;
       const lineTotal = item.plates * item.menuItem.pricePerPlate;
-      rsvpAmount += lineTotal;
+      totalAmount += lineTotal;
 
       if (!itemTotals[item.menuItem.id]) {
         itemTotals[item.menuItem.id] = { name: item.menuItem.name, plates: 0, amount: 0 };
@@ -75,10 +83,27 @@ export async function GET(
       itemTotals[item.menuItem.id].plates += item.plates;
       itemTotals[item.menuItem.id].amount += lineTotal;
     }
-    totalAmount += rsvpAmount;
     if (rsvp.paid) paidCount++;
     else unpaidCount++;
   }
+
+  for (const guestRsvp of guestRsvps) {
+    for (const item of guestRsvp.items) {
+      totalPlates += item.plates;
+      const lineTotal = item.plates * item.menuItem.pricePerPlate;
+      totalAmount += lineTotal;
+
+      if (!itemTotals[item.menuItem.id]) {
+        itemTotals[item.menuItem.id] = { name: item.menuItem.name, plates: 0, amount: 0 };
+      }
+      itemTotals[item.menuItem.id].plates += item.plates;
+      itemTotals[item.menuItem.id].amount += lineTotal;
+    }
+    if (guestRsvp.paid) paidCount++;
+    else unpaidCount++;
+  }
+
+  const totalRsvps = rsvps.length + guestRsvps.length;
 
   return NextResponse.json({
     announcement: {
@@ -93,8 +118,9 @@ export async function GET(
       menuItems: ec.menuItems,
     },
     rsvps,
+    guestRsvps,
     summary: {
-      totalRsvps: rsvps.length,
+      totalRsvps,
       totalPlates,
       totalAmount,
       paidCount,

@@ -74,6 +74,7 @@ model EventConfig {
   rsvpDeadline   DateTime
   menuItems      MenuItem[]
   rsvps          Rsvp[]
+  guestRsvps     GuestRsvp[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 }
@@ -85,8 +86,9 @@ model MenuItem {
   name          String
   pricePerPlate Float
   sortOrder     Int         @default(0)
-  rsvpItems     RsvpItem[]
-  createdAt     DateTime    @default(now())
+  rsvpItems      RsvpItem[]
+  guestRsvpItems GuestRsvpItem[]
+  createdAt      DateTime    @default(now())
 }
 
 model Rsvp {
@@ -114,6 +116,36 @@ model RsvpItem {
   createdAt  DateTime @default(now())
 
   @@unique([rsvpId, menuItemId])
+}
+
+model GuestRsvp {
+  id            String          @id @default(cuid())
+  eventConfigId String
+  eventConfig   EventConfig     @relation(fields: [eventConfigId], references: [id], onDelete: Cascade)
+  name          String
+  email         String
+  phone         String
+  block         Int
+  flatNumber    String
+  items         GuestRsvpItem[]
+  paid          Boolean         @default(false)
+  notes         String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@unique([eventConfigId, email])
+}
+
+model GuestRsvpItem {
+  id          String    @id @default(cuid())
+  guestRsvpId String
+  guestRsvp   GuestRsvp @relation(fields: [guestRsvpId], references: [id], onDelete: Cascade)
+  menuItemId  String
+  menuItem    MenuItem  @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  plates      Int
+  createdAt   DateTime  @default(now())
+
+  @@unique([guestRsvpId, menuItemId])
 }
 
 model SportsConfig {
