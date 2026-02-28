@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, use } from "react";
 import { QRCodeCanvas } from "qrcode.react";
-import html2canvas from "html2canvas";
+import { toPng } from "html-to-image";
 import { formatDate } from "@/lib/utils";
 
 interface PassData {
@@ -57,14 +57,13 @@ export default function PassPage({ params }: { params: Promise<{ code: string }>
     if (!cardRef.current) return;
     setDownloading(true);
     try {
-      const canvas = await html2canvas(cardRef.current, {
+      const dataUrl = await toPng(cardRef.current, {
+        pixelRatio: 2,
         backgroundColor: "#ffffff",
-        scale: 2,
-        useCORS: true,
       });
       const link = document.createElement("a");
       link.download = `event-pass-${code}.png`;
-      link.href = canvas.toDataURL("image/png");
+      link.href = dataUrl;
       link.click();
     } catch (err) {
       console.error("Download failed:", err);
