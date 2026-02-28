@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, use } from "react";
-import { QRCodeCanvas } from "qrcode.react";
+import { QRCodeSVG } from "qrcode.react";
 import { toPng } from "html-to-image";
 import { formatDate } from "@/lib/utils";
 
@@ -148,7 +148,7 @@ export default function PassPage({ params }: { params: Promise<{ code: string }>
           {/* QR Code */}
           <div className="px-6 py-5 flex justify-center">
             <div className="p-3 bg-white border-2 border-gray-100 rounded-xl">
-              <QRCodeCanvas
+              <QRCodeSVG
                 value={passUrl}
                 size={200}
                 level="M"
