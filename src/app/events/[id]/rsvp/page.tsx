@@ -53,6 +53,7 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
   const [flats, setFlats] = useState<FlatOption[]>([]);
   const [loadingFlats, setLoadingFlats] = useState(false);
   const [guestSubmitted, setGuestSubmitted] = useState(false);
+  const [guestRsvpId, setGuestRsvpId] = useState<string | null>(null);
 
   const isGuest = status === "unauthenticated";
   const isLoggedIn = status === "authenticated" && session?.user?.isRegistered;
@@ -178,6 +179,7 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
           setError(data.error || "Something went wrong");
           return;
         }
+        setGuestRsvpId(data.guestRsvp.id);
         setGuestSubmitted(true);
         setSuccess("RSVP submitted successfully! Thank you.");
       } else {
@@ -274,6 +276,19 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
               Please contact the organizer for payment details.
             </p>
           )}
+          {guestRsvpId && (
+            <div className="mt-6">
+              <Link
+                href={`/pass/g-${guestRsvpId}`}
+                className="inline-block px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors"
+              >
+                View Your Event Pass
+              </Link>
+              <p className="text-xs text-gray-500 mt-2">
+                Save this link to access your pass anytime.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -326,6 +341,18 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
           {myRsvp.paid
             ? "Payment received \u2014 you're all set!"
             : "Payment pending \u2014 please pay the organizer."}
+        </div>
+      )}
+
+      {/* View Event Pass link (logged-in users with existing RSVP) */}
+      {myRsvp && (
+        <div className="mb-6">
+          <Link
+            href={`/pass/r-${myRsvp.id}`}
+            className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+          >
+            View Event Pass &rarr;
+          </Link>
         </div>
       )}
 

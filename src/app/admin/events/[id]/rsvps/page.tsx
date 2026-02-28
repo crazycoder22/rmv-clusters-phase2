@@ -271,13 +271,21 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
           {/* RSVPs table */}
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-800">All Responses</h2>
-            <button
-              onClick={fetchRsvps}
-              disabled={loading}
-              className="text-sm text-primary-600 hover:text-primary-700 disabled:opacity-50"
-            >
-              Refresh
-            </button>
+            <div className="flex items-center gap-3">
+              <Link
+                href={`/admin/events/${id}/scanner`}
+                className="text-sm bg-primary-600 text-white px-3 py-1.5 rounded-md hover:bg-primary-700 transition-colors font-medium"
+              >
+                Open Scanner
+              </Link>
+              <button
+                onClick={fetchRsvps}
+                disabled={loading}
+                className="text-sm text-primary-600 hover:text-primary-700 disabled:opacity-50"
+              >
+                Refresh
+              </button>
+            </div>
           </div>
 
           {allRsvps.length === 0 ? (

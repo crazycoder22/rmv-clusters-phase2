@@ -1038,12 +1038,20 @@ export default function AdminPage() {
                               {deletingId === a.id ? "..." : "Delete"}
                             </button>
                             {a.eventConfig && (
-                              <Link
-                                href={`/admin/events/${a.id}/rsvps`}
-                                className="text-xs text-green-600 hover:text-green-700 font-medium"
-                              >
-                                RSVPs
-                              </Link>
+                              <>
+                                <Link
+                                  href={`/admin/events/${a.id}/rsvps`}
+                                  className="text-xs text-green-600 hover:text-green-700 font-medium"
+                                >
+                                  RSVPs
+                                </Link>
+                                <Link
+                                  href={`/admin/events/${a.id}/scanner`}
+                                  className="text-xs text-purple-600 hover:text-purple-700 font-medium"
+                                >
+                                  Scanner
+                                </Link>
+                              </>
                             )}
                             {a.sportsConfig && (
                               <Link
