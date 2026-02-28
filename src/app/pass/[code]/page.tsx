@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, use } from "react";
-import { QRCodeSVG } from "qrcode.react";
+import { QRCodeCanvas } from "qrcode.react";
 import html2canvas from "html2canvas";
 import { formatDate } from "@/lib/utils";
 
@@ -66,8 +66,9 @@ export default function PassPage({ params }: { params: Promise<{ code: string }>
       link.download = `event-pass-${code}.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
-    } catch {
-      // fallback: do nothing
+    } catch (err) {
+      console.error("Download failed:", err);
+      alert("Failed to generate image. Please try taking a screenshot instead.");
     } finally {
       setDownloading(false);
     }
@@ -148,7 +149,7 @@ export default function PassPage({ params }: { params: Promise<{ code: string }>
           {/* QR Code */}
           <div className="px-6 py-5 flex justify-center">
             <div className="p-3 bg-white border-2 border-gray-100 rounded-xl">
-              <QRCodeSVG
+              <QRCodeCanvas
                 value={passUrl}
                 size={200}
                 level="M"
