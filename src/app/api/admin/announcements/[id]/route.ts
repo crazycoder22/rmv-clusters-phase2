@@ -72,6 +72,7 @@ export async function PATCH(
 
         if (existing) {
           await prisma.menuItem.deleteMany({ where: { eventConfigId: existing.id } });
+          await prisma.customField.deleteMany({ where: { eventConfigId: existing.id } });
           await prisma.eventConfig.update({
             where: { id: existing.id },
             data: {
@@ -83,6 +84,19 @@ export async function PATCH(
                     (item: { name: string; pricePerPlate: number }, index: number) => ({
                       name: item.name,
                       pricePerPlate: item.pricePerPlate,
+                      sortOrder: index,
+                    })
+                  ),
+                },
+              }),
+              ...(ec.customFields && ec.customFields.length > 0 && {
+                customFields: {
+                  create: ec.customFields.map(
+                    (field: { label: string; fieldType: string; required: boolean; options: string | null }, index: number) => ({
+                      label: field.label,
+                      fieldType: field.fieldType,
+                      required: field.required,
+                      options: field.options,
                       sortOrder: index,
                     })
                   ),
@@ -102,6 +116,19 @@ export async function PATCH(
                     (item: { name: string; pricePerPlate: number }, index: number) => ({
                       name: item.name,
                       pricePerPlate: item.pricePerPlate,
+                      sortOrder: index,
+                    })
+                  ),
+                },
+              }),
+              ...(ec.customFields && ec.customFields.length > 0 && {
+                customFields: {
+                  create: ec.customFields.map(
+                    (field: { label: string; fieldType: string; required: boolean; options: string | null }, index: number) => ({
+                      label: field.label,
+                      fieldType: field.fieldType,
+                      required: field.required,
+                      options: field.options,
                       sortOrder: index,
                     })
                   ),
@@ -164,7 +191,10 @@ export async function PATCH(
       data: updateData,
       include: {
         eventConfig: {
-          include: { menuItems: { orderBy: { sortOrder: "asc" } } },
+          include: {
+            menuItems: { orderBy: { sortOrder: "asc" } },
+            customFields: { orderBy: { sortOrder: "asc" } },
+          },
         },
         sportsConfig: {
           include: { sportItems: { orderBy: { sortOrder: "asc" } } },

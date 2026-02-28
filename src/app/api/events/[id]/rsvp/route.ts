@@ -34,7 +34,10 @@ export async function GET(
     where: { id },
     include: {
       eventConfig: {
-        include: { menuItems: { orderBy: { sortOrder: "asc" } } },
+        include: {
+          menuItems: { orderBy: { sortOrder: "asc" } },
+          customFields: { orderBy: { sortOrder: "asc" } },
+        },
       },
     },
   });
@@ -57,6 +60,9 @@ export async function GET(
     include: {
       items: {
         include: { menuItem: true },
+      },
+      fieldResponses: {
+        include: { customField: true },
       },
     },
   });
@@ -86,14 +92,17 @@ export async function POST(
   const { id } = await params;
   const { resident } = check;
   const body = await request.json();
-  const { items, notes } = body;
+  const { items, notes, fieldResponses } = body;
 
   // Fetch event config
   const announcement = await prisma.announcement.findUnique({
     where: { id },
     include: {
       eventConfig: {
-        include: { menuItems: true },
+        include: {
+          menuItems: true,
+          customFields: true,
+        },
       },
     },
   });
@@ -137,6 +146,45 @@ export async function POST(
     );
   }
 
+  // Validate custom field responses
+  const customFields = eventConfig.customFields || [];
+  if (customFields.length > 0 && fieldResponses) {
+    for (const cf of customFields) {
+      if (cf.required) {
+        const response = fieldResponses.find(
+          (r: { customFieldId: string }) => r.customFieldId === cf.id
+        );
+        if (!response || !response.value?.trim()) {
+          return NextResponse.json(
+            { error: `"${cf.label}" is required` },
+            { status: 400 }
+          );
+        }
+      }
+    }
+    for (const r of fieldResponses) {
+      const cf = customFields.find((c) => c.id === r.customFieldId);
+      if (cf && cf.fieldType === "select" && cf.options) {
+        const validOptions: string[] = JSON.parse(cf.options);
+        if (r.value && !validOptions.includes(r.value)) {
+          return NextResponse.json(
+            { error: `Invalid option for "${cf.label}"` },
+            { status: 400 }
+          );
+        }
+      }
+    }
+  }
+
+  const validFieldResponses = fieldResponses
+    ? fieldResponses
+        .filter((r: { value: string }) => r.value?.trim())
+        .map((r: { customFieldId: string; value: string }) => ({
+          customFieldId: r.customFieldId,
+          value: r.value.trim(),
+        }))
+    : [];
+
   // Upsert RSVP: find existing or create new
   const existingRsvp = await prisma.rsvp.findUnique({
     where: {
@@ -157,8 +205,9 @@ export async function POST(
     : [];
 
   if (existingRsvp) {
-    // Delete old items and recreate
+    // Delete old items and field responses, then recreate
     await prisma.rsvpItem.deleteMany({ where: { rsvpId: existingRsvp.id } });
+    await prisma.rsvpFieldResponse.deleteMany({ where: { rsvpId: existingRsvp.id } });
     const rsvp = await prisma.rsvp.update({
       where: { id: existingRsvp.id },
       data: {
@@ -168,9 +217,15 @@ export async function POST(
             create: foodItems,
           },
         }),
+        ...(validFieldResponses.length > 0 && {
+          fieldResponses: {
+            create: validFieldResponses,
+          },
+        }),
       },
       include: {
         items: { include: { menuItem: true } },
+        fieldResponses: { include: { customField: true } },
       },
     });
     return NextResponse.json({ success: true, rsvp });
@@ -185,9 +240,15 @@ export async function POST(
             create: foodItems,
           },
         }),
+        ...(validFieldResponses.length > 0 && {
+          fieldResponses: {
+            create: validFieldResponses,
+          },
+        }),
       },
       include: {
         items: { include: { menuItem: true } },
+        fieldResponses: { include: { customField: true } },
       },
     });
     return NextResponse.json({ success: true, rsvp }, { status: 201 });

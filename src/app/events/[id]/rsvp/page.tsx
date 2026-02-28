@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import RsvpSummary from "@/components/events/RsvpSummary";
 import { formatDate } from "@/lib/utils";
-import type { EventConfigType, MenuItemType } from "@/types";
+import type { EventConfigType, MenuItemType, CustomFieldType } from "@/types";
 
 interface AnnouncementInfo {
   id: string;
@@ -21,6 +21,7 @@ interface MyRsvp {
   items: { menuItemId: string; plates: number; menuItem: MenuItemType }[];
   paid: boolean;
   notes: string | null;
+  fieldResponses?: { customFieldId: string; value: string; customField: CustomFieldType }[];
 }
 
 interface FlatOption {
@@ -54,6 +55,7 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
   const [loadingFlats, setLoadingFlats] = useState(false);
   const [guestSubmitted, setGuestSubmitted] = useState(false);
   const [guestRsvpId, setGuestRsvpId] = useState<string | null>(null);
+  const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
 
   const isGuest = status === "unauthenticated";
   const isLoggedIn = status === "authenticated" && session?.user?.isRegistered;
@@ -65,6 +67,9 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
   const hasFood = eventConfig
     ? eventConfig.menuItems && eventConfig.menuItems.length > 0
     : false;
+
+  const customFields: CustomFieldType[] = eventConfig?.customFields || [];
+  const hasCustomFields = customFields.length > 0;
 
   // Fetch flats when guest selects a block
   useEffect(() => {
@@ -107,6 +112,13 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
           }
           setPlates(plateCounts);
           setNotes(data.myRsvp.notes || "");
+          if (data.myRsvp.fieldResponses) {
+            const values: Record<string, string> = {};
+            for (const fr of data.myRsvp.fieldResponses) {
+              values[fr.customFieldId] = fr.value;
+            }
+            setFieldValues(values);
+          }
         }
       } catch {
         setError("Failed to load event");
@@ -147,6 +159,24 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
       return;
     }
 
+    // Validate required custom fields
+    for (const cf of customFields) {
+      if (cf.required && !fieldValues[cf.id]?.trim()) {
+        setError(`"${cf.label}" is required`);
+        setSubmitting(false);
+        return;
+      }
+    }
+
+    const fieldResponsesPayload = customFields.length > 0
+      ? customFields
+          .filter((cf) => fieldValues[cf.id]?.trim())
+          .map((cf) => ({
+            customFieldId: cf.id,
+            value: fieldValues[cf.id].trim(),
+          }))
+      : [];
+
     try {
       if (isGuest) {
         // Guest submission
@@ -172,6 +202,7 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
             flatNumber: guestFlat,
             items,
             notes,
+            fieldResponses: fieldResponsesPayload,
           }),
         });
         const data = await res.json();
@@ -187,7 +218,7 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
         const res = await fetch(`/api/events/${id}/rsvp`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ items, notes }),
+          body: JSON.stringify({ items, notes, fieldResponses: fieldResponsesPayload }),
         });
         const data = await res.json();
         if (!res.ok) {
@@ -505,6 +536,54 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
           <div className="rounded-lg bg-blue-50 border border-blue-200 p-6 mb-6 text-center">
             <p className="text-blue-800 font-medium">Confirm your attendance for this event</p>
             <p className="text-sm text-blue-600 mt-1">No food ordering for this event — just RSVP to confirm.</p>
+          </div>
+        )}
+
+        {/* Custom Fields */}
+        {hasCustomFields && !deadlinePassed && (
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+              Additional Information
+            </h2>
+            <div className="space-y-4">
+              {customFields.map((cf) => (
+                <div key={cf.id}>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {cf.label}
+                    {cf.required && <span className="text-red-500"> *</span>}
+                  </label>
+                  {cf.fieldType === "text" ? (
+                    <input
+                      type="text"
+                      required={cf.required}
+                      value={fieldValues[cf.id] || ""}
+                      onChange={(e) =>
+                        setFieldValues((prev) => ({ ...prev, [cf.id]: e.target.value }))
+                      }
+                      placeholder={`Enter ${cf.label.toLowerCase()}`}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    />
+                  ) : (
+                    <select
+                      required={cf.required}
+                      value={fieldValues[cf.id] || ""}
+                      onChange={(e) =>
+                        setFieldValues((prev) => ({ ...prev, [cf.id]: e.target.value }))
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    >
+                      <option value="">Select {cf.label.toLowerCase()}</option>
+                      {cf.options &&
+                        JSON.parse(cf.options).map((opt: string) => (
+                          <option key={opt} value={opt}>
+                            {opt}
+                          </option>
+                        ))}
+                    </select>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

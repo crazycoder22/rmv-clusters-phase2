@@ -20,6 +20,7 @@ interface PassData {
   paid: boolean;
   notes: string | null;
   createdAt: string;
+  fieldResponses?: { label: string; value: string }[];
 }
 
 interface ScanHistoryEntry {
@@ -382,6 +383,18 @@ export default function AdminScannerPage({ params }: { params: Promise<{ id: str
               <div>
                 <p className="text-xs text-gray-400 uppercase tracking-wide">Notes</p>
                 <p className="text-sm text-gray-600">{passData.notes}</p>
+              </div>
+            )}
+
+            {passData.fieldResponses && passData.fieldResponses.length > 0 && (
+              <div>
+                <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Additional Info</p>
+                {passData.fieldResponses.map((fr, i) => (
+                  <div key={i} className="flex justify-between text-sm">
+                    <span className="text-gray-500">{fr.label}</span>
+                    <span className="text-gray-800 font-medium">{fr.value}</span>
+                  </div>
+                ))}
               </div>
             )}
           </div>

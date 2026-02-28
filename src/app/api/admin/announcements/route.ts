@@ -15,7 +15,10 @@ async function requireAdmin() {
 
 const announcementInclude = {
   eventConfig: {
-    include: { menuItems: { orderBy: { sortOrder: "asc" as const } } },
+    include: {
+      menuItems: { orderBy: { sortOrder: "asc" as const } },
+      customFields: { orderBy: { sortOrder: "asc" as const } },
+    },
   },
   sportsConfig: {
     include: { sportItems: { orderBy: { sortOrder: "asc" as const } } },
@@ -113,6 +116,19 @@ export async function POST(request: Request) {
                   (item: { name: string; pricePerPlate: number }, index: number) => ({
                     name: item.name,
                     pricePerPlate: item.pricePerPlate,
+                    sortOrder: index,
+                  })
+                ),
+              },
+            }),
+            ...(eventConfig.customFields && eventConfig.customFields.length > 0 && {
+              customFields: {
+                create: eventConfig.customFields.map(
+                  (field: { label: string; fieldType: string; required: boolean; options: string | null }, index: number) => ({
+                    label: field.label,
+                    fieldType: field.fieldType,
+                    required: field.required,
+                    options: field.options,
                     sortOrder: index,
                   })
                 ),

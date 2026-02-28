@@ -4,7 +4,13 @@ import { useState, useEffect, useCallback, use } from "react";
 import { useRole } from "@/hooks/useRole";
 import Link from "next/link";
 import clsx from "clsx";
-import type { MenuItemType } from "@/types";
+import type { MenuItemType, CustomFieldType } from "@/types";
+
+interface FieldResponseData {
+  customFieldId: string;
+  customField: { label: string };
+  value: string;
+}
 
 interface RsvpItemData {
   id: string;
@@ -23,6 +29,7 @@ interface RsvpData {
     flatNumber: string;
   };
   items: RsvpItemData[];
+  fieldResponses?: FieldResponseData[];
   paid: boolean;
   notes: string | null;
   createdAt: string;
@@ -36,6 +43,7 @@ interface GuestRsvpData {
   block: number;
   flatNumber: string;
   items: RsvpItemData[];
+  fieldResponses?: FieldResponseData[];
   paid: boolean;
   notes: string | null;
   createdAt: string;
@@ -59,6 +67,7 @@ interface UnifiedRsvp {
   block: number;
   flatNumber: string;
   items: RsvpItemData[];
+  fieldResponses: FieldResponseData[];
   paid: boolean;
   notes: string | null;
   createdAt: string;
@@ -73,6 +82,7 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
   const [mealType, setMealType] = useState("");
   const [rsvpDeadline, setRsvpDeadline] = useState("");
   const [hasFood, setHasFood] = useState(false);
+  const [hasCustomFields, setHasCustomFields] = useState(false);
   const [loading, setLoading] = useState(true);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
@@ -91,6 +101,7 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
           block: r.resident.block,
           flatNumber: r.resident.flatNumber,
           items: r.items,
+          fieldResponses: r.fieldResponses || [],
           paid: r.paid,
           notes: r.notes,
           createdAt: r.createdAt,
@@ -105,6 +116,7 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
           block: g.block,
           flatNumber: g.flatNumber,
           items: g.items,
+          fieldResponses: g.fieldResponses || [],
           paid: g.paid,
           notes: g.notes,
           createdAt: g.createdAt,
@@ -120,6 +132,7 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
         setMealType(data.eventConfig.mealType || "");
         setRsvpDeadline(data.eventConfig.rsvpDeadline);
         setHasFood(data.eventConfig.menuItems && data.eventConfig.menuItems.length > 0);
+        setHasCustomFields(data.eventConfig.customFields && data.eventConfig.customFields.length > 0);
       }
     } catch {
       // silently fail
@@ -299,6 +312,7 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                     <th className="pb-3 pr-4 font-medium">Block / Flat</th>
                     {hasFood && <th className="pb-3 pr-4 font-medium">Items</th>}
                     {hasFood && <th className="pb-3 pr-4 font-medium">Total</th>}
+                    {hasCustomFields && <th className="pb-3 pr-4 font-medium">Custom Fields</th>}
                     <th className="pb-3 pr-4 font-medium">Notes</th>
                     {hasFood && <th className="pb-3 font-medium">Paid</th>}
                   </tr>
@@ -343,6 +357,20 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                         {hasFood && (
                           <td className="py-3 pr-4 font-medium text-gray-800">
                             {"\u20B9"}{rsvpTotal.toFixed(2)}
+                          </td>
+                        )}
+                        {hasCustomFields && (
+                          <td className="py-3 pr-4 text-xs">
+                            {rsvp.fieldResponses.length > 0 ? (
+                              rsvp.fieldResponses.map((fr) => (
+                                <div key={fr.customFieldId} className="mb-0.5">
+                                  <span className="font-medium text-gray-500">{fr.customField.label}:</span>{" "}
+                                  <span className="text-gray-700">{fr.value}</span>
+                                </div>
+                              ))
+                            ) : (
+                              <span className="text-gray-400">&mdash;</span>
+                            )}
                           </td>
                         )}
                         <td className="py-3 pr-4 text-gray-500 text-xs max-w-[120px] truncate">

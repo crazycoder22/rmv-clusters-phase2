@@ -25,6 +25,7 @@ export async function GET(
             select: { name: true, block: true, flatNumber: true, email: true },
           },
           items: { include: { menuItem: true } },
+          fieldResponses: { include: { customField: true } },
           eventConfig: {
             include: {
               announcement: { select: { id: true, title: true, date: true } },
@@ -58,6 +59,10 @@ export async function GET(
         paid: rsvp.paid,
         notes: rsvp.notes,
         createdAt: rsvp.createdAt,
+        fieldResponses: rsvp.fieldResponses.map((fr) => ({
+          label: fr.customField.label,
+          value: fr.value,
+        })),
       });
     } else {
       // Guest RSVP
@@ -65,6 +70,7 @@ export async function GET(
         where: { id },
         include: {
           items: { include: { menuItem: true } },
+          fieldResponses: { include: { customField: true } },
           eventConfig: {
             include: {
               announcement: { select: { id: true, title: true, date: true } },
@@ -98,6 +104,10 @@ export async function GET(
         paid: guestRsvp.paid,
         notes: guestRsvp.notes,
         createdAt: guestRsvp.createdAt,
+        fieldResponses: guestRsvp.fieldResponses.map((fr) => ({
+          label: fr.customField.label,
+          value: fr.value,
+        })),
       });
     }
   } catch {

@@ -73,6 +73,7 @@ model EventConfig {
   mealType       String?      // "breakfast", "lunch", "dinner" (optional for non-food events)
   rsvpDeadline   DateTime
   menuItems      MenuItem[]
+  customFields   CustomField[]
   rsvps          Rsvp[]
   guestRsvps     GuestRsvp[]
   createdAt      DateTime     @default(now())
@@ -97,11 +98,12 @@ model Rsvp {
   eventConfig   EventConfig @relation(fields: [eventConfigId], references: [id], onDelete: Cascade)
   residentId    String
   resident      Resident    @relation(fields: [residentId], references: [id], onDelete: Cascade)
-  items         RsvpItem[]
-  paid          Boolean     @default(false)
-  notes         String?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  items          RsvpItem[]
+  fieldResponses RsvpFieldResponse[]
+  paid           Boolean     @default(false)
+  notes          String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 
   @@unique([eventConfigId, residentId])
 }
@@ -127,11 +129,12 @@ model GuestRsvp {
   phone         String
   block         Int
   flatNumber    String
-  items         GuestRsvpItem[]
-  paid          Boolean         @default(false)
-  notes         String?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  items          GuestRsvpItem[]
+  fieldResponses GuestRsvpFieldResponse[]
+  paid           Boolean         @default(false)
+  notes          String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
   @@unique([eventConfigId, email])
 }
@@ -146,6 +149,48 @@ model GuestRsvpItem {
   createdAt   DateTime  @default(now())
 
   @@unique([guestRsvpId, menuItemId])
+}
+
+model CustomField {
+  id            String      @id @default(cuid())
+  eventConfigId String
+  eventConfig   EventConfig @relation(fields: [eventConfigId], references: [id], onDelete: Cascade)
+  label         String
+  fieldType     String      // "text" or "select"
+  required      Boolean     @default(false)
+  options       String?     // JSON array string for "select" type, e.g. '["Option A","Option B"]'
+  sortOrder     Int         @default(0)
+
+  rsvpFieldResponses      RsvpFieldResponse[]
+  guestRsvpFieldResponses GuestRsvpFieldResponse[]
+
+  createdAt DateTime @default(now())
+}
+
+model RsvpFieldResponse {
+  id            String      @id @default(cuid())
+  rsvpId        String
+  rsvp          Rsvp        @relation(fields: [rsvpId], references: [id], onDelete: Cascade)
+  customFieldId String
+  customField   CustomField @relation(fields: [customFieldId], references: [id], onDelete: Cascade)
+  value         String
+
+  createdAt DateTime @default(now())
+
+  @@unique([rsvpId, customFieldId])
+}
+
+model GuestRsvpFieldResponse {
+  id            String      @id @default(cuid())
+  guestRsvpId   String
+  guestRsvp     GuestRsvp   @relation(fields: [guestRsvpId], references: [id], onDelete: Cascade)
+  customFieldId String
+  customField   CustomField @relation(fields: [customFieldId], references: [id], onDelete: Cascade)
+  value         String
+
+  createdAt DateTime @default(now())
+
+  @@unique([guestRsvpId, customFieldId])
 }
 
 model SportsConfig {

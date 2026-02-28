@@ -28,6 +28,7 @@ export async function GET(
       eventConfig: {
         include: {
           menuItems: { orderBy: { sortOrder: "asc" } },
+          customFields: { orderBy: { sortOrder: "asc" } },
           rsvps: {
             include: {
               resident: {
@@ -36,6 +37,9 @@ export async function GET(
               items: {
                 include: { menuItem: true },
               },
+              fieldResponses: {
+                include: { customField: true },
+              },
             },
             orderBy: { createdAt: "desc" },
           },
@@ -43,6 +47,9 @@ export async function GET(
             include: {
               items: {
                 include: { menuItem: true },
+              },
+              fieldResponses: {
+                include: { customField: true },
               },
             },
             orderBy: { createdAt: "desc" },
@@ -116,6 +123,7 @@ export async function GET(
       mealType: ec.mealType,
       rsvpDeadline: ec.rsvpDeadline,
       menuItems: ec.menuItems,
+      customFields: ec.customFields,
     },
     rsvps,
     guestRsvps,

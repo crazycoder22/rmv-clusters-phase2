@@ -81,6 +81,7 @@ export interface EventConfigType {
   mealType: "breakfast" | "lunch" | "dinner" | null;
   rsvpDeadline: string;
   menuItems: MenuItemType[];
+  customFields?: CustomFieldType[];
 }
 
 export interface RsvpItemType {
@@ -112,6 +113,31 @@ export interface MenuItemFormEntry {
   tempId: string;
   name: string;
   pricePerPlate: string;
+}
+
+// Custom field types for event RSVP
+export interface CustomFieldType {
+  id: string;
+  label: string;
+  fieldType: "text" | "select";
+  required: boolean;
+  options: string | null;
+  sortOrder: number;
+}
+
+export interface CustomFieldFormEntry {
+  tempId: string;
+  label: string;
+  fieldType: "text" | "select";
+  required: boolean;
+  options: string; // comma-separated in form, converted to JSON for API
+}
+
+export interface FieldResponseType {
+  id: string;
+  customFieldId: string;
+  customField: CustomFieldType;
+  value: string;
 }
 
 // Sports Event types

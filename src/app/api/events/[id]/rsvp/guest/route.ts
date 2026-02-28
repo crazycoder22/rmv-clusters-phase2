@@ -12,7 +12,10 @@ export async function GET(
     where: { id },
     include: {
       eventConfig: {
-        include: { menuItems: { orderBy: { sortOrder: "asc" } } },
+        include: {
+          menuItems: { orderBy: { sortOrder: "asc" } },
+          customFields: { orderBy: { sortOrder: "asc" } },
+        },
       },
     },
   });
@@ -42,7 +45,7 @@ export async function POST(
 ) {
   const { id } = await params;
   const body = await request.json();
-  const { name, email, phone, block, flatNumber, items, notes } = body;
+  const { name, email, phone, block, flatNumber, items, notes, fieldResponses } = body;
 
   // Validate required fields
   if (!name?.trim() || !email?.trim() || !phone?.trim()) {
@@ -84,7 +87,10 @@ export async function POST(
     where: { id },
     include: {
       eventConfig: {
-        include: { menuItems: true },
+        include: {
+          menuItems: true,
+          customFields: true,
+        },
       },
     },
   });
@@ -128,6 +134,45 @@ export async function POST(
     );
   }
 
+  // Validate custom field responses
+  const customFields = eventConfig.customFields || [];
+  if (customFields.length > 0 && fieldResponses) {
+    for (const cf of customFields) {
+      if (cf.required) {
+        const response = fieldResponses.find(
+          (r: { customFieldId: string }) => r.customFieldId === cf.id
+        );
+        if (!response || !response.value?.trim()) {
+          return NextResponse.json(
+            { error: `"${cf.label}" is required` },
+            { status: 400 }
+          );
+        }
+      }
+    }
+    for (const r of fieldResponses) {
+      const cf = customFields.find((c) => c.id === r.customFieldId);
+      if (cf && cf.fieldType === "select" && cf.options) {
+        const validOptions: string[] = JSON.parse(cf.options);
+        if (r.value && !validOptions.includes(r.value)) {
+          return NextResponse.json(
+            { error: `Invalid option for "${cf.label}"` },
+            { status: 400 }
+          );
+        }
+      }
+    }
+  }
+
+  const validFieldResponses = fieldResponses
+    ? fieldResponses
+        .filter((r: { value: string }) => r.value?.trim())
+        .map((r: { customFieldId: string; value: string }) => ({
+          customFieldId: r.customFieldId,
+          value: r.value.trim(),
+        }))
+    : [];
+
   // Check duplicate by email
   const existingRsvp = await prisma.guestRsvp.findUnique({
     where: {
@@ -169,9 +214,15 @@ export async function POST(
           create: foodItems,
         },
       }),
+      ...(validFieldResponses.length > 0 && {
+        fieldResponses: {
+          create: validFieldResponses,
+        },
+      }),
     },
     include: {
       items: { include: { menuItem: true } },
+      fieldResponses: { include: { customField: true } },
     },
   });
 

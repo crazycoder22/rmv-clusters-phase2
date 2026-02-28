@@ -6,7 +6,8 @@ import Link from "next/link";
 import clsx from "clsx";
 import MenuItemBuilder from "@/components/admin/MenuItemBuilder";
 import SportItemBuilder from "@/components/admin/SportItemBuilder";
-import type { Announcement, MenuItemFormEntry, SportItemFormEntry } from "@/types";
+import CustomFieldBuilder from "@/components/admin/CustomFieldBuilder";
+import type { Announcement, MenuItemFormEntry, SportItemFormEntry, CustomFieldFormEntry } from "@/types";
 
 interface ResidentWithRole {
   id: string;
@@ -47,6 +48,7 @@ const emptyNewsForm = {
   mealType: "dinner",
   rsvpDeadline: "",
   menuItems: [] as MenuItemFormEntry[],
+  customFields: [] as CustomFieldFormEntry[],
   enableSportsRegistration: false,
   registrationDeadline: "",
   sportItems: [] as SportItemFormEntry[],
@@ -304,6 +306,7 @@ export default function AdminPage() {
       // Build payload with optional eventConfig / sportsConfig
       const {
         enableRsvp, enableFoodOrdering, mealType, rsvpDeadline, menuItems: menuItemsForm,
+        customFields: customFieldsForm,
         enableSportsRegistration, registrationDeadline, sportItems: sportItemsForm,
         ...baseForm
       } = newsForm;
@@ -318,6 +321,18 @@ export default function AdminPage() {
           eventConfigPayload.menuItems = menuItemsForm.map((item) => ({
             name: item.name,
             pricePerPlate: parseFloat(item.pricePerPlate) || 0,
+          }));
+        }
+        const validCustomFields = customFieldsForm.filter((f) => f.label.trim());
+        if (validCustomFields.length > 0) {
+          eventConfigPayload.customFields = validCustomFields.map((f) => ({
+            label: f.label.trim(),
+            fieldType: f.fieldType,
+            required: f.required,
+            options:
+              f.fieldType === "select"
+                ? JSON.stringify(f.options.split(",").map((o) => o.trim()).filter(Boolean))
+                : null,
           }));
         }
         payload.eventConfig = eventConfigPayload;
@@ -394,6 +409,13 @@ export default function AdminPage() {
         tempId: crypto.randomUUID(),
         name: item.name,
         pricePerPlate: String(item.pricePerPlate),
+      })) || [],
+      customFields: ec?.customFields?.map((cf) => ({
+        tempId: crypto.randomUUID(),
+        label: cf.label,
+        fieldType: cf.fieldType as "text" | "select",
+        required: cf.required,
+        options: cf.options ? JSON.parse(cf.options).join(", ") : "",
       })) || [],
       enableSportsRegistration: !!sc,
       registrationDeadline: sc?.registrationDeadline
@@ -839,6 +861,13 @@ export default function AdminPage() {
                           />
                         </div>
                       )}
+
+                      <CustomFieldBuilder
+                        fields={newsForm.customFields}
+                        onChange={(fields) =>
+                          setNewsForm((prev) => ({ ...prev, customFields: fields }))
+                        }
+                      />
                     </div>
                   )}
                 </div>
