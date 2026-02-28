@@ -78,7 +78,7 @@ export interface MenuItemType {
 export interface EventConfigType {
   id: string;
   announcementId: string;
-  mealType: "breakfast" | "lunch" | "dinner";
+  mealType: "breakfast" | "lunch" | "dinner" | null;
   rsvpDeadline: string;
   menuItems: MenuItemType[];
 }

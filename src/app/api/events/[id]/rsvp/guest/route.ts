@@ -79,29 +79,14 @@ export async function POST(
     );
   }
 
-  // Validate items
-  if (!items || !Array.isArray(items) || items.length === 0) {
-    return NextResponse.json(
-      { error: "At least one item is required" },
-      { status: 400 }
-    );
-  }
-
-  const totalPlates = items.reduce(
-    (sum: number, item: { plates: number }) => sum + (item.plates || 0),
-    0
-  );
-  if (totalPlates === 0) {
-    return NextResponse.json(
-      { error: "Select at least one plate" },
-      { status: 400 }
-    );
-  }
-
   // Fetch event config
   const announcement = await prisma.announcement.findUnique({
     where: { id },
-    include: { eventConfig: true },
+    include: {
+      eventConfig: {
+        include: { menuItems: true },
+      },
+    },
   });
 
   if (!announcement || !announcement.eventConfig) {
@@ -112,6 +97,28 @@ export async function POST(
   }
 
   const eventConfig = announcement.eventConfig;
+  const hasFood = eventConfig.menuItems && eventConfig.menuItems.length > 0;
+
+  // Validate items only for food events
+  if (hasFood) {
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return NextResponse.json(
+        { error: "At least one item is required" },
+        { status: 400 }
+      );
+    }
+
+    const totalPlates = items.reduce(
+      (sum: number, item: { plates: number }) => sum + (item.plates || 0),
+      0
+    );
+    if (totalPlates === 0) {
+      return NextResponse.json(
+        { error: "Select at least one plate" },
+        { status: 400 }
+      );
+    }
+  }
 
   // Check deadline
   if (new Date() > new Date(eventConfig.rsvpDeadline)) {
@@ -139,6 +146,15 @@ export async function POST(
   }
 
   // Create guest RSVP
+  const foodItems = hasFood && items
+    ? items
+        .filter((item: { plates: number }) => item.plates > 0)
+        .map((item: { menuItemId: string; plates: number }) => ({
+          menuItemId: item.menuItemId,
+          plates: item.plates,
+        }))
+    : [];
+
   const guestRsvp = await prisma.guestRsvp.create({
     data: {
       eventConfigId: eventConfig.id,
@@ -148,14 +164,11 @@ export async function POST(
       block: blockNum,
       flatNumber: flatNumber.trim(),
       notes: notes?.trim() || null,
-      items: {
-        create: items
-          .filter((item: { plates: number }) => item.plates > 0)
-          .map((item: { menuItemId: string; plates: number }) => ({
-            menuItemId: item.menuItemId,
-            plates: item.plates,
-          })),
-      },
+      ...(foodItems.length > 0 && {
+        items: {
+          create: foodItems,
+        },
+      }),
     },
     include: {
       items: { include: { menuItem: true } },

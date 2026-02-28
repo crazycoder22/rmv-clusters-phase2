@@ -75,34 +75,38 @@ export async function PATCH(
           await prisma.eventConfig.update({
             where: { id: existing.id },
             data: {
-              mealType: ec.mealType,
+              mealType: ec.mealType || null,
               rsvpDeadline: new Date(ec.rsvpDeadline),
-              menuItems: {
-                create: ec.menuItems.map(
-                  (item: { name: string; pricePerPlate: number }, index: number) => ({
-                    name: item.name,
-                    pricePerPlate: item.pricePerPlate,
-                    sortOrder: index,
-                  })
-                ),
-              },
+              ...(ec.menuItems && ec.menuItems.length > 0 && {
+                menuItems: {
+                  create: ec.menuItems.map(
+                    (item: { name: string; pricePerPlate: number }, index: number) => ({
+                      name: item.name,
+                      pricePerPlate: item.pricePerPlate,
+                      sortOrder: index,
+                    })
+                  ),
+                },
+              }),
             },
           });
         } else {
           await prisma.eventConfig.create({
             data: {
               announcementId: id,
-              mealType: ec.mealType,
+              mealType: ec.mealType || null,
               rsvpDeadline: new Date(ec.rsvpDeadline),
-              menuItems: {
-                create: ec.menuItems.map(
-                  (item: { name: string; pricePerPlate: number }, index: number) => ({
-                    name: item.name,
-                    pricePerPlate: item.pricePerPlate,
-                    sortOrder: index,
-                  })
-                ),
-              },
+              ...(ec.menuItems && ec.menuItems.length > 0 && {
+                menuItems: {
+                  create: ec.menuItems.map(
+                    (item: { name: string; pricePerPlate: number }, index: number) => ({
+                      name: item.name,
+                      pricePerPlate: item.pricePerPlate,
+                      sortOrder: index,
+                    })
+                  ),
+                },
+              }),
             },
           });
         }

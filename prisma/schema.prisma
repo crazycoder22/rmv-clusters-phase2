@@ -70,7 +70,7 @@ model EventConfig {
   id             String       @id @default(cuid())
   announcementId String       @unique
   announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
-  mealType       String       // "breakfast", "lunch", "dinner"
+  mealType       String?      // "breakfast", "lunch", "dinner" (optional for non-food events)
   rsvpDeadline   DateTime
   menuItems      MenuItem[]
   rsvps          Rsvp[]

@@ -88,29 +88,14 @@ export async function POST(
   const body = await request.json();
   const { items, notes } = body;
 
-  // Validate items
-  if (!items || !Array.isArray(items) || items.length === 0) {
-    return NextResponse.json(
-      { error: "At least one item is required" },
-      { status: 400 }
-    );
-  }
-
-  const totalPlates = items.reduce(
-    (sum: number, item: { plates: number }) => sum + (item.plates || 0),
-    0
-  );
-  if (totalPlates === 0) {
-    return NextResponse.json(
-      { error: "Select at least one plate" },
-      { status: 400 }
-    );
-  }
-
   // Fetch event config
   const announcement = await prisma.announcement.findUnique({
     where: { id },
-    include: { eventConfig: true },
+    include: {
+      eventConfig: {
+        include: { menuItems: true },
+      },
+    },
   });
 
   if (!announcement || !announcement.eventConfig) {
@@ -121,6 +106,28 @@ export async function POST(
   }
 
   const eventConfig = announcement.eventConfig;
+  const hasFood = eventConfig.menuItems && eventConfig.menuItems.length > 0;
+
+  // Validate items only for food events
+  if (hasFood) {
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return NextResponse.json(
+        { error: "At least one item is required" },
+        { status: 400 }
+      );
+    }
+
+    const totalPlates = items.reduce(
+      (sum: number, item: { plates: number }) => sum + (item.plates || 0),
+      0
+    );
+    if (totalPlates === 0) {
+      return NextResponse.json(
+        { error: "Select at least one plate" },
+        { status: 400 }
+      );
+    }
+  }
 
   // Check deadline
   if (new Date() > new Date(eventConfig.rsvpDeadline)) {
@@ -140,6 +147,15 @@ export async function POST(
     },
   });
 
+  const foodItems = hasFood && items
+    ? items
+        .filter((item: { plates: number }) => item.plates > 0)
+        .map((item: { menuItemId: string; plates: number }) => ({
+          menuItemId: item.menuItemId,
+          plates: item.plates,
+        }))
+    : [];
+
   if (existingRsvp) {
     // Delete old items and recreate
     await prisma.rsvpItem.deleteMany({ where: { rsvpId: existingRsvp.id } });
@@ -147,14 +163,11 @@ export async function POST(
       where: { id: existingRsvp.id },
       data: {
         notes: notes || null,
-        items: {
-          create: items
-            .filter((item: { plates: number }) => item.plates > 0)
-            .map((item: { menuItemId: string; plates: number }) => ({
-              menuItemId: item.menuItemId,
-              plates: item.plates,
-            })),
-        },
+        ...(foodItems.length > 0 && {
+          items: {
+            create: foodItems,
+          },
+        }),
       },
       include: {
         items: { include: { menuItem: true } },
@@ -167,14 +180,11 @@ export async function POST(
         eventConfigId: eventConfig.id,
         residentId: resident!.id,
         notes: notes || null,
-        items: {
-          create: items
-            .filter((item: { plates: number }) => item.plates > 0)
-            .map((item: { menuItemId: string; plates: number }) => ({
-              menuItemId: item.menuItemId,
-              plates: item.plates,
-            })),
-        },
+        ...(foodItems.length > 0 && {
+          items: {
+            create: foodItems,
+          },
+        }),
       },
       include: {
         items: { include: { menuItem: true } },

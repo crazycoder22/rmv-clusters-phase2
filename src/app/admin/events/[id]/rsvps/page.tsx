@@ -72,6 +72,7 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
   const [eventTitle, setEventTitle] = useState("");
   const [mealType, setMealType] = useState("");
   const [rsvpDeadline, setRsvpDeadline] = useState("");
+  const [hasFood, setHasFood] = useState(false);
   const [loading, setLoading] = useState(true);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
@@ -116,8 +117,9 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
         setAllRsvps(combined);
         setSummary(data.summary);
         setEventTitle(data.announcement.title);
-        setMealType(data.eventConfig.mealType);
+        setMealType(data.eventConfig.mealType || "");
         setRsvpDeadline(data.eventConfig.rsvpDeadline);
+        setHasFood(data.eventConfig.menuItems && data.eventConfig.menuItems.length > 0);
       }
     } catch {
       // silently fail
@@ -194,22 +196,27 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
         RSVP Tracking
       </h1>
       <p className="text-gray-500 mb-2">{eventTitle}</p>
-      {mealType && (
-        <div className="flex items-center gap-3 text-sm text-gray-500 mb-6">
+      <div className="flex items-center gap-3 text-sm text-gray-500 mb-6">
+        {mealType && (
           <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700 capitalize">
             {mealType}
           </span>
-          {rsvpDeadline && (
-            <span>
-              Deadline:{" "}
-              {new Date(rsvpDeadline).toLocaleString("en-IN", {
-                dateStyle: "long",
-                timeStyle: "short",
-              })}
-            </span>
-          )}
-        </div>
-      )}
+        )}
+        {!hasFood && (
+          <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-700">
+            RSVP Only
+          </span>
+        )}
+        {rsvpDeadline && (
+          <span>
+            Deadline:{" "}
+            {new Date(rsvpDeadline).toLocaleString("en-IN", {
+              dateStyle: "long",
+              timeStyle: "short",
+            })}
+          </span>
+        )}
+      </div>
 
       {loading ? (
         <p className="text-gray-500 text-center py-8">Loading RSVPs...</p>
@@ -217,26 +224,30 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
         <>
           {/* Summary cards */}
           {summary && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+            <div className={`grid grid-cols-2 ${hasFood ? "sm:grid-cols-4" : "sm:grid-cols-2"} gap-4 mb-8`}>
               <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
                 <p className="text-2xl font-bold text-primary-700">{summary.totalRsvps}</p>
                 <p className="text-xs text-gray-500 mt-1">Total RSVPs</p>
               </div>
-              <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
-                <p className="text-2xl font-bold text-gray-800">{summary.totalPlates}</p>
-                <p className="text-xs text-gray-500 mt-1">Total Plates</p>
-              </div>
-              <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
-                <p className="text-2xl font-bold text-green-700">{"\u20B9"}{summary.totalAmount.toFixed(2)}</p>
-                <p className="text-xs text-gray-500 mt-1">Total Amount</p>
-              </div>
-              <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
-                <p className="text-2xl font-bold text-green-600">
-                  {summary.paidCount}
-                  <span className="text-gray-400 text-lg"> / {summary.totalRsvps}</span>
-                </p>
-                <p className="text-xs text-gray-500 mt-1">Paid</p>
-              </div>
+              {hasFood && (
+                <>
+                  <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
+                    <p className="text-2xl font-bold text-gray-800">{summary.totalPlates}</p>
+                    <p className="text-xs text-gray-500 mt-1">Total Plates</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
+                    <p className="text-2xl font-bold text-green-700">{"\u20B9"}{summary.totalAmount.toFixed(2)}</p>
+                    <p className="text-xs text-gray-500 mt-1">Total Amount</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
+                    <p className="text-2xl font-bold text-green-600">
+                      {summary.paidCount}
+                      <span className="text-gray-400 text-lg"> / {summary.totalRsvps}</span>
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">Paid</p>
+                  </div>
+                </>
+              )}
             </div>
           )}
 
@@ -278,10 +289,10 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                   <tr className="border-b border-gray-200 text-left text-gray-600">
                     <th className="pb-3 pr-4 font-medium">Name</th>
                     <th className="pb-3 pr-4 font-medium">Block / Flat</th>
-                    <th className="pb-3 pr-4 font-medium">Items</th>
-                    <th className="pb-3 pr-4 font-medium">Total</th>
+                    {hasFood && <th className="pb-3 pr-4 font-medium">Items</th>}
+                    {hasFood && <th className="pb-3 pr-4 font-medium">Total</th>}
                     <th className="pb-3 pr-4 font-medium">Notes</th>
-                    <th className="pb-3 font-medium">Paid</th>
+                    {hasFood && <th className="pb-3 font-medium">Paid</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -312,33 +323,39 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                         <td className="py-3 pr-4 text-gray-600">
                           B{rsvp.block} - {rsvp.flatNumber}
                         </td>
-                        <td className="py-3 pr-4 text-gray-600">
-                          {rsvp.items.map((item) => (
-                            <div key={item.id} className="text-xs">
-                              {item.menuItem.name} &times; {item.plates}
-                            </div>
-                          ))}
-                        </td>
-                        <td className="py-3 pr-4 font-medium text-gray-800">
-                          {"\u20B9"}{rsvpTotal.toFixed(2)}
-                        </td>
+                        {hasFood && (
+                          <td className="py-3 pr-4 text-gray-600">
+                            {rsvp.items.map((item) => (
+                              <div key={item.id} className="text-xs">
+                                {item.menuItem.name} &times; {item.plates}
+                              </div>
+                            ))}
+                          </td>
+                        )}
+                        {hasFood && (
+                          <td className="py-3 pr-4 font-medium text-gray-800">
+                            {"\u20B9"}{rsvpTotal.toFixed(2)}
+                          </td>
+                        )}
                         <td className="py-3 pr-4 text-gray-500 text-xs max-w-[120px] truncate">
                           {rsvp.notes || "\u2014"}
                         </td>
-                        <td className="py-3">
-                          <button
-                            onClick={() => togglePaid(rsvp)}
-                            disabled={togglingId === rsvp.id}
-                            className={clsx(
-                              "inline-block px-2 py-0.5 text-xs font-medium rounded-full cursor-pointer transition-colors disabled:opacity-50",
-                              rsvp.paid
-                                ? "bg-green-100 text-green-700 hover:bg-green-200"
-                                : "bg-red-100 text-red-600 hover:bg-red-200"
-                            )}
-                          >
-                            {rsvp.paid ? "Paid" : "Unpaid"}
-                          </button>
-                        </td>
+                        {hasFood && (
+                          <td className="py-3">
+                            <button
+                              onClick={() => togglePaid(rsvp)}
+                              disabled={togglingId === rsvp.id}
+                              className={clsx(
+                                "inline-block px-2 py-0.5 text-xs font-medium rounded-full cursor-pointer transition-colors disabled:opacity-50",
+                                rsvp.paid
+                                  ? "bg-green-100 text-green-700 hover:bg-green-200"
+                                  : "bg-red-100 text-red-600 hover:bg-red-200"
+                              )}
+                            >
+                              {rsvp.paid ? "Paid" : "Unpaid"}
+                            </button>
+                          </td>
+                        )}
                       </tr>
                     );
                   })}

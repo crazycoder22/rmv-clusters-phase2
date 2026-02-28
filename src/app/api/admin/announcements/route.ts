@@ -68,7 +68,7 @@ export async function POST(request: Request) {
   // Validate eventConfig if provided
   if (eventConfig) {
     const validMealTypes = ["breakfast", "lunch", "dinner"];
-    if (!validMealTypes.includes(eventConfig.mealType)) {
+    if (eventConfig.mealType && !validMealTypes.includes(eventConfig.mealType)) {
       return NextResponse.json(
         { error: `Meal type must be one of: ${validMealTypes.join(", ")}` },
         { status: 400 }
@@ -77,9 +77,7 @@ export async function POST(request: Request) {
     if (!eventConfig.rsvpDeadline) {
       return NextResponse.json({ error: "RSVP deadline is required" }, { status: 400 });
     }
-    if (!eventConfig.menuItems || eventConfig.menuItems.length === 0) {
-      return NextResponse.json({ error: "At least one menu item is required" }, { status: 400 });
-    }
+    // menuItems are optional — events can be RSVP-only without food ordering
   }
 
   // Validate sportsConfig if provided
@@ -107,17 +105,19 @@ export async function POST(request: Request) {
       ...(eventConfig && {
         eventConfig: {
           create: {
-            mealType: eventConfig.mealType,
+            mealType: eventConfig.mealType || null,
             rsvpDeadline: new Date(eventConfig.rsvpDeadline),
-            menuItems: {
-              create: eventConfig.menuItems.map(
-                (item: { name: string; pricePerPlate: number }, index: number) => ({
-                  name: item.name,
-                  pricePerPlate: item.pricePerPlate,
-                  sortOrder: index,
-                })
-              ),
-            },
+            ...(eventConfig.menuItems && eventConfig.menuItems.length > 0 && {
+              menuItems: {
+                create: eventConfig.menuItems.map(
+                  (item: { name: string; pricePerPlate: number }, index: number) => ({
+                    name: item.name,
+                    pricePerPlate: item.pricePerPlate,
+                    sortOrder: index,
+                  })
+                ),
+              },
+            }),
           },
         },
       }),

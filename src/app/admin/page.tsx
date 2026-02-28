@@ -43,6 +43,7 @@ const emptyNewsForm = {
   linkText: "",
   published: true,
   enableRsvp: false,
+  enableFoodOrdering: false,
   mealType: "dinner",
   rsvpDeadline: "",
   menuItems: [] as MenuItemFormEntry[],
@@ -302,21 +303,24 @@ export default function AdminPage() {
 
       // Build payload with optional eventConfig / sportsConfig
       const {
-        enableRsvp, mealType, rsvpDeadline, menuItems: menuItemsForm,
+        enableRsvp, enableFoodOrdering, mealType, rsvpDeadline, menuItems: menuItemsForm,
         enableSportsRegistration, registrationDeadline, sportItems: sportItemsForm,
         ...baseForm
       } = newsForm;
       const payload: Record<string, unknown> = { ...baseForm };
 
       if (enableRsvp && baseForm.category === "event") {
-        payload.eventConfig = {
-          mealType,
+        const eventConfigPayload: Record<string, unknown> = {
           rsvpDeadline,
-          menuItems: menuItemsForm.map((item) => ({
+        };
+        if (enableFoodOrdering) {
+          eventConfigPayload.mealType = mealType;
+          eventConfigPayload.menuItems = menuItemsForm.map((item) => ({
             name: item.name,
             pricePerPlate: parseFloat(item.pricePerPlate) || 0,
-          })),
-        };
+          }));
+        }
+        payload.eventConfig = eventConfigPayload;
       } else if (!enableRsvp && editingId) {
         payload.eventConfig = null;
       }
@@ -381,6 +385,7 @@ export default function AdminPage() {
       linkText: announcement.linkText || "",
       published: announcement.published ?? true,
       enableRsvp: !!ec,
+      enableFoodOrdering: !!(ec?.menuItems && ec.menuItems.length > 0),
       mealType: ec?.mealType || "dinner",
       rsvpDeadline: ec?.rsvpDeadline
         ? new Date(ec.rsvpDeadline).toISOString().slice(0, 16)
@@ -771,50 +776,69 @@ export default function AdminPage() {
                       htmlFor="enableRsvp"
                       className="text-sm font-semibold text-gray-700"
                     >
-                      Enable RSVP &amp; Food Ordering
+                      Enable RSVP
                     </label>
                   </div>
 
                   {newsForm.enableRsvp && (
                     <div className="space-y-4 pl-6 border-l-2 border-primary-100">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Meal Type
-                          </label>
-                          <select
-                            name="mealType"
-                            value={newsForm.mealType}
-                            onChange={handleNewsChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                          >
-                            <option value="breakfast">Breakfast</option>
-                            <option value="lunch">Lunch</option>
-                            <option value="dinner">Dinner</option>
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            RSVP Deadline
-                          </label>
-                          <input
-                            type="datetime-local"
-                            name="rsvpDeadline"
-                            value={newsForm.rsvpDeadline}
-                            onChange={handleNewsChange}
-                            required={newsForm.enableRsvp}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                          />
-                        </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          RSVP Deadline
+                        </label>
+                        <input
+                          type="datetime-local"
+                          name="rsvpDeadline"
+                          value={newsForm.rsvpDeadline}
+                          onChange={handleNewsChange}
+                          required={newsForm.enableRsvp}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        />
                       </div>
 
-                      <MenuItemBuilder
-                        items={newsForm.menuItems}
-                        onChange={(items) =>
-                          setNewsForm((prev) => ({ ...prev, menuItems: items }))
-                        }
-                      />
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="enableFoodOrdering"
+                          name="enableFoodOrdering"
+                          checked={newsForm.enableFoodOrdering}
+                          onChange={handleNewsChange}
+                          className="h-4 w-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
+                        />
+                        <label
+                          htmlFor="enableFoodOrdering"
+                          className="text-sm font-medium text-gray-700"
+                        >
+                          Include Food Ordering
+                        </label>
+                      </div>
+
+                      {newsForm.enableFoodOrdering && (
+                        <div className="space-y-4 pl-6 border-l-2 border-green-100">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Meal Type
+                            </label>
+                            <select
+                              name="mealType"
+                              value={newsForm.mealType}
+                              onChange={handleNewsChange}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                            >
+                              <option value="breakfast">Breakfast</option>
+                              <option value="lunch">Lunch</option>
+                              <option value="dinner">Dinner</option>
+                            </select>
+                          </div>
+
+                          <MenuItemBuilder
+                            items={newsForm.menuItems}
+                            onChange={(items) =>
+                              setNewsForm((prev) => ({ ...prev, menuItems: items }))
+                            }
+                          />
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

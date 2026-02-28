@@ -61,6 +61,10 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
     ? new Date() > new Date(eventConfig.rsvpDeadline)
     : false;
 
+  const hasFood = eventConfig
+    ? eventConfig.menuItems && eventConfig.menuItems.length > 0
+    : false;
+
   // Fetch flats when guest selects a block
   useEffect(() => {
     if (!guestBlock) {
@@ -130,11 +134,13 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
     setSuccess("");
     setSubmitting(true);
 
-    const items = eventConfig!.menuItems
-      .filter((item) => (plates[item.id] || 0) > 0)
-      .map((item) => ({ menuItemId: item.id, plates: plates[item.id] }));
+    const items = hasFood
+      ? eventConfig!.menuItems
+          .filter((item) => (plates[item.id] || 0) > 0)
+          .map((item) => ({ menuItemId: item.id, plates: plates[item.id] }))
+      : [];
 
-    if (items.length === 0) {
+    if (hasFood && items.length === 0) {
       setError("Select at least one plate");
       setSubmitting(false);
       return;
@@ -263,9 +269,11 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
           <p className="text-green-700 mb-4">
             Thank you, {guestName}! Your RSVP for &ldquo;{announcement.title}&rdquo; has been recorded.
           </p>
-          <p className="text-sm text-green-600">
-            Please contact the organizer for payment details.
-          </p>
+          {hasFood && (
+            <p className="text-sm text-green-600">
+              Please contact the organizer for payment details.
+            </p>
+          )}
         </div>
       </div>
     );
@@ -288,9 +296,11 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
         </h1>
         <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500">
           <span>{formatDate(announcement.date)}</span>
-          <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700 capitalize">
-            {eventConfig.mealType}
-          </span>
+          {eventConfig.mealType && (
+            <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700 capitalize">
+              {eventConfig.mealType}
+            </span>
+          )}
         </div>
         <p className="text-gray-600 mt-3 text-sm">{announcement.summary}</p>
       </div>
@@ -306,8 +316,8 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
           : `RSVP by: ${new Date(eventConfig.rsvpDeadline).toLocaleString("en-IN", { dateStyle: "long", timeStyle: "short" })}`}
       </div>
 
-      {/* Payment status for existing RSVP (logged-in users only) */}
-      {myRsvp && (
+      {/* Payment status for existing RSVP (logged-in users only, food events) */}
+      {hasFood && myRsvp && (
         <div className={`rounded-lg p-3 mb-6 text-sm ${
           myRsvp.paid
             ? "bg-green-50 border border-green-200 text-green-700"
@@ -417,50 +427,59 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
           </div>
         )}
 
-        {/* Menu selection */}
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">
-          Menu — Select Plates
-        </h2>
+        {/* Menu selection (only for food events) */}
+        {hasFood ? (
+          <>
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+              Menu — Select Plates
+            </h2>
 
-        <div className="space-y-3 mb-6">
-          {eventConfig.menuItems.map((item) => (
-            <div
-              key={item.id}
-              className="flex items-center justify-between bg-white rounded-lg p-4 border border-gray-200"
-            >
-              <div>
-                <p className="font-medium text-gray-900">{item.name}</p>
-                <p className="text-sm text-gray-500">{"\u20B9"}{item.pricePerPlate.toFixed(2)} per plate</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  disabled={deadlinePassed}
-                  onClick={() => updatePlates(item.id, (plates[item.id] || 0) - 1)}
-                  className="w-8 h-8 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-40 flex items-center justify-center font-bold"
+            <div className="space-y-3 mb-6">
+              {eventConfig.menuItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between bg-white rounded-lg p-4 border border-gray-200"
                 >
-                  &minus;
-                </button>
-                <span className="w-8 text-center font-semibold text-gray-900">
-                  {plates[item.id] || 0}
-                </span>
-                <button
-                  type="button"
-                  disabled={deadlinePassed}
-                  onClick={() => updatePlates(item.id, (plates[item.id] || 0) + 1)}
-                  className="w-8 h-8 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-40 flex items-center justify-center font-bold"
-                >
-                  +
-                </button>
-              </div>
+                  <div>
+                    <p className="font-medium text-gray-900">{item.name}</p>
+                    <p className="text-sm text-gray-500">{"\u20B9"}{item.pricePerPlate.toFixed(2)} per plate</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={deadlinePassed}
+                      onClick={() => updatePlates(item.id, (plates[item.id] || 0) - 1)}
+                      className="w-8 h-8 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-40 flex items-center justify-center font-bold"
+                    >
+                      &minus;
+                    </button>
+                    <span className="w-8 text-center font-semibold text-gray-900">
+                      {plates[item.id] || 0}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={deadlinePassed}
+                      onClick={() => updatePlates(item.id, (plates[item.id] || 0) + 1)}
+                      className="w-8 h-8 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-40 flex items-center justify-center font-bold"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
 
-        {/* Order Summary */}
-        <div className="mb-6">
-          <RsvpSummary menuItems={eventConfig.menuItems} plates={plates} />
-        </div>
+            {/* Order Summary */}
+            <div className="mb-6">
+              <RsvpSummary menuItems={eventConfig.menuItems} plates={plates} />
+            </div>
+          </>
+        ) : (
+          <div className="rounded-lg bg-blue-50 border border-blue-200 p-6 mb-6 text-center">
+            <p className="text-blue-800 font-medium">Confirm your attendance for this event</p>
+            <p className="text-sm text-blue-600 mt-1">No food ordering for this event — just RSVP to confirm.</p>
+          </div>
+        )}
 
         {/* Notes */}
         {!deadlinePassed && (
@@ -471,7 +490,7 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="e.g., No spice, allergies..."
+              placeholder={hasFood ? "e.g., No spice, allergies..." : "Any notes or comments..."}
               rows={2}
               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             />
@@ -495,8 +514,8 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
               {submitting
                 ? "Submitting..."
                 : isGuest
-                  ? "Submit RSVP"
-                  : myRsvp ? "Update RSVP" : "Submit RSVP"}
+                  ? hasFood ? "Submit RSVP" : "Confirm Attendance"
+                  : myRsvp ? "Update RSVP" : hasFood ? "Submit RSVP" : "Confirm Attendance"}
             </button>
             {!isGuest && myRsvp && (
               <button
