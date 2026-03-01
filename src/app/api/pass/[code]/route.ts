@@ -22,7 +22,7 @@ export async function GET(
         where: { id },
         include: {
           resident: {
-            select: { name: true, block: true, flatNumber: true, email: true },
+            select: { name: true, block: true, flatNumber: true, email: true, phone: true },
           },
           items: { include: { menuItem: true } },
           fieldResponses: { include: { customField: true } },
@@ -49,6 +49,7 @@ export async function GET(
         announcementId: rsvp.eventConfig.announcement.id,
         name: rsvp.resident.name,
         email: rsvp.resident.email,
+        phone: rsvp.resident.phone,
         block: rsvp.resident.block,
         flatNumber: rsvp.resident.flatNumber,
         hasFood,
@@ -95,6 +96,7 @@ export async function GET(
         announcementId: guestRsvp.eventConfig.announcement.id,
         name: guestRsvp.name,
         email: guestRsvp.email,
+        phone: guestRsvp.phone,
         block: guestRsvp.block,
         flatNumber: guestRsvp.flatNumber,
         hasFood,

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { sendPassWhatsApp } from "@/lib/whatsapp";
 
 async function requireResident() {
   const session = await auth();
@@ -251,6 +252,22 @@ export async function POST(
         fieldResponses: { include: { customField: true } },
       },
     });
+    // Fire-and-forget: send WhatsApp pass notification
+    if (process.env.TWILIO_ACCOUNT_SID) {
+      const passCode = `r-${rsvp.id}`;
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+      const passUrl = `${appUrl}/pass/${passCode}`;
+
+      sendPassWhatsApp(resident!.phone, {
+        eventTitle: announcement.title,
+        eventDate: announcement.date,
+        name: resident!.name,
+        block: resident!.block,
+        flatNumber: resident!.flatNumber,
+        passUrl,
+      }).catch((err) => console.error("WhatsApp auto-send failed:", err));
+    }
+
     return NextResponse.json({ success: true, rsvp }, { status: 201 });
   }
 }

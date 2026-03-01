@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, use } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { toPng } from "html-to-image";
 import { formatDate } from "@/lib/utils";
-import { Mail, Send, Check, Loader2 } from "lucide-react";
+import { Mail, Send, Check, Loader2, MessageCircle } from "lucide-react";
 
 interface PassData {
   type: "resident" | "guest";
@@ -14,6 +14,7 @@ interface PassData {
   announcementId: string;
   name: string;
   email: string;
+  phone: string;
   block: number;
   flatNumber: string;
   hasFood: boolean;
@@ -34,6 +35,11 @@ export default function PassPage({ params }: { params: Promise<{ code: string }>
   const [emailSending, setEmailSending] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [emailError, setEmailError] = useState("");
+  const [showWhatsAppForm, setShowWhatsAppForm] = useState(false);
+  const [whatsAppTo, setWhatsAppTo] = useState("");
+  const [whatsAppSending, setWhatsAppSending] = useState(false);
+  const [whatsAppSent, setWhatsAppSent] = useState(false);
+  const [whatsAppError, setWhatsAppError] = useState("");
   const cardRef = useRef<HTMLDivElement>(null);
 
   const passUrl = typeof window !== "undefined"
@@ -52,6 +58,7 @@ export default function PassPage({ params }: { params: Promise<{ code: string }>
         const data = await res.json();
         setPass(data);
         if (data.email) setEmailTo(data.email);
+        if (data.phone) setWhatsAppTo(data.phone);
       } catch {
         setError("Failed to load pass");
       } finally {
@@ -105,6 +112,33 @@ export default function PassPage({ params }: { params: Promise<{ code: string }>
       setEmailError("Failed to send email");
     } finally {
       setEmailSending(false);
+    }
+  };
+
+  const handleSendWhatsApp = async () => {
+    if (!whatsAppTo.trim()) {
+      setWhatsAppError("Please enter a phone number");
+      return;
+    }
+    setWhatsAppSending(true);
+    setWhatsAppError("");
+    try {
+      const res = await fetch(`/api/pass/${code}/whatsapp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: whatsAppTo.trim(), passUrl }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setWhatsAppError(data.error || "Failed to send WhatsApp message");
+        return;
+      }
+      setWhatsAppSent(true);
+      setTimeout(() => setWhatsAppSent(false), 30000);
+    } catch {
+      setWhatsAppError("Failed to send WhatsApp message");
+    } finally {
+      setWhatsAppSending(false);
     }
   };
 
@@ -244,7 +278,7 @@ export default function PassPage({ params }: { params: Promise<{ code: string }>
 
         {/* Action Buttons */}
         <div className="mt-6 space-y-3">
-          <div className="flex gap-3 justify-center">
+          <div className="flex gap-3 justify-center flex-wrap">
             <button
               onClick={handleDownload}
               disabled={downloading}
@@ -253,11 +287,18 @@ export default function PassPage({ params }: { params: Promise<{ code: string }>
               {downloading ? "Generating..." : "Download as Image"}
             </button>
             <button
-              onClick={() => setShowEmailForm(!showEmailForm)}
+              onClick={() => { setShowEmailForm(!showEmailForm); setShowWhatsAppForm(false); }}
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-gray-700 font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors text-sm"
             >
               <Mail className="w-4 h-4" />
-              Send to Email
+              Email
+            </button>
+            <button
+              onClick={() => { setShowWhatsAppForm(!showWhatsAppForm); setShowEmailForm(false); }}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors text-sm"
+            >
+              <MessageCircle className="w-4 h-4" />
+              WhatsApp
             </button>
           </div>
 
@@ -304,6 +345,54 @@ export default function PassPage({ params }: { params: Promise<{ code: string }>
               {emailSent && (
                 <p className="text-green-600 text-xs mt-2">
                   Pass sent successfully to {emailTo}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* WhatsApp Form */}
+          {showWhatsAppForm && (
+            <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+              <div className="flex gap-2">
+                <input
+                  type="tel"
+                  value={whatsAppTo}
+                  onChange={(e) => {
+                    setWhatsAppTo(e.target.value);
+                    setWhatsAppError("");
+                  }}
+                  placeholder="Enter phone number"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                />
+                <button
+                  onClick={handleSendWhatsApp}
+                  disabled={whatsAppSending || whatsAppSent}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors flex items-center gap-1.5"
+                >
+                  {whatsAppSending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : whatsAppSent ? (
+                    <>
+                      <Check className="w-4 h-4" />
+                      Sent!
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      Send
+                    </>
+                  )}
+                </button>
+              </div>
+              {whatsAppError && (
+                <p className="text-red-500 text-xs mt-2">{whatsAppError}</p>
+              )}
+              {whatsAppSent && (
+                <p className="text-green-600 text-xs mt-2">
+                  Pass sent via WhatsApp to {whatsAppTo}
                 </p>
               )}
             </div>
