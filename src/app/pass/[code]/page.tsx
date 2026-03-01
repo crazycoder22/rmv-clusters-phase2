@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, use } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { toPng } from "html-to-image";
 import { formatDate } from "@/lib/utils";
+import { Mail, Send, Check, Loader2 } from "lucide-react";
 
 interface PassData {
   type: "resident" | "guest";
@@ -12,6 +13,7 @@ interface PassData {
   eventDate: string;
   announcementId: string;
   name: string;
+  email: string;
   block: number;
   flatNumber: string;
   hasFood: boolean;
@@ -27,6 +29,11 @@ export default function PassPage({ params }: { params: Promise<{ code: string }>
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [downloading, setDownloading] = useState(false);
+  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [emailTo, setEmailTo] = useState("");
+  const [emailSending, setEmailSending] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+  const [emailError, setEmailError] = useState("");
   const cardRef = useRef<HTMLDivElement>(null);
 
   const passUrl = typeof window !== "undefined"
@@ -44,6 +51,7 @@ export default function PassPage({ params }: { params: Promise<{ code: string }>
         }
         const data = await res.json();
         setPass(data);
+        if (data.email) setEmailTo(data.email);
       } catch {
         setError("Failed to load pass");
       } finally {
@@ -70,6 +78,33 @@ export default function PassPage({ params }: { params: Promise<{ code: string }>
       alert("Failed to generate image. Please try taking a screenshot instead.");
     } finally {
       setDownloading(false);
+    }
+  };
+
+  const handleSendEmail = async () => {
+    if (!emailTo.trim()) {
+      setEmailError("Please enter an email address");
+      return;
+    }
+    setEmailSending(true);
+    setEmailError("");
+    try {
+      const res = await fetch(`/api/pass/${code}/email`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: emailTo.trim(), passUrl }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setEmailError(data.error || "Failed to send email");
+        return;
+      }
+      setEmailSent(true);
+      setTimeout(() => setEmailSent(false), 30000);
+    } catch {
+      setEmailError("Failed to send email");
+    } finally {
+      setEmailSending(false);
     }
   };
 
@@ -207,15 +242,72 @@ export default function PassPage({ params }: { params: Promise<{ code: string }>
           </div>
         </div>
 
-        {/* Download Button (outside the card for html2canvas) */}
-        <div className="mt-6 text-center">
-          <button
-            onClick={handleDownload}
-            disabled={downloading}
-            className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
-          >
-            {downloading ? "Generating..." : "Download as Image"}
-          </button>
+        {/* Action Buttons */}
+        <div className="mt-6 space-y-3">
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={handleDownload}
+              disabled={downloading}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors text-sm"
+            >
+              {downloading ? "Generating..." : "Download as Image"}
+            </button>
+            <button
+              onClick={() => setShowEmailForm(!showEmailForm)}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-gray-700 font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors text-sm"
+            >
+              <Mail className="w-4 h-4" />
+              Send to Email
+            </button>
+          </div>
+
+          {/* Email Form */}
+          {showEmailForm && (
+            <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  value={emailTo}
+                  onChange={(e) => {
+                    setEmailTo(e.target.value);
+                    setEmailError("");
+                  }}
+                  placeholder="Enter email address"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                />
+                <button
+                  onClick={handleSendEmail}
+                  disabled={emailSending || emailSent}
+                  className="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50 transition-colors flex items-center gap-1.5"
+                >
+                  {emailSending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : emailSent ? (
+                    <>
+                      <Check className="w-4 h-4" />
+                      Sent!
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      Send
+                    </>
+                  )}
+                </button>
+              </div>
+              {emailError && (
+                <p className="text-red-500 text-xs mt-2">{emailError}</p>
+              )}
+              {emailSent && (
+                <p className="text-green-600 text-xs mt-2">
+                  Pass sent successfully to {emailTo}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
