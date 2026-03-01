@@ -86,11 +86,13 @@ export async function sendPassWhatsApp(
     });
 
     return { success: true };
-  } catch (err) {
+  } catch (err: unknown) {
     console.error("WhatsApp send error:", err);
+    const message =
+      err instanceof Error ? err.message : "Failed to send WhatsApp message";
     return {
       success: false,
-      error: "Failed to send WhatsApp message",
+      error: message,
     };
   }
 }
