@@ -31,6 +31,7 @@ interface RsvpData {
   items: RsvpItemData[];
   fieldResponses?: FieldResponseData[];
   paid: boolean;
+  attended: boolean;
   notes: string | null;
   createdAt: string;
 }
@@ -45,6 +46,7 @@ interface GuestRsvpData {
   items: RsvpItemData[];
   fieldResponses?: FieldResponseData[];
   paid: boolean;
+  attended: boolean;
   notes: string | null;
   createdAt: string;
 }
@@ -55,6 +57,7 @@ interface Summary {
   totalAmount: number;
   paidCount: number;
   unpaidCount: number;
+  attendedCount: number;
   itemTotals: { name: string; plates: number; amount: number }[];
 }
 
@@ -69,6 +72,7 @@ interface UnifiedRsvp {
   items: RsvpItemData[];
   fieldResponses: FieldResponseData[];
   paid: boolean;
+  attended: boolean;
   notes: string | null;
   createdAt: string;
 }
@@ -103,6 +107,7 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
           items: r.items,
           fieldResponses: r.fieldResponses || [],
           paid: r.paid,
+          attended: r.attended,
           notes: r.notes,
           createdAt: r.createdAt,
         }));
@@ -118,6 +123,7 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
           items: g.items,
           fieldResponses: g.fieldResponses || [],
           paid: g.paid,
+          attended: g.attended,
           notes: g.notes,
           createdAt: g.createdAt,
         }));
@@ -237,10 +243,17 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
         <>
           {/* Summary cards */}
           {summary && (
-            <div className={`grid grid-cols-2 ${hasFood ? "sm:grid-cols-4" : "sm:grid-cols-2"} gap-4 mb-8`}>
+            <div className={`grid grid-cols-2 ${hasFood ? "sm:grid-cols-5" : "sm:grid-cols-2"} gap-4 mb-8`}>
               <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
                 <p className="text-2xl font-bold text-primary-700">{summary.totalRsvps}</p>
                 <p className="text-xs text-gray-500 mt-1">Total RSVPs</p>
+              </div>
+              <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
+                <p className="text-2xl font-bold text-blue-600">
+                  {summary.attendedCount}
+                  <span className="text-gray-400 text-lg"> / {summary.totalRsvps}</span>
+                </p>
+                <p className="text-xs text-gray-500 mt-1">Attended</p>
               </div>
               {hasFood && (
                 <>
@@ -314,6 +327,7 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                     {hasFood && <th className="pb-3 pr-4 font-medium">Total</th>}
                     {hasCustomFields && <th className="pb-3 pr-4 font-medium">Custom Fields</th>}
                     <th className="pb-3 pr-4 font-medium">Notes</th>
+                    <th className="pb-3 pr-4 font-medium">Attended</th>
                     {hasFood && <th className="pb-3 font-medium">Paid</th>}
                   </tr>
                 </thead>
@@ -375,6 +389,15 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                         )}
                         <td className="py-3 pr-4 text-gray-500 text-xs max-w-[120px] truncate">
                           {rsvp.notes || "\u2014"}
+                        </td>
+                        <td className="py-3 pr-4">
+                          {rsvp.attended ? (
+                            <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700">
+                              Yes
+                            </span>
+                          ) : (
+                            <span className="text-gray-400 text-xs">&mdash;</span>
+                          )}
                         </td>
                         {hasFood && (
                           <td className="py-3">

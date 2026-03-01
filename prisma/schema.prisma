@@ -101,6 +101,8 @@ model Rsvp {
   items          RsvpItem[]
   fieldResponses RsvpFieldResponse[]
   paid           Boolean     @default(false)
+  attended       Boolean     @default(false)
+  attendedAt     DateTime?
   notes          String?
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
@@ -132,6 +134,8 @@ model GuestRsvp {
   items          GuestRsvpItem[]
   fieldResponses GuestRsvpFieldResponse[]
   paid           Boolean         @default(false)
+  attended       Boolean         @default(false)
+  attendedAt     DateTime?
   notes          String?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt

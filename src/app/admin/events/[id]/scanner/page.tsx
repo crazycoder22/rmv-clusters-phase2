@@ -18,9 +18,16 @@ interface PassData {
   hasFood: boolean;
   items: { name: string; plates: number; pricePerPlate: number }[];
   paid: boolean;
+  attended: boolean;
+  attendedAt: string | null;
   notes: string | null;
   createdAt: string;
   fieldResponses?: { label: string; value: string }[];
+}
+
+interface AttendanceResult {
+  alreadyAttended: boolean;
+  attendedAt: string;
 }
 
 interface ScanHistoryEntry {
@@ -28,6 +35,7 @@ interface ScanHistoryEntry {
   name: string;
   type: "resident" | "guest";
   paid: boolean;
+  attended: boolean;
   scannedAt: Date;
 }
 
@@ -54,15 +62,44 @@ export default function AdminScannerPage({ params }: { params: Promise<{ id: str
   const [error, setError] = useState("");
   const [togglingPaid, setTogglingPaid] = useState(false);
   const [history, setHistory] = useState<ScanHistoryEntry[]>([]);
+  const [attendanceResult, setAttendanceResult] = useState<AttendanceResult | null>(null);
+  const [markingAttendance, setMarkingAttendance] = useState(false);
 
   const scannerRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const html5QrCodeRef = useRef<any>(null);
 
+  const markAttendance = useCallback(async (passCode: string) => {
+    setMarkingAttendance(true);
+    try {
+      const res = await fetch(`/api/pass/${passCode}/attend`, {
+        method: "POST",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAttendanceResult({
+          alreadyAttended: data.alreadyAttended,
+          attendedAt: data.attendedAt,
+        });
+        // Update history
+        setHistory((prev) =>
+          prev.map((h) =>
+            h.passCode === passCode ? { ...h, attended: true } : h
+          )
+        );
+      }
+    } catch {
+      // silently fail — attendance marking is best-effort
+    } finally {
+      setMarkingAttendance(false);
+    }
+  }, []);
+
   const fetchPassDetails = useCallback(async (passCode: string) => {
     setLoading(true);
     setError("");
     setPassData(null);
+    setAttendanceResult(null);
 
     try {
       const res = await fetch(`/api/pass/${passCode}`);
@@ -81,16 +118,20 @@ export default function AdminScannerPage({ params }: { params: Promise<{ id: str
           name: data.name,
           type: data.type,
           paid: data.paid,
+          attended: true, // will be marked attended
           scannedAt: new Date(),
         },
         ...prev.filter((h) => h.passCode !== data.passCode),
       ]);
+
+      // Auto-mark attendance
+      markAttendance(passCode);
     } catch {
       setError("Failed to look up pass");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [markAttendance]);
 
   const startScanner = useCallback(async () => {
     if (!scannerRef.current) return;
@@ -157,6 +198,7 @@ export default function AdminScannerPage({ params }: { params: Promise<{ id: str
   const handleScanAnother = async () => {
     setPassData(null);
     setError("");
+    setAttendanceResult(null);
     startScanner();
   };
 
@@ -317,26 +359,70 @@ export default function AdminScannerPage({ params }: { params: Promise<{ id: str
       {/* Scan Result */}
       {passData && (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
-          {/* Result Header */}
-          <div className="bg-green-50 border-b border-green-200 px-5 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
-                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
+          {/* Attendance Status Header */}
+          {markingAttendance ? (
+            <div className="bg-blue-50 border-b border-blue-200 px-5 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-blue-400 flex items-center justify-center animate-pulse">
+                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <span className="text-sm font-medium text-blue-800">Marking attendance...</span>
               </div>
-              <span className="text-sm font-medium text-green-800">Pass Verified</span>
             </div>
-            <span
-              className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full ${
-                passData.type === "guest"
-                  ? "bg-purple-100 text-purple-700"
-                  : "bg-blue-100 text-blue-700"
-              }`}
-            >
-              {passData.type === "guest" ? "Guest" : "Resident"}
-            </span>
-          </div>
+          ) : attendanceResult?.alreadyAttended ? (
+            <div className="bg-amber-50 border-b border-amber-200 px-5 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-amber-500 flex items-center justify-center">
+                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01" />
+                  </svg>
+                </div>
+                <div>
+                  <span className="text-sm font-medium text-amber-800">Already Checked In</span>
+                  <p className="text-xs text-amber-600">
+                    at{" "}
+                    {new Date(attendanceResult.attendedAt).toLocaleTimeString("en-IN", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                </div>
+              </div>
+              <span
+                className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full ${
+                  passData.type === "guest"
+                    ? "bg-purple-100 text-purple-700"
+                    : "bg-blue-100 text-blue-700"
+                }`}
+              >
+                {passData.type === "guest" ? "Guest" : "Resident"}
+              </span>
+            </div>
+          ) : (
+            <div className="bg-green-50 border-b border-green-200 px-5 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
+                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <span className="text-sm font-medium text-green-800">
+                  {attendanceResult ? "Checked In" : "Pass Verified"}
+                </span>
+              </div>
+              <span
+                className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full ${
+                  passData.type === "guest"
+                    ? "bg-purple-100 text-purple-700"
+                    : "bg-blue-100 text-blue-700"
+                }`}
+              >
+                {passData.type === "guest" ? "Guest" : "Resident"}
+              </span>
+            </div>
+          )}
 
           {/* Details */}
           <div className="px-5 py-4 space-y-3">
@@ -460,16 +546,23 @@ export default function AdminScannerPage({ params }: { params: Promise<{ id: str
                     })}
                   </p>
                 </div>
-                <span
-                  className={clsx(
-                    "inline-block px-2 py-0.5 text-xs font-medium rounded-full",
-                    entry.paid
-                      ? "bg-green-100 text-green-700"
-                      : "bg-red-100 text-red-600"
+                <div className="flex items-center gap-2">
+                  {entry.attended && (
+                    <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700">
+                      Attended
+                    </span>
                   )}
-                >
-                  {entry.paid ? "Paid" : "Unpaid"}
-                </span>
+                  <span
+                    className={clsx(
+                      "inline-block px-2 py-0.5 text-xs font-medium rounded-full",
+                      entry.paid
+                        ? "bg-green-100 text-green-700"
+                        : "bg-red-100 text-red-600"
+                    )}
+                  >
+                    {entry.paid ? "Paid" : "Unpaid"}
+                  </span>
+                </div>
               </div>
             ))}
           </div>

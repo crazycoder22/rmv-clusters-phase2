@@ -75,6 +75,7 @@ export async function GET(
   let totalAmount = 0;
   let paidCount = 0;
   let unpaidCount = 0;
+  let attendedCount = 0;
 
   const itemTotals: Record<string, { name: string; plates: number; amount: number }> = {};
 
@@ -92,6 +93,7 @@ export async function GET(
     }
     if (rsvp.paid) paidCount++;
     else unpaidCount++;
+    if (rsvp.attended) attendedCount++;
   }
 
   for (const guestRsvp of guestRsvps) {
@@ -108,6 +110,7 @@ export async function GET(
     }
     if (guestRsvp.paid) paidCount++;
     else unpaidCount++;
+    if (guestRsvp.attended) attendedCount++;
   }
 
   const totalRsvps = rsvps.length + guestRsvps.length;
@@ -133,6 +136,7 @@ export async function GET(
       totalAmount,
       paidCount,
       unpaidCount,
+      attendedCount,
       itemTotals: Object.values(itemTotals),
     },
   });

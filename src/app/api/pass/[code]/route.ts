@@ -59,6 +59,8 @@ export async function GET(
           pricePerPlate: i.menuItem.pricePerPlate,
         })),
         paid: rsvp.paid,
+        attended: rsvp.attended,
+        attendedAt: rsvp.attendedAt,
         notes: rsvp.notes,
         createdAt: rsvp.createdAt,
         fieldResponses: rsvp.fieldResponses.map((fr) => ({
@@ -106,6 +108,8 @@ export async function GET(
           pricePerPlate: i.menuItem.pricePerPlate,
         })),
         paid: guestRsvp.paid,
+        attended: guestRsvp.attended,
+        attendedAt: guestRsvp.attendedAt,
         notes: guestRsvp.notes,
         createdAt: guestRsvp.createdAt,
         fieldResponses: guestRsvp.fieldResponses.map((fr) => ({
