@@ -21,7 +21,7 @@
   "noticeBanner": {
     "message": "Welcome to the new RMV Clusters Phase II community website!",
     "type": "info",
-    "active": true
+    "active": false
   },
   "emergencyContacts": [
     {
