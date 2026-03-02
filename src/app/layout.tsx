@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     type: "website",
   },
   icons: {
-    icon: "/icons/icon-192.png",
+    icon: "/icons/fav-icon.png",
     apple: "/icons/apple-touch-icon.png",
   },
   other: {

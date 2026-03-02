@@ -293,6 +293,7 @@ export default function PassPage({ params }: { params: Promise<{ code: string }>
               <Mail className="w-4 h-4" />
               Email
             </button>
+            {/* WhatsApp button hidden for now
             <button
               onClick={() => { setShowWhatsAppForm(!showWhatsAppForm); setShowEmailForm(false); }}
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors text-sm"
@@ -300,6 +301,7 @@ export default function PassPage({ params }: { params: Promise<{ code: string }>
               <MessageCircle className="w-4 h-4" />
               WhatsApp
             </button>
+            */}
           </div>
 
           {/* Email Form */}
@@ -350,7 +352,7 @@ export default function PassPage({ params }: { params: Promise<{ code: string }>
             </div>
           )}
 
-          {/* WhatsApp Form */}
+          {/* WhatsApp Form hidden for now
           {showWhatsAppForm && (
             <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
               <div className="flex gap-2">
@@ -397,6 +399,7 @@ export default function PassPage({ params }: { params: Promise<{ code: string }>
               )}
             </div>
           )}
+          */}
         </div>
       </div>
     </div>
