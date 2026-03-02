@@ -145,25 +145,30 @@ export async function POST(
       );
     }
 
-    // Generate QR code as data URL
-    const qrCodeDataUrl = await QRCode.toDataURL(passUrl, {
+    // Generate QR code as PNG buffer for CID inline attachment
+    const qrCodeBuffer = await QRCode.toBuffer(passUrl, {
       width: 200,
       margin: 1,
     });
 
-    // Render HTML email
+    // Render HTML email (uses cid:qrcode to reference the inline attachment)
     const html = renderPassEmailHtml({
       ...passData,
-      qrCodeDataUrl,
       passUrl,
     });
 
-    // Send email via Resend
+    // Send email via Resend with QR code as inline CID attachment
     const { error: sendError } = await getResend().emails.send({
       from: EMAIL_FROM,
       to: email,
       subject: `Your Event Pass: ${passData.eventTitle}`,
       html,
+      attachments: [
+        {
+          filename: "qrcode.png",
+          content: qrCodeBuffer,
+        },
+      ],
     });
 
     if (sendError) {

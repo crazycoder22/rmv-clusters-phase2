@@ -27,7 +27,6 @@ interface PassEmailParams {
   hasFood: boolean;
   items: { name: string; plates: number; pricePerPlate: number }[];
   paid: boolean;
-  qrCodeDataUrl: string;
   passUrl: string;
 }
 
@@ -42,7 +41,6 @@ export function renderPassEmailHtml(params: PassEmailParams): string {
     hasFood,
     items,
     paid,
-    qrCodeDataUrl,
     passUrl,
   } = params;
 
@@ -163,7 +161,7 @@ export function renderPassEmailHtml(params: PassEmailParams): string {
           <tr>
             <td style="padding:20px 24px;text-align:center;">
               <div style="display:inline-block;padding:12px;border:2px solid #f3f4f6;border-radius:12px;">
-                <img src="${qrCodeDataUrl}" width="200" height="200" alt="QR Code" style="display:block;" />
+                <img src="cid:qrcode" width="200" height="200" alt="QR Code" style="display:block;" />
               </div>
               <p style="margin:12px 0 0;font-size:12px;color:#6b7280;">
                 <a href="${passUrl}" style="color:#2563eb;text-decoration:underline;">View Pass Online</a>
