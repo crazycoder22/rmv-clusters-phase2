@@ -39,3 +39,23 @@ export async function PATCH(
     );
   }
 }
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string; rsvpId: string }> }
+) {
+  const check = await requireAdmin();
+  if ("error" in check && check.error) return check.error;
+
+  const { rsvpId } = await params;
+
+  try {
+    await prisma.guestRsvp.delete({ where: { id: rsvpId } });
+    return NextResponse.json({ success: true });
+  } catch {
+    return NextResponse.json(
+      { error: "Guest RSVP not found" },
+      { status: 404 }
+    );
+  }
+}

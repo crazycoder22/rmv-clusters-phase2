@@ -89,6 +89,7 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
   const [hasCustomFields, setHasCustomFields] = useState(false);
   const [loading, setLoading] = useState(true);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const fetchRsvps = useCallback(async () => {
     setLoading(true);
@@ -180,6 +181,40 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
       // silently fail
     } finally {
       setTogglingId(null);
+    }
+  };
+
+  const deleteRsvp = async (rsvp: UnifiedRsvp) => {
+    if (!window.confirm(`Delete RSVP for "${rsvp.name}"? This cannot be undone.`)) return;
+    setDeletingId(rsvp.id);
+    try {
+      const url = rsvp.isGuest
+        ? `/api/admin/events/${id}/rsvps/guest/${rsvp.id}`
+        : `/api/admin/events/${id}/rsvps/${rsvp.id}`;
+      const res = await fetch(url, { method: "DELETE" });
+      if (res.ok) {
+        setAllRsvps((prev) => prev.filter((r) => r.id !== rsvp.id));
+        if (summary) {
+          const rsvpPlates = rsvp.items.reduce((sum, item) => sum + item.plates, 0);
+          const rsvpAmount = rsvp.items.reduce(
+            (sum, item) => sum + item.plates * item.menuItem.pricePerPlate,
+            0
+          );
+          setSummary({
+            ...summary,
+            totalRsvps: summary.totalRsvps - 1,
+            totalPlates: summary.totalPlates - rsvpPlates,
+            totalAmount: summary.totalAmount - rsvpAmount,
+            paidCount: rsvp.paid ? summary.paidCount - 1 : summary.paidCount,
+            unpaidCount: rsvp.paid ? summary.unpaidCount : summary.unpaidCount - 1,
+            attendedCount: rsvp.attended ? summary.attendedCount - 1 : summary.attendedCount,
+          });
+        }
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -328,7 +363,8 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                     {hasCustomFields && <th className="pb-3 pr-4 font-medium">Custom Fields</th>}
                     <th className="pb-3 pr-4 font-medium">Notes</th>
                     <th className="pb-3 pr-4 font-medium">Attended</th>
-                    {hasFood && <th className="pb-3 font-medium">Paid</th>}
+                    {hasFood && <th className="pb-3 pr-4 font-medium">Paid</th>}
+                    <th className="pb-3 font-medium"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -400,7 +436,7 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                           )}
                         </td>
                         {hasFood && (
-                          <td className="py-3">
+                          <td className="py-3 pr-4">
                             <button
                               onClick={() => togglePaid(rsvp)}
                               disabled={togglingId === rsvp.id}
@@ -415,6 +451,15 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                             </button>
                           </td>
                         )}
+                        <td className="py-3">
+                          <button
+                            onClick={() => deleteRsvp(rsvp)}
+                            disabled={deletingId === rsvp.id}
+                            className="text-xs text-red-500 hover:text-red-700 disabled:opacity-50 transition-colors"
+                          >
+                            {deletingId === rsvp.id ? "Deleting..." : "Delete"}
+                          </button>
+                        </td>
                       </tr>
                     );
                   })}
