@@ -70,12 +70,26 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
   const [guestRsvpId, setGuestRsvpId] = useState<string | null>(null);
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
 
+  // Feedback state
+  const [feedbackRating, setFeedbackRating] = useState(0);
+  const [feedbackComment, setFeedbackComment] = useState("");
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
+  const [feedbackSuccess, setFeedbackSuccess] = useState("");
+  const [feedbackError, setFeedbackError] = useState("");
+  const [existingFeedback, setExistingFeedback] = useState<{ id: string; rating: number; comment: string | null } | null>(null);
+
   const isGuest = status === "unauthenticated";
   const isLoggedIn = status === "authenticated" && session?.user?.isRegistered;
 
   const deadlinePassed = eventConfig
     ? new Date() > new Date(eventConfig.rsvpDeadline)
     : false;
+
+  const eventDatePassed = announcement
+    ? new Date() > new Date(announcement.date)
+    : false;
+
+  const feedbackEnabled = eventConfig?.enableFeedback && eventDatePassed;
 
   const hasFood = eventConfig
     ? eventConfig.menuItems && eventConfig.menuItems.length > 0
@@ -131,6 +145,28 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
               values[fr.customFieldId] = fr.value;
             }
             setFieldValues(values);
+          }
+        }
+
+        // Fetch existing feedback if applicable
+        if (
+          !isGuest &&
+          data.eventConfig?.enableFeedback &&
+          data.myRsvp &&
+          new Date() > new Date(data.announcement.date)
+        ) {
+          try {
+            const fbRes = await fetch(`/api/events/${id}/feedback`);
+            if (fbRes.ok) {
+              const fbData = await fbRes.json();
+              if (fbData.myFeedback) {
+                setExistingFeedback(fbData.myFeedback);
+                setFeedbackRating(fbData.myFeedback.rating);
+                setFeedbackComment(fbData.myFeedback.comment || "");
+              }
+            }
+          } catch {
+            // Feedback fetch failure is non-critical
           }
         }
       } catch {
@@ -385,6 +421,36 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
       setError("Network error. Please try again.");
     } finally {
       setCancelling(false);
+    }
+  };
+
+  const handleFeedbackSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (feedbackRating === 0) {
+      setFeedbackError("Please select a rating");
+      return;
+    }
+    setFeedbackSubmitting(true);
+    setFeedbackError("");
+    setFeedbackSuccess("");
+
+    try {
+      const res = await fetch(`/api/events/${id}/feedback`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rating: feedbackRating, comment: feedbackComment || null }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setFeedbackError(data.error || "Failed to submit feedback");
+        return;
+      }
+      setExistingFeedback(data.feedback);
+      setFeedbackSuccess(existingFeedback ? "Feedback updated!" : "Thank you for your feedback!");
+    } catch {
+      setFeedbackError("Network error. Please try again.");
+    } finally {
+      setFeedbackSubmitting(false);
     }
   };
 
@@ -770,6 +836,82 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
           </div>
         )}
       </form>
+
+      {/* Post-Event Feedback */}
+      {feedbackEnabled && myRsvp && !isGuest && (
+        <div className="mt-10 pt-8 border-t border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-800 mb-2">
+            Event Feedback
+          </h2>
+          <p className="text-sm text-gray-500 mb-4">
+            {existingFeedback
+              ? "You have already submitted feedback. You can update it below."
+              : "How was the event? Share your feedback."}
+          </p>
+
+          <form onSubmit={handleFeedbackSubmit}>
+            {/* Star Rating */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Rating <span className="text-red-500">*</span>
+              </label>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setFeedbackRating(star)}
+                    className={`text-3xl transition-colors ${
+                      star <= feedbackRating
+                        ? "text-yellow-400"
+                        : "text-gray-300 hover:text-yellow-200"
+                    }`}
+                  >
+                    ★
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Comment */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Comments (optional)
+              </label>
+              <textarea
+                value={feedbackComment}
+                onChange={(e) => setFeedbackComment(e.target.value)}
+                placeholder="Share your thoughts about the event..."
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              />
+            </div>
+
+            {feedbackError && (
+              <div className="rounded-md bg-red-50 border border-red-200 p-3 mb-4">
+                <p className="text-sm text-red-800">{feedbackError}</p>
+              </div>
+            )}
+            {feedbackSuccess && (
+              <div className="rounded-md bg-green-50 border border-green-200 p-3 mb-4">
+                <p className="text-sm text-green-800">{feedbackSuccess}</p>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={feedbackSubmitting}
+              className="py-2 px-4 bg-primary-600 text-white font-medium rounded-md hover:bg-primary-700 disabled:opacity-50 transition-colors"
+            >
+              {feedbackSubmitting
+                ? "Submitting..."
+                : existingFeedback
+                  ? "Update Feedback"
+                  : "Submit Feedback"}
+            </button>
+          </form>
+        </div>
+      )}
 
       {hasFood && eventConfig?.requirePayment && (
         <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />

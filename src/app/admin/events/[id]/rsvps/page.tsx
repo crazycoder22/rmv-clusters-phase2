@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, use } from "react";
 import { useRole } from "@/hooks/useRole";
 import Link from "next/link";
 import clsx from "clsx";
-import type { MenuItemType, CustomFieldType } from "@/types";
+import type { MenuItemType, CustomFieldType, EventFeedbackType } from "@/types";
 
 interface FieldResponseData {
   customFieldId: string;
@@ -61,6 +61,12 @@ interface Summary {
   itemTotals: { name: string; plates: number; amount: number }[];
 }
 
+interface FeedbackSummary {
+  totalFeedbacks: number;
+  averageRating: number;
+  ratingDistribution: Record<number, number>;
+}
+
 interface UnifiedRsvp {
   id: string;
   isGuest: boolean;
@@ -90,6 +96,27 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
   const [loading, setLoading] = useState(true);
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [enableFeedback, setEnableFeedback] = useState(false);
+  const [activeTab, setActiveTab] = useState<"rsvps" | "feedback">("rsvps");
+  const [feedbacks, setFeedbacks] = useState<EventFeedbackType[]>([]);
+  const [feedbackSummary, setFeedbackSummary] = useState<FeedbackSummary | null>(null);
+  const [loadingFeedback, setLoadingFeedback] = useState(false);
+
+  const fetchFeedback = useCallback(async () => {
+    setLoadingFeedback(true);
+    try {
+      const res = await fetch(`/api/admin/events/${id}/feedback`);
+      if (res.ok) {
+        const data = await res.json();
+        setFeedbacks(data.feedbacks || []);
+        setFeedbackSummary(data.summary);
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setLoadingFeedback(false);
+    }
+  }, [id]);
 
   const fetchRsvps = useCallback(async () => {
     setLoading(true);
@@ -140,6 +167,7 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
         setRsvpDeadline(data.eventConfig.rsvpDeadline);
         setHasFood(data.eventConfig.menuItems && data.eventConfig.menuItems.length > 0);
         setHasCustomFields(data.eventConfig.customFields && data.eventConfig.customFields.length > 0);
+        setEnableFeedback(data.eventConfig.enableFeedback ?? false);
       }
     } catch {
       // silently fail
@@ -153,6 +181,12 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
       fetchRsvps();
     }
   }, [role, fetchRsvps]);
+
+  useEffect(() => {
+    if (activeTab === "feedback" && enableFeedback && feedbacks.length === 0 && !loadingFeedback) {
+      fetchFeedback();
+    }
+  }, [activeTab, enableFeedback, feedbacks.length, loadingFeedback, fetchFeedback]);
 
   const togglePaid = async (rsvp: UnifiedRsvp) => {
     setTogglingId(rsvp.id);
@@ -272,9 +306,136 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
         )}
       </div>
 
-      {loading ? (
+      {/* Tab toggle */}
+      {enableFeedback && (
+        <div className="flex gap-1 mb-6 border-b border-gray-200">
+          <button
+            onClick={() => setActiveTab("rsvps")}
+            className={clsx(
+              "px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors",
+              activeTab === "rsvps"
+                ? "border-primary-600 text-primary-700"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+            )}
+          >
+            RSVPs
+          </button>
+          <button
+            onClick={() => setActiveTab("feedback")}
+            className={clsx(
+              "px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors",
+              activeTab === "feedback"
+                ? "border-primary-600 text-primary-700"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+            )}
+          >
+            Feedback
+          </button>
+        </div>
+      )}
+
+      {/* Feedback tab */}
+      {activeTab === "feedback" && enableFeedback && (
+        <div>
+          {loadingFeedback ? (
+            <p className="text-gray-500 text-center py-8">Loading feedback...</p>
+          ) : (
+            <>
+              {/* Feedback Summary */}
+              {feedbackSummary && feedbackSummary.totalFeedbacks > 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
+                  <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
+                    <p className="text-2xl font-bold text-primary-700">{feedbackSummary.totalFeedbacks}</p>
+                    <p className="text-xs text-gray-500 mt-1">Total Responses</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
+                    <p className="text-2xl font-bold text-yellow-500">
+                      {feedbackSummary.averageRating}
+                      <span className="text-lg ml-1">★</span>
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">Average Rating</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 border border-gray-200 col-span-2 sm:col-span-1">
+                    <p className="text-xs font-semibold text-gray-600 mb-2">Distribution</p>
+                    {[5, 4, 3, 2, 1].map((star) => {
+                      const count = feedbackSummary.ratingDistribution[star] || 0;
+                      const pct = feedbackSummary.totalFeedbacks > 0
+                        ? (count / feedbackSummary.totalFeedbacks) * 100
+                        : 0;
+                      return (
+                        <div key={star} className="flex items-center gap-2 text-xs mb-1">
+                          <span className="w-3 text-gray-600">{star}</span>
+                          <span className="text-yellow-400">★</span>
+                          <div className="flex-1 bg-gray-100 rounded-full h-2">
+                            <div
+                              className="bg-yellow-400 h-2 rounded-full transition-all"
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                          <span className="w-6 text-right text-gray-500">{count}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Feedback table */}
+              {feedbacks.length === 0 ? (
+                <p className="text-gray-500 text-center py-8">No feedback yet.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-200 text-left text-gray-600">
+                        <th className="pb-3 pr-4 font-medium">Name</th>
+                        <th className="pb-3 pr-4 font-medium">Block / Flat</th>
+                        <th className="pb-3 pr-4 font-medium">Rating</th>
+                        <th className="pb-3 pr-4 font-medium">Comment</th>
+                        <th className="pb-3 font-medium">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {feedbacks.map((fb) => (
+                        <tr key={fb.id} className="border-b border-gray-100 hover:bg-gray-50">
+                          <td className="py-3 pr-4 font-medium text-gray-900">
+                            {fb.resident?.name || "Unknown"}
+                          </td>
+                          <td className="py-3 pr-4 text-gray-600">
+                            {fb.resident ? `B${fb.resident.block} - ${fb.resident.flatNumber}` : "\u2014"}
+                          </td>
+                          <td className="py-3 pr-4">
+                            <span className="text-yellow-400">
+                              {"★".repeat(fb.rating)}
+                            </span>
+                            <span className="text-gray-200">
+                              {"★".repeat(5 - fb.rating)}
+                            </span>
+                          </td>
+                          <td className="py-3 pr-4 text-gray-600 max-w-[300px]">
+                            {fb.comment || <span className="text-gray-400">&mdash;</span>}
+                          </td>
+                          <td className="py-3 text-gray-500 text-xs">
+                            {new Date(fb.createdAt).toLocaleDateString("en-IN", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            })}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
+      {activeTab === "rsvps" && loading ? (
         <p className="text-gray-500 text-center py-8">Loading RSVPs...</p>
-      ) : (
+      ) : activeTab === "rsvps" ? (
         <>
           {/* Summary cards */}
           {summary && (
@@ -468,7 +629,7 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
             </div>
           )}
         </>
-      )}
+      ) : null}
     </div>
   );
 }

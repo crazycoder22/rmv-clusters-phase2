@@ -46,6 +46,7 @@ const emptyNewsForm = {
   enableRsvp: false,
   enableFoodOrdering: false,
   requirePayment: false,
+  enableFeedback: false,
   mealType: "dinner",
   rsvpDeadline: "",
   menuItems: [] as MenuItemFormEntry[],
@@ -307,7 +308,7 @@ export default function AdminPage() {
 
       // Build payload with optional eventConfig / sportsConfig
       const {
-        enableRsvp, enableFoodOrdering, requirePayment, mealType, rsvpDeadline, menuItems: menuItemsForm,
+        enableRsvp, enableFoodOrdering, requirePayment, enableFeedback, mealType, rsvpDeadline, menuItems: menuItemsForm,
         customFields: customFieldsForm,
         enableSportsRegistration, registrationDeadline, sportItems: sportItemsForm,
         ...baseForm
@@ -317,6 +318,7 @@ export default function AdminPage() {
       if (enableRsvp && baseForm.category === "event") {
         const eventConfigPayload: Record<string, unknown> = {
           rsvpDeadline,
+          enableFeedback,
         };
         if (enableFoodOrdering) {
           eventConfigPayload.mealType = mealType;
@@ -405,6 +407,7 @@ export default function AdminPage() {
       enableRsvp: !!ec,
       enableFoodOrdering: !!(ec?.menuItems && ec.menuItems.length > 0),
       requirePayment: ec?.requirePayment ?? false,
+      enableFeedback: ec?.enableFeedback ?? false,
       mealType: ec?.mealType || "dinner",
       rsvpDeadline: ec?.rsvpDeadline
         ? new Date(ec.rsvpDeadline).toISOString().slice(0, 16)
@@ -891,6 +894,23 @@ export default function AdminPage() {
                           setNewsForm((prev) => ({ ...prev, customFields: fields }))
                         }
                       />
+
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="enableFeedback"
+                          name="enableFeedback"
+                          checked={newsForm.enableFeedback}
+                          onChange={handleNewsChange}
+                          className="h-4 w-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
+                        />
+                        <label
+                          htmlFor="enableFeedback"
+                          className="text-sm font-medium text-gray-700"
+                        >
+                          Enable Post-Event Feedback (Star Rating)
+                        </label>
+                      </div>
                     </div>
                   )}
                 </div>

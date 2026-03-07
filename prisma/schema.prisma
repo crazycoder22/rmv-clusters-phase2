@@ -55,6 +55,7 @@ model Resident {
   roleId       String
   role         Role     @relation(fields: [roleId], references: [id])
   rsvps                Rsvp[]
+  eventFeedbacks       EventFeedback[]
   sportsRegistrations  SportsRegistration[]
   notifications        Notification[]
   issues               Issue[]
@@ -73,10 +74,12 @@ model EventConfig {
   mealType        String?      // "breakfast", "lunch", "dinner" (optional for non-food events)
   rsvpDeadline    DateTime
   requirePayment  Boolean      @default(false)
+  enableFeedback  Boolean      @default(false)
   menuItems      MenuItem[]
   customFields   CustomField[]
   rsvps          Rsvp[]
   guestRsvps     GuestRsvp[]
+  feedbacks      EventFeedback[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 }
@@ -200,6 +203,20 @@ model GuestRsvpFieldResponse {
   createdAt DateTime @default(now())
 
   @@unique([guestRsvpId, customFieldId])
+}
+
+model EventFeedback {
+  id            String      @id @default(cuid())
+  eventConfigId String
+  eventConfig   EventConfig @relation(fields: [eventConfigId], references: [id], onDelete: Cascade)
+  residentId    String
+  resident      Resident    @relation(fields: [residentId], references: [id], onDelete: Cascade)
+  rating        Int         // 1-5
+  comment       String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([eventConfigId, residentId])
 }
 
 model SportsConfig {

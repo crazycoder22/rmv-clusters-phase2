@@ -81,6 +81,7 @@ export interface EventConfigType {
   mealType: "breakfast" | "lunch" | "dinner" | null;
   rsvpDeadline: string;
   requirePayment: boolean;
+  enableFeedback: boolean;
   menuItems: MenuItemType[];
   customFields?: CustomFieldType[];
 }
@@ -139,6 +140,20 @@ export interface FieldResponseType {
   customFieldId: string;
   customField: CustomFieldType;
   value: string;
+}
+
+// Event Feedback types
+export interface EventFeedbackType {
+  id: string;
+  rating: number;
+  comment: string | null;
+  residentId?: string;
+  resident?: {
+    name: string;
+    block: number;
+    flatNumber: string;
+  };
+  createdAt: string;
 }
 
 // Sports Event types

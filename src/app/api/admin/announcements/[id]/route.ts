@@ -79,6 +79,7 @@ export async function PATCH(
               mealType: ec.mealType || null,
               rsvpDeadline: new Date(ec.rsvpDeadline),
               requirePayment: ec.requirePayment ?? false,
+              enableFeedback: ec.enableFeedback ?? false,
               ...(ec.menuItems && ec.menuItems.length > 0 && {
                 menuItems: {
                   create: ec.menuItems.map(
@@ -112,6 +113,7 @@ export async function PATCH(
               mealType: ec.mealType || null,
               rsvpDeadline: new Date(ec.rsvpDeadline),
               requirePayment: ec.requirePayment ?? false,
+              enableFeedback: ec.enableFeedback ?? false,
               ...(ec.menuItems && ec.menuItems.length > 0 && {
                 menuItems: {
                   create: ec.menuItems.map(
