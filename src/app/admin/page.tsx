@@ -45,6 +45,7 @@ const emptyNewsForm = {
   published: true,
   enableRsvp: false,
   enableFoodOrdering: false,
+  requirePayment: false,
   mealType: "dinner",
   rsvpDeadline: "",
   menuItems: [] as MenuItemFormEntry[],
@@ -305,7 +306,7 @@ export default function AdminPage() {
 
       // Build payload with optional eventConfig / sportsConfig
       const {
-        enableRsvp, enableFoodOrdering, mealType, rsvpDeadline, menuItems: menuItemsForm,
+        enableRsvp, enableFoodOrdering, requirePayment, mealType, rsvpDeadline, menuItems: menuItemsForm,
         customFields: customFieldsForm,
         enableSportsRegistration, registrationDeadline, sportItems: sportItemsForm,
         ...baseForm
@@ -318,6 +319,7 @@ export default function AdminPage() {
         };
         if (enableFoodOrdering) {
           eventConfigPayload.mealType = mealType;
+          eventConfigPayload.requirePayment = requirePayment;
           eventConfigPayload.menuItems = menuItemsForm.map((item) => ({
             name: item.name,
             pricePerPlate: parseFloat(item.pricePerPlate) || 0,
@@ -401,6 +403,7 @@ export default function AdminPage() {
       published: announcement.published ?? true,
       enableRsvp: !!ec,
       enableFoodOrdering: !!(ec?.menuItems && ec.menuItems.length > 0),
+      requirePayment: ec?.requirePayment ?? false,
       mealType: ec?.mealType || "dinner",
       rsvpDeadline: ec?.rsvpDeadline
         ? new Date(ec.rsvpDeadline).toISOString().slice(0, 16)
@@ -837,6 +840,23 @@ export default function AdminPage() {
 
                       {newsForm.enableFoodOrdering && (
                         <div className="space-y-4 pl-6 border-l-2 border-green-100">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              id="requirePayment"
+                              name="requirePayment"
+                              checked={newsForm.requirePayment}
+                              onChange={handleNewsChange}
+                              className="h-4 w-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
+                            />
+                            <label
+                              htmlFor="requirePayment"
+                              className="text-sm font-medium text-gray-700"
+                            >
+                              Require Online Payment (Razorpay)
+                            </label>
+                          </div>
+
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                               Meal Type

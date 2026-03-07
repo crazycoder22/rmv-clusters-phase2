@@ -70,8 +70,9 @@ model EventConfig {
   id             String       @id @default(cuid())
   announcementId String       @unique
   announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
-  mealType       String?      // "breakfast", "lunch", "dinner" (optional for non-food events)
-  rsvpDeadline   DateTime
+  mealType        String?      // "breakfast", "lunch", "dinner" (optional for non-food events)
+  rsvpDeadline    DateTime
+  requirePayment  Boolean      @default(false)
   menuItems      MenuItem[]
   customFields   CustomField[]
   rsvps          Rsvp[]
@@ -100,7 +101,9 @@ model Rsvp {
   resident      Resident    @relation(fields: [residentId], references: [id], onDelete: Cascade)
   items          RsvpItem[]
   fieldResponses RsvpFieldResponse[]
-  paid           Boolean     @default(false)
+  paid              Boolean     @default(false)
+  razorpayOrderId   String?
+  razorpayPaymentId String?
   attended       Boolean     @default(false)
   attendedAt     DateTime?
   notes          String?
@@ -133,7 +136,9 @@ model GuestRsvp {
   flatNumber    String
   items          GuestRsvpItem[]
   fieldResponses GuestRsvpFieldResponse[]
-  paid           Boolean         @default(false)
+  paid              Boolean         @default(false)
+  razorpayOrderId   String?
+  razorpayPaymentId String?
   attended       Boolean         @default(false)
   attendedAt     DateTime?
   notes          String?

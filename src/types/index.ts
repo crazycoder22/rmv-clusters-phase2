@@ -80,6 +80,7 @@ export interface EventConfigType {
   announcementId: string;
   mealType: "breakfast" | "lunch" | "dinner" | null;
   rsvpDeadline: string;
+  requirePayment: boolean;
   menuItems: MenuItemType[];
   customFields?: CustomFieldType[];
 }

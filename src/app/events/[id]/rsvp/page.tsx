@@ -3,9 +3,22 @@
 import { useState, useEffect, use } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import Script from "next/script";
 import RsvpSummary from "@/components/events/RsvpSummary";
 import { formatDate } from "@/lib/utils";
 import type { EventConfigType, MenuItemType, CustomFieldType } from "@/types";
+
+interface RazorpayResponse {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
+}
+
+declare global {
+  interface Window {
+    Razorpay: new (options: Record<string, unknown>) => { open: () => void };
+  }
+}
 
 interface AnnouncementInfo {
   id: string;
@@ -141,6 +154,64 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
     setPlates((prev) => ({ ...prev, [menuItemId]: Math.max(0, count) }));
   };
 
+  // Calculate total amount for display and payment decision
+  const totalAmount = hasFood && eventConfig
+    ? eventConfig.menuItems.reduce(
+        (sum, item) => sum + (plates[item.id] || 0) * item.pricePerPlate,
+        0
+      )
+    : 0;
+
+  // Direct submit for free events, updates, and non-food events
+  const submitDirectly = async (
+    items: { menuItemId: string; plates: number }[],
+    fieldResponsesPayload: { customFieldId: string; value: string }[]
+  ) => {
+    try {
+      if (isGuest) {
+        const res = await fetch(`/api/events/${id}/rsvp/guest`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: guestName,
+            email: guestEmail,
+            phone: guestPhone,
+            block: Number(guestBlock),
+            flatNumber: guestFlat,
+            items,
+            notes,
+            fieldResponses: fieldResponsesPayload,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data.error || "Something went wrong");
+          return;
+        }
+        setGuestRsvpId(data.guestRsvp.id);
+        setGuestSubmitted(true);
+        setSuccess("RSVP submitted successfully! Thank you.");
+      } else {
+        const res = await fetch(`/api/events/${id}/rsvp`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ items, notes, fieldResponses: fieldResponsesPayload }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data.error || "Something went wrong");
+          return;
+        }
+        setMyRsvp(data.rsvp);
+        setSuccess(myRsvp ? "RSVP updated successfully!" : "RSVP submitted successfully!");
+      }
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -177,60 +248,119 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
           }))
       : [];
 
-    try {
-      if (isGuest) {
-        // Guest submission
-        if (!guestName.trim() || !guestEmail.trim() || !guestPhone.trim()) {
-          setError("Name, email, and phone are required");
-          setSubmitting(false);
-          return;
-        }
-        if (!guestBlock || !guestFlat) {
-          setError("Please select your block and flat number");
-          setSubmitting(false);
-          return;
-        }
-
-        const res = await fetch(`/api/events/${id}/rsvp/guest`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: guestName,
-            email: guestEmail,
-            phone: guestPhone,
-            block: Number(guestBlock),
-            flatNumber: guestFlat,
-            items,
-            notes,
-            fieldResponses: fieldResponsesPayload,
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          setError(data.error || "Something went wrong");
-          return;
-        }
-        setGuestRsvpId(data.guestRsvp.id);
-        setGuestSubmitted(true);
-        setSuccess("RSVP submitted successfully! Thank you.");
-      } else {
-        // Logged-in submission
-        const res = await fetch(`/api/events/${id}/rsvp`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ items, notes, fieldResponses: fieldResponsesPayload }),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          setError(data.error || "Something went wrong");
-          return;
-        }
-        setMyRsvp(data.rsvp);
-        setSuccess(myRsvp ? "RSVP updated successfully!" : "RSVP submitted successfully!");
+    // Guest validation
+    if (isGuest) {
+      if (!guestName.trim() || !guestEmail.trim() || !guestPhone.trim()) {
+        setError("Name, email, and phone are required");
+        setSubmitting(false);
+        return;
       }
+      if (!guestBlock || !guestFlat) {
+        setError("Please select your block and flat number");
+        setSubmitting(false);
+        return;
+      }
+    }
+
+    // If this is an update, total is 0, or payment not required, submit directly
+    if (myRsvp || totalAmount === 0 || !eventConfig?.requirePayment) {
+      await submitDirectly(items, fieldResponsesPayload);
+      return;
+    }
+
+    // Payment flow via Razorpay
+    try {
+      // Step 1: Create Razorpay order
+      const orderRes = await fetch(`/api/events/${id}/payment/create-order`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items, isGuest }),
+      });
+      const orderData = await orderRes.json();
+
+      if (!orderRes.ok) {
+        setError(orderData.error || "Failed to create payment order");
+        setSubmitting(false);
+        return;
+      }
+
+      if (orderData.skipPayment) {
+        await submitDirectly(items, fieldResponsesPayload);
+        return;
+      }
+
+      // Step 2: Open Razorpay Checkout
+      const options = {
+        key: orderData.keyId,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: "RMV Clusters Phase II",
+        description: `RSVP - ${announcement!.title}`,
+        order_id: orderData.orderId,
+        handler: async (response: RazorpayResponse) => {
+          // Step 3: Verify payment and create RSVP
+          try {
+            const verifyRes = await fetch(`/api/events/${id}/payment/verify`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                items,
+                notes,
+                fieldResponses: fieldResponsesPayload,
+                isGuest,
+                guestInfo: isGuest
+                  ? {
+                      name: guestName,
+                      email: guestEmail,
+                      phone: guestPhone,
+                      block: Number(guestBlock),
+                      flatNumber: guestFlat,
+                    }
+                  : undefined,
+              }),
+            });
+            const verifyData = await verifyRes.json();
+
+            if (!verifyRes.ok) {
+              setError(verifyData.error || "Payment verification failed");
+              setSubmitting(false);
+              return;
+            }
+
+            if (isGuest) {
+              setGuestRsvpId(verifyData.guestRsvp.id);
+              setGuestSubmitted(true);
+            } else {
+              setMyRsvp(verifyData.rsvp);
+            }
+            setSuccess("Payment successful! RSVP submitted.");
+          } catch {
+            setError("Payment verification failed. Please contact the organizer.");
+          } finally {
+            setSubmitting(false);
+          }
+        },
+        prefill: {
+          name: isGuest ? guestName : session?.user?.name || "",
+          email: isGuest ? guestEmail : session?.user?.email || "",
+          contact: isGuest ? guestPhone : "",
+        },
+        theme: { color: "#1e40af" },
+        modal: {
+          ondismiss: () => {
+            setSubmitting(false);
+            setError("Payment cancelled. Your RSVP was not submitted.");
+          },
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
     } catch {
-      setError("Network error. Please try again.");
-    } finally {
+      setError("Failed to initiate payment. Please try again.");
       setSubmitting(false);
     }
   };
@@ -304,7 +434,7 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
           </p>
           {hasFood && (
             <p className="text-sm text-green-600">
-              Please contact the organizer for payment details.
+              Your payment has been received.
             </p>
           )}
           {guestRsvpId && (
@@ -618,10 +748,14 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
               className="flex-1 py-2 px-4 bg-primary-600 text-white font-medium rounded-md hover:bg-primary-700 disabled:opacity-50 transition-colors"
             >
               {submitting
-                ? "Submitting..."
-                : isGuest
-                  ? hasFood ? "Submit RSVP" : "Confirm Attendance"
-                  : myRsvp ? "Update RSVP" : hasFood ? "Submit RSVP" : "Confirm Attendance"}
+                ? "Processing..."
+                : myRsvp
+                  ? "Update RSVP"
+                  : hasFood && totalAmount > 0 && eventConfig?.requirePayment
+                    ? `Pay \u20B9${totalAmount.toFixed(0)} & Submit RSVP`
+                    : hasFood
+                      ? "Submit RSVP"
+                      : "Confirm Attendance"}
             </button>
             {!isGuest && myRsvp && (
               <button
@@ -636,6 +770,10 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
           </div>
         )}
       </form>
+
+      {hasFood && eventConfig?.requirePayment && (
+        <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
+      )}
     </div>
   );
 }

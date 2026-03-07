@@ -93,84 +93,93 @@ export async function POST(request: Request) {
     }
   }
 
-  const announcement = await prisma.announcement.create({
-    data: {
-      title,
-      date: date ? new Date(date) : new Date(),
-      category: category || "general",
-      priority: priority || "normal",
-      summary,
-      body: announcementBody,
-      author,
-      link: link || null,
-      linkText: linkText || null,
-      published: published !== undefined ? published : true,
-      ...(eventConfig && {
-        eventConfig: {
-          create: {
-            mealType: eventConfig.mealType || null,
-            rsvpDeadline: new Date(eventConfig.rsvpDeadline),
-            ...(eventConfig.menuItems && eventConfig.menuItems.length > 0 && {
-              menuItems: {
-                create: eventConfig.menuItems.map(
-                  (item: { name: string; pricePerPlate: number }, index: number) => ({
-                    name: item.name,
-                    pricePerPlate: item.pricePerPlate,
-                    sortOrder: index,
-                  })
-                ),
-              },
-            }),
-            ...(eventConfig.customFields && eventConfig.customFields.length > 0 && {
-              customFields: {
-                create: eventConfig.customFields.map(
-                  (field: { label: string; fieldType: string; required: boolean; options: string | null }, index: number) => ({
-                    label: field.label,
-                    fieldType: field.fieldType,
-                    required: field.required,
-                    options: field.options,
-                    sortOrder: index,
-                  })
-                ),
-              },
-            }),
-          },
-        },
-      }),
-      ...(sportsConfig && {
-        sportsConfig: {
-          create: {
-            registrationDeadline: new Date(sportsConfig.registrationDeadline),
-            sportItems: {
-              create: sportsConfig.sportItems.map(
-                (item: { name: string }, index: number) => ({
-                  name: item.name,
-                  sortOrder: index,
-                })
-              ),
+  try {
+    const announcement = await prisma.announcement.create({
+      data: {
+        title,
+        date: date ? new Date(date) : new Date(),
+        category: category || "general",
+        priority: priority || "normal",
+        summary,
+        body: announcementBody,
+        author,
+        link: link || null,
+        linkText: linkText || null,
+        published: published !== undefined ? published : true,
+        ...(eventConfig && {
+          eventConfig: {
+            create: {
+              mealType: eventConfig.mealType || null,
+              rsvpDeadline: new Date(eventConfig.rsvpDeadline),
+              requirePayment: eventConfig.requirePayment ?? false,
+              ...(eventConfig.menuItems && eventConfig.menuItems.length > 0 && {
+                menuItems: {
+                  create: eventConfig.menuItems.map(
+                    (item: { name: string; pricePerPlate: number }, index: number) => ({
+                      name: item.name,
+                      pricePerPlate: item.pricePerPlate,
+                      sortOrder: index,
+                    })
+                  ),
+                },
+              }),
+              ...(eventConfig.customFields && eventConfig.customFields.length > 0 && {
+                customFields: {
+                  create: eventConfig.customFields.map(
+                    (field: { label: string; fieldType: string; required: boolean; options: string | null }, index: number) => ({
+                      label: field.label,
+                      fieldType: field.fieldType,
+                      required: field.required,
+                      options: field.options,
+                      sortOrder: index,
+                    })
+                  ),
+                },
+              }),
             },
           },
-        },
-      }),
-    },
-    include: announcementInclude,
-  });
-
-  // Create notifications for all residents if published
-  if (announcement.published) {
-    const residents = await prisma.resident.findMany({
-      select: { id: true },
+        }),
+        ...(sportsConfig && {
+          sportsConfig: {
+            create: {
+              registrationDeadline: new Date(sportsConfig.registrationDeadline),
+              sportItems: {
+                create: sportsConfig.sportItems.map(
+                  (item: { name: string }, index: number) => ({
+                    name: item.name,
+                    sortOrder: index,
+                  })
+                ),
+              },
+            },
+          },
+        }),
+      },
+      include: announcementInclude,
     });
-    if (residents.length > 0) {
-      await prisma.notification.createMany({
-        data: residents.map((r) => ({
-          residentId: r.id,
-          announcementId: announcement.id,
-        })),
-        skipDuplicates: true,
-      });
-    }
-  }
 
-  return NextResponse.json({ success: true, announcement }, { status: 201 });
+    // Create notifications for all residents if published
+    if (announcement.published) {
+      const residents = await prisma.resident.findMany({
+        select: { id: true },
+      });
+      if (residents.length > 0) {
+        await prisma.notification.createMany({
+          data: residents.map((r) => ({
+            residentId: r.id,
+            announcementId: announcement.id,
+          })),
+          skipDuplicates: true,
+        });
+      }
+    }
+
+    return NextResponse.json({ success: true, announcement }, { status: 201 });
+  } catch (err) {
+    console.error("Failed to create announcement:", err);
+    return NextResponse.json(
+      { error: "Failed to create announcement" },
+      { status: 500 }
+    );
+  }
 }

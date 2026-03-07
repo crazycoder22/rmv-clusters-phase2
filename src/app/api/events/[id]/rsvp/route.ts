@@ -205,6 +205,20 @@ export async function POST(
         }))
     : [];
 
+  // For new RSVPs with payment required, block direct submission
+  if (!existingRsvp && hasFood && eventConfig.requirePayment) {
+    const totalAmount = foodItems.reduce((sum: number, item: { menuItemId: string; plates: number }) => {
+      const menuItem = eventConfig.menuItems.find((m) => m.id === item.menuItemId);
+      return sum + (menuItem ? menuItem.pricePerPlate * item.plates : 0);
+    }, 0);
+    if (totalAmount > 0) {
+      return NextResponse.json(
+        { error: "Payment required. Please use the payment flow." },
+        { status: 402 }
+      );
+    }
+  }
+
   if (existingRsvp) {
     // Delete old items and field responses, then recreate
     await prisma.rsvpItem.deleteMany({ where: { rsvpId: existingRsvp.id } });

@@ -78,6 +78,7 @@ export async function PATCH(
             data: {
               mealType: ec.mealType || null,
               rsvpDeadline: new Date(ec.rsvpDeadline),
+              requirePayment: ec.requirePayment ?? false,
               ...(ec.menuItems && ec.menuItems.length > 0 && {
                 menuItems: {
                   create: ec.menuItems.map(
@@ -110,6 +111,7 @@ export async function PATCH(
               announcementId: id,
               mealType: ec.mealType || null,
               rsvpDeadline: new Date(ec.rsvpDeadline),
+              requirePayment: ec.requirePayment ?? false,
               ...(ec.menuItems && ec.menuItems.length > 0 && {
                 menuItems: {
                   create: ec.menuItems.map(

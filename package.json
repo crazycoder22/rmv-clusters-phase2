@@ -27,6 +27,7 @@
     "prisma": "^7.4.0",
     "qrcode": "^1.5.4",
     "qrcode.react": "^4.2.0",
+    "razorpay": "^2.9.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "resend": "^6.9.3",
