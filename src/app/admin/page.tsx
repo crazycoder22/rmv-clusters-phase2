@@ -90,6 +90,7 @@ export default function AdminPage() {
   const [loadingNews, setLoadingNews] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteAnn, setConfirmDeleteAnn] = useState<Announcement | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
   const fetchResidents = useCallback(async () => {
@@ -439,8 +440,10 @@ export default function AdminPage() {
     setNewsError("");
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this announcement?")) return;
+  const executeDelete = async () => {
+    if (!confirmDeleteAnn) return;
+    const id = confirmDeleteAnn.id;
+    setConfirmDeleteAnn(null);
     setDeletingId(id);
     try {
       const res = await fetch(`/api/admin/announcements/${id}`, {
@@ -1080,7 +1083,7 @@ export default function AdminPage() {
                               Edit
                             </button>
                             <button
-                              onClick={() => handleDelete(a.id)}
+                              onClick={() => setConfirmDeleteAnn(a)}
                               disabled={deletingId === a.id}
                               className="text-xs text-red-600 hover:text-red-700 font-medium disabled:opacity-50"
                             >
@@ -1390,6 +1393,39 @@ export default function AdminPage() {
               </table>
             </div>
           )}
+        </div>
+      )}
+      {/* Delete Confirmation Modal */}
+      {confirmDeleteAnn && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+            <h3 className="text-lg font-semibold text-red-600 mb-2">
+              Delete Announcement
+            </h3>
+            <p className="text-sm text-gray-700 mb-1">
+              Are you sure you want to delete:
+            </p>
+            <p className="text-sm font-bold text-gray-900 mb-3">
+              &ldquo;{confirmDeleteAnn.title}&rdquo;
+            </p>
+            <p className="text-xs text-gray-500 mb-5">
+              This action cannot be undone. All RSVPs and related data will be permanently deleted.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setConfirmDeleteAnn(null)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={executeDelete}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
