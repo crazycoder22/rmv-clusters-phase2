@@ -80,6 +80,7 @@ export async function PATCH(
               rsvpDeadline: new Date(ec.rsvpDeadline),
               requirePayment: ec.requirePayment ?? false,
               enableFeedback: ec.enableFeedback ?? false,
+              feedbackStyle: ec.feedbackStyle ?? "stars",
               ...(ec.menuItems && ec.menuItems.length > 0 && {
                 menuItems: {
                   create: ec.menuItems.map(
@@ -114,6 +115,7 @@ export async function PATCH(
               rsvpDeadline: new Date(ec.rsvpDeadline),
               requirePayment: ec.requirePayment ?? false,
               enableFeedback: ec.enableFeedback ?? false,
+              feedbackStyle: ec.feedbackStyle ?? "stars",
               ...(ec.menuItems && ec.menuItems.length > 0 && {
                 menuItems: {
                   create: ec.menuItems.map(

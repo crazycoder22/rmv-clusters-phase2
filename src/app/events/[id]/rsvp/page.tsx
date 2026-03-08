@@ -850,27 +850,53 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
           </p>
 
           <form onSubmit={handleFeedbackSubmit}>
-            {/* Star Rating */}
+            {/* Rating */}
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Rating <span className="text-red-500">*</span>
               </label>
-              <div className="flex gap-1">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    type="button"
-                    onClick={() => setFeedbackRating(star)}
-                    className={`text-3xl transition-colors ${
-                      star <= feedbackRating
-                        ? "text-yellow-400"
-                        : "text-gray-300 hover:text-yellow-200"
-                    }`}
-                  >
-                    ★
-                  </button>
-                ))}
-              </div>
+              {eventConfig.feedbackStyle === "emoji" ? (
+                <div className="flex gap-2">
+                  {[
+                    { value: 1, emoji: "😞", label: "Very Bad" },
+                    { value: 2, emoji: "😕", label: "Bad" },
+                    { value: 3, emoji: "😐", label: "Okay" },
+                    { value: 4, emoji: "🙂", label: "Good" },
+                    { value: 5, emoji: "😄", label: "Great" },
+                  ].map((item) => (
+                    <button
+                      key={item.value}
+                      type="button"
+                      onClick={() => setFeedbackRating(item.value)}
+                      title={item.label}
+                      className={`text-3xl p-1 rounded-lg transition-all ${
+                        feedbackRating === item.value
+                          ? "bg-primary-100 ring-2 ring-primary-400 scale-110"
+                          : "hover:bg-gray-100"
+                      }`}
+                    >
+                      {item.emoji}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setFeedbackRating(star)}
+                      className={`text-3xl transition-colors ${
+                        star <= feedbackRating
+                          ? "text-yellow-400"
+                          : "text-gray-300 hover:text-yellow-200"
+                      }`}
+                    >
+                      ★
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Comment */}

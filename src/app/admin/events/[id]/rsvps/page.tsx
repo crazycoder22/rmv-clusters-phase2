@@ -97,6 +97,7 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [enableFeedback, setEnableFeedback] = useState(false);
+  const [feedbackStyle, setFeedbackStyle] = useState<"stars" | "emoji">("stars");
   const [activeTab, setActiveTab] = useState<"rsvps" | "feedback">("rsvps");
   const [feedbacks, setFeedbacks] = useState<EventFeedbackType[]>([]);
   const [feedbackSummary, setFeedbackSummary] = useState<FeedbackSummary | null>(null);
@@ -168,6 +169,7 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
         setHasFood(data.eventConfig.menuItems && data.eventConfig.menuItems.length > 0);
         setHasCustomFields(data.eventConfig.customFields && data.eventConfig.customFields.length > 0);
         setEnableFeedback(data.eventConfig.enableFeedback ?? false);
+        setFeedbackStyle(data.eventConfig.feedbackStyle ?? "stars");
       }
     } catch {
       // silently fail
@@ -351,7 +353,9 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                   <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
                     <p className="text-2xl font-bold text-yellow-500">
                       {feedbackSummary.averageRating}
-                      <span className="text-lg ml-1">★</span>
+                      <span className="text-lg ml-1">
+                        {feedbackStyle === "emoji" ? ["", "😞", "😕", "😐", "🙂", "😄"][Math.round(feedbackSummary.averageRating)] || "😐" : "★"}
+                      </span>
                     </p>
                     <p className="text-xs text-gray-500 mt-1">Average Rating</p>
                   </div>
@@ -365,7 +369,9 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                       return (
                         <div key={star} className="flex items-center gap-2 text-xs mb-1">
                           <span className="w-3 text-gray-600">{star}</span>
-                          <span className="text-yellow-400">★</span>
+                          <span className="text-yellow-400">
+                            {feedbackStyle === "emoji" ? ["", "😞", "😕", "😐", "🙂", "😄"][star] : "★"}
+                          </span>
                           <div className="flex-1 bg-gray-100 rounded-full h-2">
                             <div
                               className="bg-yellow-400 h-2 rounded-full transition-all"
@@ -405,12 +411,20 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                             {fb.resident ? `B${fb.resident.block} - ${fb.resident.flatNumber}` : "\u2014"}
                           </td>
                           <td className="py-3 pr-4">
-                            <span className="text-yellow-400">
-                              {"★".repeat(fb.rating)}
-                            </span>
-                            <span className="text-gray-200">
-                              {"★".repeat(5 - fb.rating)}
-                            </span>
+                            {feedbackStyle === "emoji" ? (
+                              <span className="text-xl">
+                                {["", "😞", "😕", "😐", "🙂", "😄"][fb.rating]}
+                              </span>
+                            ) : (
+                              <>
+                                <span className="text-yellow-400">
+                                  {"★".repeat(fb.rating)}
+                                </span>
+                                <span className="text-gray-200">
+                                  {"★".repeat(5 - fb.rating)}
+                                </span>
+                              </>
+                            )}
                           </td>
                           <td className="py-3 pr-4 text-gray-600 max-w-[300px]">
                             {fb.comment || <span className="text-gray-400">&mdash;</span>}

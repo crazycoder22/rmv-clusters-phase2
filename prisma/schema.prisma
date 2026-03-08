@@ -75,6 +75,7 @@ model EventConfig {
   rsvpDeadline    DateTime
   requirePayment  Boolean      @default(false)
   enableFeedback  Boolean      @default(false)
+  feedbackStyle   String       @default("stars") // "stars" or "emoji"
   menuItems      MenuItem[]
   customFields   CustomField[]
   rsvps          Rsvp[]

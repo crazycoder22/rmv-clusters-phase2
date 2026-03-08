@@ -82,6 +82,7 @@ export interface EventConfigType {
   rsvpDeadline: string;
   requirePayment: boolean;
   enableFeedback: boolean;
+  feedbackStyle: "stars" | "emoji";
   menuItems: MenuItemType[];
   customFields?: CustomFieldType[];
 }

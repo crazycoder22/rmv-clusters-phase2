@@ -47,6 +47,7 @@ const emptyNewsForm = {
   enableFoodOrdering: false,
   requirePayment: false,
   enableFeedback: false,
+  feedbackStyle: "stars" as "stars" | "emoji",
   mealType: "dinner",
   rsvpDeadline: "",
   menuItems: [] as MenuItemFormEntry[],
@@ -308,7 +309,7 @@ export default function AdminPage() {
 
       // Build payload with optional eventConfig / sportsConfig
       const {
-        enableRsvp, enableFoodOrdering, requirePayment, enableFeedback, mealType, rsvpDeadline, menuItems: menuItemsForm,
+        enableRsvp, enableFoodOrdering, requirePayment, enableFeedback, feedbackStyle, mealType, rsvpDeadline, menuItems: menuItemsForm,
         customFields: customFieldsForm,
         enableSportsRegistration, registrationDeadline, sportItems: sportItemsForm,
         ...baseForm
@@ -319,6 +320,7 @@ export default function AdminPage() {
         const eventConfigPayload: Record<string, unknown> = {
           rsvpDeadline,
           enableFeedback,
+          ...(enableFeedback && { feedbackStyle }),
         };
         if (enableFoodOrdering) {
           eventConfigPayload.mealType = mealType;
@@ -408,6 +410,7 @@ export default function AdminPage() {
       enableFoodOrdering: !!(ec?.menuItems && ec.menuItems.length > 0),
       requirePayment: ec?.requirePayment ?? false,
       enableFeedback: ec?.enableFeedback ?? false,
+      feedbackStyle: (ec?.feedbackStyle as "stars" | "emoji") ?? "stars",
       mealType: ec?.mealType || "dinner",
       rsvpDeadline: ec?.rsvpDeadline
         ? new Date(ec.rsvpDeadline).toISOString().slice(0, 16)
@@ -908,9 +911,30 @@ export default function AdminPage() {
                           htmlFor="enableFeedback"
                           className="text-sm font-medium text-gray-700"
                         >
-                          Enable Post-Event Feedback (Star Rating)
+                          Enable Post-Event Feedback
                         </label>
                       </div>
+
+                      {newsForm.enableFeedback && (
+                        <div className="ml-6">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Rating Style
+                          </label>
+                          <select
+                            value={newsForm.feedbackStyle}
+                            onChange={(e) =>
+                              setNewsForm((prev) => ({
+                                ...prev,
+                                feedbackStyle: e.target.value as "stars" | "emoji",
+                              }))
+                            }
+                            className="w-full max-w-xs px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                          >
+                            <option value="stars">Stars ★★★★★</option>
+                            <option value="emoji">Emoji 😞😕😐🙂😄</option>
+                          </select>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

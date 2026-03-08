@@ -113,6 +113,7 @@ export async function POST(request: Request) {
               rsvpDeadline: new Date(eventConfig.rsvpDeadline),
               requirePayment: eventConfig.requirePayment ?? false,
               enableFeedback: eventConfig.enableFeedback ?? false,
+              feedbackStyle: eventConfig.feedbackStyle ?? "stars",
               ...(eventConfig.menuItems && eventConfig.menuItems.length > 0 && {
                 menuItems: {
                   create: eventConfig.menuItems.map(

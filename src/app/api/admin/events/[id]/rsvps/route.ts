@@ -126,6 +126,7 @@ export async function GET(
       mealType: ec.mealType,
       rsvpDeadline: ec.rsvpDeadline,
       enableFeedback: ec.enableFeedback,
+      feedbackStyle: ec.feedbackStyle ?? "stars",
       menuItems: ec.menuItems,
       customFields: ec.customFields,
     },
