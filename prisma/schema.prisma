@@ -210,14 +210,15 @@ model EventFeedback {
   id            String      @id @default(cuid())
   eventConfigId String
   eventConfig   EventConfig @relation(fields: [eventConfigId], references: [id], onDelete: Cascade)
-  residentId    String
-  resident      Resident    @relation(fields: [residentId], references: [id], onDelete: Cascade)
+  residentId    String?
+  resident      Resident?   @relation(fields: [residentId], references: [id], onDelete: Cascade)
+  deviceId      String      // Browser-generated unique device ID for one-per-device enforcement
   rating        Int         // 1-5
   comment       String?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
-  @@unique([eventConfigId, residentId])
+  @@unique([eventConfigId, deviceId])
 }
 
 model SportsConfig {

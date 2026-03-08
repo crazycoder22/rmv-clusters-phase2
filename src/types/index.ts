@@ -148,12 +148,13 @@ export interface EventFeedbackType {
   id: string;
   rating: number;
   comment: string | null;
-  residentId?: string;
+  deviceId: string;
+  residentId?: string | null;
   resident?: {
     name: string;
     block: number;
     flatNumber: string;
-  };
+  } | null;
   createdAt: string;
 }
 

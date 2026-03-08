@@ -405,7 +405,7 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                       {feedbacks.map((fb) => (
                         <tr key={fb.id} className="border-b border-gray-100 hover:bg-gray-50">
                           <td className="py-3 pr-4 font-medium text-gray-900">
-                            {fb.resident?.name || "Unknown"}
+                            {fb.resident?.name || "Anonymous"}
                           </td>
                           <td className="py-3 pr-4 text-gray-600">
                             {fb.resident ? `B${fb.resident.block} - ${fb.resident.flatNumber}` : "\u2014"}

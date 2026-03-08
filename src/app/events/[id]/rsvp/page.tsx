@@ -8,6 +8,17 @@ import RsvpSummary from "@/components/events/RsvpSummary";
 import { formatDate } from "@/lib/utils";
 import type { EventConfigType, MenuItemType, CustomFieldType } from "@/types";
 
+// Generate or retrieve a unique device ID for feedback tracking
+function getDeviceId(): string {
+  const key = "rmv-feedback-device-id";
+  let deviceId = localStorage.getItem(key);
+  if (!deviceId) {
+    deviceId = crypto.randomUUID() + "-" + Date.now().toString(36);
+    localStorage.setItem(key, deviceId);
+  }
+  return deviceId;
+}
+
 interface RazorpayResponse {
   razorpay_payment_id: string;
   razorpay_order_id: string;
@@ -89,7 +100,7 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
     ? new Date() > new Date(announcement.date)
     : false;
 
-  const feedbackEnabled = eventConfig?.enableFeedback && eventDatePassed;
+  const feedbackEnabled = eventConfig?.enableFeedback;
 
   const hasFood = eventConfig
     ? eventConfig.menuItems && eventConfig.menuItems.length > 0
@@ -148,15 +159,11 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
           }
         }
 
-        // Fetch existing feedback if applicable
-        if (
-          !isGuest &&
-          data.eventConfig?.enableFeedback &&
-          data.myRsvp &&
-          new Date() > new Date(data.announcement.date)
-        ) {
+        // Fetch existing feedback if feedback is enabled
+        if (data.eventConfig?.enableFeedback) {
           try {
-            const fbRes = await fetch(`/api/events/${id}/feedback`);
+            const deviceId = getDeviceId();
+            const fbRes = await fetch(`/api/events/${id}/feedback?deviceId=${encodeURIComponent(deviceId)}`);
             if (fbRes.ok) {
               const fbData = await fbRes.json();
               if (fbData.myFeedback) {
@@ -435,10 +442,11 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
     setFeedbackSuccess("");
 
     try {
+      const deviceId = getDeviceId();
       const res = await fetch(`/api/events/${id}/feedback`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rating: feedbackRating, comment: feedbackComment || null }),
+        body: JSON.stringify({ rating: feedbackRating, comment: feedbackComment || null, deviceId }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -837,8 +845,8 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
         )}
       </form>
 
-      {/* Post-Event Feedback */}
-      {feedbackEnabled && myRsvp && !isGuest && (
+      {/* Event Feedback */}
+      {feedbackEnabled && (
         <div className="mt-10 pt-8 border-t border-gray-200">
           <h2 className="text-lg font-semibold text-gray-800 mb-2">
             Event Feedback
