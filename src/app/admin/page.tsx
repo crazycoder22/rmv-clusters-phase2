@@ -63,7 +63,7 @@ const emptyNewsForm = {
 type TabId = "approvals" | "add" | "manage" | "news";
 
 export default function AdminPage() {
-  const { role, isAdmin, isSuperAdmin, isLoading } = useRole();
+  const { role, isAdmin, isSuperAdmin, isLoading, canManageAnnouncements } = useRole();
   const [activeTab, setActiveTab] = useState<TabId>("approvals");
   const [residents, setResidents] = useState<ResidentWithRole[]>([]);
   const [loadingResidents, setLoadingResidents] = useState(false);
@@ -170,10 +170,17 @@ export default function AdminPage() {
   }, [role, fetchResidents]);
 
   useEffect(() => {
-    if (role === "ADMIN" || role === "SUPERADMIN") {
+    if (role === "ADMIN" || role === "SUPERADMIN" || role === "EVENT_MANAGER") {
       fetchAnnouncements();
     }
   }, [role, fetchAnnouncements]);
+
+  // Default EVENT_MANAGER to "news" tab since they can't see approvals
+  useEffect(() => {
+    if (role === "EVENT_MANAGER") {
+      setActiveTab("news");
+    }
+  }, [role]);
 
   if (isLoading) {
     return (
@@ -183,7 +190,7 @@ export default function AdminPage() {
     );
   }
 
-  if (!isAdmin() && !isSuperAdmin()) {
+  if (!isAdmin() && !isSuperAdmin() && !canManageAnnouncements()) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -506,11 +513,11 @@ export default function AdminPage() {
     }
   };
 
-  const tabs: { id: TabId; label: string; superOnly?: boolean }[] = [
-    { id: "approvals", label: `Pending Approvals${pendingResidents.length > 0 ? ` (${pendingResidents.length})` : ""}` },
-    { id: "news", label: `Manage News (${announcements.length})` },
-    { id: "add", label: "Add Resident", superOnly: true },
-    { id: "manage", label: `Manage Roles (${residents.length})`, superOnly: true },
+  const tabs: { id: TabId; label: string; visible: () => boolean }[] = [
+    { id: "approvals", label: `Pending Approvals${pendingResidents.length > 0 ? ` (${pendingResidents.length})` : ""}`, visible: () => isAdmin() || isSuperAdmin() },
+    { id: "news", label: `Manage News (${announcements.length})`, visible: () => canManageAnnouncements() },
+    { id: "add", label: "Add Resident", visible: () => isSuperAdmin() },
+    { id: "manage", label: `Manage Roles (${residents.length})`, visible: () => isSuperAdmin() },
   ];
 
   return (
@@ -526,7 +533,7 @@ export default function AdminPage() {
       <div className="border-b border-gray-200 mb-8">
         <nav className="flex space-x-8">
           {tabs
-            .filter((tab) => !tab.superOnly || isSuperAdmin())
+            .filter((tab) => tab.visible())
             .map((tab) => (
               <button
                 key={tab.id}
@@ -1383,6 +1390,7 @@ export default function AdminPage() {
                   <option value="ADMIN">Admin</option>
                   <option value="SECURITY">Security Manager</option>
                   <option value="FACILITY_MANAGER">Facility Manager</option>
+                  <option value="EVENT_MANAGER">Event Manager</option>
                 </select>
               </div>
             </div>
@@ -1478,6 +1486,8 @@ export default function AdminPage() {
                               "bg-green-100 text-green-700",
                             r.role.name === "FACILITY_MANAGER" &&
                               "bg-orange-100 text-orange-700",
+                            r.role.name === "EVENT_MANAGER" &&
+                              "bg-teal-100 text-teal-700",
                             r.role.name === "SECURITY" &&
                               "bg-blue-100 text-blue-700",
                             r.role.name === "RESIDENT" &&
@@ -1503,6 +1513,7 @@ export default function AdminPage() {
                             <option value="ADMIN">Admin</option>
                             <option value="SECURITY">Security</option>
                             <option value="FACILITY_MANAGER">Facility Manager</option>
+                            <option value="EVENT_MANAGER">Event Manager</option>
                           </select>
                         )}
                       </td>

@@ -1,8 +1,9 @@
-export type UserRole = "RESIDENT" | "ADMIN" | "SUPERADMIN" | "SECURITY";
+export type UserRole = "RESIDENT" | "ADMIN" | "SUPERADMIN" | "SECURITY" | "EVENT_MANAGER";
 
 const ROLE_HIERARCHY: Record<UserRole, number> = {
   RESIDENT: 1,
   SECURITY: 1,
+  EVENT_MANAGER: 1,
   ADMIN: 2,
   SUPERADMIN: 3,
 };
@@ -37,6 +38,20 @@ export function isSecurity(
   return role === "SECURITY";
 }
 
+/** Check if user is an event manager */
+export function isEventManager(
+  role: UserRole | string | null | undefined
+): boolean {
+  return role === "EVENT_MANAGER";
+}
+
+/** Check if user can manage announcements/events (ADMIN, SUPERADMIN, or EVENT_MANAGER) */
+export function canManageAnnouncements(
+  role: UserRole | string | null | undefined
+): boolean {
+  return isAdmin(role) || isEventManager(role);
+}
+
 /** Check if user can manage visitors (ADMIN, SUPERADMIN, or SECURITY) */
 export function canManageVisitors(
   role: UserRole | string | null | undefined
@@ -51,6 +66,7 @@ export function getRoleDisplayName(role: UserRole): string {
     ADMIN: "Administrator",
     SUPERADMIN: "Super Administrator",
     SECURITY: "Security Manager",
+    EVENT_MANAGER: "Event Manager",
   };
   return names[role];
 }

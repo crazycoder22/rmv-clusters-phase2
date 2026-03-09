@@ -9,7 +9,7 @@ datasource db {
 
 model Role {
   id        String     @id @default(cuid())
-  name      String     @unique // "RESIDENT", "ADMIN", "SUPERADMIN", "SECURITY"
+  name      String     @unique // "RESIDENT", "ADMIN", "SUPERADMIN", "SECURITY", "FACILITY_MANAGER", "EVENT_MANAGER"
   residents Resident[]
   createdAt DateTime   @default(now())
 }
