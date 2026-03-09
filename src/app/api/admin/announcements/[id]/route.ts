@@ -79,6 +79,8 @@ export async function PATCH(
               mealType: ec.mealType || null,
               rsvpDeadline: new Date(ec.rsvpDeadline),
               requirePayment: ec.requirePayment ?? false,
+              entranceFee: ec.entranceFee ?? null,
+              entranceFeeLabel: ec.entranceFeeLabel || "Entrance Fee",
               enableFeedback: ec.enableFeedback ?? false,
               feedbackStyle: ec.feedbackStyle ?? "stars",
               ...(ec.menuItems && ec.menuItems.length > 0 && {
@@ -114,6 +116,8 @@ export async function PATCH(
               mealType: ec.mealType || null,
               rsvpDeadline: new Date(ec.rsvpDeadline),
               requirePayment: ec.requirePayment ?? false,
+              entranceFee: ec.entranceFee ?? null,
+              entranceFeeLabel: ec.entranceFeeLabel || "Entrance Fee",
               enableFeedback: ec.enableFeedback ?? false,
               feedbackStyle: ec.feedbackStyle ?? "stars",
               ...(ec.menuItems && ec.menuItems.length > 0 && {

@@ -46,6 +46,9 @@ const emptyNewsForm = {
   enableRsvp: false,
   enableFoodOrdering: false,
   requirePayment: false,
+  enableEntranceFee: false,
+  entranceFee: "",
+  entranceFeeLabel: "Entrance Fee",
   enableFeedback: false,
   feedbackStyle: "stars" as "stars" | "emoji",
   mealType: "dinner",
@@ -309,7 +312,8 @@ export default function AdminPage() {
 
       // Build payload with optional eventConfig / sportsConfig
       const {
-        enableRsvp, enableFoodOrdering, requirePayment, enableFeedback, feedbackStyle, mealType, rsvpDeadline, menuItems: menuItemsForm,
+        enableRsvp, enableFoodOrdering, requirePayment, enableEntranceFee, entranceFee, entranceFeeLabel,
+        enableFeedback, feedbackStyle, mealType, rsvpDeadline, menuItems: menuItemsForm,
         customFields: customFieldsForm,
         enableSportsRegistration, registrationDeadline, sportItems: sportItemsForm,
         ...baseForm
@@ -317,14 +321,26 @@ export default function AdminPage() {
       const payload: Record<string, unknown> = { ...baseForm };
 
       if (enableRsvp && baseForm.category === "event") {
+        const hasPayableContent = enableEntranceFee || enableFoodOrdering;
         const eventConfigPayload: Record<string, unknown> = {
           rsvpDeadline,
+          requirePayment: hasPayableContent ? requirePayment : false,
           enableFeedback,
           ...(enableFeedback && { feedbackStyle }),
         };
+
+        // Entrance fee
+        if (enableEntranceFee) {
+          const fee = parseFloat(entranceFee);
+          eventConfigPayload.entranceFee = fee > 0 ? fee : null;
+          eventConfigPayload.entranceFeeLabel = entranceFeeLabel.trim() || "Entrance Fee";
+        } else {
+          eventConfigPayload.entranceFee = null;
+        }
+
+        // Food ordering
         if (enableFoodOrdering) {
           eventConfigPayload.mealType = mealType;
-          eventConfigPayload.requirePayment = requirePayment;
           eventConfigPayload.menuItems = menuItemsForm.map((item) => ({
             name: item.name,
             pricePerPlate: parseFloat(item.pricePerPlate) || 0,
@@ -409,6 +425,9 @@ export default function AdminPage() {
       enableRsvp: !!ec,
       enableFoodOrdering: !!(ec?.menuItems && ec.menuItems.length > 0),
       requirePayment: ec?.requirePayment ?? false,
+      enableEntranceFee: !!(ec?.entranceFee && ec.entranceFee > 0),
+      entranceFee: ec?.entranceFee ? String(ec.entranceFee) : "",
+      entranceFeeLabel: ec?.entranceFeeLabel || "Entrance Fee",
       enableFeedback: ec?.enableFeedback ?? false,
       feedbackStyle: (ec?.feedbackStyle as "stars" | "emoji") ?? "stars",
       mealType: ec?.mealType || "dinner",
@@ -830,6 +849,59 @@ export default function AdminPage() {
                         />
                       </div>
 
+                      {/* Entrance / Registration Fee */}
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="enableEntranceFee"
+                          name="enableEntranceFee"
+                          checked={newsForm.enableEntranceFee}
+                          onChange={handleNewsChange}
+                          className="h-4 w-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
+                        />
+                        <label
+                          htmlFor="enableEntranceFee"
+                          className="text-sm font-medium text-gray-700"
+                        >
+                          Add Entrance / Registration Fee
+                        </label>
+                      </div>
+
+                      {newsForm.enableEntranceFee && (
+                        <div className="space-y-3 pl-6 border-l-2 border-amber-100">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Fee Amount (₹)
+                            </label>
+                            <input
+                              type="number"
+                              name="entranceFee"
+                              value={newsForm.entranceFee}
+                              onChange={handleNewsChange}
+                              min="1"
+                              step="1"
+                              required={newsForm.enableEntranceFee}
+                              placeholder="e.g., 150"
+                              className="w-full max-w-xs px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Fee Label (optional)
+                            </label>
+                            <input
+                              type="text"
+                              name="entranceFeeLabel"
+                              value={newsForm.entranceFeeLabel}
+                              onChange={handleNewsChange}
+                              placeholder="Entrance Fee"
+                              className="w-full max-w-xs px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Food Ordering */}
                       <div className="flex items-center gap-2">
                         <input
                           type="checkbox"
@@ -849,23 +921,6 @@ export default function AdminPage() {
 
                       {newsForm.enableFoodOrdering && (
                         <div className="space-y-4 pl-6 border-l-2 border-green-100">
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              id="requirePayment"
-                              name="requirePayment"
-                              checked={newsForm.requirePayment}
-                              onChange={handleNewsChange}
-                              className="h-4 w-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
-                            />
-                            <label
-                              htmlFor="requirePayment"
-                              className="text-sm font-medium text-gray-700"
-                            >
-                              Require Online Payment (Razorpay)
-                            </label>
-                          </div>
-
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                               Meal Type
@@ -888,6 +943,26 @@ export default function AdminPage() {
                               setNewsForm((prev) => ({ ...prev, menuItems: items }))
                             }
                           />
+                        </div>
+                      )}
+
+                      {/* Require Online Payment — visible when there is something to pay for */}
+                      {(newsForm.enableEntranceFee || newsForm.enableFoodOrdering) && (
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            id="requirePayment"
+                            name="requirePayment"
+                            checked={newsForm.requirePayment}
+                            onChange={handleNewsChange}
+                            className="h-4 w-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
+                          />
+                          <label
+                            htmlFor="requirePayment"
+                            className="text-sm font-medium text-gray-700"
+                          >
+                            Require Online Payment (Razorpay)
+                          </label>
                         </div>
                       )}
 

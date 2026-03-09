@@ -9,7 +9,7 @@ export async function POST(
 ) {
   const { id } = await params;
   const body = await request.json();
-  const { items, isGuest } = body;
+  const { items = [], isGuest } = body;
 
   // Fetch event config with menu items
   const announcement = await prisma.announcement.findUnique({
@@ -30,13 +30,19 @@ export async function POST(
     return NextResponse.json({ error: "RSVP deadline has passed" }, { status: 400 });
   }
 
-  // Calculate total server-side
-  let totalAmount = 0;
+  // Calculate total server-side: food items + entrance fee
+  let foodTotal = 0;
   for (const item of items) {
-    const menuItem = eventConfig.menuItems.find((m) => m.id === item.menuItemId);
+    const menuItem = eventConfig.menuItems.find((m: { id: string }) => m.id === item.menuItemId);
     if (!menuItem) continue;
-    totalAmount += menuItem.pricePerPlate * item.plates;
+    foodTotal += menuItem.pricePerPlate * item.plates;
   }
+
+  const entranceFee = eventConfig.entranceFee && eventConfig.entranceFee > 0
+    ? eventConfig.entranceFee
+    : 0;
+
+  const totalAmount = foodTotal + entranceFee;
 
   // If total is 0, skip payment
   if (totalAmount === 0) {

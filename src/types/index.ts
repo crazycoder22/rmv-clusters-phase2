@@ -81,6 +81,8 @@ export interface EventConfigType {
   mealType: "breakfast" | "lunch" | "dinner" | null;
   rsvpDeadline: string;
   requirePayment: boolean;
+  entranceFee: number | null;
+  entranceFeeLabel: string;
   enableFeedback: boolean;
   feedbackStyle: "stars" | "emoji";
   menuItems: MenuItemType[];

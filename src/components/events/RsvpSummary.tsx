@@ -5,16 +5,25 @@ import type { MenuItemType } from "@/types";
 interface RsvpSummaryProps {
   menuItems: MenuItemType[];
   plates: Record<string, number>;
+  entranceFee?: number;
+  entranceFeeLabel?: string;
 }
 
-export default function RsvpSummary({ menuItems, plates }: RsvpSummaryProps) {
+export default function RsvpSummary({
+  menuItems,
+  plates,
+  entranceFee = 0,
+  entranceFeeLabel = "Entrance Fee",
+}: RsvpSummaryProps) {
   const selectedItems = menuItems.filter((item) => (plates[item.id] || 0) > 0);
-  const grandTotal = selectedItems.reduce(
+  const foodTotal = selectedItems.reduce(
     (sum, item) => sum + (plates[item.id] || 0) * item.pricePerPlate,
     0
   );
+  const grandTotal = foodTotal + entranceFee;
 
-  if (selectedItems.length === 0) {
+  // Show summary if there are food items OR an entrance fee
+  if (selectedItems.length === 0 && entranceFee <= 0) {
     return (
       <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
         <p className="text-sm text-gray-400 italic">
@@ -28,6 +37,16 @@ export default function RsvpSummary({ menuItems, plates }: RsvpSummaryProps) {
     <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
       <h3 className="text-sm font-semibold text-gray-700 mb-3">Order Summary</h3>
       <div className="space-y-2">
+        {/* Entrance fee line item */}
+        {entranceFee > 0 && (
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-600">{entranceFeeLabel}</span>
+            <span className="text-gray-800 font-medium">
+              ₹{entranceFee.toFixed(2)}
+            </span>
+          </div>
+        )}
+        {/* Food items */}
         {selectedItems.map((item) => {
           const count = plates[item.id] || 0;
           const lineTotal = count * item.pricePerPlate;

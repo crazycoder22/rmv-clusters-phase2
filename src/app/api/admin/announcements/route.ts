@@ -112,6 +112,8 @@ export async function POST(request: Request) {
               mealType: eventConfig.mealType || null,
               rsvpDeadline: new Date(eventConfig.rsvpDeadline),
               requirePayment: eventConfig.requirePayment ?? false,
+              entranceFee: eventConfig.entranceFee ?? null,
+              entranceFeeLabel: eventConfig.entranceFeeLabel || "Entrance Fee",
               enableFeedback: eventConfig.enableFeedback ?? false,
               feedbackStyle: eventConfig.feedbackStyle ?? "stars",
               ...(eventConfig.menuItems && eventConfig.menuItems.length > 0 && {

@@ -125,6 +125,8 @@ export async function GET(
       id: ec.id,
       mealType: ec.mealType,
       rsvpDeadline: ec.rsvpDeadline,
+      entranceFee: ec.entranceFee,
+      entranceFeeLabel: ec.entranceFeeLabel || "Entrance Fee",
       enableFeedback: ec.enableFeedback,
       feedbackStyle: ec.feedbackStyle ?? "stars",
       menuItems: ec.menuItems,

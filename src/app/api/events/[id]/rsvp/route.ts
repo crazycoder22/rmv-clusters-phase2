@@ -206,11 +206,14 @@ export async function POST(
     : [];
 
   // For new RSVPs with payment required, block direct submission
-  if (!existingRsvp && hasFood && eventConfig.requirePayment) {
-    const totalAmount = foodItems.reduce((sum: number, item: { menuItemId: string; plates: number }) => {
+  if (!existingRsvp && eventConfig.requirePayment) {
+    let totalAmount = foodItems.reduce((sum: number, item: { menuItemId: string; plates: number }) => {
       const menuItem = eventConfig.menuItems.find((m) => m.id === item.menuItemId);
       return sum + (menuItem ? menuItem.pricePerPlate * item.plates : 0);
     }, 0);
+    if (eventConfig.entranceFee && eventConfig.entranceFee > 0) {
+      totalAmount += eventConfig.entranceFee;
+    }
     if (totalAmount > 0) {
       return NextResponse.json(
         { error: "Payment required. Please use the payment flow." },

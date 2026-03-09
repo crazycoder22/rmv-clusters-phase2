@@ -198,12 +198,21 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
   };
 
   // Calculate total amount for display and payment decision
-  const totalAmount = hasFood && eventConfig
+  const foodTotal = hasFood && eventConfig
     ? eventConfig.menuItems.reduce(
         (sum, item) => sum + (plates[item.id] || 0) * item.pricePerPlate,
         0
       )
     : 0;
+
+  const entranceFee = eventConfig?.entranceFee && eventConfig.entranceFee > 0
+    ? eventConfig.entranceFee
+    : 0;
+
+  const totalAmount = foodTotal + entranceFee;
+
+  const hasEntranceFee = entranceFee > 0;
+  const needsPayment = eventConfig?.requirePayment && totalAmount > 0;
 
   // Direct submit for free events, updates, and non-food events
   const submitDirectly = async (
@@ -506,7 +515,7 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
           <p className="text-green-700 mb-4">
             Thank you, {guestName}! Your RSVP for &ldquo;{announcement.title}&rdquo; has been recorded.
           </p>
-          {hasFood && (
+          {(hasFood || hasEntranceFee) && eventConfig?.requirePayment && (
             <p className="text-sm text-green-600">
               Your payment has been received.
             </p>
@@ -566,8 +575,8 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
           : `RSVP by: ${new Date(eventConfig.rsvpDeadline).toLocaleString("en-IN", { dateStyle: "long", timeStyle: "short" })}`}
       </div>
 
-      {/* Payment status for existing RSVP (logged-in users only, food events) */}
-      {hasFood && myRsvp && (
+      {/* Payment status for existing RSVP (logged-in users only) */}
+      {(hasFood || hasEntranceFee) && myRsvp && (
         <div className={`rounded-lg p-3 mb-6 text-sm ${
           myRsvp.paid
             ? "bg-green-50 border border-green-200 text-green-700"
@@ -733,9 +742,23 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
 
             {/* Order Summary */}
             <div className="mb-6">
-              <RsvpSummary menuItems={eventConfig.menuItems} plates={plates} />
+              <RsvpSummary
+                menuItems={eventConfig.menuItems}
+                plates={plates}
+                entranceFee={entranceFee}
+                entranceFeeLabel={eventConfig?.entranceFeeLabel || "Entrance Fee"}
+              />
             </div>
           </>
+        ) : hasEntranceFee ? (
+          <div className="mb-6">
+            <RsvpSummary
+              menuItems={[]}
+              plates={{}}
+              entranceFee={entranceFee}
+              entranceFeeLabel={eventConfig?.entranceFeeLabel || "Entrance Fee"}
+            />
+          </div>
         ) : (
           <div className="rounded-lg bg-blue-50 border border-blue-200 p-6 mb-6 text-center">
             <p className="text-blue-800 font-medium">Confirm your attendance for this event</p>
@@ -825,9 +848,9 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
                 ? "Processing..."
                 : myRsvp
                   ? "Update RSVP"
-                  : hasFood && totalAmount > 0 && eventConfig?.requirePayment
+                  : needsPayment
                     ? `Pay \u20B9${totalAmount.toFixed(0)} & Submit RSVP`
-                    : hasFood
+                    : hasFood || hasEntranceFee
                       ? "Submit RSVP"
                       : "Confirm Attendance"}
             </button>
@@ -947,7 +970,7 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
         </div>
       )}
 
-      {hasFood && eventConfig?.requirePayment && (
+      {eventConfig?.requirePayment && (hasFood || hasEntranceFee) && (
         <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
       )}
     </div>
