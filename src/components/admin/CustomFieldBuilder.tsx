@@ -6,7 +6,7 @@ function parseOptions(options: string): string[] {
   return options
     .split(",")
     .map((o) => o.trim())
-    .filter((o) => o && o !== "__OTHER__");
+    .filter((o) => o !== "__OTHER__");
 }
 
 function buildOptions(opts: string[], includeOther: boolean): string {
