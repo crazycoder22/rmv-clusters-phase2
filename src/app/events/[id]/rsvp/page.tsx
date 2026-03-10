@@ -553,15 +553,21 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
             </div>
           )}
           {guestRsvpId && (
-            <div className="mt-6">
+            <div className="mt-6 flex flex-col items-center gap-3">
               <Link
                 href={`/pass/g-${guestRsvpId}`}
                 className="inline-block px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors"
               >
                 View Your Event Pass
               </Link>
-              <p className="text-xs text-gray-500 mt-2">
-                Save this link to access your pass anytime.
+              <Link
+                href={`/events/${id}/dashboard`}
+                className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+              >
+                View Participant Dashboard &rarr;
+              </Link>
+              <p className="text-xs text-gray-500">
+                Save these links to access them anytime.
               </p>
             </div>
           )}

@@ -1,32 +1,13 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { canManageAnnouncements } from "@/lib/roles";
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (!session.user.isRegistered || !session.user.isApproved) {
-    return NextResponse.json({ error: "Not approved" }, { status: 403 });
-  }
-
   const { id } = await params;
-  const isAdminUser = canManageAnnouncements(session.user.roles);
 
-  const resident = await prisma.resident.findUnique({
-    where: { email: session.user.email },
-    select: { id: true },
-  });
-  if (!resident) {
-    return NextResponse.json({ error: "Resident not found" }, { status: 404 });
-  }
-
-  // Fetch the event with RSVPs and custom field responses
+  // Fetch the event with both resident and guest RSVPs
   const announcement = await prisma.announcement.findUnique({
     where: { id },
     include: {
@@ -38,6 +19,16 @@ export async function GET(
               resident: {
                 select: { name: true, block: true, flatNumber: true },
               },
+              fieldResponses: {
+                include: {
+                  customField: { select: { id: true, label: true } },
+                },
+              },
+            },
+            orderBy: { createdAt: "asc" },
+          },
+          guestRsvps: {
+            include: {
               fieldResponses: {
                 include: {
                   customField: { select: { id: true, label: true } },
@@ -58,21 +49,8 @@ export async function GET(
     );
   }
 
-  // Check if user has RSVP'd (unless admin/event manager)
-  if (!isAdminUser) {
-    const hasRsvp = announcement.eventConfig.rsvps.some(
-      (r) => r.residentId === resident.id
-    );
-    if (!hasRsvp) {
-      return NextResponse.json(
-        { error: "You must RSVP for this event to view the dashboard" },
-        { status: 403 }
-      );
-    }
-  }
-
-  // Map participants (resident RSVPs only for privacy)
-  const participants = announcement.eventConfig.rsvps.map((rsvp) => ({
+  // Map resident participants
+  const residentParticipants = announcement.eventConfig.rsvps.map((rsvp) => ({
     id: rsvp.id,
     name: rsvp.resident.name,
     block: rsvp.resident.block,
@@ -84,6 +62,25 @@ export async function GET(
     })),
     createdAt: rsvp.createdAt,
   }));
+
+  // Map guest participants
+  const guestParticipants = announcement.eventConfig.guestRsvps.map((grsvp) => ({
+    id: grsvp.id,
+    name: grsvp.name,
+    block: grsvp.block,
+    flatNumber: grsvp.flatNumber,
+    fieldResponses: grsvp.fieldResponses.map((fr) => ({
+      customFieldId: fr.customFieldId,
+      customField: { label: fr.customField.label },
+      value: fr.value,
+    })),
+    createdAt: grsvp.createdAt,
+  }));
+
+  // Combine and sort by registration date
+  const participants = [...residentParticipants, ...guestParticipants].sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+  );
 
   return NextResponse.json({
     announcement: {

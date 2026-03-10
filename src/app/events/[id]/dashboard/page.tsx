@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
-import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { ArrowLeft, Search, Users } from "lucide-react";
 import type { CustomFieldType } from "@/types";
@@ -25,7 +24,6 @@ export default function EventDashboardPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const { data: session, status } = useSession();
 
   const [eventTitle, setEventTitle] = useState("");
   const [eventSummary, setEventSummary] = useState("");
@@ -37,12 +35,6 @@ export default function EventDashboardPage({
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    if (status === "loading") return;
-    if (status !== "authenticated") {
-      setLoading(false);
-      return;
-    }
-
     async function fetchDashboard() {
       try {
         const res = await fetch(`/api/events/${id}/dashboard`);
@@ -65,7 +57,7 @@ export default function EventDashboardPage({
     }
 
     fetchDashboard();
-  }, [id, status]);
+  }, [id]);
 
   // Filter participants by search term
   const filteredParticipants = searchTerm
@@ -77,7 +69,7 @@ export default function EventDashboardPage({
       )
     : participants;
 
-  if (status === "loading" || loading) {
+  if (loading) {
     return (
       <div className="max-w-5xl mx-auto px-4 py-12">
         <p className="text-center text-gray-500">Loading dashboard...</p>
@@ -85,19 +77,10 @@ export default function EventDashboardPage({
     );
   }
 
-  if (status !== "authenticated") {
-    return (
-      <div className="max-w-5xl mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Sign In Required</h1>
-        <p className="text-gray-600">Please sign in to view the participant dashboard.</p>
-      </div>
-    );
-  }
-
   if (error) {
     return (
       <div className="max-w-5xl mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Dashboard</h1>
         <p className="text-gray-600 mb-4">{error}</p>
         <Link
           href={`/events/${id}/rsvp`}
