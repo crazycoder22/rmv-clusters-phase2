@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use } from "react";
 import { useSession } from "next-auth/react";
+import Image from "next/image";
 import Link from "next/link";
 import Script from "next/script";
 import RsvpSummary from "@/components/events/RsvpSummary";
@@ -816,6 +817,27 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
           <div className="rounded-lg bg-blue-50 border border-blue-200 p-6 mb-6 text-center">
             <p className="text-blue-800 font-medium">Confirm your attendance for this event</p>
             <p className="text-sm text-blue-600 mt-1">No food ordering for this event — just RSVP to confirm.</p>
+          </div>
+        )}
+
+        {/* Payment QR Code — shown when entrance fee exists but Razorpay is off */}
+        {hasEntranceFee && !eventConfig?.requirePayment && (
+          <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4">
+            <p className="text-sm font-medium text-amber-800 mb-3 text-center">
+              Scan the QR code below to pay ₹{entranceFee.toFixed(0)} ({eventConfig?.entranceFeeLabel || "Entrance Fee"})
+            </p>
+            <div className="flex justify-center">
+              <Image
+                src="/images/SVB-QR.jpeg"
+                alt="Payment QR Code"
+                width={240}
+                height={240}
+                className="rounded-lg border border-amber-200"
+              />
+            </div>
+            <p className="text-xs text-amber-600 mt-2 text-center">
+              Pay via UPI by scanning this QR code
+            </p>
           </div>
         )}
 
