@@ -2,6 +2,26 @@
 
 import type { CustomFieldFormEntry } from "@/types";
 
+function parseOptions(options: string): string[] {
+  return options
+    .split(",")
+    .map((o) => o.trim())
+    .filter((o) => o && o !== "__OTHER__");
+}
+
+function buildOptions(opts: string[], includeOther: boolean): string {
+  const parts = [...opts];
+  if (includeOther) parts.push("__OTHER__");
+  return parts.join(", ");
+}
+
+function hasOtherFlag(options: string): boolean {
+  return options
+    .split(",")
+    .map((o) => o.trim())
+    .includes("__OTHER__");
+}
+
 interface CustomFieldBuilderProps {
   fields: CustomFieldFormEntry[];
   onChange: (fields: CustomFieldFormEntry[]) => void;
@@ -91,27 +111,52 @@ export default function CustomFieldBuilder({ fields, onChange }: CustomFieldBuil
 
           {field.fieldType === "select" && (
             <div className="pl-8 space-y-2">
-              <input
-                type="text"
-                value={field.options.split(",").map(o => o.trim()).filter(o => o && o !== "__OTHER__").join(", ")}
-                onChange={(e) => {
-                  const opts = e.target.value.split(",").map(o => o.trim()).filter(Boolean);
-                  const hadOther = field.options.split(",").map(o => o.trim()).includes("__OTHER__");
-                  if (hadOther) opts.push("__OTHER__");
-                  updateField(field.tempId, { options: opts.join(", ") });
+              <p className="text-xs text-gray-500 font-medium">Dropdown Options</p>
+              {parseOptions(field.options).map((opt, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={opt}
+                    onChange={(e) => {
+                      const opts = parseOptions(field.options);
+                      opts[i] = e.target.value;
+                      updateField(field.tempId, { options: buildOptions(opts, hasOtherFlag(field.options)) });
+                    }}
+                    placeholder={`Option ${i + 1}`}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const opts = parseOptions(field.options);
+                      opts.splice(i, 1);
+                      updateField(field.tempId, { options: buildOptions(opts, hasOtherFlag(field.options)) });
+                    }}
+                    className="text-red-400 hover:text-red-600 text-lg font-bold shrink-0"
+                    title="Remove option"
+                  >
+                    &times;
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => {
+                  const opts = parseOptions(field.options);
+                  opts.push("");
+                  updateField(field.tempId, { options: buildOptions(opts, hasOtherFlag(field.options)) });
                 }}
-                placeholder="Options (comma-separated, e.g., 5000, 7500, 10000, 12000)"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              />
-              <p className="text-xs text-gray-400">Separate options with commas</p>
+                className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+              >
+                + Add Option
+              </button>
               <label className="flex items-center gap-1.5 text-sm text-gray-600">
                 <input
                   type="checkbox"
-                  checked={field.options.split(",").map(o => o.trim()).includes("__OTHER__")}
+                  checked={hasOtherFlag(field.options)}
                   onChange={(e) => {
-                    const opts = field.options.split(",").map(o => o.trim()).filter(o => o && o !== "__OTHER__");
-                    if (e.target.checked) opts.push("__OTHER__");
-                    updateField(field.tempId, { options: opts.join(", ") });
+                    const opts = parseOptions(field.options);
+                    updateField(field.tempId, { options: buildOptions(opts, e.target.checked) });
                   }}
                   className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                 />
