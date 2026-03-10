@@ -82,6 +82,7 @@ export async function PATCH(
               requirePayment: ec.requirePayment ?? false,
               entranceFee: ec.entranceFee ?? null,
               entranceFeeLabel: ec.entranceFeeLabel || "Entrance Fee",
+              confirmationMessage: ec.confirmationMessage || null,
               enableFeedback: ec.enableFeedback ?? false,
               feedbackStyle: ec.feedbackStyle ?? "stars",
               ...(ec.menuItems && ec.menuItems.length > 0 && {
@@ -119,6 +120,7 @@ export async function PATCH(
               requirePayment: ec.requirePayment ?? false,
               entranceFee: ec.entranceFee ?? null,
               entranceFeeLabel: ec.entranceFeeLabel || "Entrance Fee",
+              confirmationMessage: ec.confirmationMessage || null,
               enableFeedback: ec.enableFeedback ?? false,
               feedbackStyle: ec.feedbackStyle ?? "stars",
               ...(ec.menuItems && ec.menuItems.length > 0 && {

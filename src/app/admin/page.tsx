@@ -50,6 +50,7 @@ const emptyNewsForm = {
   enableEntranceFee: false,
   entranceFee: "",
   entranceFeeLabel: "Entrance Fee",
+  confirmationMessage: "",
   enableFeedback: false,
   feedbackStyle: "stars" as "stars" | "emoji",
   mealType: "dinner",
@@ -321,6 +322,7 @@ export default function AdminPage() {
       // Build payload with optional eventConfig / sportsConfig
       const {
         enableRsvp, enableFoodOrdering, requirePayment, enableEntranceFee, entranceFee, entranceFeeLabel,
+        confirmationMessage,
         enableFeedback, feedbackStyle, mealType, rsvpDeadline, menuItems: menuItemsForm,
         customFields: customFieldsForm,
         enableSportsRegistration, registrationDeadline, sportItems: sportItemsForm,
@@ -333,6 +335,7 @@ export default function AdminPage() {
         const eventConfigPayload: Record<string, unknown> = {
           rsvpDeadline,
           requirePayment: hasPayableContent ? requirePayment : false,
+          confirmationMessage: confirmationMessage.trim() || null,
           enableFeedback,
           ...(enableFeedback && { feedbackStyle }),
         };
@@ -436,6 +439,7 @@ export default function AdminPage() {
       enableEntranceFee: !!(ec?.entranceFee && ec.entranceFee > 0),
       entranceFee: ec?.entranceFee ? String(ec.entranceFee) : "",
       entranceFeeLabel: ec?.entranceFeeLabel || "Entrance Fee",
+      confirmationMessage: ec?.confirmationMessage ?? "",
       enableFeedback: ec?.enableFeedback ?? false,
       feedbackStyle: (ec?.feedbackStyle as "stars" | "emoji") ?? "stars",
       mealType: ec?.mealType || "dinner",
@@ -1018,6 +1022,28 @@ export default function AdminPage() {
                           </select>
                         </div>
                       )}
+
+                      {/* Post-Registration Confirmation Message */}
+                      <div>
+                        <label
+                          htmlFor="confirmationMessage"
+                          className="block text-sm font-medium text-gray-700 mb-1"
+                        >
+                          Post-Registration Message (optional)
+                        </label>
+                        <textarea
+                          id="confirmationMessage"
+                          name="confirmationMessage"
+                          rows={3}
+                          value={newsForm.confirmationMessage}
+                          onChange={handleNewsChange}
+                          placeholder="e.g., Join our WhatsApp group: https://chat.whatsapp.com/..."
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          This message will be shown to participants right after they register. URLs will be clickable.
+                        </p>
+                      </div>
                     </div>
                   )}
                 </div>

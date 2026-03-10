@@ -19,6 +19,31 @@ function getDeviceId(): string {
   return deviceId;
 }
 
+// Auto-link URLs in text
+function Linkify({ text }: { text: string }) {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = text.split(urlRegex);
+  return (
+    <>
+      {parts.map((part, i) =>
+        urlRegex.test(part) ? (
+          <a
+            key={i}
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary-600 hover:text-primary-700 underline break-all"
+          >
+            {part}
+          </a>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </>
+  );
+}
+
 interface RazorpayResponse {
   razorpay_payment_id: string;
   razorpay_order_id: string;
@@ -520,6 +545,13 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
               Your payment has been received.
             </p>
           )}
+          {eventConfig?.confirmationMessage && (
+            <div className="mt-4 rounded-lg bg-blue-50 border border-blue-200 p-4 text-left">
+              <p className="text-sm text-blue-800 whitespace-pre-line">
+                <Linkify text={eventConfig.confirmationMessage} />
+              </p>
+            </div>
+          )}
           {guestRsvpId && (
             <div className="mt-6">
               <Link
@@ -603,6 +635,15 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
           >
             View Participant Dashboard &rarr;
           </Link>
+        </div>
+      )}
+
+      {/* Post-registration confirmation message */}
+      {myRsvp && eventConfig?.confirmationMessage && (
+        <div className="mb-6 rounded-lg bg-blue-50 border border-blue-200 p-4">
+          <p className="text-sm text-blue-800 whitespace-pre-line">
+            <Linkify text={eventConfig.confirmationMessage} />
+          </p>
         </div>
       )}
 

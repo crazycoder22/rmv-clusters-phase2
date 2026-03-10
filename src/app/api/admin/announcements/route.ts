@@ -115,6 +115,7 @@ export async function POST(request: Request) {
               requirePayment: eventConfig.requirePayment ?? false,
               entranceFee: eventConfig.entranceFee ?? null,
               entranceFeeLabel: eventConfig.entranceFeeLabel || "Entrance Fee",
+              confirmationMessage: eventConfig.confirmationMessage || null,
               enableFeedback: eventConfig.enableFeedback ?? false,
               feedbackStyle: eventConfig.feedbackStyle ?? "stars",
               ...(eventConfig.menuItems && eventConfig.menuItems.length > 0 && {

@@ -75,6 +75,7 @@ model EventConfig {
   requirePayment   Boolean      @default(false)
   entranceFee      Float?       // null = no fee; > 0 = amount in INR
   entranceFeeLabel String       @default("Entrance Fee")
+  confirmationMessage String?    // Optional message shown after RSVP (e.g., group link)
   enableFeedback   Boolean      @default(false)
   feedbackStyle   String       @default("stars") // "stars" or "emoji"
   menuItems      MenuItem[]

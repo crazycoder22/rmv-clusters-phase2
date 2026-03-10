@@ -83,6 +83,7 @@ export interface EventConfigType {
   requirePayment: boolean;
   entranceFee: number | null;
   entranceFeeLabel: string;
+  confirmationMessage: string | null;
   enableFeedback: boolean;
   feedbackStyle: "stars" | "emoji";
   menuItems: MenuItemType[];
