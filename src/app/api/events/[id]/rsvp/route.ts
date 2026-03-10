@@ -167,7 +167,14 @@ export async function POST(
       const cf = customFields.find((c) => c.id === r.customFieldId);
       if (cf && cf.fieldType === "select" && cf.options) {
         const validOptions: string[] = JSON.parse(cf.options);
-        if (r.value && !validOptions.includes(r.value)) {
+        const allowOther = validOptions.includes("__OTHER__");
+        if (r.value === "__OTHER__") {
+          return NextResponse.json(
+            { error: `Please enter a value for "${cf.label}"` },
+            { status: 400 }
+          );
+        }
+        if (r.value && !allowOther && !validOptions.includes(r.value)) {
           return NextResponse.json(
             { error: `Invalid option for "${cf.label}"` },
             { status: 400 }

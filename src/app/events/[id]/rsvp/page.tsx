@@ -284,7 +284,7 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
 
     // Validate required custom fields
     for (const cf of customFields) {
-      if (cf.required && !fieldValues[cf.id]?.trim()) {
+      if (cf.required && (!fieldValues[cf.id]?.trim() || fieldValues[cf.id] === "__OTHER__")) {
         setError(`"${cf.label}" is required`);
         setSubmitting(false);
         return;
@@ -588,14 +588,20 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
         </div>
       )}
 
-      {/* View Event Pass link (logged-in users with existing RSVP) */}
+      {/* View Event Pass & Dashboard links (logged-in users with existing RSVP) */}
       {myRsvp && (
-        <div className="mb-6">
+        <div className="mb-6 flex flex-col gap-2">
           <Link
             href={`/pass/r-${myRsvp.id}`}
             className="text-sm text-primary-600 hover:text-primary-700 font-medium"
           >
             View Event Pass &rarr;
+          </Link>
+          <Link
+            href={`/events/${id}/dashboard`}
+            className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+          >
+            View Participant Dashboard &rarr;
           </Link>
         </div>
       )}
@@ -790,24 +796,50 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
                       placeholder={`Enter ${cf.label.toLowerCase()}`}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                     />
-                  ) : (
-                    <select
-                      required={cf.required}
-                      value={fieldValues[cf.id] || ""}
-                      onChange={(e) =>
-                        setFieldValues((prev) => ({ ...prev, [cf.id]: e.target.value }))
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                    >
-                      <option value="">Select {cf.label.toLowerCase()}</option>
-                      {cf.options &&
-                        JSON.parse(cf.options).map((opt: string) => (
-                          <option key={opt} value={opt}>
-                            {opt}
-                          </option>
-                        ))}
-                    </select>
-                  )}
+                  ) : (() => {
+                    const parsedOptions: string[] = cf.options ? JSON.parse(cf.options) : [];
+                    const allowOther = parsedOptions.includes("__OTHER__");
+                    const displayOptions = parsedOptions.filter((o) => o !== "__OTHER__");
+                    const currentValue = fieldValues[cf.id] || "";
+                    const isCustomValue = allowOther && currentValue !== "" && currentValue !== "__OTHER__" && !displayOptions.includes(currentValue);
+
+                    return (
+                      <>
+                        <select
+                          required={cf.required}
+                          value={isCustomValue ? "__OTHER__" : currentValue}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setFieldValues((prev) => ({ ...prev, [cf.id]: val }));
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        >
+                          <option value="">Select {cf.label.toLowerCase()}</option>
+                          {displayOptions.map((opt: string) => (
+                            <option key={opt} value={opt}>
+                              {opt}
+                            </option>
+                          ))}
+                          {allowOther && <option value="__OTHER__">Other</option>}
+                        </select>
+                        {(currentValue === "__OTHER__" || isCustomValue) && (
+                          <input
+                            type="text"
+                            required={cf.required}
+                            value={isCustomValue ? currentValue : ""}
+                            onChange={(e) =>
+                              setFieldValues((prev) => ({
+                                ...prev,
+                                [cf.id]: e.target.value || "__OTHER__",
+                              }))
+                            }
+                            placeholder={`Enter custom ${cf.label.toLowerCase()}`}
+                            className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                          />
+                        )}
+                      </>
+                    );
+                  })()}
                 </div>
               ))}
             </div>

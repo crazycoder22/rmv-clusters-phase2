@@ -90,15 +90,33 @@ export default function CustomFieldBuilder({ fields, onChange }: CustomFieldBuil
           </div>
 
           {field.fieldType === "select" && (
-            <div className="pl-8">
+            <div className="pl-8 space-y-2">
               <input
                 type="text"
-                value={field.options}
-                onChange={(e) => updateField(field.tempId, { options: e.target.value })}
-                placeholder="Options (comma-separated, e.g., Student, Early Career, Mid Career, Senior, Retired)"
+                value={field.options.split(",").map(o => o.trim()).filter(o => o && o !== "__OTHER__").join(", ")}
+                onChange={(e) => {
+                  const opts = e.target.value.split(",").map(o => o.trim()).filter(Boolean);
+                  const hadOther = field.options.split(",").map(o => o.trim()).includes("__OTHER__");
+                  if (hadOther) opts.push("__OTHER__");
+                  updateField(field.tempId, { options: opts.join(", ") });
+                }}
+                placeholder="Options (comma-separated, e.g., 5000, 7500, 10000, 12000)"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
-              <p className="text-xs text-gray-400 mt-1">Separate options with commas</p>
+              <p className="text-xs text-gray-400">Separate options with commas</p>
+              <label className="flex items-center gap-1.5 text-sm text-gray-600">
+                <input
+                  type="checkbox"
+                  checked={field.options.split(",").map(o => o.trim()).includes("__OTHER__")}
+                  onChange={(e) => {
+                    const opts = field.options.split(",").map(o => o.trim()).filter(o => o && o !== "__OTHER__");
+                    if (e.target.checked) opts.push("__OTHER__");
+                    updateField(field.tempId, { options: opts.join(", ") });
+                  }}
+                  className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                />
+                Allow &quot;Other&quot; (free text input)
+              </label>
             </div>
           )}
         </div>
