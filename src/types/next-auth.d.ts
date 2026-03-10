@@ -5,13 +5,13 @@ declare module "next-auth" {
   interface User {
     isRegistered?: boolean;
     isApproved?: boolean;
-    role?: "RESIDENT" | "ADMIN" | "SUPERADMIN" | "SECURITY" | "FACILITY_MANAGER" | "EVENT_MANAGER" | null;
+    roles?: string[];
   }
   interface Session {
     user: {
       isRegistered: boolean;
       isApproved: boolean;
-      role: "RESIDENT" | "ADMIN" | "SUPERADMIN" | "SECURITY" | "FACILITY_MANAGER" | "EVENT_MANAGER" | null;
+      roles: string[];
     } & {
       name?: string | null;
       email?: string | null;
@@ -24,6 +24,6 @@ declare module "next-auth/jwt" {
   interface JWT {
     isRegistered?: boolean;
     isApproved?: boolean;
-    role?: string | null;
+    roles?: string[];
   }
 }

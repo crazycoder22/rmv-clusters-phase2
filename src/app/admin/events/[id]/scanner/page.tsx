@@ -53,7 +53,7 @@ function extractPassCode(text: string): string | null {
 
 export default function AdminScannerPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const { role, isAdmin, isSuperAdmin, isLoading: roleLoading } = useRole();
+  const { isAdmin, isSuperAdmin, isLoading: roleLoading } = useRole();
 
   const [scanning, setScanning] = useState(false);
   const [manualCode, setManualCode] = useState("");

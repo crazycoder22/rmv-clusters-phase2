@@ -37,7 +37,9 @@ export function useRegistrationGuard() {
       session?.user?.isApproved &&
       pathname === "/"
     ) {
-      if (session.user.role === "SECURITY") {
+      const roles = session.user.roles ?? [];
+      // If SECURITY is their only role, send to visitors page
+      if (roles.length === 1 && roles[0] === "SECURITY") {
         router.push("/visitors");
       } else {
         router.push("/dashboard");

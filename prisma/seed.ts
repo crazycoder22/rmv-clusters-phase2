@@ -29,7 +29,7 @@ async function main() {
   // Find the resident
   const resident = await prisma.resident.findUnique({
     where: { email },
-    include: { role: true },
+    include: { roles: true },
   });
 
   if (!resident) {
@@ -37,7 +37,7 @@ async function main() {
     process.exit(1);
   }
 
-  if (resident.role.name === "SUPERADMIN") {
+  if (resident.roles.some((r) => r.name === "SUPERADMIN")) {
     console.log(`${email} is already a SuperAdmin.`);
     return;
   }
@@ -45,7 +45,7 @@ async function main() {
   // Update to SuperAdmin
   await prisma.resident.update({
     where: { email },
-    data: { roleId: superAdminRole.id },
+    data: { roles: { set: [{ id: superAdminRole.id }] } },
   });
 
   console.log(`Successfully assigned SUPERADMIN role to ${email}`);

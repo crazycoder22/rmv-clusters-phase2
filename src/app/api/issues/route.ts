@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-
-const ALL_MANAGER_ROLES = ["FACILITY_MANAGER", "ADMIN", "SUPERADMIN"];
+import { isAdmin as checkIsAdmin, hasExactRole } from "@/lib/roles";
 
 export async function GET() {
   const session = await auth();
@@ -12,17 +11,17 @@ export async function GET() {
 
   const resident = await prisma.resident.findUnique({
     where: { email: session.user.email },
-    select: { id: true, role: { select: { name: true } } },
+    select: { id: true, roles: { select: { name: true } } },
   });
 
   if (!resident) {
     return NextResponse.json({ error: "Not registered" }, { status: 403 });
   }
 
-  const roleName = resident.role.name;
-  const isManager = ALL_MANAGER_ROLES.includes(roleName);
-  // FM only manages, ADMIN/SUPERADMIN can also raise issues
-  const canRaise = roleName !== "FACILITY_MANAGER";
+  const roleNames = resident.roles.map((r) => r.name);
+  const isManager = checkIsAdmin(roleNames) || hasExactRole(roleNames, "FACILITY_MANAGER");
+  // FM only manages, others can also raise issues
+  const canRaise = !hasExactRole(roleNames, "FACILITY_MANAGER") || checkIsAdmin(roleNames);
 
   const issues = await prisma.issue.findMany({
     where: isManager ? {} : { residentId: resident.id },
@@ -48,15 +47,17 @@ export async function POST(request: Request) {
 
   const resident = await prisma.resident.findUnique({
     where: { email: session.user.email },
-    select: { id: true, isApproved: true, role: { select: { name: true } } },
+    select: { id: true, isApproved: true, roles: { select: { name: true } } },
   });
 
   if (!resident || !resident.isApproved) {
     return NextResponse.json({ error: "Not approved" }, { status: 403 });
   }
 
-  // Facility managers cannot raise issues
-  if (resident.role.name === "FACILITY_MANAGER") {
+  const roleNames = resident.roles.map((r) => r.name);
+
+  // Facility managers (who are not also admins) cannot raise issues
+  if (hasExactRole(roleNames, "FACILITY_MANAGER") && !checkIsAdmin(roleNames)) {
     return NextResponse.json(
       { error: "Facility managers cannot raise issues" },
       { status: 403 }
@@ -99,7 +100,7 @@ export async function POST(request: Request) {
 
   // Notify all facility managers
   const facilityManagers = await prisma.resident.findMany({
-    where: { role: { name: "FACILITY_MANAGER" }, isApproved: true },
+    where: { roles: { some: { name: "FACILITY_MANAGER" } }, isApproved: true },
     select: { id: true },
   });
 

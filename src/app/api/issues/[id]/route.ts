@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-
-const MANAGER_ROLES = ["FACILITY_MANAGER", "ADMIN", "SUPERADMIN"];
+import { isAdmin as checkIsAdmin, hasExactRole } from "@/lib/roles";
 
 export async function PATCH(
   request: Request,
@@ -15,10 +14,13 @@ export async function PATCH(
 
   const resident = await prisma.resident.findUnique({
     where: { email: session.user.email },
-    select: { id: true, role: { select: { name: true } } },
+    select: { id: true, roles: { select: { name: true } } },
   });
 
-  if (!resident || !MANAGER_ROLES.includes(resident.role.name)) {
+  const roleNames = resident?.roles.map((r) => r.name) ?? [];
+  const isManager = checkIsAdmin(roleNames) || hasExactRole(roleNames, "FACILITY_MANAGER");
+
+  if (!resident || !isManager) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

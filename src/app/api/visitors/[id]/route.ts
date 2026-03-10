@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { canManageVisitors } from "@/lib/roles";
 
 export async function GET(
   _request: Request,
@@ -20,9 +21,7 @@ export async function GET(
     return NextResponse.json({ error: "Visitor not found" }, { status: 404 });
   }
 
-  const role = session.user.role;
-  const isSecurityOrAdmin =
-    role === "ADMIN" || role === "SUPERADMIN" || role === "SECURITY";
+  const isSecurityOrAdmin = canManageVisitors(session.user.roles);
 
   if (!isSecurityOrAdmin) {
     // Check if this resident lives in the target flat

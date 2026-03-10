@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-
-const ADMIN_ROLES = ["ADMIN", "SUPERADMIN"];
-const TASK_ROLES = ["FACILITY_MANAGER", "ADMIN", "SUPERADMIN"];
+import { canAccessTasks, isAdmin as checkIsAdmin } from "@/lib/roles";
 
 export async function GET(request: Request) {
   const session = await auth();
@@ -13,19 +11,19 @@ export async function GET(request: Request) {
 
   const resident = await prisma.resident.findUnique({
     where: { email: session.user.email },
-    select: { id: true, isApproved: true, role: { select: { name: true } } },
+    select: { id: true, isApproved: true, roles: { select: { name: true } } },
   });
 
   if (!resident || !resident.isApproved) {
     return NextResponse.json({ error: "Not approved" }, { status: 403 });
   }
 
-  const roleName = resident.role.name;
-  if (!TASK_ROLES.includes(roleName)) {
+  const roleNames = resident.roles.map((r) => r.name);
+  if (!canAccessTasks(roleNames)) {
     return NextResponse.json({ error: "Access denied" }, { status: 403 });
   }
 
-  const isAdmin = ADMIN_ROLES.includes(roleName);
+  const isAdmin = checkIsAdmin(roleNames);
   const { searchParams } = new URL(request.url);
   const statusFilter = searchParams.get("status");
 
@@ -57,7 +55,7 @@ export async function GET(request: Request) {
   let facilityManagers: { id: string; name: string }[] = [];
   if (isAdmin) {
     facilityManagers = await prisma.resident.findMany({
-      where: { role: { name: "FACILITY_MANAGER" }, isApproved: true },
+      where: { roles: { some: { name: "FACILITY_MANAGER" } }, isApproved: true },
       select: { id: true, name: true },
       orderBy: { name: "asc" },
     });
@@ -74,14 +72,15 @@ export async function POST(request: Request) {
 
   const resident = await prisma.resident.findUnique({
     where: { email: session.user.email },
-    select: { id: true, isApproved: true, role: { select: { name: true } } },
+    select: { id: true, isApproved: true, roles: { select: { name: true } } },
   });
 
   if (!resident || !resident.isApproved) {
     return NextResponse.json({ error: "Not approved" }, { status: 403 });
   }
 
-  if (!ADMIN_ROLES.includes(resident.role.name)) {
+  const roleNames = resident.roles.map((r) => r.name);
+  if (!checkIsAdmin(roleNames)) {
     return NextResponse.json(
       { error: "Only admins can create tasks" },
       { status: 403 }
@@ -117,10 +116,10 @@ export async function POST(request: Request) {
   // Validate owner is an approved FM
   const owner = await prisma.resident.findUnique({
     where: { id: ownerId },
-    select: { id: true, isApproved: true, role: { select: { name: true } } },
+    select: { id: true, isApproved: true, roles: { select: { name: true } } },
   });
 
-  if (!owner || !owner.isApproved || owner.role.name !== "FACILITY_MANAGER") {
+  if (!owner || !owner.isApproved || !owner.roles.some((r) => r.name === "FACILITY_MANAGER")) {
     return NextResponse.json(
       { error: "Owner must be an approved Facility Manager" },
       { status: 400 }

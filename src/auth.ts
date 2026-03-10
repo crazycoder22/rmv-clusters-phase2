@@ -27,11 +27,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       ) {
         const resident = await prisma.resident.findUnique({
           where: { email: token.email },
-          select: { id: true, isApproved: true, role: { select: { name: true } } },
+          select: { id: true, isApproved: true, roles: { select: { name: true } } },
         });
         token.isRegistered = !!resident;
         token.isApproved = resident?.isApproved ?? false;
-        token.role = resident?.role.name ?? null;
+        token.roles = resident?.roles.map((r) => r.name) ?? [];
       }
 
       return token;
@@ -43,7 +43,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.image = token.picture as string;
         session.user.isRegistered = token.isRegistered ?? false;
         session.user.isApproved = token.isApproved ?? false;
-        session.user.role = (token.role as "RESIDENT" | "ADMIN" | "SUPERADMIN" | "SECURITY" | "FACILITY_MANAGER" | "EVENT_MANAGER") ?? null;
+        session.user.roles = (token.roles as string[]) ?? [];
       }
       return session;
     },

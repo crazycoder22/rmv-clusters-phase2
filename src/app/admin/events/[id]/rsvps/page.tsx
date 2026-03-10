@@ -85,7 +85,7 @@ interface UnifiedRsvp {
 
 export default function AdminRsvpPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const { role, isAdmin, isSuperAdmin, isLoading: roleLoading } = useRole();
+  const { isAdmin, isSuperAdmin, canManageAnnouncements, isLoading: roleLoading } = useRole();
   const [allRsvps, setAllRsvps] = useState<UnifiedRsvp[]>([]);
   const [summary, setSummary] = useState<Summary | null>(null);
   const [eventTitle, setEventTitle] = useState("");
@@ -179,10 +179,10 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
   }, [id]);
 
   useEffect(() => {
-    if (role === "ADMIN" || role === "SUPERADMIN") {
+    if (canManageAnnouncements()) {
       fetchRsvps();
     }
-  }, [role, fetchRsvps]);
+  }, [canManageAnnouncements, fetchRsvps]);
 
   useEffect(() => {
     if (activeTab === "feedback" && enableFeedback && feedbacks.length === 0 && !loadingFeedback) {

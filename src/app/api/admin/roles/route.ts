@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { isSuperAdmin } from "@/lib/roles";
 
 export async function PATCH(request: Request) {
   const session = await auth();
@@ -9,26 +10,37 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (session.user.role !== "SUPERADMIN") {
+  if (!isSuperAdmin(session.user.roles)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const body = await request.json();
-  const { residentId, newRoleName } = body;
+  const { residentId, roles: newRoles } = body;
 
-  if (!residentId || !newRoleName) {
+  if (!residentId || !Array.isArray(newRoles)) {
     return NextResponse.json(
-      { error: "residentId and newRoleName are required" },
+      { error: "residentId and roles array are required" },
       { status: 400 }
     );
   }
 
-  if (!["RESIDENT", "ADMIN", "SECURITY", "FACILITY_MANAGER", "EVENT_MANAGER"].includes(newRoleName)) {
+  if (newRoles.includes("SUPERADMIN")) {
     return NextResponse.json(
       { error: "Cannot assign SUPERADMIN role via UI" },
       { status: 400 }
     );
   }
+
+  const validRoles = ["RESIDENT", "ADMIN", "COMMUNITY_ADMIN", "SECURITY", "FACILITY_MANAGER", "EVENT_MANAGER"];
+  if (newRoles.some((r: string) => !validRoles.includes(r))) {
+    return NextResponse.json(
+      { error: "Invalid role name" },
+      { status: 400 }
+    );
+  }
+
+  // Filter out RESIDENT (it's implicit)
+  const nonResidentRoles = newRoles.filter((r: string) => r !== "RESIDENT");
 
   // Verify resident exists
   const resident = await prisma.resident.findUnique({
@@ -41,21 +53,29 @@ export async function PATCH(request: Request) {
     );
   }
 
-  // Look up new role
-  const role = await prisma.role.findUnique({
-    where: { name: newRoleName },
-  });
-  if (!role) {
+  // Look up role records
+  const roleRecords = nonResidentRoles.length > 0
+    ? await prisma.role.findMany({
+        where: { name: { in: nonResidentRoles } },
+      })
+    : [];
+
+  if (roleRecords.length !== nonResidentRoles.length) {
     return NextResponse.json(
-      { error: "System error: role not found" },
+      { error: "System error: one or more roles not found" },
       { status: 500 }
     );
   }
 
+  // Use 'set' to replace all roles atomically
   const updated = await prisma.resident.update({
     where: { id: residentId },
-    data: { roleId: role.id },
-    include: { role: { select: { name: true } } },
+    data: {
+      roles: {
+        set: roleRecords.map((r) => ({ id: r.id })),
+      },
+    },
+    include: { roles: { select: { name: true } } },
   });
 
   return NextResponse.json({ success: true, resident: updated });

@@ -10,6 +10,7 @@ import SignInButton from "@/components/auth/SignInButton";
 import UserMenu from "@/components/auth/UserMenu";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import { useRegistrationGuard } from "@/hooks/useRegistrationGuard";
+import { canManageAnnouncements, canManageResidents, canManageVisitors, canAccessTasks } from "@/lib/roles";
 
 const publicPaths = ["/", "/contact"];
 
@@ -30,6 +31,7 @@ export default function Navbar() {
   useRegistrationGuard();
 
   const isApproved = session?.user?.isApproved;
+  const roles = session?.user?.roles ?? [];
 
   const visibleLinks = session
     ? isApproved
@@ -74,7 +76,7 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
-            {(session?.user?.role === "SUPERADMIN" || session?.user?.role === "ADMIN" || session?.user?.role === "EVENT_MANAGER") && (
+            {(canManageAnnouncements(roles) || canManageResidents(roles)) && (
               <Link
                 href="/admin"
                 className={clsx(
@@ -87,7 +89,7 @@ export default function Navbar() {
                 Admin
               </Link>
             )}
-            {(session?.user?.role === "SECURITY" || session?.user?.role === "ADMIN" || session?.user?.role === "SUPERADMIN") && (
+            {canManageVisitors(roles) && (
               <Link
                 href="/visitors"
                 className={clsx(
@@ -100,7 +102,7 @@ export default function Navbar() {
                 Visitors
               </Link>
             )}
-            {(session?.user?.role === "FACILITY_MANAGER" || session?.user?.role === "ADMIN" || session?.user?.role === "SUPERADMIN") && (
+            {canAccessTasks(roles) && (
               <Link
                 href="/tasks"
                 className={clsx(
@@ -163,7 +165,7 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
-            {(session?.user?.role === "SUPERADMIN" || session?.user?.role === "ADMIN" || session?.user?.role === "EVENT_MANAGER") && (
+            {(canManageAnnouncements(roles) || canManageResidents(roles)) && (
               <Link
                 href="/admin"
                 onClick={() => setMobileOpen(false)}
@@ -177,7 +179,7 @@ export default function Navbar() {
                 Admin
               </Link>
             )}
-            {(session?.user?.role === "SECURITY" || session?.user?.role === "ADMIN" || session?.user?.role === "SUPERADMIN") && (
+            {canManageVisitors(roles) && (
               <Link
                 href="/visitors"
                 onClick={() => setMobileOpen(false)}
@@ -191,7 +193,7 @@ export default function Navbar() {
                 Visitors
               </Link>
             )}
-            {(session?.user?.role === "FACILITY_MANAGER" || session?.user?.role === "ADMIN" || session?.user?.role === "SUPERADMIN") && (
+            {canAccessTasks(roles) && (
               <Link
                 href="/tasks"
                 onClick={() => setMobileOpen(false)}

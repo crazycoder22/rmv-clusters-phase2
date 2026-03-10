@@ -7,6 +7,7 @@ import clsx from "clsx";
 import MenuItemBuilder from "@/components/admin/MenuItemBuilder";
 import SportItemBuilder from "@/components/admin/SportItemBuilder";
 import CustomFieldBuilder from "@/components/admin/CustomFieldBuilder";
+import { ASSIGNABLE_ROLES, getRoleDisplayName, getRoleBadgeColor } from "@/lib/roles";
 import type { Announcement, MenuItemFormEntry, SportItemFormEntry, CustomFieldFormEntry } from "@/types";
 
 interface ResidentWithRole {
@@ -19,7 +20,7 @@ interface ResidentWithRole {
   residentType: string;
   isApproved?: boolean;
   createdAt?: string;
-  role: { name: string };
+  roles: { name: string }[];
 }
 
 const emptyForm = {
@@ -63,7 +64,7 @@ const emptyNewsForm = {
 type TabId = "approvals" | "add" | "manage" | "news";
 
 export default function AdminPage() {
-  const { role, isAdmin, isSuperAdmin, isLoading, canManageAnnouncements } = useRole();
+  const { isAdmin, isSuperAdmin, isLoading, canManageAnnouncements, canManageResidents } = useRole();
   const [activeTab, setActiveTab] = useState<TabId>("approvals");
   const [residents, setResidents] = useState<ResidentWithRole[]>([]);
   const [loadingResidents, setLoadingResidents] = useState(false);
@@ -158,29 +159,29 @@ export default function AdminPage() {
   }, [form.block]);
 
   useEffect(() => {
-    if (role === "ADMIN" || role === "SUPERADMIN") {
+    if (canManageResidents()) {
       fetchPendingResidents();
     }
-  }, [role, fetchPendingResidents]);
+  }, [canManageResidents, fetchPendingResidents]);
 
   useEffect(() => {
-    if (role === "SUPERADMIN") {
+    if (isSuperAdmin()) {
       fetchResidents();
     }
-  }, [role, fetchResidents]);
+  }, [isSuperAdmin, fetchResidents]);
 
   useEffect(() => {
-    if (role === "ADMIN" || role === "SUPERADMIN" || role === "EVENT_MANAGER") {
+    if (canManageAnnouncements()) {
       fetchAnnouncements();
     }
-  }, [role, fetchAnnouncements]);
+  }, [canManageAnnouncements, fetchAnnouncements]);
 
-  // Default EVENT_MANAGER to "news" tab since they can't see approvals
+  // Default to "news" tab for users who can manage announcements but not residents
   useEffect(() => {
-    if (role === "EVENT_MANAGER") {
+    if (!canManageResidents() && canManageAnnouncements()) {
       setActiveTab("news");
     }
-  }, [role]);
+  }, [canManageResidents, canManageAnnouncements]);
 
   if (isLoading) {
     return (
@@ -248,20 +249,20 @@ export default function AdminPage() {
     }
   };
 
-  const handleRoleChange = async (residentId: string, newRoleName: string) => {
+  const handleRoleChange = async (residentId: string, newRoles: string[]) => {
     setUpdatingId(residentId);
     try {
       const res = await fetch("/api/admin/roles", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ residentId, newRoleName }),
+        body: JSON.stringify({ residentId, roles: newRoles }),
       });
 
       if (res.ok) {
         const data = await res.json();
         setResidents((prev) =>
           prev.map((r) =>
-            r.id === residentId ? { ...r, role: data.resident.role } : r
+            r.id === residentId ? { ...r, roles: data.resident.roles } : r
           )
         );
       }
@@ -514,9 +515,9 @@ export default function AdminPage() {
   };
 
   const tabs: { id: TabId; label: string; visible: () => boolean }[] = [
-    { id: "approvals", label: `Pending Approvals${pendingResidents.length > 0 ? ` (${pendingResidents.length})` : ""}`, visible: () => isAdmin() || isSuperAdmin() },
+    { id: "approvals", label: `Pending Approvals${pendingResidents.length > 0 ? ` (${pendingResidents.length})` : ""}`, visible: () => canManageResidents() },
     { id: "news", label: `Manage News (${announcements.length})`, visible: () => canManageAnnouncements() },
-    { id: "add", label: "Add Resident", visible: () => isSuperAdmin() },
+    { id: "add", label: "Add Resident", visible: () => canManageResidents() },
     { id: "manage", label: `Manage Roles (${residents.length})`, visible: () => isSuperAdmin() },
   ];
 
@@ -1251,8 +1252,8 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* Tab: Add Resident (SuperAdmin only) */}
-      {activeTab === "add" && isSuperAdmin() && (
+      {/* Tab: Add Resident */}
+      {activeTab === "add" && canManageResidents() && (
         <div className="max-w-lg">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">
             Add Resident on Behalf
@@ -1388,6 +1389,7 @@ export default function AdminPage() {
                 >
                   <option value="RESIDENT">Resident</option>
                   <option value="ADMIN">Admin</option>
+                  <option value="COMMUNITY_ADMIN">Community Admin</option>
                   <option value="SECURITY">Security Manager</option>
                   <option value="FACILITY_MANAGER">Facility Manager</option>
                   <option value="EVENT_MANAGER">Event Manager</option>
@@ -1446,8 +1448,8 @@ export default function AdminPage() {
                     <th className="pb-3 pr-4 font-medium">Block / Flat</th>
                     <th className="pb-3 pr-4 font-medium">Phone</th>
                     <th className="pb-3 pr-4 font-medium">Type</th>
-                    <th className="pb-3 pr-4 font-medium">Role</th>
-                    <th className="pb-3 font-medium">Action</th>
+                    <th className="pb-3 pr-4 font-medium">Roles</th>
+                    <th className="pb-3 font-medium">Assign Roles</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1477,44 +1479,56 @@ export default function AdminPage() {
                         </span>
                       </td>
                       <td className="py-3 pr-4">
-                        <span
-                          className={clsx(
-                            "inline-block px-2 py-0.5 text-xs font-medium rounded-full",
-                            r.role.name === "SUPERADMIN" &&
-                              "bg-purple-100 text-purple-700",
-                            r.role.name === "ADMIN" &&
-                              "bg-green-100 text-green-700",
-                            r.role.name === "FACILITY_MANAGER" &&
-                              "bg-orange-100 text-orange-700",
-                            r.role.name === "EVENT_MANAGER" &&
-                              "bg-teal-100 text-teal-700",
-                            r.role.name === "SECURITY" &&
-                              "bg-blue-100 text-blue-700",
-                            r.role.name === "RESIDENT" &&
-                              "bg-gray-100 text-gray-700"
+                        <div className="flex flex-wrap gap-1">
+                          {r.roles.length === 0 ? (
+                            <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
+                              Resident
+                            </span>
+                          ) : (
+                            r.roles.map((rl) => (
+                              <span
+                                key={rl.name}
+                                className={clsx(
+                                  "inline-block px-2 py-0.5 text-xs font-medium rounded-full",
+                                  getRoleBadgeColor(rl.name)
+                                )}
+                              >
+                                {getRoleDisplayName(rl.name)}
+                              </span>
+                            ))
                           )}
-                        >
-                          {r.role.name}
-                        </span>
+                        </div>
                       </td>
                       <td className="py-3">
-                        {r.role.name === "SUPERADMIN" ? (
+                        {r.roles.some((rl) => rl.name === "SUPERADMIN") ? (
                           <span className="text-xs text-gray-400">&mdash;</span>
                         ) : (
-                          <select
-                            value={r.role.name}
-                            disabled={updatingId === r.id}
-                            onChange={(e) =>
-                              handleRoleChange(r.id, e.target.value)
-                            }
-                            className="text-sm border border-gray-300 rounded px-2 py-1 disabled:opacity-50"
-                          >
-                            <option value="RESIDENT">Resident</option>
-                            <option value="ADMIN">Admin</option>
-                            <option value="SECURITY">Security</option>
-                            <option value="FACILITY_MANAGER">Facility Manager</option>
-                            <option value="EVENT_MANAGER">Event Manager</option>
-                          </select>
+                          <div className="flex flex-wrap gap-2">
+                            {ASSIGNABLE_ROLES.map((roleName) => {
+                              const checked = r.roles.some((rl) => rl.name === roleName);
+                              return (
+                                <label
+                                  key={roleName}
+                                  className="flex items-center gap-1 text-xs cursor-pointer"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={checked}
+                                    disabled={updatingId === r.id}
+                                    onChange={() => {
+                                      const currentRoles = r.roles.map((rl) => rl.name);
+                                      const newRoles = checked
+                                        ? currentRoles.filter((rn) => rn !== roleName)
+                                        : [...currentRoles, roleName];
+                                      handleRoleChange(r.id, newRoles);
+                                    }}
+                                    className="h-3.5 w-3.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                                  />
+                                  {getRoleDisplayName(roleName)}
+                                </label>
+                              );
+                            })}
+                          </div>
                         )}
                       </td>
                     </tr>

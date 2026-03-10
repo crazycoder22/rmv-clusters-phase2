@@ -1,24 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { isSuperAdmin, canManageResidents } from "@/lib/roles";
 
 async function requireSuperAdmin() {
   const session = await auth();
   if (!session?.user?.email) {
     return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
   }
-  if (session.user.role !== "SUPERADMIN") {
+  if (!isSuperAdmin(session.user.roles)) {
     return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
   }
   return { session };
 }
 
-async function requireAdmin() {
+async function requireResidentManager() {
   const session = await auth();
   if (!session?.user?.email) {
     return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
   }
-  if (session.user.role !== "SUPERADMIN" && session.user.role !== "ADMIN") {
+  if (!canManageResidents(session.user.roles)) {
     return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
   }
   return { session };
@@ -28,14 +29,14 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const pending = searchParams.get("pending");
 
-  // Pending approvals can be viewed by ADMIN or SUPERADMIN
+  // Pending approvals can be viewed by anyone who can manage residents
   if (pending === "true") {
-    const check = await requireAdmin();
+    const check = await requireResidentManager();
     if ("error" in check && check.error) return check.error;
 
     const residents = await prisma.resident.findMany({
       where: { isApproved: false },
-      include: { role: { select: { name: true } } },
+      include: { roles: { select: { name: true } } },
       orderBy: { createdAt: "desc" },
     });
 
@@ -47,7 +48,7 @@ export async function GET(request: NextRequest) {
   if ("error" in check && check.error) return check.error;
 
   const residents = await prisma.resident.findMany({
-    include: { role: { select: { name: true } } },
+    include: { roles: { select: { name: true } } },
     orderBy: [{ block: "asc" }, { flatNumber: "asc" }],
   });
 
@@ -55,7 +56,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: Request) {
-  const check = await requireSuperAdmin();
+  const check = await requireResidentManager();
   if ("error" in check && check.error) return check.error;
 
   const body = await request.json();
@@ -103,9 +104,9 @@ export async function POST(request: Request) {
   }
 
   const assignRole = roleName || "RESIDENT";
-  if (!["RESIDENT", "ADMIN", "SECURITY", "FACILITY_MANAGER"].includes(assignRole)) {
+  if (!["RESIDENT", "ADMIN", "COMMUNITY_ADMIN", "SECURITY", "FACILITY_MANAGER", "EVENT_MANAGER"].includes(assignRole)) {
     return NextResponse.json(
-      { error: "Role must be RESIDENT, ADMIN, SECURITY, or FACILITY_MANAGER" },
+      { error: "Invalid role" },
       { status: 400 }
     );
   }
@@ -121,16 +122,10 @@ export async function POST(request: Request) {
     );
   }
 
-  // Look up role
-  const role = await prisma.role.findUnique({
-    where: { name: assignRole },
-  });
-  if (!role) {
-    return NextResponse.json(
-      { error: "System error: role not found" },
-      { status: 500 }
-    );
-  }
+  // Build roles connection (RESIDENT is implicit, don't connect it)
+  const rolesConnect = assignRole !== "RESIDENT"
+    ? { roles: { connect: [{ name: assignRole }] } }
+    : {};
 
   const resident = await prisma.resident.create({
     data: {
@@ -142,16 +137,16 @@ export async function POST(request: Request) {
       residentType,
       isApproved: true, // Admin-created residents are auto-approved
       googleImage: null,
-      roleId: role.id,
+      ...rolesConnect,
     },
-    include: { role: { select: { name: true } } },
+    include: { roles: { select: { name: true } } },
   });
 
   return NextResponse.json({ success: true, resident }, { status: 201 });
 }
 
 export async function PATCH(request: Request) {
-  const check = await requireAdmin();
+  const check = await requireResidentManager();
   if ("error" in check && check.error) return check.error;
 
   const body = await request.json();
@@ -186,7 +181,7 @@ export async function PATCH(request: Request) {
     const updated = await prisma.resident.update({
       where: { id: residentId },
       data: { isApproved: true },
-      include: { role: { select: { name: true } } },
+      include: { roles: { select: { name: true } } },
     });
     return NextResponse.json({ success: true, resident: updated });
   }

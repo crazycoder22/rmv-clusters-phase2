@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Search, UserPlus, Clock } from "lucide-react";
+import { canManageVisitors } from "@/lib/roles";
 import type { VisitorRecord } from "@/types";
 
 export default function VisitorsPage() {
@@ -31,9 +32,8 @@ export default function VisitorsPage() {
   const [visitorFlats, setVisitorFlats] = useState<{ id: string; block: number; flatNumber: string }[]>([]);
   const [loadingVisitorFlats, setLoadingVisitorFlats] = useState(false);
 
-  const role = session?.user?.role;
-  const hasAccess =
-    role === "ADMIN" || role === "SUPERADMIN" || role === "SECURITY";
+  const roles = session?.user?.roles ?? [];
+  const hasAccess = canManageVisitors(roles);
 
   // Fetch recent visitors
   const fetchRecent = useCallback(async () => {

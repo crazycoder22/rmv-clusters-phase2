@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { canManageVisitors } from "@/lib/roles";
 
 async function requireVisitorAccess() {
   const session = await auth();
   if (!session?.user?.email) {
     return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
   }
-  const role = session.user.role;
-  if (role !== "ADMIN" && role !== "SUPERADMIN" && role !== "SECURITY") {
+  if (!canManageVisitors(session.user.roles)) {
     return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
   }
   return { session };

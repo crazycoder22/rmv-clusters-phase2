@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-
-const ADMIN_ROLES = ["ADMIN", "SUPERADMIN"];
-const TASK_ROLES = ["FACILITY_MANAGER", "ADMIN", "SUPERADMIN"];
+import { canAccessTasks, isAdmin as checkIsAdmin } from "@/lib/roles";
 
 export async function POST(
   request: Request,
@@ -17,10 +15,11 @@ export async function POST(
 
   const resident = await prisma.resident.findUnique({
     where: { email: session.user.email },
-    select: { id: true, isApproved: true, role: { select: { name: true } } },
+    select: { id: true, isApproved: true, roles: { select: { name: true } } },
   });
 
-  if (!resident || !resident.isApproved || !TASK_ROLES.includes(resident.role.name)) {
+  const roleNames = resident?.roles.map((r) => r.name) ?? [];
+  if (!resident || !resident.isApproved || !canAccessTasks(roleNames)) {
     return NextResponse.json({ error: "Access denied" }, { status: 403 });
   }
 
@@ -33,7 +32,7 @@ export async function POST(
     return NextResponse.json({ error: "Task not found" }, { status: 404 });
   }
 
-  const isAdmin = ADMIN_ROLES.includes(resident.role.name);
+  const isAdmin = checkIsAdmin(roleNames);
   if (!isAdmin && task.ownerId !== resident.id) {
     return NextResponse.json({ error: "Access denied" }, { status: 403 });
   }

@@ -56,7 +56,7 @@ export default function AdminSportsRegistrationsPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const { role, isAdmin, isSuperAdmin, isLoading: roleLoading } = useRole();
+  const { isAdmin, isSuperAdmin, canManageAnnouncements, isLoading: roleLoading } = useRole();
   const [registrations, setRegistrations] = useState<RegistrationData[]>([]);
   const [summary, setSummary] = useState<Summary | null>(null);
   const [eventTitle, setEventTitle] = useState("");
@@ -82,10 +82,10 @@ export default function AdminSportsRegistrationsPage({
   }, [id]);
 
   useEffect(() => {
-    if (role === "ADMIN" || role === "SUPERADMIN") {
+    if (canManageAnnouncements()) {
       fetchData();
     }
-  }, [role, fetchData]);
+  }, [canManageAnnouncements, fetchData]);
 
   if (roleLoading) {
     return (
