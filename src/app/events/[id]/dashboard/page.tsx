@@ -31,8 +31,6 @@ export default function EventDashboardPage({
   const [customFields, setCustomFields] = useState<CustomFieldType[]>([]);
   const [participants, setParticipants] = useState<DashboardParticipant[]>([]);
   const [totalParticipants, setTotalParticipants] = useState(0);
-  const [entranceFee, setEntranceFee] = useState(0);
-  const [entranceFeeLabel, setEntranceFeeLabel] = useState("Entrance Fee");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
@@ -50,8 +48,6 @@ export default function EventDashboardPage({
         setEventTitle(data.announcement.title);
         setEventSummary(data.announcement.summary);
         setCustomFields(data.eventConfig.customFields || []);
-        setEntranceFee(data.eventConfig.entranceFee || 0);
-        setEntranceFeeLabel(data.eventConfig.entranceFeeLabel || "Entrance Fee");
         setParticipants(data.participants);
         setTotalParticipants(data.totalParticipants);
       } catch {
@@ -160,12 +156,6 @@ export default function EventDashboardPage({
                       {cf.label}
                     </th>
                   ))}
-                  {entranceFee > 0 && (
-                    <th className="py-3 px-4 font-medium">{entranceFeeLabel}</th>
-                  )}
-                  {entranceFee > 0 && (
-                    <th className="py-3 px-4 font-medium">Paid</th>
-                  )}
                   <th className="py-3 px-4 font-medium">Registered</th>
                 </tr>
               </thead>
@@ -194,22 +184,6 @@ export default function EventDashboardPage({
                         </td>
                       );
                     })}
-                    {entranceFee > 0 && (
-                      <td className="py-3 px-4 text-gray-700">
-                        {"\u20B9"}{entranceFee.toFixed(0)}
-                      </td>
-                    )}
-                    {entranceFee > 0 && (
-                      <td className="py-3 px-4">
-                        <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full ${
-                          p.paid
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-600"
-                        }`}>
-                          {p.paid ? "Paid" : "Unpaid"}
-                        </span>
-                      </td>
-                    )}
                     <td className="py-3 px-4 text-gray-500 text-xs whitespace-nowrap">
                       {new Date(p.createdAt).toLocaleDateString("en-IN", {
                         day: "numeric",
@@ -254,21 +228,6 @@ export default function EventDashboardPage({
                     </div>
                   );
                 })}
-                {entranceFee > 0 && (
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-sm text-gray-600">
-                      <span className="font-medium text-gray-500">{entranceFeeLabel}:</span>{" "}
-                      {"\u20B9"}{entranceFee.toFixed(0)}
-                    </span>
-                    <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full ${
-                      p.paid
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-600"
-                    }`}>
-                      {p.paid ? "Paid" : "Unpaid"}
-                    </span>
-                  </div>
-                )}
                 <p className="text-xs text-gray-400 mt-2">
                   Registered{" "}
                   {new Date(p.createdAt).toLocaleDateString("en-IN", {
