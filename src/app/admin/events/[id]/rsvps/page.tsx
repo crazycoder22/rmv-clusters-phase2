@@ -93,6 +93,7 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
   const [rsvpDeadline, setRsvpDeadline] = useState("");
   const [hasFood, setHasFood] = useState(false);
   const [hasCustomFields, setHasCustomFields] = useState(false);
+  const [customFieldDefs, setCustomFieldDefs] = useState<{ id: string; label: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -168,6 +169,12 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
         setRsvpDeadline(data.eventConfig.rsvpDeadline);
         setHasFood(data.eventConfig.menuItems && data.eventConfig.menuItems.length > 0);
         setHasCustomFields(data.eventConfig.customFields && data.eventConfig.customFields.length > 0);
+        setCustomFieldDefs(
+          (data.eventConfig.customFields || []).map((cf: { id: string; label: string }) => ({
+            id: cf.id,
+            label: cf.label,
+          }))
+        );
         setEnableFeedback(data.eventConfig.enableFeedback ?? false);
         setFeedbackStyle(data.eventConfig.feedbackStyle ?? "stars");
       }
@@ -252,6 +259,57 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
     } finally {
       setDeletingId(null);
     }
+  };
+
+  const exportCsv = () => {
+    if (allRsvps.length === 0) return;
+
+    const escapeCsv = (val: string) => {
+      if (val.includes(",") || val.includes('"') || val.includes("\n")) {
+        return `"${val.replace(/"/g, '""')}"`;
+      }
+      return val;
+    };
+
+    // Build header
+    const headers = ["#", "Name", "Type", "Block", "Flat"];
+    for (const cf of customFieldDefs) {
+      headers.push(cf.label);
+    }
+    headers.push("Registered");
+
+    // Build rows
+    const rows = allRsvps.map((rsvp, index) => {
+      const row: string[] = [
+        String(index + 1),
+        escapeCsv(rsvp.name),
+        rsvp.isGuest ? "Guest" : "Resident",
+        String(rsvp.block),
+        escapeCsv(rsvp.flatNumber),
+      ];
+      for (const cf of customFieldDefs) {
+        const fr = rsvp.fieldResponses.find((r) => r.customFieldId === cf.id);
+        row.push(escapeCsv(fr?.value || ""));
+      }
+      row.push(
+        new Date(rsvp.createdAt).toLocaleDateString("en-IN", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        })
+      );
+      return row.join(",");
+    });
+
+    const csv = [headers.map(escapeCsv).join(","), ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    const safeName = eventTitle.replace(/[^a-zA-Z0-9]/g, "_").substring(0, 40);
+    link.download = `${safeName}_RSVPs_${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   if (roleLoading) {
@@ -514,6 +572,13 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
               >
                 Open Scanner
               </Link>
+              <button
+                onClick={exportCsv}
+                disabled={allRsvps.length === 0}
+                className="text-sm border border-gray-300 text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-50 transition-colors font-medium disabled:opacity-50"
+              >
+                Export CSV
+              </button>
               <button
                 onClick={fetchRsvps}
                 disabled={loading}
