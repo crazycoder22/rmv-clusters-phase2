@@ -83,6 +83,7 @@ model EventConfig {
   rsvps          Rsvp[]
   guestRsvps     GuestRsvp[]
   feedbacks      EventFeedback[]
+  stepEntries    StepEntry[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 }
@@ -113,6 +114,7 @@ model Rsvp {
   attended       Boolean     @default(false)
   attendedAt     DateTime?
   notes          String?
+  stepEntries    StepEntry[]
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 
@@ -148,6 +150,7 @@ model GuestRsvp {
   attended       Boolean         @default(false)
   attendedAt     DateTime?
   notes          String?
+  stepEntries    StepEntry[]
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
@@ -384,4 +387,22 @@ model CalendarEvent {
   color     String   @default("#3b82f6")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model StepEntry {
+  id            String      @id @default(cuid())
+  eventConfigId String
+  eventConfig   EventConfig @relation(fields: [eventConfigId], references: [id], onDelete: Cascade)
+  rsvpId        String?
+  rsvp          Rsvp?       @relation(fields: [rsvpId], references: [id], onDelete: Cascade)
+  guestRsvpId   String?
+  guestRsvp     GuestRsvp?  @relation(fields: [guestRsvpId], references: [id], onDelete: Cascade)
+  date          DateTime
+  steps         Int
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([rsvpId, date])
+  @@unique([guestRsvpId, date])
+  @@index([eventConfigId, date])
 }

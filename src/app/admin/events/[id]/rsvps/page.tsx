@@ -588,6 +588,12 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
             <h2 className="text-lg font-semibold text-gray-800">All Responses</h2>
             <div className="flex items-center gap-3">
               <Link
+                href={`/admin/events/${id}/steps`}
+                className="text-sm bg-green-600 text-white px-3 py-1.5 rounded-md hover:bg-green-700 transition-colors font-medium"
+              >
+                Step Tracking
+              </Link>
+              <Link
                 href={`/admin/events/${id}/scanner`}
                 className="text-sm bg-primary-600 text-white px-3 py-1.5 rounded-md hover:bg-primary-700 transition-colors font-medium"
               >
