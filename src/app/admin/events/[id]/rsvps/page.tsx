@@ -524,7 +524,7 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
         <>
           {/* Summary cards */}
           {summary && (
-            <div className={`grid grid-cols-2 ${hasFood ? "sm:grid-cols-5" : "sm:grid-cols-2"} gap-4 mb-8`}>
+            <div className={`grid grid-cols-2 ${hasFood ? "sm:grid-cols-5" : hasEntranceFee ? "sm:grid-cols-4" : "sm:grid-cols-2"} gap-4 mb-8`}>
               <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
                 <p className="text-2xl font-bold text-primary-700">{summary.totalRsvps}</p>
                 <p className="text-xs text-gray-500 mt-1">Total RSVPs</p>
@@ -546,14 +546,22 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                     <p className="text-2xl font-bold text-green-700">{"\u20B9"}{summary.totalAmount.toFixed(2)}</p>
                     <p className="text-xs text-gray-500 mt-1">Total Amount</p>
                   </div>
-                  <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
-                    <p className="text-2xl font-bold text-green-600">
-                      {summary.paidCount}
-                      <span className="text-gray-400 text-lg"> / {summary.totalRsvps}</span>
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">Paid</p>
-                  </div>
                 </>
+              )}
+              {hasEntranceFee && !hasFood && (
+                <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
+                  <p className="text-2xl font-bold text-green-700">{"\u20B9"}{(entranceFee * summary.totalRsvps).toFixed(0)}</p>
+                  <p className="text-xs text-gray-500 mt-1">Total {entranceFeeLabel}</p>
+                </div>
+              )}
+              {(hasFood || hasEntranceFee) && (
+                <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
+                  <p className="text-2xl font-bold text-green-600">
+                    {summary.paidCount}
+                    <span className="text-gray-400 text-lg"> / {summary.totalRsvps}</span>
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">Paid</p>
+                </div>
               )}
             </div>
           )}
@@ -613,10 +621,11 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                     <th className="pb-3 pr-4 font-medium">Block / Flat</th>
                     {hasFood && <th className="pb-3 pr-4 font-medium">Items</th>}
                     {hasFood && <th className="pb-3 pr-4 font-medium">Total</th>}
+                    {hasEntranceFee && !hasFood && <th className="pb-3 pr-4 font-medium">{entranceFeeLabel}</th>}
                     {hasCustomFields && <th className="pb-3 pr-4 font-medium">Custom Fields</th>}
                     <th className="pb-3 pr-4 font-medium">Notes</th>
                     <th className="pb-3 pr-4 font-medium">Attended</th>
-                    {hasFood && <th className="pb-3 pr-4 font-medium">Paid</th>}
+                    {(hasFood || hasEntranceFee) && <th className="pb-3 pr-4 font-medium">Paid</th>}
                     <th className="pb-3 font-medium"></th>
                   </tr>
                 </thead>
@@ -662,6 +671,11 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                             {"\u20B9"}{rsvpTotal.toFixed(2)}
                           </td>
                         )}
+                        {hasEntranceFee && !hasFood && (
+                          <td className="py-3 pr-4 font-medium text-gray-800">
+                            {"\u20B9"}{entranceFee.toFixed(0)}
+                          </td>
+                        )}
                         {hasCustomFields && (
                           <td className="py-3 pr-4 text-xs">
                             {rsvp.fieldResponses.length > 0 ? (
@@ -688,7 +702,7 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                             <span className="text-gray-400 text-xs">&mdash;</span>
                           )}
                         </td>
-                        {hasFood && (
+                        {(hasFood || hasEntranceFee) && (
                           <td className="py-3 pr-4">
                             <button
                               onClick={() => togglePaid(rsvp)}
