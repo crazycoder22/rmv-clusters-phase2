@@ -376,3 +376,12 @@ model TaskComment {
 
   @@index([taskId])
 }
+
+model CalendarEvent {
+  id        String   @id @default(cuid())
+  title     String
+  date      DateTime
+  color     String   @default("#3b82f6")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
