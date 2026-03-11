@@ -49,12 +49,15 @@ export async function GET(
     );
   }
 
+  const entranceFee = announcement.eventConfig.entranceFee ?? 0;
+
   // Map resident participants
   const residentParticipants = announcement.eventConfig.rsvps.map((rsvp) => ({
     id: rsvp.id,
     name: rsvp.resident.name,
     block: rsvp.resident.block,
     flatNumber: rsvp.resident.flatNumber,
+    paid: rsvp.paid,
     fieldResponses: rsvp.fieldResponses.map((fr) => ({
       customFieldId: fr.customFieldId,
       customField: { label: fr.customField.label },
@@ -69,6 +72,7 @@ export async function GET(
     name: grsvp.name,
     block: grsvp.block,
     flatNumber: grsvp.flatNumber,
+    paid: grsvp.paid,
     fieldResponses: grsvp.fieldResponses.map((fr) => ({
       customFieldId: fr.customFieldId,
       customField: { label: fr.customField.label },
@@ -92,6 +96,8 @@ export async function GET(
     eventConfig: {
       id: announcement.eventConfig.id,
       customFields: announcement.eventConfig.customFields,
+      entranceFee,
+      entranceFeeLabel: announcement.eventConfig.entranceFeeLabel,
     },
     participants,
     totalParticipants: participants.length,

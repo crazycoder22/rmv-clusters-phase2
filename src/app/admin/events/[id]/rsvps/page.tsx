@@ -92,6 +92,9 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
   const [mealType, setMealType] = useState("");
   const [rsvpDeadline, setRsvpDeadline] = useState("");
   const [hasFood, setHasFood] = useState(false);
+  const [hasEntranceFee, setHasEntranceFee] = useState(false);
+  const [entranceFee, setEntranceFee] = useState(0);
+  const [entranceFeeLabel, setEntranceFeeLabel] = useState("Entrance Fee");
   const [hasCustomFields, setHasCustomFields] = useState(false);
   const [customFieldDefs, setCustomFieldDefs] = useState<{ id: string; label: string }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -168,6 +171,10 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
         setMealType(data.eventConfig.mealType || "");
         setRsvpDeadline(data.eventConfig.rsvpDeadline);
         setHasFood(data.eventConfig.menuItems && data.eventConfig.menuItems.length > 0);
+        const fee = data.eventConfig.entranceFee ?? 0;
+        setHasEntranceFee(fee > 0);
+        setEntranceFee(fee);
+        setEntranceFeeLabel(data.eventConfig.entranceFeeLabel || "Entrance Fee");
         setHasCustomFields(data.eventConfig.customFields && data.eventConfig.customFields.length > 0);
         setCustomFieldDefs(
           (data.eventConfig.customFields || []).map((cf: { id: string; label: string }) => ({
@@ -276,6 +283,9 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
     for (const cf of customFieldDefs) {
       headers.push(cf.label);
     }
+    if (hasEntranceFee) {
+      headers.push(entranceFeeLabel, "Paid");
+    }
     headers.push("Registered");
 
     // Build rows
@@ -290,6 +300,9 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
       for (const cf of customFieldDefs) {
         const fr = rsvp.fieldResponses.find((r) => r.customFieldId === cf.id);
         row.push(escapeCsv(fr?.value || ""));
+      }
+      if (hasEntranceFee) {
+        row.push(`${entranceFee}`, rsvp.paid ? "Yes" : "No");
       }
       row.push(
         new Date(rsvp.createdAt).toLocaleDateString("en-IN", {
