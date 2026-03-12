@@ -54,6 +54,7 @@ export default function ExpenseCalculatorPage() {
   const [showNewMonth, setShowNewMonth] = useState(false);
   const [newMonth, setNewMonth] = useState(new Date().getMonth() + 1);
   const [newYear, setNewYear] = useState(new Date().getFullYear());
+  const [cloneFromId, setCloneFromId] = useState("");
   const [creatingMonth, setCreatingMonth] = useState(false);
 
   // Add/Edit item form
@@ -149,11 +150,16 @@ export default function ExpenseCalculatorPage() {
       const res = await fetch("/api/admin/expenses", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ month: newMonth, year: newYear }),
+        body: JSON.stringify({
+          month: newMonth,
+          year: newYear,
+          cloneFromId: cloneFromId || undefined,
+        }),
       });
       if (res.ok) {
         const data = await res.json();
         setShowNewMonth(false);
+        setCloneFromId("");
         await fetchMonths();
         setSelectedMonthId(data.expenseMonth.id);
       } else {
@@ -600,7 +606,7 @@ export default function ExpenseCalculatorPage() {
 
       {/* New Month Form */}
       {showNewMonth && (
-        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6 max-w-sm">
+        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6 max-w-md">
           <h3 className="text-sm font-semibold text-gray-800 mb-3">Create New Month</h3>
           <div className="flex gap-2 mb-3">
             <select
@@ -619,16 +625,31 @@ export default function ExpenseCalculatorPage() {
               className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
           </div>
+          <div className="mb-3">
+            <label className="block text-xs font-medium text-gray-600 mb-1">Clone expenses from</label>
+            <select
+              value={cloneFromId}
+              onChange={(e) => setCloneFromId(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            >
+              <option value="">Start empty</option>
+              {months.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {MONTH_NAMES[m.month - 1]} {m.year} ({m._count.items} items)
+                </option>
+              ))}
+            </select>
+          </div>
           <div className="flex gap-2">
             <button
               onClick={handleCreateMonth}
               disabled={creatingMonth}
               className="px-4 py-2 text-sm font-medium bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
             >
-              {creatingMonth ? "Creating..." : "Create"}
+              {creatingMonth ? (cloneFromId ? "Cloning..." : "Creating...") : (cloneFromId ? "Clone & Create" : "Create")}
             </button>
             <button
-              onClick={() => setShowNewMonth(false)}
+              onClick={() => { setShowNewMonth(false); setCloneFromId(""); }}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
             >
               Cancel

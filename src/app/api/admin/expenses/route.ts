@@ -33,7 +33,7 @@ export async function POST(request: Request) {
   if ("error" in check && check.error) return check.error;
 
   const body = await request.json();
-  const { month, year, notes } = body;
+  const { month, year, notes, cloneFromId } = body;
 
   if (!month || !year || month < 1 || month > 12) {
     return NextResponse.json(
@@ -52,9 +52,35 @@ export async function POST(request: Request) {
     );
   }
 
+  // Create the new month
   const expenseMonth = await prisma.expenseMonth.create({
     data: { month, year, notes: notes?.trim() || null },
   });
+
+  // Clone items from source month if requested
+  if (cloneFromId) {
+    const sourceItems = await prisma.expenseItem.findMany({
+      where: { expenseMonthId: cloneFromId },
+      orderBy: { sortOrder: "asc" },
+    });
+
+    if (sourceItems.length > 0) {
+      await prisma.expenseItem.createMany({
+        data: sourceItems.map((item) => ({
+          expenseMonthId: expenseMonth.id,
+          description: item.description,
+          totalAmount: item.totalAmount,
+          distributionType: item.distributionType,
+          targetBlock: item.targetBlock,
+          block1Amount: item.block1Amount,
+          block2Amount: item.block2Amount,
+          block3Amount: item.block3Amount,
+          block4Amount: item.block4Amount,
+          sortOrder: item.sortOrder,
+        })),
+      });
+    }
+  }
 
   return NextResponse.json({ expenseMonth }, { status: 201 });
 }
