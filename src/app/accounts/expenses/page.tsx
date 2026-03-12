@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRole } from "@/hooks/useRole";
 import Link from "next/link";
-import { Plus, Pencil, Trash2, X, ChevronDown } from "lucide-react";
+import { Plus, Pencil, Trash2, X, ChevronDown, FileDown } from "lucide-react";
 import clsx from "clsx";
 import {
   BLOCK_PERCENTAGES,
@@ -281,6 +281,241 @@ export default function ExpenseCalculatorPage() {
     total: items.reduce((s, i) => s + i.totalAmount, 0),
   };
 
+  const getMonthLabel = () => {
+    const m = months.find((m) => m.id === selectedMonthId);
+    return m ? `${MONTH_NAMES[m.month - 1]} ${m.year}` : "";
+  };
+
+  const exportPdf = async () => {
+    if (!items.length) return;
+    const { default: jsPDF } = await import("jspdf");
+    const { default: autoTable } = await import("jspdf-autotable");
+
+    const monthLabel = getMonthLabel();
+    const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+
+    // Title
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text(`RMV Clusters — Common Expenses — ${monthLabel}`, 14, 18);
+
+    // Block info
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    const blockInfoText = BLOCK_PERCENTAGES.map(
+      (b) => `${b.label}: ${b.sqft.toLocaleString("en-IN")} sq ft (${b.percentage.toFixed(2)}%)`
+    ).join("   |   ");
+    doc.text(blockInfoText, 14, 25);
+
+    // Table
+    const head = [["#", "Description", "Type", "Total (₹)", "Block 1 (₹)", "Block 2 (₹)", "Block 3 (₹)", "Block 4 (₹)"]];
+    const body = items.map((item, i) => {
+      const isIncome = item.distributionType === "income";
+      const typeLbl = item.distributionType === "block_specific"
+        ? `B${item.targetBlock} Only`
+        : DISTRIBUTION_LABELS[item.distributionType as DistributionType] || item.distributionType;
+      const fmtAmt = (val: number) => {
+        if (val === 0) return "—";
+        return (isIncome ? "−" : "") + formatCurrency(Math.abs(val)).replace("₹", "").trim();
+      };
+      return [
+        String(i + 1),
+        item.description,
+        typeLbl,
+        fmtAmt(item.totalAmount),
+        fmtAmt(item.block1Amount),
+        fmtAmt(item.block2Amount),
+        fmtAmt(item.block3Amount),
+        fmtAmt(item.block4Amount),
+      ];
+    });
+
+    // Totals row
+    const fmtTotal = (val: number) => formatCurrency(val).replace("₹", "").trim();
+    body.push([
+      "",
+      "TOTAL",
+      "",
+      fmtTotal(summary.total),
+      fmtTotal(summary.block1),
+      fmtTotal(summary.block2),
+      fmtTotal(summary.block3),
+      fmtTotal(summary.block4),
+    ]);
+
+    autoTable(doc, {
+      head,
+      body,
+      startY: 30,
+      theme: "grid",
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [59, 130, 246], textColor: 255, fontStyle: "bold", halign: "center" },
+      columnStyles: {
+        0: { halign: "center", cellWidth: 10 },
+        1: { cellWidth: 70 },
+        2: { halign: "center", cellWidth: 22 },
+        3: { halign: "right", cellWidth: 28 },
+        4: { halign: "right", cellWidth: 28 },
+        5: { halign: "right", cellWidth: 28 },
+        6: { halign: "right", cellWidth: 28 },
+        7: { halign: "right", cellWidth: 28 },
+      },
+      didParseCell: (data) => {
+        // Style income rows in green
+        if (data.section === "body" && data.row.index < items.length) {
+          const item = items[data.row.index];
+          if (item.distributionType === "income") {
+            data.cell.styles.textColor = [21, 128, 61];
+            data.cell.styles.fontStyle = "italic";
+          }
+        }
+        // Bold totals row
+        if (data.section === "body" && data.row.index === items.length) {
+          data.cell.styles.fontStyle = "bold";
+          data.cell.styles.fillColor = [243, 244, 246];
+        }
+      },
+    });
+
+    // Summary below table
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const finalY = (doc as any).lastAutoTable?.finalY ?? 180;
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text("Per-Block Summary", 14, finalY + 10);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    const blockSummaries = [
+      `Block 1: ${formatCurrency(summary.block1)}`,
+      `Block 2: ${formatCurrency(summary.block2)}`,
+      `Block 3: ${formatCurrency(summary.block3)}`,
+      `Block 4: ${formatCurrency(summary.block4)}`,
+      `Grand Total: ${formatCurrency(summary.total)}`,
+    ];
+    blockSummaries.forEach((text, i) => {
+      doc.text(text, 14, finalY + 17 + i * 6);
+    });
+
+    const safeLabel = monthLabel.replace(/\s+/g, "_");
+    doc.save(`RMV_Expenses_${safeLabel}.pdf`);
+  };
+
+  const exportExcel = async () => {
+    if (!items.length) return;
+    const ExcelJS = await import("exceljs");
+    const workbook = new ExcelJS.Workbook();
+    const monthLabel = getMonthLabel();
+    const sheet = workbook.addWorksheet(monthLabel);
+
+    // Title row
+    sheet.mergeCells("A1:H1");
+    const titleCell = sheet.getCell("A1");
+    titleCell.value = `RMV Clusters — Common Expenses — ${monthLabel}`;
+    titleCell.font = { bold: true, size: 14 };
+    titleCell.alignment = { horizontal: "center" };
+    sheet.getRow(1).height = 28;
+
+    // Block info row
+    sheet.mergeCells("A2:H2");
+    const infoCell = sheet.getCell("A2");
+    infoCell.value = BLOCK_PERCENTAGES.map(
+      (b) => `${b.label}: ${b.sqft.toLocaleString("en-IN")} sq ft (${b.percentage.toFixed(2)}%)`
+    ).join("   |   ");
+    infoCell.font = { size: 9, color: { argb: "FF666666" } };
+    infoCell.alignment = { horizontal: "center" };
+
+    // Blank row
+    sheet.addRow([]);
+
+    // Header row
+    const headerRow = sheet.addRow(["#", "Description", "Type", "Total (₹)", "Block 1 (₹)", "Block 2 (₹)", "Block 3 (₹)", "Block 4 (₹)"]);
+    headerRow.eachCell((cell) => {
+      cell.font = { bold: true, color: { argb: "FFFFFFFF" }, size: 10 };
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF3B82F6" } };
+      cell.alignment = { horizontal: "center" };
+      cell.border = {
+        bottom: { style: "thin", color: { argb: "FF000000" } },
+      };
+    });
+    const headerRowNum = headerRow.number;
+
+    // Data rows
+    const INR_FMT = '₹#,##0;-₹#,##0;"—"';
+    items.forEach((item, i) => {
+      const typeLbl = item.distributionType === "block_specific"
+        ? `B${item.targetBlock} Only`
+        : DISTRIBUTION_LABELS[item.distributionType as DistributionType] || item.distributionType;
+
+      const row = sheet.addRow([
+        i + 1,
+        item.description,
+        typeLbl,
+        item.totalAmount,
+        item.block1Amount,
+        item.block2Amount,
+        item.block3Amount,
+        item.block4Amount,
+      ]);
+
+      // Format currency columns
+      [4, 5, 6, 7, 8].forEach((col) => {
+        const cell = row.getCell(col);
+        cell.numFmt = INR_FMT;
+        cell.alignment = { horizontal: "right" };
+      });
+
+      // Green style for income rows
+      if (item.distributionType === "income") {
+        row.eachCell((cell) => {
+          cell.font = { italic: true, color: { argb: "FF15803D" } };
+        });
+        row.getCell(2).font = { italic: true, color: { argb: "FF15803D" }, bold: true };
+      }
+    });
+
+    // Totals row with SUM formulas
+    const firstDataRow = headerRowNum + 1;
+    const lastDataRow = firstDataRow + items.length - 1;
+    const totalsRow = sheet.addRow([
+      "",
+      "TOTAL",
+      "",
+      { formula: `SUM(D${firstDataRow}:D${lastDataRow})` },
+      { formula: `SUM(E${firstDataRow}:E${lastDataRow})` },
+      { formula: `SUM(F${firstDataRow}:F${lastDataRow})` },
+      { formula: `SUM(G${firstDataRow}:G${lastDataRow})` },
+      { formula: `SUM(H${firstDataRow}:H${lastDataRow})` },
+    ]);
+    totalsRow.eachCell((cell) => {
+      cell.font = { bold: true, size: 11 };
+      cell.border = { top: { style: "double", color: { argb: "FF000000" } } };
+    });
+    [4, 5, 6, 7, 8].forEach((col) => {
+      const cell = totalsRow.getCell(col);
+      cell.numFmt = INR_FMT;
+      cell.alignment = { horizontal: "right" };
+    });
+
+    // Column widths
+    sheet.getColumn(1).width = 5;
+    sheet.getColumn(2).width = 40;
+    sheet.getColumn(3).width = 14;
+    [4, 5, 6, 7, 8].forEach((col) => {
+      sheet.getColumn(col).width = 16;
+    });
+
+    // Generate and download
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const safeLabel = monthLabel.replace(/\s+/g, "_");
+    link.download = `RMV_Expenses_${safeLabel}.xlsx`;
+    link.href = url;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   if (roleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -413,23 +648,42 @@ export default function ExpenseCalculatorPage() {
           {/* Action bar */}
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-800">
-              {(() => {
-                const m = months.find((m) => m.id === selectedMonthId);
-                return m ? `${MONTH_NAMES[m.month - 1]} ${m.year}` : "";
-              })()}
+              {getMonthLabel()}
             </h2>
-            {!showForm && (
-              <button
-                onClick={() => {
-                  resetForm();
-                  setShowForm(true);
-                }}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-              >
-                <Plus size={16} />
-                Add Expense
-              </button>
-            )}
+            <div className="flex items-center gap-2">
+              {items.length > 0 && (
+                <>
+                  <button
+                    onClick={exportPdf}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    title="Export as PDF"
+                  >
+                    <FileDown size={16} />
+                    PDF
+                  </button>
+                  <button
+                    onClick={exportExcel}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    title="Export as Excel"
+                  >
+                    <FileDown size={16} />
+                    Excel
+                  </button>
+                </>
+              )}
+              {!showForm && (
+                <button
+                  onClick={() => {
+                    resetForm();
+                    setShowForm(true);
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                >
+                  <Plus size={16} />
+                  Add Expense
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Add/Edit Form */}
