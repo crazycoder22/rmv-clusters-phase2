@@ -1,8 +1,8 @@
 export const BLOCKS = [
-  { block: 1, sqft: 80403, label: "Block 1" },
-  { block: 2, sqft: 85322, label: "Block 2" },
-  { block: 3, sqft: 83126, label: "Block 3" },
-  { block: 4, sqft: 86236, label: "Block 4" },
+  { block: 1, sqft: 80403, label: "Block 1", percentage: 24.00 },
+  { block: 2, sqft: 85322, label: "Block 2", percentage: 25.46 },
+  { block: 3, sqft: 83126, label: "Block 3", percentage: 24.81 },
+  { block: 4, sqft: 86236, label: "Block 4", percentage: 25.73 },
 ] as const;
 
 export const TOTAL_SQFT = BLOCKS.reduce((sum, b) => sum + b.sqft, 0);
@@ -11,7 +11,7 @@ export const BLOCK_PERCENTAGES = BLOCKS.map((b) => ({
   block: b.block,
   label: b.label,
   sqft: b.sqft,
-  percentage: (b.sqft / TOTAL_SQFT) * 100,
+  percentage: b.percentage,
 }));
 
 export type DistributionType = "percentage" | "block_specific" | "custom" | "income";
@@ -37,10 +37,10 @@ export function calculateBlockAmounts(
   switch (distributionType) {
     case "percentage":
       return {
-        block1Amount: Math.round((totalAmount * BLOCKS[0].sqft) / TOTAL_SQFT),
-        block2Amount: Math.round((totalAmount * BLOCKS[1].sqft) / TOTAL_SQFT),
-        block3Amount: Math.round((totalAmount * BLOCKS[2].sqft) / TOTAL_SQFT),
-        block4Amount: Math.round((totalAmount * BLOCKS[3].sqft) / TOTAL_SQFT),
+        block1Amount: Math.round((totalAmount * BLOCKS[0].percentage) / 100),
+        block2Amount: Math.round((totalAmount * BLOCKS[1].percentage) / 100),
+        block3Amount: Math.round((totalAmount * BLOCKS[2].percentage) / 100),
+        block4Amount: Math.round((totalAmount * BLOCKS[3].percentage) / 100),
       };
     case "income":
       // Income supports custom per-block amounts (e.g., some blocks get 0)
@@ -53,10 +53,10 @@ export function calculateBlockAmounts(
         };
       }
       return {
-        block1Amount: Math.round((totalAmount * BLOCKS[0].sqft) / TOTAL_SQFT),
-        block2Amount: Math.round((totalAmount * BLOCKS[1].sqft) / TOTAL_SQFT),
-        block3Amount: Math.round((totalAmount * BLOCKS[2].sqft) / TOTAL_SQFT),
-        block4Amount: Math.round((totalAmount * BLOCKS[3].sqft) / TOTAL_SQFT),
+        block1Amount: Math.round((totalAmount * BLOCKS[0].percentage) / 100),
+        block2Amount: Math.round((totalAmount * BLOCKS[1].percentage) / 100),
+        block3Amount: Math.round((totalAmount * BLOCKS[2].percentage) / 100),
+        block4Amount: Math.round((totalAmount * BLOCKS[3].percentage) / 100),
       };
     case "block_specific":
       return {
