@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, use } from "react";
 import { useRole } from "@/hooks/useRole";
 import Link from "next/link";
 import clsx from "clsx";
+import { X, Minus, Plus } from "lucide-react";
 import type { MenuItemType, CustomFieldType, EventFeedbackType } from "@/types";
 
 interface FieldResponseData {
@@ -100,6 +101,20 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
   const [loading, setLoading] = useState(true);
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [menuItems, setMenuItems] = useState<MenuItemType[]>([]);
+  const [fullCustomFields, setFullCustomFields] = useState<CustomFieldType[]>([]);
+  const [editingRsvp, setEditingRsvp] = useState<UnifiedRsvp | null>(null);
+  const [editForm, setEditForm] = useState<{
+    name: string;
+    email: string;
+    phone: string;
+    block: number;
+    flatNumber: string;
+    items: Record<string, number>;
+    fieldResponses: Record<string, string>;
+    notes: string;
+  }>({ name: "", email: "", phone: "", block: 1, flatNumber: "", items: {}, fieldResponses: {}, notes: "" });
+  const [editSaving, setEditSaving] = useState(false);
   const [enableFeedback, setEnableFeedback] = useState(false);
   const [feedbackStyle, setFeedbackStyle] = useState<"stars" | "emoji">("stars");
   const [activeTab, setActiveTab] = useState<"rsvps" | "feedback">("rsvps");
@@ -182,6 +197,8 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
             label: cf.label,
           }))
         );
+        setMenuItems(data.eventConfig.menuItems || []);
+        setFullCustomFields(data.eventConfig.customFields || []);
         setEnableFeedback(data.eventConfig.enableFeedback ?? false);
         setFeedbackStyle(data.eventConfig.feedbackStyle ?? "stars");
       }
@@ -265,6 +282,119 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
       // silently fail
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const openEdit = (rsvp: UnifiedRsvp) => {
+    const itemsMap: Record<string, number> = {};
+    for (const item of rsvp.items) {
+      itemsMap[item.menuItemId] = item.plates;
+    }
+    const frMap: Record<string, string> = {};
+    for (const fr of rsvp.fieldResponses) {
+      frMap[fr.customFieldId] = fr.value;
+    }
+    setEditForm({
+      name: rsvp.name,
+      email: rsvp.email,
+      phone: rsvp.phone || "",
+      block: rsvp.block,
+      flatNumber: rsvp.flatNumber,
+      items: itemsMap,
+      fieldResponses: frMap,
+      notes: rsvp.notes || "",
+    });
+    setEditingRsvp(rsvp);
+  };
+
+  const saveEdit = async () => {
+    if (!editingRsvp) return;
+    setEditSaving(true);
+    try {
+      const url = editingRsvp.isGuest
+        ? `/api/admin/events/${id}/rsvps/guest/${editingRsvp.id}`
+        : `/api/admin/events/${id}/rsvps/${editingRsvp.id}`;
+
+      const body: Record<string, unknown> = {
+        notes: editForm.notes || null,
+      };
+
+      if (editingRsvp.isGuest) {
+        body.name = editForm.name;
+        body.email = editForm.email;
+        body.phone = editForm.phone;
+        body.block = editForm.block;
+        body.flatNumber = editForm.flatNumber;
+      }
+
+      if (hasFood) {
+        body.items = Object.entries(editForm.items)
+          .filter(([, plates]) => plates > 0)
+          .map(([menuItemId, plates]) => ({ menuItemId, plates }));
+      }
+
+      if (hasCustomFields) {
+        body.fieldResponses = Object.entries(editForm.fieldResponses)
+          .filter(([, value]) => value)
+          .map(([customFieldId, value]) => ({ customFieldId, value }));
+      }
+
+      const res = await fetch(url, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const updated = data.rsvp || data.guestRsvp;
+        if (updated) {
+          setAllRsvps((prev) =>
+            prev.map((r) => {
+              if (r.id !== editingRsvp.id) return r;
+              const newItems: RsvpItemData[] = updated.items || [];
+              const newFieldResponses: FieldResponseData[] = (updated.fieldResponses || []).map(
+                (fr: { customFieldId: string; customField: { label: string }; value: string }) => ({
+                  customFieldId: fr.customFieldId,
+                  customField: { label: fr.customField.label },
+                  value: fr.value,
+                })
+              );
+              return {
+                ...r,
+                name: editingRsvp.isGuest ? editForm.name : r.name,
+                email: editingRsvp.isGuest ? editForm.email : r.email,
+                phone: editingRsvp.isGuest ? editForm.phone : r.phone,
+                block: editingRsvp.isGuest ? editForm.block : r.block,
+                flatNumber: editingRsvp.isGuest ? editForm.flatNumber : r.flatNumber,
+                items: newItems,
+                fieldResponses: newFieldResponses,
+                notes: editForm.notes || null,
+              };
+            })
+          );
+          // Update summary for food item changes
+          if (hasFood && summary) {
+            const oldPlates = editingRsvp.items.reduce((s, i) => s + i.plates, 0);
+            const oldAmount = editingRsvp.items.reduce((s, i) => s + i.plates * i.menuItem.pricePerPlate, 0);
+            const newPlates = (updated.items || []).reduce((s: number, i: RsvpItemData) => s + i.plates, 0);
+            const newAmount = (updated.items || []).reduce(
+              (s: number, i: RsvpItemData) => s + i.plates * i.menuItem.pricePerPlate,
+              0
+            );
+            setSummary({
+              ...summary,
+              totalPlates: summary.totalPlates - oldPlates + newPlates,
+              totalAmount: summary.totalAmount - oldAmount + newAmount,
+            });
+          }
+        }
+        setEditingRsvp(null);
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setEditSaving(false);
     }
   };
 
@@ -725,13 +855,21 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                           </td>
                         )}
                         <td className="py-3">
-                          <button
-                            onClick={() => deleteRsvp(rsvp)}
-                            disabled={deletingId === rsvp.id}
-                            className="text-xs text-red-500 hover:text-red-700 disabled:opacity-50 transition-colors"
-                          >
-                            {deletingId === rsvp.id ? "Deleting..." : "Delete"}
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => openEdit(rsvp)}
+                              className="text-xs text-primary-600 hover:text-primary-700 transition-colors font-medium"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => deleteRsvp(rsvp)}
+                              disabled={deletingId === rsvp.id}
+                              className="text-xs text-red-500 hover:text-red-700 disabled:opacity-50 transition-colors"
+                            >
+                              {deletingId === rsvp.id ? "Deleting..." : "Delete"}
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -742,6 +880,254 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
           )}
         </>
       ) : null}
+
+      {/* Edit RSVP Modal */}
+      {editingRsvp && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40"
+          onClick={() => !editSaving && setEditingRsvp(null)}
+        >
+          <div
+            className="bg-white w-full sm:max-w-lg sm:rounded-xl rounded-t-xl max-h-[85vh] overflow-y-auto shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-5 py-4 flex items-center justify-between rounded-t-xl z-10">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">Edit RSVP</h2>
+                <p className="text-xs text-gray-500">
+                  {editingRsvp.isGuest ? "Guest" : "Resident"} &mdash; {editingRsvp.name}
+                </p>
+              </div>
+              <button
+                onClick={() => setEditingRsvp(null)}
+                disabled={editSaving}
+                className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <X size={18} className="text-gray-500" />
+              </button>
+            </div>
+
+            <div className="px-5 py-4 space-y-4">
+              {/* Guest-only fields */}
+              {editingRsvp.isGuest ? (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <input
+                      type="text"
+                      value={editForm.name}
+                      onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                      <input
+                        type="email"
+                        value={editForm.email}
+                        onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                      <input
+                        type="text"
+                        value={editForm.phone}
+                        onChange={(e) => setEditForm((f) => ({ ...f, phone: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Block</label>
+                      <select
+                        value={editForm.block}
+                        onChange={(e) => setEditForm((f) => ({ ...f, block: Number(e.target.value) }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      >
+                        {[1, 2, 3, 4].map((b) => (
+                          <option key={b} value={b}>Block {b}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Flat Number</label>
+                      <input
+                        type="text"
+                        value={editForm.flatNumber}
+                        onChange={(e) => setEditForm((f) => ({ ...f, flatNumber: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <p className="text-sm text-gray-500">
+                    <span className="font-medium text-gray-700">{editingRsvp.name}</span>
+                    {" "}&mdash;{" "}B{editingRsvp.block} - {editingRsvp.flatNumber}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">Profile details are managed by the resident</p>
+                </div>
+              )}
+
+              {/* Food Items */}
+              {hasFood && menuItems.length > 0 && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Food Items</label>
+                  <div className="space-y-2">
+                    {menuItems.map((mi) => {
+                      const plates = editForm.items[mi.id] || 0;
+                      return (
+                        <div key={mi.id} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2">
+                          <div>
+                            <p className="text-sm font-medium text-gray-800">{mi.name}</p>
+                            <p className="text-xs text-gray-500">{"\u20B9"}{mi.pricePerPlate} per plate</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setEditForm((f) => ({
+                                  ...f,
+                                  items: { ...f.items, [mi.id]: Math.max(0, plates - 1) },
+                                }))
+                              }
+                              disabled={plates === 0}
+                              className="p-1 rounded-md border border-gray-300 hover:bg-gray-200 disabled:opacity-30 transition-colors"
+                            >
+                              <Minus size={14} />
+                            </button>
+                            <span className="w-8 text-center text-sm font-medium">{plates}</span>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setEditForm((f) => ({
+                                  ...f,
+                                  items: { ...f.items, [mi.id]: plates + 1 },
+                                }))
+                              }
+                              className="p-1 rounded-md border border-gray-300 hover:bg-gray-200 transition-colors"
+                            >
+                              <Plus size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {/* Total */}
+                    {(() => {
+                      const totalAmt = menuItems.reduce(
+                        (sum, mi) => sum + (editForm.items[mi.id] || 0) * mi.pricePerPlate,
+                        0
+                      );
+                      const totalPl = Object.values(editForm.items).reduce((s, p) => s + p, 0);
+                      return totalPl > 0 ? (
+                        <div className="flex justify-between text-sm font-semibold text-gray-800 pt-1 border-t border-gray-200">
+                          <span>Total ({totalPl} plate{totalPl !== 1 ? "s" : ""})</span>
+                          <span>{"\u20B9"}{totalAmt.toFixed(2)}</span>
+                        </div>
+                      ) : null;
+                    })()}
+                  </div>
+                </div>
+              )}
+
+              {/* Custom Fields */}
+              {hasCustomFields && fullCustomFields.length > 0 && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Custom Fields</label>
+                  <div className="space-y-3">
+                    {fullCustomFields.map((cf) => {
+                      const value = editForm.fieldResponses[cf.id] || "";
+                      if (cf.fieldType === "select" && cf.options) {
+                        let opts: string[] = [];
+                        try {
+                          opts = JSON.parse(cf.options);
+                        } catch {
+                          /* ignore */
+                        }
+                        return (
+                          <div key={cf.id}>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">{cf.label}</label>
+                            <select
+                              value={value}
+                              onChange={(e) =>
+                                setEditForm((f) => ({
+                                  ...f,
+                                  fieldResponses: { ...f.fieldResponses, [cf.id]: e.target.value },
+                                }))
+                              }
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                            >
+                              <option value="">Select...</option>
+                              {opts.map((opt) => (
+                                <option key={opt} value={opt}>
+                                  {opt}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        );
+                      }
+                      return (
+                        <div key={cf.id}>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">{cf.label}</label>
+                          <input
+                            type="text"
+                            value={value}
+                            onChange={(e) =>
+                              setEditForm((f) => ({
+                                ...f,
+                                fieldResponses: { ...f.fieldResponses, [cf.id]: e.target.value },
+                              }))
+                            }
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Notes */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <textarea
+                  value={editForm.notes}
+                  onChange={(e) => setEditForm((f) => ({ ...f, notes: e.target.value }))}
+                  rows={2}
+                  placeholder="Dietary restrictions, special requests..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                />
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="sticky bottom-0 bg-white border-t border-gray-200 px-5 py-4 flex items-center justify-end gap-3">
+              <button
+                onClick={() => setEditingRsvp(null)}
+                disabled={editSaving}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveEdit}
+                disabled={editSaving}
+                className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
+              >
+                {editSaving ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
