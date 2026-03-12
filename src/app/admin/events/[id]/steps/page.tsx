@@ -5,6 +5,14 @@ import { useRole } from "@/hooks/useRole";
 import Link from "next/link";
 import { ArrowLeft, ChevronLeft, ChevronRight, Check, X, Mail } from "lucide-react";
 
+function parseGoal(value: string): number {
+  if (!value) return 0;
+  const cleaned = value.trim().toUpperCase();
+  const match = cleaned.match(/^(\d+(?:\.\d+)?)\s*K$/);
+  if (match) return Math.round(parseFloat(match[1]) * 1000);
+  return parseInt(cleaned) || 0;
+}
+
 interface StepParticipant {
   rsvpId: string | null;
   guestRsvpId: string | null;
@@ -241,7 +249,7 @@ export default function AdminStepsPage({
                   const key = getKey(p);
                   const val = stepValues[key] || "";
                   const stepsNum = parseInt(val) || 0;
-                  const goalNum = parseInt(p.dailyGoal) || 0;
+                  const goalNum = parseGoal(p.dailyGoal);
                   const metGoal = stepsNum > 0 && goalNum > 0 && stepsNum >= goalNum;
                   const isChanged = val !== (savedValues[key] || "");
                   return (
@@ -268,9 +276,7 @@ export default function AdminStepsPage({
                         B{p.block} - {p.flatNumber}
                       </td>
                       <td className="py-2 px-4 text-gray-600">
-                        {p.dailyGoal
-                          ? Number(p.dailyGoal).toLocaleString("en-IN")
-                          : "\u2014"}
+                        {p.dailyGoal || "\u2014"}
                       </td>
                       <td className="py-2 px-4">
                         <input

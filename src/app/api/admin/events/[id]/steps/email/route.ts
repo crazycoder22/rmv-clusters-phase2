@@ -5,6 +5,14 @@ import { canManageAnnouncements } from "@/lib/roles";
 import { getResend, EMAIL_FROM, renderStepStatsEmailHtml } from "@/lib/email";
 import { generateStepChartPng } from "@/lib/step-chart";
 
+function parseGoal(value: string): number {
+  if (!value) return 0;
+  const cleaned = value.trim().toUpperCase();
+  const match = cleaned.match(/^(\d+(?:\.\d+)?)\s*K$/);
+  if (match) return Math.round(parseFloat(match[1]) * 1000);
+  return parseInt(cleaned) || 0;
+}
+
 async function requireAdmin() {
   const session = await auth();
   if (!session?.user?.email) {
@@ -136,7 +144,7 @@ export async function POST(
     const goalResponse = goalField
       ? rsvp.fieldResponses.find((fr) => fr.customFieldId === goalField.id)
       : undefined;
-    const dailyGoal = parseInt(goalResponse?.value || "0") || 0;
+    const dailyGoal = parseGoal(goalResponse?.value || "0");
     const dailySteps = stepsByParticipant.get(`r-${rsvp.id}`) || [];
     const totalSteps = dailySteps.reduce((sum, d) => sum + d.steps, 0);
 
@@ -168,7 +176,7 @@ export async function POST(
     const goalResponse = goalField
       ? grsvp.fieldResponses.find((fr) => fr.customFieldId === goalField.id)
       : undefined;
-    const dailyGoal = parseInt(goalResponse?.value || "0") || 0;
+    const dailyGoal = parseGoal(goalResponse?.value || "0");
     const dailySteps = stepsByParticipant.get(`g-${grsvp.id}`) || [];
     const totalSteps = dailySteps.reduce((sum, d) => sum + d.steps, 0);
 
