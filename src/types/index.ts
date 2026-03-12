@@ -283,3 +283,50 @@ export interface FAQData {
   categories: string[];
   items: FAQItem[];
 }
+
+// Newsletter types
+export type NewsletterSectionType = "news" | "article" | "ad" | "events";
+
+export interface NewsletterSectionData {
+  id: string;
+  newsletterId: string;
+  type: NewsletterSectionType;
+  title: string;
+  contentHtml: string;
+  authorName: string | null;
+  authorBlock: number | null;
+  authorFlat: string | null;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NewsletterData {
+  id: string;
+  title: string;
+  edition: string | null;
+  coverHtml: string | null;
+  status: "draft" | "published";
+  publishedAt: string | null;
+  sections: NewsletterSectionData[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NewsletterSubmissionData {
+  id: string;
+  title: string;
+  contentHtml: string;
+  residentId: string;
+  resident: {
+    id: string;
+    name: string;
+    email: string;
+    block: number;
+    flatNumber: string;
+  };
+  status: "pending" | "approved" | "rejected";
+  adminNotes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}

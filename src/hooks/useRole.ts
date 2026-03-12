@@ -14,6 +14,7 @@ import {
   canManageResidents as canManageResidentsFn,
   canManageVisitors as canManageVisitorsFn,
   canAccessTasks as canAccessTasksFn,
+  canManageNewsletters as canManageNewslettersFn,
 } from "@/lib/roles";
 
 export function useRole() {
@@ -37,5 +38,6 @@ export function useRole() {
     canManageResidents: useCallback(() => canManageResidentsFn(roles), [roles]),
     canManageVisitors: useCallback(() => canManageVisitorsFn(roles), [roles]),
     canAccessTasks: useCallback(() => canAccessTasksFn(roles), [roles]),
+    canManageNewsletters: useCallback(() => canManageNewslettersFn(roles), [roles]),
   };
 }

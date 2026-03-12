@@ -10,7 +10,7 @@ import SignInButton from "@/components/auth/SignInButton";
 import UserMenu from "@/components/auth/UserMenu";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import { useRegistrationGuard } from "@/hooks/useRegistrationGuard";
-import { canManageAnnouncements, canManageResidents, canManageVisitors, canAccessTasks } from "@/lib/roles";
+import { canManageAnnouncements, canManageResidents, canManageVisitors, canAccessTasks, canManageNewsletters } from "@/lib/roles";
 
 const publicPaths = ["/", "/contact"];
 
@@ -21,6 +21,7 @@ const navLinks = [
   { href: "/gallery", label: "Gallery" },
   { href: "/faq", label: "FAQ" },
   { href: "/calendar", label: "Calendar" },
+  { href: "/newsletters", label: "Newsletters" },
   { href: "/issues", label: "Issues" },
   { href: "/contact", label: "Contact" },
 ];
@@ -114,6 +115,19 @@ export default function Navbar() {
                 )}
               >
                 Accounts
+              </Link>
+            )}
+            {canManageNewsletters(roles) && (
+              <Link
+                href="/admin/newsletters"
+                className={clsx(
+                  "px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                  pathname.startsWith("/admin/newsletters")
+                    ? "bg-primary-50 text-primary-700"
+                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50"
+                )}
+              >
+                Admin Newsletters
               </Link>
             )}
             {canManageVisitors(roles) && (
@@ -232,6 +246,20 @@ export default function Navbar() {
                 )}
               >
                 Accounts
+              </Link>
+            )}
+            {canManageNewsletters(roles) && (
+              <Link
+                href="/admin/newsletters"
+                onClick={() => setMobileOpen(false)}
+                className={clsx(
+                  "block px-3 py-2 rounded-md text-base font-medium transition-colors",
+                  pathname.startsWith("/admin/newsletters")
+                    ? "bg-primary-50 text-primary-700"
+                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50"
+                )}
+              >
+                Admin Newsletters
               </Link>
             )}
             {canManageVisitors(roles) && (

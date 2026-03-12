@@ -94,6 +94,13 @@ export function canManageAnnouncements(
   return isAdmin(roles) || isEventManager(roles);
 }
 
+/** Check if user can manage newsletters (same as announcements) */
+export function canManageNewsletters(
+  roles: UserRole[] | string[] | null | undefined
+): boolean {
+  return canManageAnnouncements(roles);
+}
+
 /** Check if user can manage residents (approve, add) */
 export function canManageResidents(
   roles: UserRole[] | string[] | null | undefined
