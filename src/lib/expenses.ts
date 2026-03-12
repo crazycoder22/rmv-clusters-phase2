@@ -36,7 +36,22 @@ export function calculateBlockAmounts(
 } {
   switch (distributionType) {
     case "percentage":
+      return {
+        block1Amount: Math.round((totalAmount * BLOCKS[0].sqft) / TOTAL_SQFT),
+        block2Amount: Math.round((totalAmount * BLOCKS[1].sqft) / TOTAL_SQFT),
+        block3Amount: Math.round((totalAmount * BLOCKS[2].sqft) / TOTAL_SQFT),
+        block4Amount: Math.round((totalAmount * BLOCKS[3].sqft) / TOTAL_SQFT),
+      };
     case "income":
+      // Income supports custom per-block amounts (e.g., some blocks get 0)
+      if (customAmounts && (customAmounts.block1 || customAmounts.block2 || customAmounts.block3 || customAmounts.block4)) {
+        return {
+          block1Amount: -(Math.abs(customAmounts.block1)),
+          block2Amount: -(Math.abs(customAmounts.block2)),
+          block3Amount: -(Math.abs(customAmounts.block3)),
+          block4Amount: -(Math.abs(customAmounts.block4)),
+        };
+      }
       return {
         block1Amount: Math.round((totalAmount * BLOCKS[0].sqft) / TOTAL_SQFT),
         block2Amount: Math.round((totalAmount * BLOCKS[1].sqft) / TOTAL_SQFT),

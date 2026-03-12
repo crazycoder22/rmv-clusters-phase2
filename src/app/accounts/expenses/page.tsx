@@ -128,12 +128,12 @@ export default function ExpenseCalculatorPage() {
     setFormAmount(String(item.totalAmount));
     setFormDistType(item.distributionType as DistributionType);
     setFormTargetBlock(String(item.targetBlock || 1));
-    if (item.distributionType === "custom") {
+    if (item.distributionType === "custom" || item.distributionType === "income") {
       setFormCustom({
-        block1: String(item.block1Amount),
-        block2: String(item.block2Amount),
-        block3: String(item.block3Amount),
-        block4: String(item.block4Amount),
+        block1: String(Math.abs(item.block1Amount)),
+        block2: String(Math.abs(item.block2Amount)),
+        block3: String(Math.abs(item.block3Amount)),
+        block4: String(Math.abs(item.block4Amount)),
       });
     } else {
       setFormCustom({ block1: "", block2: "", block3: "", block4: "" });
@@ -204,7 +204,7 @@ export default function ExpenseCalculatorPage() {
       totalAmount: formDistType === "income" ? -Math.abs(totalAmount) : totalAmount,
       distributionType: formDistType,
       targetBlock: formDistType === "block_specific" ? parseInt(formTargetBlock) : null,
-      customAmounts: formDistType === "custom" ? {
+      customAmounts: (formDistType === "custom" || formDistType === "income") ? {
         block1: parseFloat(formCustom.block1 || "0"),
         block2: parseFloat(formCustom.block2 || "0"),
         block3: parseFloat(formCustom.block3 || "0"),
@@ -767,10 +767,17 @@ export default function ExpenseCalculatorPage() {
                   </div>
                 )}
 
-                {/* Custom split inputs */}
-                {formDistType === "custom" && (
+                {/* Custom split inputs — shown for both "custom" and "income" types */}
+                {(formDistType === "custom" || formDistType === "income") && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Per-Block Amounts (₹)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Per-Block Amounts (₹)
+                    </label>
+                    {formDistType === "income" && (
+                      <p className="text-xs text-gray-400 mb-2">
+                        Enter amount per block. Set to 0 for blocks that don&apos;t receive this income.
+                      </p>
+                    )}
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                       {(["block1", "block2", "block3", "block4"] as const).map((key, i) => (
                         <div key={key}>
