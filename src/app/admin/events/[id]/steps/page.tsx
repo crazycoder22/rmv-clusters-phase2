@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, use } from "react";
 import { useRole } from "@/hooks/useRole";
 import Link from "next/link";
-import { ArrowLeft, ChevronLeft, ChevronRight, Check, X } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Check, X, Mail } from "lucide-react";
 
 interface StepParticipant {
   rsvpId: string | null;
@@ -34,6 +34,10 @@ export default function AdminStepsPage({
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"" | "saved" | "error">("");
+  const [emailing, setEmailing] = useState(false);
+  const [emailStatus, setEmailStatus] = useState<{ sent: number; failed: number; skipped: number; total: number } | null>(null);
+  const [showEmailConfirm, setShowEmailConfirm] = useState(false);
+  const [emailTarget, setEmailTarget] = useState<string | null>(null);
 
   const getKey = (p: StepParticipant) =>
     p.rsvpId ? `r-${p.rsvpId}` : `g-${p.guestRsvpId}`;
@@ -101,6 +105,34 @@ export default function AdminStepsPage({
       setSaveStatus("error");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleEmailStats = async (participantKey?: string) => {
+    setEmailing(true);
+    setEmailStatus(null);
+    try {
+      const body: { participantIds?: string[] } = {};
+      if (participantKey) body.participantIds = [participantKey];
+      const res = await fetch(`/api/admin/events/${id}/steps/email`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setEmailStatus(data);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setEmailStatus({ sent: 0, failed: 1, skipped: 0, total: 1 });
+        if (data.error) console.error("Email error:", data.error);
+      }
+    } catch {
+      setEmailStatus({ sent: 0, failed: 1, skipped: 0, total: 1 });
+    } finally {
+      setEmailing(false);
+      setShowEmailConfirm(false);
+      setEmailTarget(null);
     }
   };
 
@@ -201,6 +233,7 @@ export default function AdminStepsPage({
                   <th className="py-3 px-4 font-medium w-16 text-center">
                     Met
                   </th>
+                  <th className="py-3 px-2 font-medium w-10"></th>
                 </tr>
               </thead>
               <tbody>
@@ -273,6 +306,19 @@ export default function AdminStepsPage({
                           <span className="text-gray-300">&mdash;</span>
                         )}
                       </td>
+                      <td className="py-2 px-2">
+                        <button
+                          onClick={() => {
+                            setEmailTarget(key);
+                            setShowEmailConfirm(true);
+                          }}
+                          disabled={emailing}
+                          className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-primary-600 transition-colors disabled:opacity-50"
+                          title={`Email stats to ${p.name}`}
+                        >
+                          <Mail size={14} />
+                        </button>
+                      </td>
                     </tr>
                   );
                 })}
@@ -280,7 +326,7 @@ export default function AdminStepsPage({
             </table>
           </div>
 
-          {/* Save button */}
+          {/* Action buttons */}
           <div className="sticky bottom-4 mt-4 flex items-center justify-end gap-3">
             {saveStatus === "saved" && (
               <span className="text-sm text-green-600 font-medium">
@@ -292,6 +338,28 @@ export default function AdminStepsPage({
                 Failed to save
               </span>
             )}
+            {emailStatus && (
+              <span
+                className={`text-sm font-medium ${
+                  emailStatus.failed > 0 ? "text-amber-600" : "text-green-600"
+                }`}
+              >
+                Emails sent: {emailStatus.sent}/{emailStatus.total}
+                {emailStatus.failed > 0 && ` (${emailStatus.failed} failed)`}
+                {emailStatus.skipped > 0 && ` (${emailStatus.skipped} skipped)`}
+              </span>
+            )}
+            <button
+              onClick={() => {
+                setEmailTarget(null);
+                setShowEmailConfirm(true);
+              }}
+              disabled={emailing || participants.length === 0}
+              className="px-4 py-2.5 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors text-sm shadow-lg flex items-center gap-2"
+            >
+              <Mail size={16} />
+              {emailing ? "Sending..." : "Email Stats"}
+            </button>
             <button
               onClick={handleSave}
               disabled={saving || !hasChanges}
@@ -301,6 +369,69 @@ export default function AdminStepsPage({
             </button>
           </div>
         </>
+      )}
+
+      {/* Email confirmation modal */}
+      {showEmailConfirm && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          onClick={() => !emailing && setShowEmailConfirm(false)}
+        >
+          <div
+            className="bg-white rounded-xl p-6 max-w-sm w-full mx-4 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <div className="bg-blue-100 rounded-full p-2">
+                <Mail size={20} className="text-blue-600" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900">
+                Email Step Stats
+              </h3>
+            </div>
+            <p className="text-sm text-gray-600 mb-1">
+              {emailTarget
+                ? `Send step statistics email to:`
+                : `Send step statistics email to all participants with step data.`}
+            </p>
+            {emailTarget && (
+              <p className="text-sm font-medium text-gray-900 mb-1">
+                {participants.find((p) => getKey(p) === emailTarget)?.name}
+              </p>
+            )}
+            <p className="text-xs text-gray-500 mb-5">
+              Each email includes their rank, stats summary, and a daily progress chart.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => {
+                  setShowEmailConfirm(false);
+                  setEmailTarget(null);
+                }}
+                disabled={emailing}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() =>
+                  handleEmailStats(emailTarget || undefined)
+                }
+                disabled={emailing}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+              >
+                {emailing ? (
+                  <>
+                    <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+                    Sending...
+                  </>
+                ) : (
+                  "Send Email"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
