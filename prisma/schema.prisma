@@ -408,3 +408,35 @@ model StepEntry {
   @@unique([guestRsvpId, date])
   @@index([eventConfigId, date])
 }
+
+model ExpenseMonth {
+  id        String        @id @default(cuid())
+  month     Int           // 1-12
+  year      Int           // e.g., 2026
+  notes     String?
+  items     ExpenseItem[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@unique([month, year])
+  @@index([year, month])
+}
+
+model ExpenseItem {
+  id               String       @id @default(cuid())
+  expenseMonthId   String
+  expenseMonth     ExpenseMonth @relation(fields: [expenseMonthId], references: [id], onDelete: Cascade)
+  description      String
+  totalAmount      Float
+  distributionType String       // "percentage" | "block_specific" | "custom" | "income"
+  targetBlock      Int?         // For block_specific: which block (1-4)
+  block1Amount     Float        @default(0)
+  block2Amount     Float        @default(0)
+  block3Amount     Float        @default(0)
+  block4Amount     Float        @default(0)
+  sortOrder        Int          @default(0)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  @@index([expenseMonthId])
+}

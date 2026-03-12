@@ -103,6 +103,19 @@ export default function Navbar() {
                 Admin Calendar
               </Link>
             )}
+            {canManageAnnouncements(roles) && (
+              <Link
+                href="/accounts/expenses"
+                className={clsx(
+                  "px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                  pathname.startsWith("/accounts")
+                    ? "bg-primary-50 text-primary-700"
+                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50"
+                )}
+              >
+                Accounts
+              </Link>
+            )}
             {canManageVisitors(roles) && (
               <Link
                 href="/visitors"
@@ -205,6 +218,20 @@ export default function Navbar() {
                 )}
               >
                 Admin Calendar
+              </Link>
+            )}
+            {canManageAnnouncements(roles) && (
+              <Link
+                href="/accounts/expenses"
+                onClick={() => setMobileOpen(false)}
+                className={clsx(
+                  "block px-3 py-2 rounded-md text-base font-medium transition-colors",
+                  pathname.startsWith("/accounts")
+                    ? "bg-primary-50 text-primary-700"
+                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50"
+                )}
+              >
+                Accounts
               </Link>
             )}
             {canManageVisitors(roles) && (
