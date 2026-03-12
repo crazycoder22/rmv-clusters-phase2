@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { ArrowLeft, Plus, Pencil, Trash2, Calendar } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, Calendar, Image } from "lucide-react";
 import { canManageAnnouncements } from "@/lib/roles";
 
 interface CalendarEventItem {
@@ -177,6 +177,13 @@ export default function AdminCalendarPage() {
           >
             <Calendar size={16} />
             View Calendar
+          </Link>
+          <Link
+            href="/admin/calendar/poster"
+            className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors text-sm"
+          >
+            <Image size={16} />
+            Generate Poster
           </Link>
           {!showForm && (
             <button
