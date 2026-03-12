@@ -23,6 +23,32 @@ export const DISTRIBUTION_LABELS: Record<DistributionType, string> = {
   income: "Income / Deduction",
 };
 
+/**
+ * Split totalAmount across 4 blocks using the largest remainder method.
+ * This ensures block amounts always sum exactly to totalAmount.
+ *
+ * 1. Compute raw (unrounded) share for each block
+ * 2. Floor all shares
+ * 3. Distribute the leftover (total − sum of floors) one rupee at a time
+ *    to blocks with the largest fractional remainders
+ */
+function splitByPercentage(totalAmount: number): [number, number, number, number] {
+  const raw = BLOCKS.map((b) => (totalAmount * b.percentage) / 100);
+  const floored = raw.map((v) => Math.floor(v));
+  let remainder = totalAmount - floored.reduce((s, v) => s + v, 0);
+
+  // Indices sorted by largest fractional part descending
+  const indices = [0, 1, 2, 3].sort((a, b) => (raw[b] - floored[b]) - (raw[a] - floored[a]));
+
+  for (const idx of indices) {
+    if (remainder <= 0) break;
+    floored[idx] += 1;
+    remainder -= 1;
+  }
+
+  return [floored[0], floored[1], floored[2], floored[3]];
+}
+
 export function calculateBlockAmounts(
   totalAmount: number,
   distributionType: DistributionType,
@@ -35,13 +61,10 @@ export function calculateBlockAmounts(
   block4Amount: number;
 } {
   switch (distributionType) {
-    case "percentage":
-      return {
-        block1Amount: Math.round((totalAmount * BLOCKS[0].percentage) / 100),
-        block2Amount: Math.round((totalAmount * BLOCKS[1].percentage) / 100),
-        block3Amount: Math.round((totalAmount * BLOCKS[2].percentage) / 100),
-        block4Amount: Math.round((totalAmount * BLOCKS[3].percentage) / 100),
-      };
+    case "percentage": {
+      const [b1, b2, b3, b4] = splitByPercentage(totalAmount);
+      return { block1Amount: b1, block2Amount: b2, block3Amount: b3, block4Amount: b4 };
+    }
     case "income":
       // Income supports custom per-block amounts (e.g., some blocks get 0)
       if (customAmounts && (customAmounts.block1 || customAmounts.block2 || customAmounts.block3 || customAmounts.block4)) {
@@ -52,12 +75,10 @@ export function calculateBlockAmounts(
           block4Amount: -(Math.abs(customAmounts.block4)),
         };
       }
-      return {
-        block1Amount: Math.round((totalAmount * BLOCKS[0].percentage) / 100),
-        block2Amount: Math.round((totalAmount * BLOCKS[1].percentage) / 100),
-        block3Amount: Math.round((totalAmount * BLOCKS[2].percentage) / 100),
-        block4Amount: Math.round((totalAmount * BLOCKS[3].percentage) / 100),
-      };
+      {
+        const [b1, b2, b3, b4] = splitByPercentage(totalAmount);
+        return { block1Amount: b1, block2Amount: b2, block3Amount: b3, block4Amount: b4 };
+      }
     case "block_specific":
       return {
         block1Amount: targetBlock === 1 ? totalAmount : 0,
