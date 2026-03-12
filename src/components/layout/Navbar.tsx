@@ -2,15 +2,21 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ChevronDown, Shield } from "lucide-react";
 import clsx from "clsx";
 import SignInButton from "@/components/auth/SignInButton";
 import UserMenu from "@/components/auth/UserMenu";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import { useRegistrationGuard } from "@/hooks/useRegistrationGuard";
-import { canManageAnnouncements, canManageResidents, canManageVisitors, canAccessTasks, canManageNewsletters } from "@/lib/roles";
+import {
+  canManageAnnouncements,
+  canManageResidents,
+  canManageVisitors,
+  canAccessTasks,
+  canManageNewsletters,
+} from "@/lib/roles";
 
 const publicPaths = ["/", "/contact"];
 
@@ -29,6 +35,8 @@ const navLinks = [
 export default function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
+  const adminDropdownRef = useRef<HTMLDivElement>(null);
   const { data: session } = useSession();
   useRegistrationGuard();
 
@@ -40,6 +48,62 @@ export default function Navbar() {
       ? navLinks.filter((l) => l.href !== "/")
       : [] // Hide all nav links for unapproved users
     : navLinks.filter((l) => publicPaths.includes(l.href));
+
+  // Build admin links based on roles
+  const adminLinks: { href: string; label: string; match: string | ((p: string) => boolean) }[] = [];
+
+  if (canManageAnnouncements(roles) || canManageResidents(roles)) {
+    adminLinks.push({ href: "/admin", label: "Announcements", match: "/admin" });
+  }
+  if (canManageAnnouncements(roles)) {
+    adminLinks.push({
+      href: "/admin/calendar",
+      label: "Calendar",
+      match: (p) => p.startsWith("/admin/calendar"),
+    });
+    adminLinks.push({
+      href: "/accounts/expenses",
+      label: "Accounts",
+      match: (p) => p.startsWith("/accounts"),
+    });
+  }
+  if (canManageNewsletters(roles)) {
+    adminLinks.push({
+      href: "/admin/newsletters",
+      label: "Newsletters",
+      match: (p) => p.startsWith("/admin/newsletters"),
+    });
+  }
+  if (canManageVisitors(roles)) {
+    adminLinks.push({ href: "/visitors", label: "Visitors", match: "/visitors" });
+  }
+  if (canAccessTasks(roles)) {
+    adminLinks.push({ href: "/tasks", label: "Tasks", match: "/tasks" });
+  }
+
+  const isAdminActive = adminLinks.some((link) => {
+    if (typeof link.match === "function") return link.match(pathname);
+    return pathname === link.match;
+  });
+
+  // Close admin dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (
+        adminDropdownRef.current &&
+        !adminDropdownRef.current.contains(e.target as Node)
+      ) {
+        setAdminOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Close admin dropdown on route change
+  useEffect(() => {
+    setAdminOpen(false);
+  }, [pathname]);
 
   return (
     <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm">
@@ -78,84 +142,57 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
-            {(canManageAnnouncements(roles) || canManageResidents(roles)) && (
-              <Link
-                href="/admin"
-                className={clsx(
-                  "px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                  pathname === "/admin"
-                    ? "bg-primary-50 text-primary-700"
-                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50"
+
+            {/* Admin Dropdown */}
+            {adminLinks.length > 0 && (
+              <div className="relative" ref={adminDropdownRef}>
+                <button
+                  onClick={() => setAdminOpen(!adminOpen)}
+                  className={clsx(
+                    "flex items-center gap-1 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                    isAdminActive
+                      ? "bg-primary-50 text-primary-700"
+                      : "text-gray-600 hover:text-primary-700 hover:bg-primary-50"
+                  )}
+                >
+                  <Shield size={15} />
+                  Admin
+                  <ChevronDown
+                    size={14}
+                    className={clsx(
+                      "transition-transform",
+                      adminOpen && "rotate-180"
+                    )}
+                  />
+                </button>
+
+                {adminOpen && (
+                  <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                    {adminLinks.map((link) => {
+                      const active =
+                        typeof link.match === "function"
+                          ? link.match(pathname)
+                          : pathname === link.match;
+                      return (
+                        <Link
+                          key={link.href}
+                          href={link.href}
+                          className={clsx(
+                            "block px-4 py-2 text-sm transition-colors",
+                            active
+                              ? "bg-primary-50 text-primary-700 font-medium"
+                              : "text-gray-700 hover:bg-gray-50 hover:text-primary-700"
+                          )}
+                        >
+                          {link.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
                 )}
-              >
-                Admin
-              </Link>
+              </div>
             )}
-            {canManageAnnouncements(roles) && (
-              <Link
-                href="/admin/calendar"
-                className={clsx(
-                  "px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                  pathname.startsWith("/admin/calendar")
-                    ? "bg-primary-50 text-primary-700"
-                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50"
-                )}
-              >
-                Admin Calendar
-              </Link>
-            )}
-            {canManageAnnouncements(roles) && (
-              <Link
-                href="/accounts/expenses"
-                className={clsx(
-                  "px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                  pathname.startsWith("/accounts")
-                    ? "bg-primary-50 text-primary-700"
-                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50"
-                )}
-              >
-                Accounts
-              </Link>
-            )}
-            {canManageNewsletters(roles) && (
-              <Link
-                href="/admin/newsletters"
-                className={clsx(
-                  "px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                  pathname.startsWith("/admin/newsletters")
-                    ? "bg-primary-50 text-primary-700"
-                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50"
-                )}
-              >
-                Admin Newsletters
-              </Link>
-            )}
-            {canManageVisitors(roles) && (
-              <Link
-                href="/visitors"
-                className={clsx(
-                  "px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                  pathname === "/visitors"
-                    ? "bg-primary-50 text-primary-700"
-                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50"
-                )}
-              >
-                Visitors
-              </Link>
-            )}
-            {canAccessTasks(roles) && (
-              <Link
-                href="/tasks"
-                className={clsx(
-                  "px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                  pathname === "/tasks"
-                    ? "bg-primary-50 text-primary-700"
-                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50"
-                )}
-              >
-                Tasks
-              </Link>
-            )}
+
             <NotificationBell />
             <div className="ml-2 border-l pl-2">
               {session ? <UserMenu /> : <SignInButton />}
@@ -206,90 +243,40 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
-            {(canManageAnnouncements(roles) || canManageResidents(roles)) && (
-              <Link
-                href="/admin"
-                onClick={() => setMobileOpen(false)}
-                className={clsx(
-                  "block px-3 py-2 rounded-md text-base font-medium transition-colors",
-                  pathname === "/admin"
-                    ? "bg-primary-50 text-primary-700"
-                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50"
-                )}
-              >
-                Admin
-              </Link>
+
+            {/* Mobile Admin Section */}
+            {adminLinks.length > 0 && (
+              <>
+                <div className="border-t mt-2 pt-2">
+                  <p className="px-3 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-1">
+                    <Shield size={12} />
+                    Admin
+                  </p>
+                </div>
+                {adminLinks.map((link) => {
+                  const active =
+                    typeof link.match === "function"
+                      ? link.match(pathname)
+                      : pathname === link.match;
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setMobileOpen(false)}
+                      className={clsx(
+                        "block px-3 py-2 rounded-md text-base font-medium transition-colors",
+                        active
+                          ? "bg-primary-50 text-primary-700"
+                          : "text-gray-600 hover:text-primary-700 hover:bg-primary-50"
+                      )}
+                    >
+                      {link.label}
+                    </Link>
+                  );
+                })}
+              </>
             )}
-            {canManageAnnouncements(roles) && (
-              <Link
-                href="/admin/calendar"
-                onClick={() => setMobileOpen(false)}
-                className={clsx(
-                  "block px-3 py-2 rounded-md text-base font-medium transition-colors",
-                  pathname.startsWith("/admin/calendar")
-                    ? "bg-primary-50 text-primary-700"
-                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50"
-                )}
-              >
-                Admin Calendar
-              </Link>
-            )}
-            {canManageAnnouncements(roles) && (
-              <Link
-                href="/accounts/expenses"
-                onClick={() => setMobileOpen(false)}
-                className={clsx(
-                  "block px-3 py-2 rounded-md text-base font-medium transition-colors",
-                  pathname.startsWith("/accounts")
-                    ? "bg-primary-50 text-primary-700"
-                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50"
-                )}
-              >
-                Accounts
-              </Link>
-            )}
-            {canManageNewsletters(roles) && (
-              <Link
-                href="/admin/newsletters"
-                onClick={() => setMobileOpen(false)}
-                className={clsx(
-                  "block px-3 py-2 rounded-md text-base font-medium transition-colors",
-                  pathname.startsWith("/admin/newsletters")
-                    ? "bg-primary-50 text-primary-700"
-                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50"
-                )}
-              >
-                Admin Newsletters
-              </Link>
-            )}
-            {canManageVisitors(roles) && (
-              <Link
-                href="/visitors"
-                onClick={() => setMobileOpen(false)}
-                className={clsx(
-                  "block px-3 py-2 rounded-md text-base font-medium transition-colors",
-                  pathname === "/visitors"
-                    ? "bg-primary-50 text-primary-700"
-                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50"
-                )}
-              >
-                Visitors
-              </Link>
-            )}
-            {canAccessTasks(roles) && (
-              <Link
-                href="/tasks"
-                onClick={() => setMobileOpen(false)}
-                className={clsx(
-                  "block px-3 py-2 rounded-md text-base font-medium transition-colors",
-                  pathname === "/tasks"
-                    ? "bg-primary-50 text-primary-700"
-                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50"
-                )}
-              >
-                Tasks
-              </Link>
-            )}
+
             <div className="border-t mt-2 pt-2 flex items-center justify-between">
               <NotificationBell />
             </div>
