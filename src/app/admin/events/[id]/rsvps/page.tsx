@@ -60,6 +60,7 @@ interface Summary {
   paidCount: number;
   unpaidCount: number;
   attendedCount: number;
+  totalSteps: number;
   itemTotals: { name: string; plates: number; amount: number }[];
 }
 
@@ -658,7 +659,11 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
         <>
           {/* Summary cards */}
           {summary && (
-            <div className={`grid grid-cols-2 ${hasFood ? "sm:grid-cols-5" : hasEntranceFee ? "sm:grid-cols-4" : "sm:grid-cols-2"} gap-4 mb-8`}>
+            <div className={`grid grid-cols-2 ${
+              hasFood ? (summary.totalSteps > 0 ? "sm:grid-cols-6" : "sm:grid-cols-5")
+              : hasEntranceFee ? (summary.totalSteps > 0 ? "sm:grid-cols-5" : "sm:grid-cols-4")
+              : summary.totalSteps > 0 ? "sm:grid-cols-3" : "sm:grid-cols-2"
+            } gap-4 mb-8`}>
               <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
                 <p className="text-2xl font-bold text-primary-700">{summary.totalRsvps}</p>
                 <p className="text-xs text-gray-500 mt-1">Total RSVPs</p>
@@ -670,6 +675,12 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                 </p>
                 <p className="text-xs text-gray-500 mt-1">Attended</p>
               </div>
+              {summary.totalSteps > 0 && (
+                <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
+                  <p className="text-2xl font-bold text-orange-600">{summary.totalSteps.toLocaleString()}</p>
+                  <p className="text-xs text-gray-500 mt-1">Total Steps</p>
+                </div>
+              )}
               {hasFood && (
                 <>
                   <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">

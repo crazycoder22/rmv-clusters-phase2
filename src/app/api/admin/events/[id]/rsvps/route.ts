@@ -116,6 +116,13 @@ export async function GET(
 
   const totalRsvps = rsvps.length + guestRsvps.length;
 
+  // Get total steps across all dates for this event
+  const stepsAggregate = await prisma.stepEntry.aggregate({
+    where: { eventConfigId: ec.id },
+    _sum: { steps: true },
+  });
+  const totalSteps = stepsAggregate._sum.steps ?? 0;
+
   return NextResponse.json({
     announcement: {
       id: announcement.id,
@@ -142,6 +149,7 @@ export async function GET(
       paidCount,
       unpaidCount,
       attendedCount,
+      totalSteps,
       itemTotals: Object.values(itemTotals),
     },
   });
