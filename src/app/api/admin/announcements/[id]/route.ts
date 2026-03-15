@@ -72,8 +72,7 @@ export async function PATCH(
         });
 
         if (existing) {
-          await prisma.menuItem.deleteMany({ where: { eventConfigId: existing.id } });
-          await prisma.customField.deleteMany({ where: { eventConfigId: existing.id } });
+          // Update config fields
           await prisma.eventConfig.update({
             where: { id: existing.id },
             data: {
@@ -85,32 +84,84 @@ export async function PATCH(
               confirmationMessage: ec.confirmationMessage || null,
               enableFeedback: ec.enableFeedback ?? false,
               feedbackStyle: ec.feedbackStyle ?? "stars",
-              ...(ec.menuItems && ec.menuItems.length > 0 && {
-                menuItems: {
-                  create: ec.menuItems.map(
-                    (item: { name: string; pricePerPlate: number }, index: number) => ({
-                      name: item.name,
-                      pricePerPlate: item.pricePerPlate,
-                      sortOrder: index,
-                    })
-                  ),
-                },
-              }),
-              ...(ec.customFields && ec.customFields.length > 0 && {
-                customFields: {
-                  create: ec.customFields.map(
-                    (field: { label: string; fieldType: string; required: boolean; options: string | null }, index: number) => ({
-                      label: field.label,
-                      fieldType: field.fieldType,
-                      required: field.required,
-                      options: field.options,
-                      sortOrder: index,
-                    })
-                  ),
-                },
-              }),
             },
           });
+
+          // Update menu items in-place to preserve FK references (RsvpItem, GuestRsvpItem)
+          if (ec.menuItems) {
+            const incomingIds = (ec.menuItems as { id?: string; name: string; pricePerPlate: number }[])
+              .filter((item) => item.id)
+              .map((item) => item.id!);
+            // Delete removed items
+            await prisma.menuItem.deleteMany({
+              where: { eventConfigId: existing.id, id: { notIn: incomingIds } },
+            });
+            // Upsert each item
+            for (let i = 0; i < ec.menuItems.length; i++) {
+              const item = ec.menuItems[i] as { id?: string; name: string; pricePerPlate: number };
+              if (item.id) {
+                await prisma.menuItem.update({
+                  where: { id: item.id },
+                  data: { name: item.name, pricePerPlate: item.pricePerPlate, sortOrder: i },
+                });
+              } else {
+                await prisma.menuItem.create({
+                  data: {
+                    eventConfigId: existing.id,
+                    name: item.name,
+                    pricePerPlate: item.pricePerPlate,
+                    sortOrder: i,
+                  },
+                });
+              }
+            }
+          } else {
+            // No menu items sent — delete all
+            await prisma.menuItem.deleteMany({ where: { eventConfigId: existing.id } });
+          }
+
+          // Update custom fields in-place to preserve FK references (RsvpFieldResponse, GuestRsvpFieldResponse)
+          if (ec.customFields && ec.customFields.length > 0) {
+            const incomingIds = (ec.customFields as { id?: string }[])
+              .filter((f) => f.id)
+              .map((f) => f.id!);
+            // Delete removed fields
+            await prisma.customField.deleteMany({
+              where: { eventConfigId: existing.id, id: { notIn: incomingIds } },
+            });
+            // Upsert each field
+            for (let i = 0; i < ec.customFields.length; i++) {
+              const field = ec.customFields[i] as {
+                id?: string; label: string; fieldType: string; required: boolean; options: string | null;
+              };
+              if (field.id) {
+                await prisma.customField.update({
+                  where: { id: field.id },
+                  data: {
+                    label: field.label,
+                    fieldType: field.fieldType,
+                    required: field.required,
+                    options: field.options,
+                    sortOrder: i,
+                  },
+                });
+              } else {
+                await prisma.customField.create({
+                  data: {
+                    eventConfigId: existing.id,
+                    label: field.label,
+                    fieldType: field.fieldType,
+                    required: field.required,
+                    options: field.options,
+                    sortOrder: i,
+                  },
+                });
+              }
+            }
+          } else {
+            // No custom fields sent — delete all
+            await prisma.customField.deleteMany({ where: { eventConfigId: existing.id } });
+          }
         } else {
           await prisma.eventConfig.create({
             data: {

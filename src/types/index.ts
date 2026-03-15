@@ -117,6 +117,7 @@ export interface RsvpType {
 
 export interface MenuItemFormEntry {
   tempId: string;
+  id?: string; // database ID — preserved on update to avoid cascade-deleting FK references
   name: string;
   pricePerPlate: string;
 }
@@ -133,6 +134,7 @@ export interface CustomFieldType {
 
 export interface CustomFieldFormEntry {
   tempId: string;
+  id?: string; // database ID — preserved on update to avoid cascade-deleting FK references
   label: string;
   fieldType: "text" | "select";
   required: boolean;

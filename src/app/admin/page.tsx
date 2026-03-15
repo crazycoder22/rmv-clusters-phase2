@@ -353,6 +353,7 @@ export default function AdminPage() {
         if (enableFoodOrdering) {
           eventConfigPayload.mealType = mealType;
           eventConfigPayload.menuItems = menuItemsForm.map((item) => ({
+            ...(item.id && { id: item.id }),
             name: item.name,
             pricePerPlate: parseFloat(item.pricePerPlate) || 0,
           }));
@@ -360,6 +361,7 @@ export default function AdminPage() {
         const validCustomFields = customFieldsForm.filter((f) => f.label.trim());
         if (validCustomFields.length > 0) {
           eventConfigPayload.customFields = validCustomFields.map((f) => ({
+            ...(f.id && { id: f.id }),
             label: f.label.trim(),
             fieldType: f.fieldType,
             required: f.required,
@@ -448,11 +450,13 @@ export default function AdminPage() {
         : "",
       menuItems: ec?.menuItems?.map((item) => ({
         tempId: crypto.randomUUID(),
+        id: item.id,
         name: item.name,
         pricePerPlate: String(item.pricePerPlate),
       })) || [],
       customFields: ec?.customFields?.map((cf) => ({
         tempId: crypto.randomUUID(),
+        id: cf.id,
         label: cf.label,
         fieldType: cf.fieldType as "text" | "select",
         required: cf.required,
