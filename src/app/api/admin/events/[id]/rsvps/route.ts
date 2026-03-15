@@ -33,7 +33,7 @@ export async function GET(
           rsvps: {
             include: {
               resident: {
-                select: { id: true, name: true, email: true, block: true, flatNumber: true },
+                select: { id: true, name: true, email: true, phone: true, block: true, flatNumber: true },
               },
               items: {
                 include: { menuItem: true },

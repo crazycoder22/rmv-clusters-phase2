@@ -26,6 +26,7 @@ interface RsvpData {
     id: string;
     name: string;
     email: string;
+    phone: string;
     block: number;
     flatNumber: string;
   };
@@ -150,6 +151,7 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
           isGuest: false,
           name: r.resident.name,
           email: r.resident.email,
+          phone: r.resident.phone,
           block: r.resident.block,
           flatNumber: r.resident.flatNumber,
           items: r.items,
@@ -409,7 +411,7 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
     };
 
     // Build header
-    const headers = ["#", "Name", "Type", "Block", "Flat"];
+    const headers = ["#", "Name", "Email", "Phone", "Type", "Block", "Flat"];
     for (const cf of customFieldDefs) {
       headers.push(cf.label);
     }
@@ -423,6 +425,8 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
       const row: string[] = [
         String(index + 1),
         escapeCsv(rsvp.name),
+        escapeCsv(rsvp.email || ""),
+        escapeCsv(rsvp.phone || ""),
         rsvp.isGuest ? "Guest" : "Resident",
         String(rsvp.block),
         escapeCsv(rsvp.flatNumber),
