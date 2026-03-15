@@ -61,6 +61,7 @@ interface Summary {
   unpaidCount: number;
   attendedCount: number;
   totalSteps: number;
+  totalGoal: number;
   itemTotals: { name: string; plates: number; amount: number }[];
 }
 
@@ -658,12 +659,19 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
       ) : activeTab === "rsvps" ? (
         <>
           {/* Summary cards */}
-          {summary && (
-            <div className={`grid grid-cols-2 ${
-              hasFood ? (summary.totalSteps > 0 ? "sm:grid-cols-6" : "sm:grid-cols-5")
-              : hasEntranceFee ? (summary.totalSteps > 0 ? "sm:grid-cols-5" : "sm:grid-cols-4")
-              : summary.totalSteps > 0 ? "sm:grid-cols-3" : "sm:grid-cols-2"
-            } gap-4 mb-8`}>
+          {summary && (() => {
+            const colCount = 2
+              + (summary.totalGoal > 0 ? 1 : 0)
+              + (summary.totalSteps > 0 ? 1 : 0)
+              + (hasFood ? 2 : 0)
+              + (hasEntranceFee && !hasFood ? 1 : 0)
+              + (hasFood || hasEntranceFee ? 1 : 0);
+            const smColsClass: Record<number, string> = {
+              2: "sm:grid-cols-2", 3: "sm:grid-cols-3", 4: "sm:grid-cols-4",
+              5: "sm:grid-cols-5", 6: "sm:grid-cols-6", 7: "sm:grid-cols-7",
+            };
+            return (
+            <div className={`grid grid-cols-2 ${smColsClass[colCount] || "sm:grid-cols-4"} gap-4 mb-8`}>
               <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
                 <p className="text-2xl font-bold text-primary-700">{summary.totalRsvps}</p>
                 <p className="text-xs text-gray-500 mt-1">Total RSVPs</p>
@@ -675,6 +683,12 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                 </p>
                 <p className="text-xs text-gray-500 mt-1">Attended</p>
               </div>
+              {summary.totalGoal > 0 && (
+                <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
+                  <p className="text-2xl font-bold text-purple-600">{summary.totalGoal.toLocaleString()}</p>
+                  <p className="text-xs text-gray-500 mt-1">Total Goal</p>
+                </div>
+              )}
               {summary.totalSteps > 0 && (
                 <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
                   <p className="text-2xl font-bold text-orange-600">{summary.totalSteps.toLocaleString()}</p>
@@ -709,7 +723,8 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                 </div>
               )}
             </div>
-          )}
+            );
+          })()}
 
           {/* Per-item breakdown */}
           {summary && summary.itemTotals.length > 0 && (

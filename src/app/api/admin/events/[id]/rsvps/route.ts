@@ -123,6 +123,27 @@ export async function GET(
   });
   const totalSteps = stepsAggregate._sum.steps ?? 0;
 
+  // Calculate total step goals from custom field responses (e.g. "5K" = 5000, "10K" = 10000, "15000" = 15000)
+  const goalField = ec.customFields.find((cf) => cf.fieldType === "select");
+  let totalGoal = 0;
+  if (goalField) {
+    const parseGoalValue = (val: string): number => {
+      const trimmed = val.trim().toUpperCase();
+      const kMatch = trimmed.match(/^(\d+(?:\.\d+)?)\s*K$/);
+      if (kMatch) return parseFloat(kMatch[1]) * 1000;
+      const num = parseFloat(trimmed);
+      return isNaN(num) ? 0 : num;
+    };
+    for (const rsvp of rsvps) {
+      const fr = rsvp.fieldResponses.find((r) => r.customFieldId === goalField.id);
+      if (fr) totalGoal += parseGoalValue(fr.value);
+    }
+    for (const gr of guestRsvps) {
+      const fr = gr.fieldResponses.find((r) => r.customFieldId === goalField.id);
+      if (fr) totalGoal += parseGoalValue(fr.value);
+    }
+  }
+
   return NextResponse.json({
     announcement: {
       id: announcement.id,
@@ -150,6 +171,7 @@ export async function GET(
       unpaidCount,
       attendedCount,
       totalSteps,
+      totalGoal,
       itemTotals: Object.values(itemTotals),
     },
   });
