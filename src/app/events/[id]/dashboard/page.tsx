@@ -177,11 +177,22 @@ export default function EventDashboardPage({
               </div>
             </div>
             <div className="bg-white rounded-lg border border-gray-200 p-4 flex items-center gap-3">
+              <div className="bg-green-50 rounded-full p-2">
+                <CheckCircle size={20} className="text-green-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900">
+                  {onTrackCount} / {totalWithGoal}
+                </p>
+                <p className="text-sm text-gray-500">On Track</p>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg border border-gray-200 p-4 flex items-center gap-3">
               <div className="bg-purple-50 rounded-full p-2">
                 <Target size={20} className="text-purple-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-lg sm:text-2xl font-bold text-gray-900">
                   {totalStepTarget > 0 ? totalStepTarget.toLocaleString("en-IN") : "\u2014"}
                 </p>
                 <p className="text-sm text-gray-500">Total Step Target</p>
@@ -192,21 +203,10 @@ export default function EventDashboardPage({
                 <TrendingUp size={20} className="text-blue-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-lg sm:text-2xl font-bold text-gray-900">
                   {totalActualSteps > 0 ? totalActualSteps.toLocaleString("en-IN") : "0"}
                 </p>
                 <p className="text-sm text-gray-500">Total Actual Steps</p>
-              </div>
-            </div>
-            <div className="bg-white rounded-lg border border-gray-200 p-4 flex items-center gap-3 col-span-2 sm:col-span-1">
-              <div className="bg-green-50 rounded-full p-2">
-                <CheckCircle size={20} className="text-green-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900">
-                  {onTrackCount} / {totalWithGoal}
-                </p>
-                <p className="text-sm text-gray-500">On Track</p>
               </div>
             </div>
           </>
