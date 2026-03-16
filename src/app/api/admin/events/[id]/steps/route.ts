@@ -157,47 +157,60 @@ export async function POST(
   // Also find entries that should be deleted (steps = 0 but may have existing records)
   const zeroEntries = entries.filter((e) => (!e.steps || e.steps <= 0) && (e.rsvpId || e.guestRsvpId));
 
-  await prisma.$transaction([
-    // Upsert valid entries
-    ...validEntries.map((entry) => {
-      if (entry.rsvpId) {
-        return prisma.stepEntry.upsert({
-          where: { rsvpId_date: { rsvpId: entry.rsvpId, date } },
-          create: {
-            eventConfigId,
-            rsvpId: entry.rsvpId,
-            date,
-            steps: entry.steps,
-          },
-          update: { steps: entry.steps },
-        });
-      } else {
-        return prisma.stepEntry.upsert({
-          where: { guestRsvpId_date: { guestRsvpId: entry.guestRsvpId!, date } },
-          create: {
-            eventConfigId,
-            guestRsvpId: entry.guestRsvpId,
-            date,
-            steps: entry.steps,
-          },
-          update: { steps: entry.steps },
-        });
-      }
-    }),
-    // Delete zero entries
-    ...zeroEntries.flatMap((entry) => {
-      if (entry.rsvpId) {
-        return [prisma.stepEntry.deleteMany({
-          where: { rsvpId: entry.rsvpId, date },
-        })];
-      } else if (entry.guestRsvpId) {
-        return [prisma.stepEntry.deleteMany({
-          where: { guestRsvpId: entry.guestRsvpId, date },
-        })];
-      }
-      return [];
-    }),
-  ]);
+  try {
+    // Process in batches to avoid transaction timeout
+    const BATCH_SIZE = 10;
+
+    // Upsert valid entries in batches
+    for (let i = 0; i < validEntries.length; i += BATCH_SIZE) {
+      const batch = validEntries.slice(i, i + BATCH_SIZE);
+      await prisma.$transaction(
+        batch.map((entry) => {
+          if (entry.rsvpId) {
+            return prisma.stepEntry.upsert({
+              where: { rsvpId_date: { rsvpId: entry.rsvpId, date } },
+              create: {
+                eventConfigId,
+                rsvpId: entry.rsvpId,
+                date,
+                steps: entry.steps,
+              },
+              update: { steps: entry.steps },
+            });
+          } else {
+            return prisma.stepEntry.upsert({
+              where: { guestRsvpId_date: { guestRsvpId: entry.guestRsvpId!, date } },
+              create: {
+                eventConfigId,
+                guestRsvpId: entry.guestRsvpId,
+                date,
+                steps: entry.steps,
+              },
+              update: { steps: entry.steps },
+            });
+          }
+        })
+      );
+    }
+
+    // Delete zero entries in a single batch
+    if (zeroEntries.length > 0) {
+      const rsvpIds = zeroEntries.filter((e) => e.rsvpId).map((e) => e.rsvpId!);
+      const guestIds = zeroEntries.filter((e) => e.guestRsvpId).map((e) => e.guestRsvpId!);
+
+      await prisma.$transaction([
+        ...(rsvpIds.length > 0
+          ? [prisma.stepEntry.deleteMany({ where: { rsvpId: { in: rsvpIds }, date } })]
+          : []),
+        ...(guestIds.length > 0
+          ? [prisma.stepEntry.deleteMany({ where: { guestRsvpId: { in: guestIds }, date } })]
+          : []),
+      ]);
+    }
+  } catch (err) {
+    console.error("Step save error:", err);
+    return NextResponse.json({ error: String(err) }, { status: 500 });
+  }
 
   return NextResponse.json({ saved: validEntries.length });
 }
