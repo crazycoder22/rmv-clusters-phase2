@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from "react";
 import Link from "next/link";
-import { ArrowLeft, Search, Users, X, TrendingUp, Target, Calendar, Flame } from "lucide-react";
+import { ArrowLeft, Search, Users, X, TrendingUp, Target, Calendar, Flame, CheckCircle } from "lucide-react";
 import type { CustomFieldType } from "@/types";
 
 interface StepDayEntry {
@@ -47,6 +47,8 @@ export default function EventDashboardPage({
   const [stepLeaderboard, setStepLeaderboard] = useState<DashboardParticipant[]>([]);
   const [totalStepTarget, setTotalStepTarget] = useState(0);
   const [totalActualSteps, setTotalActualSteps] = useState(0);
+  const [onTrackCount, setOnTrackCount] = useState(0);
+  const [totalWithGoal, setTotalWithGoal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
@@ -72,6 +74,8 @@ export default function EventDashboardPage({
         setStepLeaderboard(data.stepLeaderboard || []);
         setTotalStepTarget(data.totalStepTarget || 0);
         setTotalActualSteps(data.totalActualSteps || 0);
+        setOnTrackCount(data.onTrackCount || 0);
+        setTotalWithGoal(data.totalWithGoal || 0);
       } catch {
         setError("Failed to load dashboard");
       } finally {
@@ -183,7 +187,7 @@ export default function EventDashboardPage({
                 <p className="text-sm text-gray-500">Total Step Target</p>
               </div>
             </div>
-            <div className="bg-white rounded-lg border border-gray-200 p-4 flex items-center gap-3 col-span-2 sm:col-span-1">
+            <div className="bg-white rounded-lg border border-gray-200 p-4 flex items-center gap-3">
               <div className="bg-blue-50 rounded-full p-2">
                 <TrendingUp size={20} className="text-blue-600" />
               </div>
@@ -192,6 +196,17 @@ export default function EventDashboardPage({
                   {totalActualSteps > 0 ? totalActualSteps.toLocaleString("en-IN") : "0"}
                 </p>
                 <p className="text-sm text-gray-500">Total Actual Steps</p>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg border border-gray-200 p-4 flex items-center gap-3 col-span-2 sm:col-span-1">
+              <div className="bg-green-50 rounded-full p-2">
+                <CheckCircle size={20} className="text-green-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900">
+                  {onTrackCount} / {totalWithGoal}
+                </p>
+                <p className="text-sm text-gray-500">On Track</p>
               </div>
             </div>
           </>

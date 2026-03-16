@@ -161,6 +161,60 @@ export async function GET(
   const totalStepTarget = participants.reduce((sum, p) => sum + p.dailyGoal, 0) * 12;
   const totalActualSteps = stepEntries.reduce((sum, se) => sum + se.steps, 0);
 
+  // Compute "on track" count
+  // Challenge: 14 days starting from event date, must meet goal on at least 12 days
+  const CHALLENGE_DAYS = 14;
+  const REQUIRED_DAYS = 12;
+  const MAX_MISSES = CHALLENGE_DAYS - REQUIRED_DAYS; // 2
+
+  const eventStartDate = announcement.date
+    ? new Date(announcement.date)
+    : null;
+
+  let onTrackCount = 0;
+  let totalWithGoal = 0;
+
+  if (eventStartDate && hasStepTracking) {
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+    const startUTC = new Date(eventStartDate);
+    startUTC.setUTCHours(0, 0, 0, 0);
+
+    // Days elapsed so far (capped at 14)
+    const daysElapsed = Math.min(
+      CHALLENGE_DAYS,
+      Math.max(0, Math.floor((today.getTime() - startUTC.getTime()) / (1000 * 60 * 60 * 24)) + 1)
+    );
+
+    // Build list of elapsed dates as ISO strings for lookup
+    const elapsedDates: string[] = [];
+    for (let d = 0; d < daysElapsed; d++) {
+      const dt = new Date(startUTC);
+      dt.setUTCDate(dt.getUTCDate() + d);
+      elapsedDates.push(dt.toISOString().slice(0, 10));
+    }
+
+    for (const p of participants) {
+      if (p.dailyGoal <= 0) continue;
+      totalWithGoal++;
+
+      // Build a set of dates where goal was met
+      const metDates = new Set<string>();
+      for (const ds of p.dailySteps) {
+        const dateStr = new Date(ds.date).toISOString().slice(0, 10);
+        if (ds.steps >= p.dailyGoal) metDates.add(dateStr);
+      }
+
+      // Count misses across elapsed days
+      let misses = 0;
+      for (const dateStr of elapsedDates) {
+        if (!metDates.has(dateStr)) misses++;
+      }
+
+      if (misses <= MAX_MISSES) onTrackCount++;
+    }
+  }
+
   return NextResponse.json({
     announcement: {
       id: announcement.id,
@@ -180,5 +234,7 @@ export async function GET(
     stepLeaderboard,
     totalStepTarget,
     totalActualSteps,
+    onTrackCount,
+    totalWithGoal,
   });
 }
