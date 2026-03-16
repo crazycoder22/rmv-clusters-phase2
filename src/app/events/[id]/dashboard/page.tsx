@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from "react";
 import Link from "next/link";
-import { ArrowLeft, Search, Users, Trophy, X, TrendingUp, Target, Calendar, Flame } from "lucide-react";
+import { ArrowLeft, Search, Users, X, TrendingUp, Target, Calendar, Flame } from "lucide-react";
 import type { CustomFieldType } from "@/types";
 
 interface StepDayEntry {
@@ -45,6 +45,8 @@ export default function EventDashboardPage({
   const [totalParticipants, setTotalParticipants] = useState(0);
   const [hasStepTracking, setHasStepTracking] = useState(false);
   const [stepLeaderboard, setStepLeaderboard] = useState<DashboardParticipant[]>([]);
+  const [totalStepTarget, setTotalStepTarget] = useState(0);
+  const [totalActualSteps, setTotalActualSteps] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
@@ -68,6 +70,8 @@ export default function EventDashboardPage({
         setTotalParticipants(data.totalParticipants);
         setHasStepTracking(data.hasStepTracking);
         setStepLeaderboard(data.stepLeaderboard || []);
+        setTotalStepTarget(data.totalStepTarget || 0);
+        setTotalActualSteps(data.totalActualSteps || 0);
       } catch {
         setError("Failed to load dashboard");
       } finally {
@@ -156,15 +160,6 @@ export default function EventDashboardPage({
         {hasStepTracking && (
           <>
             <div className="bg-white rounded-lg border border-gray-200 p-4 flex items-center gap-3">
-              <div className="bg-green-50 rounded-full p-2">
-                <Trophy size={20} className="text-green-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900">{stepLeaderboard.length}</p>
-                <p className="text-sm text-gray-500">Active Trackers</p>
-              </div>
-            </div>
-            <div className="bg-white rounded-lg border border-gray-200 p-4 flex items-center gap-3 col-span-2 sm:col-span-1">
               <div className="bg-orange-50 rounded-full p-2">
                 <Flame size={20} className="text-orange-600" />
               </div>
@@ -175,6 +170,28 @@ export default function EventDashboardPage({
                     : 0}
                 </p>
                 <p className="text-sm text-gray-500">Top Steps</p>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg border border-gray-200 p-4 flex items-center gap-3">
+              <div className="bg-purple-50 rounded-full p-2">
+                <Target size={20} className="text-purple-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900">
+                  {totalStepTarget > 0 ? totalStepTarget.toLocaleString("en-IN") : "\u2014"}
+                </p>
+                <p className="text-sm text-gray-500">Total Step Target</p>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg border border-gray-200 p-4 flex items-center gap-3 col-span-2 sm:col-span-1">
+              <div className="bg-blue-50 rounded-full p-2">
+                <TrendingUp size={20} className="text-blue-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900">
+                  {totalActualSteps > 0 ? totalActualSteps.toLocaleString("en-IN") : "0"}
+                </p>
+                <p className="text-sm text-gray-500">Total Actual Steps</p>
               </div>
             </div>
           </>

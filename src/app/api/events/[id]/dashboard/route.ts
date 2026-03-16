@@ -157,6 +157,10 @@ export async function GET(
         .sort((a, b) => b.totalSteps - a.totalSteps)
     : [];
 
+  // Compute aggregate totals
+  const totalStepTarget = participants.reduce((sum, p) => sum + p.dailyGoal, 0) * 12;
+  const totalActualSteps = stepEntries.reduce((sum, se) => sum + se.steps, 0);
+
   return NextResponse.json({
     announcement: {
       id: announcement.id,
@@ -174,5 +178,7 @@ export async function GET(
     totalParticipants: participants.length,
     hasStepTracking,
     stepLeaderboard,
+    totalStepTarget,
+    totalActualSteps,
   });
 }
