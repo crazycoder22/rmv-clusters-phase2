@@ -1497,16 +1497,41 @@ export default function AdminPage() {
                       </td>
                       <td className="py-3 pr-4 text-gray-600">{r.phone}</td>
                       <td className="py-3 pr-4">
-                        <span
+                        <select
+                          value={r.residentType}
+                          disabled={updatingId === r.id}
+                          onChange={async (e) => {
+                            const newType = e.target.value;
+                            setUpdatingId(r.id);
+                            try {
+                              const res = await fetch("/api/admin/roles", {
+                                method: "PATCH",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ residentId: r.id, residentType: newType }),
+                              });
+                              if (res.ok) {
+                                setResidents((prev) =>
+                                  prev.map((pr) =>
+                                    pr.id === r.id ? { ...pr, residentType: newType } : pr
+                                  )
+                                );
+                              }
+                            } catch {
+                              // silently fail
+                            } finally {
+                              setUpdatingId(null);
+                            }
+                          }}
                           className={clsx(
-                            "inline-block px-2 py-0.5 text-xs font-medium rounded-full",
+                            "text-xs font-medium rounded-full px-2 py-0.5 border-0 cursor-pointer focus:ring-2 focus:ring-primary-500",
                             r.residentType === "OWNER"
                               ? "bg-blue-100 text-blue-700"
                               : "bg-amber-100 text-amber-700"
                           )}
                         >
-                          {r.residentType}
-                        </span>
+                          <option value="OWNER">Owner</option>
+                          <option value="TENANT">Tenant</option>
+                        </select>
                       </td>
                       <td className="py-3 pr-4">
                         <div className="flex flex-wrap gap-1">

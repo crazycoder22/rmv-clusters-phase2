@@ -15,7 +15,20 @@ export async function PATCH(request: Request) {
   }
 
   const body = await request.json();
-  const { residentId, roles: newRoles } = body;
+  const { residentId, roles: newRoles, residentType } = body;
+
+  // Handle residentType-only update
+  if (residentId && residentType && !newRoles) {
+    if (!["OWNER", "TENANT"].includes(residentType)) {
+      return NextResponse.json({ error: "Invalid resident type" }, { status: 400 });
+    }
+    const updated = await prisma.resident.update({
+      where: { id: residentId },
+      data: { residentType },
+      include: { roles: { select: { name: true } } },
+    });
+    return NextResponse.json({ success: true, resident: updated });
+  }
 
   if (!residentId || !Array.isArray(newRoles)) {
     return NextResponse.json(
