@@ -13,6 +13,7 @@ import {
   Upload,
   AlertTriangle,
   Search,
+  Calendar,
 } from "lucide-react";
 
 function parseGoal(value: string): number {
@@ -210,6 +211,85 @@ function parseCsv(text: string): { rows: CsvRow[]; date: string | null } {
   return { rows, date };
 }
 
+// ── Multi-day CSV parsing ──────────────────────────────
+
+interface MultiDayMatchResult {
+  csvName: string;
+  stepsByDate: Record<string, number>;
+  totalSteps: number;
+  matchedKey: string | null;
+  matchedName: string | null;
+  confidence: number;
+  alternatives: { key: string; name: string; score: number }[];
+}
+
+function parseMultiDayCsv(text: string): {
+  rows: { name: string; stepsByDate: Record<string, number> }[];
+  dates: string[];
+} {
+  const lines = text.trim().split("\n");
+  if (lines.length < 2) return { rows: [], dates: [] };
+
+  const headers = lines[0].split(",").map((h) => h.trim());
+  const nameIdx = headers.findIndex((h) => h.toLowerCase() === "name");
+  if (nameIdx < 0) return { rows: [], dates: [] };
+
+  // Find all date columns
+  const dateColumns: { idx: number; date: string }[] = [];
+  for (let i = 0; i < headers.length; i++) {
+    const m = headers[i].match(/^(\d{4}-\d{2}-\d{2})$/);
+    if (m) dateColumns.push({ idx: i, date: m[1] });
+  }
+  if (dateColumns.length === 0) return { rows: [], dates: [] };
+
+  const dates = dateColumns.map((dc) => dc.date).sort();
+  const rows: { name: string; stepsByDate: Record<string, number> }[] = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    const cols = lines[i].split(",").map((c) => c.trim());
+    const name = cols[nameIdx];
+    if (!name) continue;
+
+    const stepsByDate: Record<string, number> = {};
+    let hasAnySteps = false;
+    for (const dc of dateColumns) {
+      const val = parseInt(cols[dc.idx]) || 0; // "N.A" → NaN → 0
+      stepsByDate[dc.date] = val;
+      if (val > 0) hasAnySteps = true;
+    }
+
+    if (hasAnySteps) {
+      rows.push({ name, stepsByDate });
+    }
+  }
+
+  return { rows, dates };
+}
+
+function findBestMatchesMultiDay(
+  csvRows: { name: string; stepsByDate: Record<string, number> }[],
+  participants: StepParticipant[],
+  getKey: (p: StepParticipant) => string
+): MultiDayMatchResult[] {
+  // Reuse findBestMatches by converting to CsvRow format
+  const asCsvRows: CsvRow[] = csvRows.map((r) => ({
+    name: r.name,
+    steps: Object.values(r.stepsByDate).reduce((a, b) => a + b, 0),
+  }));
+
+  const baseMatches = findBestMatches(asCsvRows, participants, getKey);
+
+  return baseMatches.map((m, i) => ({
+    csvName: m.csvName,
+    stepsByDate: csvRows[i].stepsByDate,
+    totalSteps: m.csvSteps,
+    matchedKey: m.matchedKey,
+    matchedName: m.matchedName,
+    confidence: m.confidence,
+    alternatives: m.alternatives,
+  }));
+}
+
 // ── Component ──────────────────────────────────────────
 
 export default function AdminStepsPage({
@@ -246,6 +326,15 @@ export default function AdminStepsPage({
   const [importDate, setImportDate] = useState<string | null>(null);
   const [importSearch, setImportSearch] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Multi-day CSV Import state
+  const [showMultiDayImport, setShowMultiDayImport] = useState(false);
+  const [multiDayMatches, setMultiDayMatches] = useState<MultiDayMatchResult[]>([]);
+  const [multiDayDates, setMultiDayDates] = useState<string[]>([]);
+  const [multiDaySaving, setMultiDaySaving] = useState(false);
+  const [multiDaySaveResult, setMultiDaySaveResult] = useState<{ saved: number; dates: number } | null>(null);
+  const [multiDaySearch, setMultiDaySearch] = useState("");
+  const multiDayFileInputRef = useRef<HTMLInputElement>(null);
 
   const getKey = (p: StepParticipant) =>
     p.rsvpId ? `r-${p.rsvpId}` : `g-${p.guestRsvpId}`;
@@ -418,6 +507,111 @@ export default function AdminStepsPage({
     setImportMatches([]);
   };
 
+  // ── Multi-day CSV Import handlers ─────────────────
+
+  const handleMultiDayFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const text = ev.target?.result as string;
+      const { rows, dates } = parseMultiDayCsv(text);
+
+      if (rows.length === 0 || dates.length === 0) {
+        alert("Could not parse CSV. Make sure it has a 'Name' column and date columns (YYYY-MM-DD).");
+        return;
+      }
+
+      const matches = findBestMatchesMultiDay(rows, participants, getKey);
+      setMultiDayMatches(matches);
+      setMultiDayDates(dates);
+      setMultiDaySearch("");
+      setMultiDaySaveResult(null);
+      setShowMultiDayImport(true);
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
+
+  const handleMultiDayMatchChange = (csvIdx: number, newKey: string) => {
+    setMultiDayMatches((prev) =>
+      prev.map((m, i) => {
+        if (i !== csvIdx) return m;
+        if (newKey === "__none__") {
+          return { ...m, matchedKey: null, matchedName: null, confidence: 0 };
+        }
+        const participant = participants.find((p) => getKey(p) === newKey);
+        return {
+          ...m,
+          matchedKey: newKey,
+          matchedName: participant?.name ?? null,
+          confidence: participant ? matchScore(m.csvName, participant.name) : 0,
+        };
+      })
+    );
+  };
+
+  const handleMultiDayImportConfirm = async () => {
+    setMultiDaySaving(true);
+    setMultiDaySaveResult(null);
+    try {
+      // Build flat entries array for bulk API
+      const entries: { rsvpId?: string; guestRsvpId?: string; date: string; steps: number }[] = [];
+      for (const match of multiDayMatches) {
+        if (!match.matchedKey) continue;
+        const isRsvp = match.matchedKey.startsWith("r-");
+        const idValue = match.matchedKey.slice(2);
+
+        for (const [date, steps] of Object.entries(match.stepsByDate)) {
+          entries.push({
+            ...(isRsvp ? { rsvpId: idValue } : { guestRsvpId: idValue }),
+            date,
+            steps,
+          });
+        }
+      }
+
+      const res = await fetch(`/api/admin/events/${id}/steps/bulk`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ entries }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setMultiDaySaveResult(data);
+        // Refresh current date view
+        fetchData();
+        // Auto-close after brief delay
+        setTimeout(() => {
+          setShowMultiDayImport(false);
+          setMultiDayMatches([]);
+          setMultiDaySaveResult(null);
+        }, 2000);
+      } else {
+        alert("Failed to save multi-day import. Check server logs.");
+      }
+    } catch {
+      alert("Error saving multi-day import.");
+    } finally {
+      setMultiDaySaving(false);
+    }
+  };
+
+  const mdMatchedCount = multiDayMatches.filter((m) => m.matchedKey).length;
+  const mdUnmatchedCount = multiDayMatches.length - mdMatchedCount;
+  const mdHighConfCount = multiDayMatches.filter((m) => m.matchedKey && m.confidence >= 70).length;
+  const mdLowConfCount = multiDayMatches.filter((m) => m.matchedKey && m.confidence < 70).length;
+
+  const filteredMultiDayMatches = multiDaySearch
+    ? multiDayMatches.filter(
+        (m) =>
+          m.csvName.toLowerCase().includes(multiDaySearch.toLowerCase()) ||
+          (m.matchedName && m.matchedName.toLowerCase().includes(multiDaySearch.toLowerCase()))
+      )
+    : multiDayMatches;
+
   const matchedCount = importMatches.filter((m) => m.matchedKey).length;
   const unmatchedCount = importMatches.length - matchedCount;
   const highConfCount = importMatches.filter(
@@ -505,9 +699,9 @@ export default function AdminStepsPage({
           })}
         </span>
 
-        {/* Import CSV button */}
+        {/* Import buttons */}
         {participants.length > 0 && (
-          <div className="ml-auto">
+          <div className="ml-auto flex gap-2">
             <input
               ref={fileInputRef}
               type="file"
@@ -521,6 +715,20 @@ export default function AdminStepsPage({
             >
               <Upload size={16} />
               Import CSV
+            </button>
+            <input
+              ref={multiDayFileInputRef}
+              type="file"
+              accept=".csv"
+              onChange={handleMultiDayFileSelect}
+              className="hidden"
+            />
+            <button
+              onClick={() => multiDayFileInputRef.current?.click()}
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-primary-300 rounded-lg text-sm font-medium text-primary-700 hover:bg-primary-50 transition-colors"
+            >
+              <Calendar size={16} />
+              Multi-Day Import
             </button>
           </div>
         )}
@@ -944,6 +1152,217 @@ export default function AdminStepsPage({
                   className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
                 >
                   Import {matchedCount} Entries
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Multi-Day CSV Import Modal */}
+      {showMultiDayImport && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          onClick={() => !multiDaySaving && setShowMultiDayImport(false)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-xl max-w-3xl w-full mx-4 max-h-[90vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal header */}
+            <div className="px-6 py-4 border-b border-gray-200 flex-shrink-0">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <Calendar size={20} className="text-primary-600" />
+                  Multi-Day Import — Review Mappings
+                </h3>
+              </div>
+              <p className="text-sm text-gray-500 mt-1">
+                {multiDayDates.length} dates found:{" "}
+                <span className="font-medium text-gray-700">
+                  {multiDayDates.map((d) =>
+                    new Date(d + "T12:00:00").toLocaleDateString("en-IN", {
+                      day: "numeric",
+                      month: "short",
+                    })
+                  ).join(", ")}
+                </span>
+              </p>
+
+              {/* Summary badges */}
+              <div className="flex gap-3 mt-3">
+                <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                  {mdHighConfCount} high match
+                </span>
+                {mdLowConfCount > 0 && (
+                  <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">
+                    {mdLowConfCount} low match
+                  </span>
+                )}
+                {mdUnmatchedCount > 0 && (
+                  <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                    {mdUnmatchedCount} unmatched
+                  </span>
+                )}
+                <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                  {multiDayMatches.length} total in CSV
+                </span>
+              </div>
+
+              {/* Search */}
+              {multiDayMatches.length > 10 && (
+                <div className="mt-3 relative">
+                  <Search
+                    size={14}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  />
+                  <input
+                    type="text"
+                    value={multiDaySearch}
+                    onChange={(e) => setMultiDaySearch(e.target.value)}
+                    placeholder="Search names..."
+                    className="w-full pl-8 pr-3 py-1.5 border border-gray-300 rounded-lg text-sm"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Mapping table */}
+            <div className="flex-1 overflow-y-auto px-6 py-3">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-gray-500 text-xs uppercase tracking-wider">
+                    <th className="pb-2 pr-3 font-medium">CSV Name</th>
+                    <th className="pb-2 pr-3 font-medium">Total Steps</th>
+                    <th className="pb-2 pr-3 font-medium">Matched Participant</th>
+                    <th className="pb-2 font-medium w-20 text-center">Conf.</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredMultiDayMatches.map((match, idx) => {
+                    const realIdx = multiDayMatches.indexOf(match);
+                    return (
+                      <tr
+                        key={idx}
+                        className="border-t border-gray-100 align-top"
+                      >
+                        <td className="py-2.5 pr-3">
+                          <span className="font-medium text-gray-900">
+                            {match.csvName}
+                          </span>
+                        </td>
+                        <td className="py-2.5 pr-3 text-gray-600 tabular-nums">
+                          <div>{match.totalSteps.toLocaleString("en-IN")}</div>
+                          <div className="text-xs text-gray-400">
+                            across {Object.keys(match.stepsByDate).length} days
+                          </div>
+                        </td>
+                        <td className="py-2.5 pr-3">
+                          <select
+                            value={match.matchedKey || "__none__"}
+                            onChange={(e) =>
+                              handleMultiDayMatchChange(realIdx, e.target.value)
+                            }
+                            disabled={multiDaySaving}
+                            className={`w-full px-2 py-1.5 border rounded text-sm ${
+                              !match.matchedKey
+                                ? "border-red-300 bg-red-50 text-red-700"
+                                : match.confidence >= 70
+                                ? "border-green-300 bg-green-50"
+                                : "border-yellow-300 bg-yellow-50"
+                            }`}
+                          >
+                            <option value="__none__">
+                              — Skip (no match) —
+                            </option>
+                            {match.alternatives.length > 0 && (
+                              <optgroup label="Best matches">
+                                {match.alternatives.map((alt) => (
+                                  <option key={alt.key} value={alt.key}>
+                                    {alt.name} ({Math.round(alt.score)}%)
+                                  </option>
+                                ))}
+                              </optgroup>
+                            )}
+                            <optgroup label="All participants">
+                              {participants.map((p) => {
+                                const key = getKey(p);
+                                if (match.alternatives.some((a) => a.key === key))
+                                  return null;
+                                return (
+                                  <option key={key} value={key}>
+                                    {p.name} (B{p.block}-{p.flatNumber})
+                                  </option>
+                                );
+                              })}
+                            </optgroup>
+                          </select>
+                        </td>
+                        <td className="py-2.5 text-center">
+                          {match.matchedKey ? (
+                            <span
+                              className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
+                                match.confidence >= 70
+                                  ? "bg-green-100 text-green-700"
+                                  : match.confidence >= 40
+                                  ? "bg-yellow-100 text-yellow-700"
+                                  : "bg-red-100 text-red-700"
+                              }`}
+                            >
+                              {Math.round(match.confidence)}%
+                            </span>
+                          ) : (
+                            <AlertTriangle
+                              size={16}
+                              className="inline text-red-400"
+                            />
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Modal footer */}
+            <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between flex-shrink-0">
+              <div className="text-sm text-gray-500">
+                {multiDaySaveResult ? (
+                  <span className="text-green-600 font-medium">
+                    Saved {multiDaySaveResult.saved} entries across {multiDaySaveResult.dates} dates!
+                  </span>
+                ) : (
+                  <span>
+                    {mdMatchedCount} of {multiDayMatches.length} participants
+                    &times; {multiDayDates.length} dates
+                  </span>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    setShowMultiDayImport(false);
+                    setMultiDayMatches([]);
+                    setMultiDaySaveResult(null);
+                  }}
+                  disabled={multiDaySaving}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleMultiDayImportConfirm}
+                  disabled={mdMatchedCount === 0 || multiDaySaving || !!multiDaySaveResult}
+                  className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors flex items-center gap-2"
+                >
+                  {multiDaySaving ? (
+                    <>
+                      <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+                      Saving...
+                    </>
+                  ) : (
+                    `Import ${mdMatchedCount} × ${multiDayDates.length} Dates`
+                  )}
                 </button>
               </div>
             </div>
