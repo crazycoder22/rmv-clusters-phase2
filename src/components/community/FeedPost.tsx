@@ -91,8 +91,8 @@ export default function FeedPost({ post, currentUserId, isAdmin, onDelete }: Fee
 
     if (count === 1) {
       return (
-        <div className="mt-3 rounded-lg overflow-hidden">
-          <img src={post.images[0]} alt="" className="w-full max-h-96 object-cover" />
+        <div className="mt-3 rounded-lg overflow-hidden bg-gray-50">
+          <img src={post.images[0]} alt="" className="w-full object-contain max-h-[500px]" />
         </div>
       );
     }
@@ -102,8 +102,8 @@ export default function FeedPost({ post, currentUserId, isAdmin, onDelete }: Fee
         count === 2 ? "grid-cols-2" : "grid-cols-2"
       }`}>
         {post.images.map((url, i) => (
-          <div key={i} className={`${count === 3 && i === 0 ? "row-span-2" : ""} bg-gray-100`}>
-            <img src={url} alt="" className="w-full h-full object-cover" style={{ minHeight: "120px", maxHeight: count <= 2 ? "300px" : "200px" }} />
+          <div key={i} className={`${count === 3 && i === 0 ? "row-span-2" : ""} bg-gray-50`}>
+            <img src={url} alt="" className="w-full h-full object-contain" style={{ minHeight: "120px", maxHeight: count <= 2 ? "300px" : "200px" }} />
           </div>
         ))}
       </div>
