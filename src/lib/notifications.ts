@@ -2,8 +2,12 @@ export function getNotificationUrl(
   announcementId: string | null,
   visitorId: string | null,
   issueId?: string | null,
-  taskId?: string | null
+  taskId?: string | null,
+  postId?: string | null
 ): string {
+  if (postId) {
+    return "/community";
+  }
   if (taskId) {
     return "/tasks";
   }
@@ -29,6 +33,7 @@ export function getCategoryColor(category: string): string {
     visitor: "bg-purple-100 text-purple-700",
     issue: "bg-orange-100 text-orange-700",
     task: "bg-teal-100 text-teal-700",
+    community: "bg-emerald-100 text-emerald-700",
   };
   return colors[category] || "bg-gray-100 text-gray-700";
 }

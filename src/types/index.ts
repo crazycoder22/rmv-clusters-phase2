@@ -220,6 +220,8 @@ export interface NotificationType {
   visitorId: string | null;
   issueId: string | null;
   taskId: string | null;
+  postId: string | null;
+  message: string | null;
   read: boolean;
   createdAt: string;
   announcement: {
@@ -243,6 +245,10 @@ export interface NotificationType {
     title: string;
     status: string;
     priority: string;
+  } | null;
+  post: {
+    id: string;
+    content: string;
   } | null;
 }
 

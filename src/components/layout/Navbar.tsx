@@ -28,6 +28,7 @@ const navLinks = [
   { href: "/faq", label: "FAQ" },
   { href: "/calendar", label: "Calendar" },
   { href: "/newsletters", label: "Newsletters" },
+  { href: "/community", label: "Community" },
   { href: "/issues", label: "Issues" },
   { href: "/contact", label: "Contact" },
 ];

@@ -64,6 +64,9 @@ model Resident {
   tasksOwned               Task[]   @relation("TasksOwned")
   taskComments             TaskComment[]
   newsletterSubmissions    NewsletterSubmission[]
+  posts                    Post[]
+  postComments             PostComment[]
+  postLikes                PostLike[]
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 }
@@ -310,6 +313,9 @@ model Notification {
   issue          Issue?        @relation(fields: [issueId], references: [id], onDelete: Cascade)
   taskId         String?
   task           Task?         @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  postId         String?
+  post           Post?         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  message        String?
   read           Boolean       @default(false)
   createdAt      DateTime      @default(now())
 
@@ -318,6 +324,7 @@ model Notification {
   @@index([visitorId])
   @@index([issueId])
   @@index([taskId])
+  @@index([postId])
 }
 
 model Issue {
@@ -485,4 +492,45 @@ model NewsletterSubmission {
   updatedAt   DateTime @updatedAt
 
   @@index([status])
+}
+
+model Post {
+  id            String        @id @default(cuid())
+  content       String
+  images        String[]      // Vercel Blob URLs
+  videoUrl      String?       // YouTube URL
+  authorId      String
+  author        Resident      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments      PostComment[]
+  likes         PostLike[]
+  notifications Notification[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([authorId])
+  @@index([createdAt])
+}
+
+model PostComment {
+  id        String   @id @default(cuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    Resident @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([postId])
+}
+
+model PostLike {
+  id         String   @id @default(cuid())
+  postId     String
+  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  residentId String
+  resident   Resident @relation(fields: [residentId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([postId, residentId])
+  @@index([postId])
 }

@@ -33,6 +33,9 @@ export async function GET() {
       task: {
         select: { id: true, title: true, status: true, priority: true },
       },
+      post: {
+        select: { id: true, content: true },
+      },
     },
   });
 
