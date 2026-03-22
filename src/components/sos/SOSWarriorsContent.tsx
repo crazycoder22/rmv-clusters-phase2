@@ -54,6 +54,17 @@ export default function SOSWarriorsContent() {
           <div className="mt-4 h-1 w-16 bg-red-500 rounded mx-auto" />
         </div>
 
+        {/* Senior citizen note */}
+        <div className="mb-8 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+          <Phone size={20} className="text-amber-600 mt-0.5 shrink-0" />
+          <p className="text-sm text-amber-800">
+            <span className="font-semibold">For senior citizens:</span> If you find it
+            difficult to navigate apps or send messages, a printed copy of this warrior
+            contact list is available at the security desk. In an emergency, simply call
+            any warrior directly from the list.
+          </p>
+        </div>
+
         {loading ? (
           <p className="text-gray-500 text-center py-12">Loading warriors...</p>
         ) : warriors.length === 0 ? (
