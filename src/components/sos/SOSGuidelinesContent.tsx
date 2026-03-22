@@ -16,6 +16,7 @@ import {
   MessageCircleWarning,
   Info,
   IndianRupee,
+  Phone,
 } from "lucide-react";
 import clsx from "clsx";
 import sosData from "@/data/sos-guidelines.json";
@@ -265,6 +266,17 @@ export default function SOSGuidelinesContent() {
             </div>
           </Link>
         </section>
+
+        {/* Senior citizen note */}
+        <div className="mb-8 bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
+          <Phone size={20} className="text-blue-600 mt-0.5 shrink-0" />
+          <p className="text-sm text-blue-800">
+            <span className="font-semibold">For senior citizens:</span> If you find it
+            difficult to navigate apps or send messages, a printed copy of the warrior
+            contact list is available at the security desk. In an emergency, simply call
+            any warrior directly from the list.
+          </p>
+        </div>
 
         {/* Important Note */}
         <section className="mb-10">
