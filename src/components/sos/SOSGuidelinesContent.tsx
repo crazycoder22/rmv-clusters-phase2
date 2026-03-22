@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import {
   Ambulance,
   Flame,
@@ -19,25 +20,130 @@ import clsx from "clsx";
 import sosData from "@/data/sos-guidelines.json";
 import { formatDate } from "@/lib/utils";
 
-const STORAGE_KEY = "rmv-sos-accepted";
+interface FlatOption {
+  id: string;
+  block: number;
+  flatNumber: string;
+}
 
 export default function SOSGuidelinesContent() {
+  const { data: session, status: sessionStatus } = useSession();
   const [accepted, setAccepted] = useState(false);
   const [checked, setChecked] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
+  // Form fields for non-logged-in or guest users
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    block: "",
+    flatNumber: "",
+  });
+  const [flats, setFlats] = useState<FlatOption[]>([]);
+  const [loadingFlats, setLoadingFlats] = useState(false);
+
+  // Pre-fill form when session is available
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === "true") {
-      setAccepted(true);
-      setChecked(true);
+    if (session?.user) {
+      setForm((prev) => ({
+        ...prev,
+        name: session.user?.name ?? prev.name,
+        email: session.user?.email ?? prev.email,
+      }));
     }
-    setHydrated(true);
-  }, []);
+  }, [session]);
 
-  function handleAccept() {
-    localStorage.setItem(STORAGE_KEY, "true");
-    setAccepted(true);
+  // Check acceptance status on load
+  useEffect(() => {
+    async function checkAcceptance() {
+      // For logged-in users, check server
+      if (session?.user?.email) {
+        try {
+          const res = await fetch("/api/sos-acceptance");
+          const data = await res.json();
+          if (data.accepted) {
+            setAccepted(true);
+            setChecked(true);
+          }
+        } catch {
+          // ignore
+        }
+      }
+      setHydrated(true);
+    }
+
+    if (sessionStatus !== "loading") {
+      checkAcceptance();
+    }
+  }, [session, sessionStatus]);
+
+  // Fetch flats when block changes
+  useEffect(() => {
+    if (!form.block) {
+      setFlats([]);
+      return;
+    }
+    setLoadingFlats(true);
+    fetch(`/api/flats?block=${form.block}`)
+      .then((res) => (res.ok ? res.json() : { flats: [] }))
+      .then((data) => setFlats(data.flats || []))
+      .catch(() => setFlats([]))
+      .finally(() => setLoadingFlats(false));
+  }, [form.block]);
+
+  function handleChange(
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) {
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+      ...(name === "block" ? { flatNumber: "" } : {}),
+    }));
+  }
+
+  const isLoggedIn = !!session?.user;
+
+  // Form validity: logged-in users need phone/block/flat; guests need all fields
+  const formValid = isLoggedIn
+    ? form.phone && form.block && form.flatNumber
+    : form.name && form.email && form.phone && form.block && form.flatNumber;
+
+  async function handleAccept() {
+    if (!formValid || !checked) return;
+    setSubmitting(true);
+    setError("");
+
+    try {
+      const payload = {
+        name: isLoggedIn ? session?.user?.name || form.name : form.name,
+        email: isLoggedIn ? session?.user?.email || form.email : form.email,
+        phone: form.phone,
+        block: form.block,
+        flatNumber: form.flatNumber,
+      };
+
+      const res = await fetch("/api/sos-acceptance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || "Something went wrong. Please try again.");
+        return;
+      }
+
+      setAccepted(true);
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -290,16 +396,117 @@ export default function SOSGuidelinesContent() {
                 </div>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-5">
                 <h3 className="text-lg font-semibold text-gray-900">
                   Accept Guidelines to Join
                 </h3>
                 <p className="text-sm text-gray-600">
-                  Please read all the guidelines above carefully. By checking
-                  the box below and clicking &quot;Accept&quot;, you agree to
-                  follow all rules and understand the consequences of
-                  violations.
+                  Please read all the guidelines above carefully. Fill in your
+                  details and accept to join the SOS group.
                 </p>
+
+                {/* User info form */}
+                <div className="space-y-4 border-t border-gray-100 pt-4">
+                  {/* Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      required
+                      value={form.name}
+                      onChange={handleChange}
+                      disabled={isLoggedIn && !!session?.user?.name}
+                      placeholder="Your full name"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 disabled:bg-gray-50 disabled:text-gray-500"
+                    />
+                  </div>
+
+                  {/* Email */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Email <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      required
+                      value={form.email}
+                      onChange={handleChange}
+                      disabled={isLoggedIn && !!session?.user?.email}
+                      placeholder="your@email.com"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 disabled:bg-gray-50 disabled:text-gray-500"
+                    />
+                  </div>
+
+                  {/* Phone */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Mobile Number <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      required
+                      value={form.phone}
+                      onChange={handleChange}
+                      placeholder="e.g., 9876543210"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    />
+                  </div>
+
+                  {/* Block */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Block <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      name="block"
+                      required
+                      value={form.block}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    >
+                      <option value="">Select Block</option>
+                      <option value="1">Block 1</option>
+                      <option value="2">Block 2</option>
+                      <option value="3">Block 3</option>
+                      <option value="4">Block 4</option>
+                    </select>
+                  </div>
+
+                  {/* Flat */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Flat / Door Number <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      name="flatNumber"
+                      required
+                      value={form.flatNumber}
+                      onChange={handleChange}
+                      disabled={!form.block || loadingFlats}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 disabled:bg-gray-50 disabled:text-gray-400"
+                    >
+                      <option value="">
+                        {!form.block
+                          ? "Select a block first"
+                          : loadingFlats
+                          ? "Loading flats..."
+                          : "Select Flat"}
+                      </option>
+                      {flats.map((flat) => (
+                        <option key={flat.id} value={flat.flatNumber}>
+                          {flat.flatNumber}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Checkbox + Accept */}
                 <label className="flex items-start gap-3 cursor-pointer select-none">
                   <input
                     type="checkbox"
@@ -314,17 +521,22 @@ export default function SOSGuidelinesContent() {
                     violations.
                   </span>
                 </label>
+
+                {error && (
+                  <p className="text-sm text-red-600">{error}</p>
+                )}
+
                 <button
                   onClick={handleAccept}
-                  disabled={!checked || !hydrated}
+                  disabled={!checked || !formValid || !hydrated || submitting}
                   className={clsx(
                     "w-full py-3 px-6 rounded-lg font-medium text-white transition-colors",
-                    checked && hydrated
+                    checked && formValid && hydrated && !submitting
                       ? "bg-red-600 hover:bg-red-700 cursor-pointer"
                       : "bg-gray-300 cursor-not-allowed"
                   )}
                 >
-                  I Accept the Guidelines
+                  {submitting ? "Submitting..." : "I Accept the Guidelines"}
                 </button>
               </div>
             )}
