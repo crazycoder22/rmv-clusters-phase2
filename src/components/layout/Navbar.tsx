@@ -23,6 +23,7 @@ const publicPaths = ["/", "/contact"];
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/guidelines", label: "Guidelines" },
+  { href: "/sos-guidelines", label: "SOS" },
   { href: "/news", label: "News" },
   { href: "/gallery", label: "Gallery" },
   { href: "/faq", label: "FAQ" },
