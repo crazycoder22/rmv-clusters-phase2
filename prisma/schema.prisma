@@ -52,6 +52,7 @@ model Resident {
   flatNumber   String   // e.g., "101", "G2"
   residentType String   // "OWNER" or "TENANT"
   isApproved   Boolean  @default(false)
+  isSosWarrior Boolean  @default(false)
   googleImage  String?
   roles        Role[]
   rsvps                Rsvp[]
