@@ -18,6 +18,7 @@ import {
   canManageNewsletters,
   canManageChecklist,
   canFillChecklist,
+  canManageDocuments,
 } from "@/lib/roles";
 
 const publicPaths = ["/", "/contact", "/sos-guidelines", "/sos-warriors"];
@@ -34,6 +35,7 @@ const navLinks = [
   { href: "/community", label: "Community" },
   { href: "/issues", label: "Issues" },
   { href: "/checklist", label: "Checklist" },
+  { href: "/documents", label: "Documents" },
   { href: "/contact", label: "Contact" },
 ];
 
@@ -90,6 +92,13 @@ export default function Navbar() {
       href: "/admin/checklist",
       label: "Checklist Items",
       match: (p) => p.startsWith("/admin/checklist"),
+    });
+  }
+  if (canManageDocuments(roles)) {
+    adminLinks.push({
+      href: "/admin/documents",
+      label: "Documents",
+      match: (p) => p.startsWith("/admin/documents"),
     });
   }
 

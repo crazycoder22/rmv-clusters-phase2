@@ -129,6 +129,13 @@ export function canFillChecklist(
   return isAdmin(roles) || hasExactRole(roles, "FACILITY_MANAGER");
 }
 
+/** Check if user can manage documents */
+export function canManageDocuments(
+  roles: UserRole[] | string[] | null | undefined
+): boolean {
+  return isAdmin(roles);
+}
+
 /** Check if user can access tasks */
 export function canAccessTasks(
   roles: UserRole[] | string[] | null | undefined

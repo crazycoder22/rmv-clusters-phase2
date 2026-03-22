@@ -576,3 +576,34 @@ model SosAcceptance {
   @@unique([email])
   @@index([block, flatNumber])
 }
+
+model DocumentFolder {
+  id        String           @id @default(cuid())
+  name      String
+  parentId  String?
+  parent    DocumentFolder?  @relation("FolderTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children  DocumentFolder[] @relation("FolderTree")
+  files     DocumentFile[]
+  driveUrl  String?          // Optional Google Drive folder link
+  sortOrder Int              @default(0)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@index([parentId])
+}
+
+model DocumentFile {
+  id        String         @id @default(cuid())
+  name      String
+  folderId  String
+  folder    DocumentFolder @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  driveUrl  String?        // Google Drive file link
+  fileUrl   String?        // Direct upload URL (Vercel Blob) — for future use
+  fileType  String?        // e.g., "pdf", "xlsx", "image"
+  fileSize  Int?           // Size in bytes
+  sortOrder Int            @default(0)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@index([folderId])
+}
