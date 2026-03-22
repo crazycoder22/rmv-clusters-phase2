@@ -18,7 +18,7 @@ import {
   canManageNewsletters,
 } from "@/lib/roles";
 
-const publicPaths = ["/", "/contact", "/sos-guidelines"];
+const publicPaths = ["/", "/contact", "/sos-guidelines", "/sos-warriors"];
 
 const navLinks = [
   { href: "/", label: "Home" },

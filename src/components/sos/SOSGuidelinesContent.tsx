@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import {
   Ambulance,
   Flame,
@@ -238,6 +239,31 @@ export default function SOSGuidelinesContent() {
               </div>
             ))}
           </div>
+        </section>
+
+        {/* SOS Warriors Link */}
+        <section className="mb-10">
+          <Link
+            href="/sos-warriors"
+            className="block bg-red-50 border border-red-200 rounded-xl p-5 hover:bg-red-100 transition-colors group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
+                  <Shield size={20} className="text-red-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-red-900">
+                    SOS Warriors Directory
+                  </h3>
+                  <p className="text-sm text-red-700">
+                    View trained volunteers &amp; their contact numbers
+                  </p>
+                </div>
+              </div>
+              <span className="text-red-400 group-hover:text-red-600 text-lg">&rarr;</span>
+            </div>
+          </Link>
         </section>
 
         {/* Important Note */}

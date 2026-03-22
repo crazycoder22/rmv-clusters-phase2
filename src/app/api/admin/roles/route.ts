@@ -15,7 +15,17 @@ export async function PATCH(request: Request) {
   }
 
   const body = await request.json();
-  const { residentId, roles: newRoles, residentType } = body;
+  const { residentId, roles: newRoles, residentType, isSosWarrior } = body;
+
+  // Handle isSosWarrior toggle
+  if (residentId && typeof isSosWarrior === "boolean" && !newRoles && !residentType) {
+    const updated = await prisma.resident.update({
+      where: { id: residentId },
+      data: { isSosWarrior },
+      include: { roles: { select: { name: true } } },
+    });
+    return NextResponse.json({ success: true, resident: updated });
+  }
 
   // Handle residentType-only update
   if (residentId && residentType && !newRoles) {

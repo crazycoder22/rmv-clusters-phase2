@@ -19,6 +19,7 @@ interface ResidentWithRole {
   flatNumber: string;
   residentType: string;
   isApproved?: boolean;
+  isSosWarrior?: boolean;
   createdAt?: string;
   roles: { name: string }[];
 }
@@ -1478,6 +1479,7 @@ export default function AdminPage() {
                     <th className="pb-3 pr-4 font-medium">Block / Flat</th>
                     <th className="pb-3 pr-4 font-medium">Phone</th>
                     <th className="pb-3 pr-4 font-medium">Type</th>
+                    <th className="pb-3 pr-4 font-medium">SOS</th>
                     <th className="pb-3 pr-4 font-medium">Roles</th>
                     <th className="pb-3 font-medium">Assign Roles</th>
                   </tr>
@@ -1532,6 +1534,40 @@ export default function AdminPage() {
                           <option value="OWNER">Owner</option>
                           <option value="TENANT">Tenant</option>
                         </select>
+                      </td>
+                      <td className="py-3 pr-4">
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={!!r.isSosWarrior}
+                            disabled={updatingId === r.id}
+                            onChange={async () => {
+                              setUpdatingId(r.id);
+                              try {
+                                const res = await fetch("/api/admin/roles", {
+                                  method: "PATCH",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ residentId: r.id, isSosWarrior: !r.isSosWarrior }),
+                                });
+                                if (res.ok) {
+                                  setResidents((prev) =>
+                                    prev.map((pr) =>
+                                      pr.id === r.id ? { ...pr, isSosWarrior: !r.isSosWarrior } : pr
+                                    )
+                                  );
+                                }
+                              } catch {
+                                // silently fail
+                              } finally {
+                                setUpdatingId(null);
+                              }
+                            }}
+                            className="h-3.5 w-3.5 rounded border-gray-300 text-red-600 focus:ring-red-500"
+                          />
+                          <span className={clsx("ml-1.5 text-xs font-medium", r.isSosWarrior ? "text-red-600" : "text-gray-400")}>
+                            {r.isSosWarrior ? "Warrior" : "—"}
+                          </span>
+                        </label>
                       </td>
                       <td className="py-3 pr-4">
                         <div className="flex flex-wrap gap-1">
