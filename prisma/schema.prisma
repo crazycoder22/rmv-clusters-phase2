@@ -534,3 +534,17 @@ model PostLike {
   @@unique([postId, residentId])
   @@index([postId])
 }
+
+model SosAcceptance {
+  id         String   @id @default(cuid())
+  name       String
+  email      String
+  phone      String
+  block      Int
+  flatNumber String
+  residentId String?  // Set if the user was logged in at the time
+  createdAt  DateTime @default(now())
+
+  @@unique([email])
+  @@index([block, flatNumber])
+}
