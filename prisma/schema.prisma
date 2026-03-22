@@ -64,6 +64,7 @@ model Resident {
   tasksCreated             Task[]   @relation("TasksCreated")
   tasksOwned               Task[]   @relation("TasksOwned")
   taskComments             TaskComment[]
+  checklistEntries         ChecklistEntry[]
   newsletterSubmissions    NewsletterSubmission[]
   posts                    Post[]
   postComments             PostComment[]
@@ -534,6 +535,32 @@ model PostLike {
 
   @@unique([postId, residentId])
   @@index([postId])
+}
+
+model ChecklistItem {
+  id        String           @id @default(cuid())
+  name      String
+  sortOrder Int              @default(0)
+  active    Boolean          @default(true)
+  entries   ChecklistEntry[]
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+model ChecklistEntry {
+  id         String        @id @default(cuid())
+  date       DateTime      @db.Date
+  done       Boolean
+  itemId     String
+  item       ChecklistItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  filledById String
+  filledBy   Resident      @relation(fields: [filledById], references: [id])
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  @@unique([date, itemId])
+  @@index([itemId])
+  @@index([date])
 }
 
 model SosAcceptance {
