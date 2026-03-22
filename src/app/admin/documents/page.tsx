@@ -17,7 +17,7 @@ import {
   Check,
 } from "lucide-react";
 
-interface DocumentFile {
+interface RawFile {
   id: string;
   name: string;
   folderId: string;
@@ -27,19 +27,42 @@ interface DocumentFile {
   sortOrder: number;
 }
 
-interface DocumentFolder {
+interface RawFolder {
   id: string;
   name: string;
   parentId: string | null;
   driveUrl: string | null;
   sortOrder: number;
-  children: DocumentFolder[];
-  files: DocumentFile[];
+}
+
+interface TreeFolder extends RawFolder {
+  children: TreeFolder[];
+  files: RawFile[];
+}
+
+function buildTree(folders: RawFolder[], files: RawFile[]): TreeFolder[] {
+  const map = new Map<string, TreeFolder>();
+  for (const f of folders) {
+    map.set(f.id, { ...f, children: [], files: [] });
+  }
+  for (const file of files) {
+    map.get(file.folderId)?.files.push(file);
+  }
+  const roots: TreeFolder[] = [];
+  for (const f of map.values()) {
+    if (f.parentId && map.has(f.parentId)) {
+      map.get(f.parentId)!.children.push(f);
+    } else {
+      roots.push(f);
+    }
+  }
+  return roots;
 }
 
 export default function AdminDocumentsPage() {
   const { canManageDocuments, isLoading: roleLoading } = useRole();
-  const [folders, setFolders] = useState<DocumentFolder[]>([]);
+  const [treeFolders, setTreeFolders] = useState<TreeFolder[]>([]);
+  const [allFoldersList, setAllFoldersList] = useState<TreeFolder[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
@@ -70,7 +93,15 @@ export default function AdminDocumentsPage() {
       const res = await fetch("/api/admin/documents/folders");
       if (!res.ok) return;
       const data = await res.json();
-      setFolders(data.folders);
+      const tree = buildTree(data.folders, data.files);
+      setTreeFolders(tree);
+      // Build flat list from tree for lookups
+      const flat: TreeFolder[] = [];
+      const walk = (nodes: TreeFolder[]) => {
+        for (const n of nodes) { flat.push(n); walk(n.children); }
+      };
+      walk(tree);
+      setAllFoldersList(flat);
     } finally {
       setLoading(false);
     }
@@ -88,18 +119,6 @@ export default function AdminDocumentsPage() {
       return next;
     });
   };
-
-  // Build a flat list of all folders for lookup
-  function flattenFolders(folders: DocumentFolder[]): DocumentFolder[] {
-    const result: DocumentFolder[] = [];
-    for (const f of folders) {
-      result.push(f);
-      if (f.children) result.push(...flattenFolders(f.children));
-    }
-    return result;
-  }
-
-  const allFolders = flattenFolders(folders);
 
   const handleAddFolder = async () => {
     if (!newFolderName.trim() || saving) return;
@@ -195,7 +214,7 @@ export default function AdminDocumentsPage() {
   };
 
   const handleDeleteFolder = async (id: string) => {
-    const folder = allFolders.find((f) => f.id === id);
+    const folder = allFoldersList.find((f) => f.id === id);
     const hasContent = folder && (folder.children.length > 0 || folder.files.length > 0);
     const msg = hasContent
       ? "This folder has contents that will also be deleted. Are you sure?"
@@ -228,7 +247,7 @@ export default function AdminDocumentsPage() {
     );
   }
 
-  const renderFolder = (folder: DocumentFolder, depth: number = 0) => {
+  const renderFolder = (folder: TreeFolder, depth: number = 0) => {
     const isExpanded = expanded.has(folder.id);
     const isEditing = editingFolder === folder.id;
 
@@ -449,7 +468,7 @@ export default function AdminDocumentsPage() {
     );
   };
 
-  const renderFile = (file: DocumentFile, depth: number) => {
+  const renderFile = (file: RawFile, depth: number) => {
     const isEditing = editingFile === file.id;
 
     return (
@@ -612,14 +631,12 @@ export default function AdminDocumentsPage() {
       )}
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-        {folders.filter((f) => !f.parentId).length === 0 ? (
+        {treeFolders.length === 0 ? (
           <p className="text-gray-400 text-center py-8">
             No folders yet. Create your first folder to get started.
           </p>
         ) : (
-          folders
-            .filter((f) => !f.parentId)
-            .map((folder) => renderFolder(folder, 0))
+          treeFolders.map((folder) => renderFolder(folder, 0))
         )}
       </div>
     </div>

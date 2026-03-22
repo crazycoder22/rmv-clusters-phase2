@@ -18,15 +18,12 @@ export async function GET() {
   const check = await requireDocumentsAdmin();
   if ("error" in check && check.error) return check.error;
 
-  const folders = await prisma.documentFolder.findMany({
-    orderBy: { sortOrder: "asc" },
-    include: {
-      children: { orderBy: { sortOrder: "asc" } },
-      files: { orderBy: { sortOrder: "asc" } },
-    },
-  });
+  const [folders, files] = await Promise.all([
+    prisma.documentFolder.findMany({ orderBy: { sortOrder: "asc" } }),
+    prisma.documentFile.findMany({ orderBy: { sortOrder: "asc" } }),
+  ]);
 
-  return NextResponse.json({ folders });
+  return NextResponse.json({ folders, files });
 }
 
 export async function POST(request: Request) {

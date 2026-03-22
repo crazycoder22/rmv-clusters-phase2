@@ -72,8 +72,8 @@ export default function DocumentsPage() {
   }, [roleLoading, canManageDocuments, fetchDocuments]);
 
   const currentFolder = path.length > 0 ? path[path.length - 1] : null;
-  const displayFolders = currentFolder ? currentFolder.children : rootFolders;
-  const displayFiles = currentFolder ? currentFolder.files : [];
+  const displayFolders = currentFolder ? (currentFolder.children || []) : rootFolders;
+  const displayFiles = currentFolder ? (currentFolder.files || []) : [];
 
   const navigateInto = (folder: DocumentFolder) => {
     setPath((prev) => [...prev, folder]);
