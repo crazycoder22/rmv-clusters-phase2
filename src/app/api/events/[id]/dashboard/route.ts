@@ -180,10 +180,10 @@ export async function GET(
     const startUTC = new Date(eventStartDate);
     startUTC.setUTCHours(0, 0, 0, 0);
 
-    // Days elapsed so far (capped at 14)
+    // Days elapsed so far (exclude today since data is uploaded next day)
     const daysElapsed = Math.min(
       CHALLENGE_DAYS,
-      Math.max(0, Math.floor((today.getTime() - startUTC.getTime()) / (1000 * 60 * 60 * 24)) + 1)
+      Math.max(0, Math.floor((today.getTime() - startUTC.getTime()) / (1000 * 60 * 60 * 24)))
     );
 
     // Build list of elapsed dates as ISO strings for lookup
