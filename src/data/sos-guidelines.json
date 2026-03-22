@@ -1,0 +1,74 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2026-03-22",
+  "scope": [
+    {
+      "id": "medical",
+      "icon": "ambulance",
+      "title": "Medical Emergencies",
+      "items": [
+        "Immediate hospitalization required",
+        "No immediate support from family/friends",
+        "Urgent help needed (transport, assistance, coordination)"
+      ]
+    },
+    {
+      "id": "fire",
+      "icon": "flame",
+      "title": "Fire Emergencies",
+      "items": [
+        "Fire incidents within the premises (home/common areas)",
+        "Immediate support required to control or respond",
+        "Assistance in using fire extinguishers / alerting authorities"
+      ]
+    }
+  ],
+  "howItWorks": [
+    "In case of emergency, post a message in the WhatsApp group",
+    "Nearby residents / trained volunteers will respond immediately",
+    "A set of trained \"RMV SOS Warriors\" will assist in medical emergencies, guide and act during fire incidents, help use available facilities (wheelchairs, extinguishers, etc.), and coordinate with emergency services if needed"
+  ],
+  "rules": [
+    {
+      "type": "forbidden",
+      "items": [
+        "No forwards",
+        "No discussions",
+        "No non-emergency messages"
+      ]
+    },
+    {
+      "type": "penalties",
+      "items": [
+        "1st violation → Removal + ₹1,000 to rejoin",
+        "2nd violation → ₹2,000 to rejoin",
+        "Repeated violations → Increasing penalty"
+      ]
+    }
+  ],
+  "emergencyExamples": [
+    "Person collapsed / unconscious",
+    "Severe chest pain (possible heart attack)",
+    "Difficulty breathing / choking",
+    "Major accident / heavy bleeding",
+    "Stroke symptoms (slurred speech, paralysis)",
+    "Elderly person needs urgent hospital transport",
+    "Child with seizures / severe allergic reaction",
+    "Fire inside a flat / kitchen fire spreading",
+    "Smoke from electrical panel / wiring",
+    "Vehicle fire in parking area",
+    "Gas leak with risk of explosion"
+  ],
+  "nonEmergencyExamples": [
+    "Fever, cold, or mild illness",
+    "Medical appointments / routine checkups",
+    "Doctor/hospital recommendations",
+    "Routine ambulance booking",
+    "Lost & found items",
+    "Delivery or parking issues",
+    "Maintenance complaints",
+    "Event announcements",
+    "General help requests",
+    "Greetings / forwards / jokes"
+  ]
+}
