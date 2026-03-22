@@ -442,7 +442,7 @@ export default function SOSGuidelinesContent() {
                   <p className="text-sm text-amber-900 font-medium">
                     Please read through all the guidelines above carefully before
                     accepting. This acceptance is mandatory — the SOS group admin
-                    will only add you to the WhatsApp group after you have
+                    will only approve your joining request after you have
                     accepted the guidelines here.
                   </p>
                 </div>
