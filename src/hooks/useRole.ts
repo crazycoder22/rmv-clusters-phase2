@@ -15,6 +15,8 @@ import {
   canManageVisitors as canManageVisitorsFn,
   canAccessTasks as canAccessTasksFn,
   canManageNewsletters as canManageNewslettersFn,
+  canManageChecklist as canManageChecklistFn,
+  canFillChecklist as canFillChecklistFn,
 } from "@/lib/roles";
 
 export function useRole() {
@@ -39,5 +41,7 @@ export function useRole() {
     canManageVisitors: useCallback(() => canManageVisitorsFn(roles), [roles]),
     canAccessTasks: useCallback(() => canAccessTasksFn(roles), [roles]),
     canManageNewsletters: useCallback(() => canManageNewslettersFn(roles), [roles]),
+    canManageChecklist: useCallback(() => canManageChecklistFn(roles), [roles]),
+    canFillChecklist: useCallback(() => canFillChecklistFn(roles), [roles]),
   };
 }

@@ -115,6 +115,20 @@ export function canManageVisitors(
   return isAdmin(roles) || isSecurity(roles);
 }
 
+/** Check if user can manage checklist items (configure which items appear) */
+export function canManageChecklist(
+  roles: UserRole[] | string[] | null | undefined
+): boolean {
+  return isAdmin(roles);
+}
+
+/** Check if user can fill checklist entries (mark done/not done daily) */
+export function canFillChecklist(
+  roles: UserRole[] | string[] | null | undefined
+): boolean {
+  return isAdmin(roles) || hasExactRole(roles, "FACILITY_MANAGER");
+}
+
 /** Check if user can access tasks */
 export function canAccessTasks(
   roles: UserRole[] | string[] | null | undefined

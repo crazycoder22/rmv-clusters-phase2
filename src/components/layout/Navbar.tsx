@@ -16,6 +16,8 @@ import {
   canManageVisitors,
   canAccessTasks,
   canManageNewsletters,
+  canManageChecklist,
+  canFillChecklist,
 } from "@/lib/roles";
 
 const publicPaths = ["/", "/contact", "/sos-guidelines", "/sos-warriors"];
@@ -31,6 +33,7 @@ const navLinks = [
   { href: "/newsletters", label: "Newsletters" },
   { href: "/community", label: "Community" },
   { href: "/issues", label: "Issues" },
+  { href: "/checklist", label: "Checklist" },
   { href: "/contact", label: "Contact" },
 ];
 
@@ -81,6 +84,13 @@ export default function Navbar() {
   }
   if (canAccessTasks(roles)) {
     adminLinks.push({ href: "/tasks", label: "Tasks", match: "/tasks" });
+  }
+  if (canManageChecklist(roles)) {
+    adminLinks.push({
+      href: "/admin/checklist",
+      label: "Checklist Items",
+      match: (p) => p.startsWith("/admin/checklist"),
+    });
   }
 
   const isAdminActive = adminLinks.some((link) => {
