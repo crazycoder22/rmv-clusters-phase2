@@ -438,9 +438,17 @@ export default function SOSGuidelinesContent() {
                 <h3 className="text-lg font-semibold text-gray-900">
                   Accept Guidelines to Join
                 </h3>
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                  <p className="text-sm text-amber-900 font-medium">
+                    Please read through all the guidelines above carefully before
+                    accepting. This acceptance is mandatory — the SOS group admin
+                    will only add you to the WhatsApp group after you have
+                    accepted the guidelines here.
+                  </p>
+                </div>
                 <p className="text-sm text-gray-600">
-                  Please read all the guidelines above carefully. Fill in your
-                  details and accept to join the SOS group.
+                  Fill in your details below and check the box to confirm your
+                  acceptance.
                 </p>
 
                 {/* User info form */}
