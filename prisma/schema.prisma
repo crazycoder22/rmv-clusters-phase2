@@ -69,6 +69,8 @@ model Resident {
   posts                    Post[]
   postComments             PostComment[]
   postLikes                PostLike[]
+  meetingsCreated          Meeting[]        @relation("MeetingsCreated")
+  meetingRsvps             MeetingRsvp[]
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 }
@@ -602,8 +604,58 @@ model DocumentFile {
   fileType  String?        // e.g., "pdf", "xlsx", "image"
   fileSize  Int?           // Size in bytes
   sortOrder Int            @default(0)
+  meetings  MeetingDocument[]
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
 
   @@index([folderId])
+}
+
+model Meeting {
+  id          String            @id @default(cuid())
+  title       String
+  agenda      String
+  date        DateTime
+  location    String
+  status      String            @default("SCHEDULED") // "SCHEDULED", "COMPLETED", "CANCELLED"
+  isPublic    Boolean           @default(false)
+  momUrl      String?           // Google Drive link for Minutes of Meeting
+  momSummary  String?           // Brief text summary of MOM
+  creatorId   String
+  creator     Resident          @relation("MeetingsCreated", fields: [creatorId], references: [id])
+  rsvps       MeetingRsvp[]
+  documents   MeetingDocument[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([date])
+  @@index([status])
+  @@index([creatorId])
+}
+
+model MeetingRsvp {
+  id         String   @id @default(cuid())
+  meetingId  String
+  meeting    Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  residentId String
+  resident   Resident @relation(fields: [residentId], references: [id], onDelete: Cascade)
+  status     String   @default("ATTENDING") // "ATTENDING", "DECLINED", "MAYBE"
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([meetingId, residentId])
+  @@index([meetingId])
+}
+
+model MeetingDocument {
+  id         String       @id @default(cuid())
+  meetingId  String
+  meeting    Meeting      @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  documentId String
+  document   DocumentFile @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  createdAt  DateTime     @default(now())
+
+  @@unique([meetingId, documentId])
+  @@index([meetingId])
+  @@index([documentId])
 }

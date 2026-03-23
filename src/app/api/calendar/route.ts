@@ -36,6 +36,17 @@ export async function GET(request: Request) {
     orderBy: { date: "asc" },
   });
 
+  // Fetch public meetings
+  const meetings = await prisma.meeting.findMany({
+    where: {
+      isPublic: true,
+      status: { not: "CANCELLED" },
+      date: { gte: startOfYear, lt: endOfYear },
+    },
+    select: { id: true, title: true, date: true },
+    orderBy: { date: "asc" },
+  });
+
   // Map to unified format
   const categoryColors: Record<string, string> = {
     event: "#22c55e",     // green
@@ -58,6 +69,13 @@ export async function GET(request: Request) {
       date: a.date,
       color: categoryColors[a.category] || "#3b82f6",
       source: "announcement" as const,
+    })),
+    ...meetings.map((m) => ({
+      id: m.id,
+      title: m.title,
+      date: m.date,
+      color: "#8b5cf6", // purple for meetings
+      source: "meeting" as const,
     })),
   ].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 

@@ -19,6 +19,7 @@ import {
   canManageChecklist,
   canFillChecklist,
   canManageDocuments,
+  canManageMeetings,
 } from "@/lib/roles";
 
 const publicPaths = ["/", "/contact"];
@@ -99,6 +100,13 @@ export default function Navbar() {
       href: "/admin/documents",
       label: "Documents",
       match: (p) => p.startsWith("/admin/documents"),
+    });
+  }
+  if (canManageMeetings(roles)) {
+    adminLinks.push({
+      href: "/admin/meetings",
+      label: "Meetings",
+      match: (p) => p.startsWith("/admin/meetings"),
     });
   }
 

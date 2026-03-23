@@ -9,7 +9,7 @@ interface CalendarEntry {
   title: string;
   date: string;
   color: string;
-  source: "calendar" | "announcement";
+  source: "calendar" | "announcement" | "meeting";
 }
 
 const MONTH_NAMES = [
