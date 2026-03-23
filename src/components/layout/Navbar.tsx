@@ -21,7 +21,7 @@ import {
   canManageDocuments,
 } from "@/lib/roles";
 
-const publicPaths = ["/", "/contact", "/sos-guidelines", "/sos-warriors"];
+const publicPaths = ["/", "/contact"];
 
 const navLinks = [
   { href: "/", label: "Home" },
