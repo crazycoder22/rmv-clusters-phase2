@@ -143,6 +143,13 @@ export function canAccessTasks(
   return isAdmin(roles) || hasExactRole(roles, "FACILITY_MANAGER");
 }
 
+/** Check if user can manage review documents (ADMIN only) */
+export function canManageReviewDocs(
+  roles: UserRole[] | string[] | null | undefined
+): boolean {
+  return isAdmin(roles);
+}
+
 /** Check if user can manage meetings (COMMUNITY_ADMIN, ADMIN, SUPERADMIN) */
 export function canManageMeetings(
   roles: UserRole[] | string[] | null | undefined

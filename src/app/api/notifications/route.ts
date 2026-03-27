@@ -36,6 +36,9 @@ export async function GET() {
       post: {
         select: { id: true, content: true },
       },
+      reviewDoc: {
+        select: { id: true, title: true },
+      },
     },
   });
 

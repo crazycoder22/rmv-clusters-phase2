@@ -19,6 +19,7 @@ import {
   canFillChecklist as canFillChecklistFn,
   canManageDocuments as canManageDocumentsFn,
   canManageMeetings as canManageMeetingsFn,
+  canManageReviewDocs as canManageReviewDocsFn,
 } from "@/lib/roles";
 
 export function useRole() {
@@ -47,5 +48,6 @@ export function useRole() {
     canFillChecklist: useCallback(() => canFillChecklistFn(roles), [roles]),
     canManageDocuments: useCallback(() => canManageDocumentsFn(roles), [roles]),
     canManageMeetings: useCallback(() => canManageMeetingsFn(roles), [roles]),
+    canManageReviewDocs: useCallback(() => canManageReviewDocsFn(roles), [roles]),
   };
 }

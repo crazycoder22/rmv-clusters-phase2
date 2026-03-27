@@ -250,6 +250,11 @@ export interface NotificationType {
     id: string;
     content: string;
   } | null;
+  reviewDocId: string | null;
+  reviewDoc: {
+    id: string;
+    title: string;
+  } | null;
 }
 
 // Visitor types
