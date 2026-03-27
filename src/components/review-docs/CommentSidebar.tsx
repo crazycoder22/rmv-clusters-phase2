@@ -56,6 +56,8 @@ interface CommentSidebarProps {
   onCommentAdded: () => void;
   pendingComment?: PendingComment | null;
   onPendingCommentClear: () => void;
+  activeCommentId?: string | null;
+  onActiveCommentIdChange?: (id: string | null) => void;
 }
 
 function timeAgo(dateStr: string): string {
@@ -87,6 +89,8 @@ export default function CommentSidebar({
   onCommentAdded,
   pendingComment,
   onPendingCommentClear,
+  activeCommentId,
+  onActiveCommentIdChange,
 }: CommentSidebarProps) {
   const [activeTab, setActiveTab] = useState<"all" | "general">("all");
   const [generalText, setGeneralText] = useState("");
@@ -99,6 +103,7 @@ export default function CommentSidebar({
 
   const pendingInputRef = useRef<HTMLTextAreaElement>(null);
   const generalInputRef = useRef<HTMLTextAreaElement>(null);
+  const commentCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const isClosed = docStatus === "CLOSED";
 
@@ -113,6 +118,21 @@ export default function CommentSidebar({
       }, 100);
     }
   }, [pendingComment]);
+
+  // Scroll to and highlight the active comment from inline click
+  useEffect(() => {
+    if (!activeCommentId) return;
+    setActiveTab("all");
+    setShowResolved(
+      comments.find((c) => c.id === activeCommentId)?.resolved ?? false
+    );
+    setTimeout(() => {
+      const el = commentCardRefs.current[activeCommentId];
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 50);
+  }, [activeCommentId, comments]);
 
   const activeComments = comments.filter((c) => !c.resolved);
   const resolvedComments = comments.filter((c) => c.resolved);
@@ -220,15 +240,22 @@ export default function CommentSidebar({
   function renderComment(comment: Comment, isResolved = false) {
     const canResolve =
       comment.resident.id === currentResidentId || isAdmin;
+    const isActive = activeCommentId === comment.id;
 
     return (
       <div
         key={comment.id}
-        className={`border rounded-lg p-3 ${
-          isResolved
+        ref={(el) => {
+          commentCardRefs.current[comment.id] = el;
+        }}
+        className={`border rounded-lg p-3 transition-colors ${
+          isActive
+            ? "border-primary-300 bg-primary-50/40 ring-1 ring-primary-200"
+            : isResolved
             ? "border-gray-100 bg-gray-50 opacity-70"
             : "border-gray-200 bg-white"
         }`}
+        onClick={() => onActiveCommentIdChange?.(comment.id)}
       >
         <div className="flex items-start justify-between gap-2 mb-1.5">
           <div className="min-w-0">

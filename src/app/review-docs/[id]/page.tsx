@@ -15,6 +15,7 @@ import {
   Loader2,
   Link as LinkIcon,
   AlertCircle,
+  Reply,
 } from "lucide-react";
 import CommentSidebar from "@/components/review-docs/CommentSidebar";
 
@@ -62,6 +63,22 @@ interface PendingComment {
   type: "COMMENT" | "SUGGESTION";
 }
 
+interface ActiveHighlight {
+  commentId: string;
+  rect: DOMRect;
+}
+
+function timeAgo(dateStr: string): string {
+  const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
 export default function ReviewDocDetailPage({
   params,
 }: {
@@ -86,9 +103,22 @@ export default function ReviewDocDetailPage({
     startOffset: number;
     endOffset: number;
   } | null>(null);
+  const [activeHighlight, setActiveHighlight] =
+    useState<ActiveHighlight | null>(null);
+  const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
 
   const contentRef = useRef<HTMLDivElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+
+  // Ref for click handler so DOM event listeners always use latest callback
+  const onHighlightClickRef = useRef<
+    (commentId: string, el: HTMLElement) => void
+  >();
+  onHighlightClickRef.current = (commentId: string, el: HTMLElement) => {
+    const rect = el.getBoundingClientRect();
+    setActiveHighlight({ commentId, rect });
+  };
 
   useEffect(() => {
     if (authStatus === "unauthenticated") {
@@ -137,6 +167,139 @@ export default function ReviewDocDetailPage({
     fetchDoc();
   }, [authStatus, session, fetchDoc]);
 
+  // Apply inline highlights whenever comments change
+  useEffect(() => {
+    const container = contentRef.current;
+    if (!container || !doc) return;
+
+    // Remove any existing highlight spans and normalize text nodes
+    container.querySelectorAll(".rvw-hl").forEach((el) => {
+      const parent = el.parentNode!;
+      while (el.firstChild) parent.insertBefore(el.firstChild, el);
+      parent.removeChild(el);
+    });
+    container.normalize();
+
+    const inlineComments = doc.comments
+      .filter(
+        (c) =>
+          !c.resolved &&
+          c.highlightFrom !== null &&
+          c.highlightTo !== null
+      )
+      .sort((a, b) => (a.highlightFrom ?? 0) - (b.highlightFrom ?? 0));
+
+    if (inlineComments.length === 0) return;
+
+    // Collect all text nodes with cumulative character positions
+    const textNodes: { node: Text; start: number; end: number }[] = [];
+    let pos = 0;
+    const walker = document.createTreeWalker(
+      container,
+      NodeFilter.SHOW_TEXT
+    );
+    let n: Node | null;
+    while ((n = walker.nextNode())) {
+      const len = (n as Text).textContent?.length ?? 0;
+      if (len > 0) {
+        textNodes.push({ node: n as Text, start: pos, end: pos + len });
+        pos += len;
+      }
+    }
+
+    // Process each text node, injecting highlight spans where comments overlap
+    for (let ti = 0; ti < textNodes.length; ti++) {
+      const tn = textNodes[ti];
+      const applicable = inlineComments.filter(
+        (c) => (c.highlightTo ?? 0) > tn.start && (c.highlightFrom ?? 0) < tn.end
+      );
+      if (applicable.length === 0) continue;
+
+      type Seg = {
+        from: number;
+        to: number;
+        commentId: string | null;
+        type: string | null;
+      };
+      const segs: Seg[] = [];
+      let cur = tn.start;
+
+      for (const c of applicable) {
+        const segFrom = Math.max(cur, c.highlightFrom!);
+        const segTo = Math.min(tn.end, c.highlightTo!);
+        if (segFrom > cur)
+          segs.push({ from: cur, to: segFrom, commentId: null, type: null });
+        if (segFrom < segTo)
+          segs.push({
+            from: segFrom,
+            to: segTo,
+            commentId: c.id,
+            type: c.type,
+          });
+        cur = segTo;
+      }
+      if (cur < tn.end)
+        segs.push({ from: cur, to: tn.end, commentId: null, type: null });
+
+      if (segs.every((s) => !s.commentId)) continue;
+
+      const parent = tn.node.parentNode!;
+      const text = tn.node.textContent ?? "";
+
+      for (const seg of segs) {
+        const segText = text.slice(seg.from - tn.start, seg.to - tn.start);
+        if (!segText) continue;
+
+        if (seg.commentId) {
+          const span = document.createElement("span");
+          span.className = [
+            "rvw-hl",
+            "rounded-sm",
+            "cursor-pointer",
+            "transition-colors",
+            seg.type === "SUGGESTION"
+              ? "bg-amber-100 border-b-2 border-amber-400 hover:bg-amber-200"
+              : "bg-yellow-100 border-b-2 border-yellow-400 hover:bg-yellow-200",
+          ].join(" ");
+          span.dataset.cid = seg.commentId;
+          span.textContent = segText;
+          const cid = seg.commentId;
+          span.addEventListener("click", (e) => {
+            e.stopPropagation();
+            onHighlightClickRef.current?.(cid, span);
+          });
+          parent.insertBefore(span, tn.node);
+        } else {
+          parent.insertBefore(document.createTextNode(segText), tn.node);
+        }
+      }
+      parent.removeChild(tn.node);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [doc?.comments, doc?.content]);
+
+  // Close popover on outside click
+  useEffect(() => {
+    if (!activeHighlight) return;
+    function handleMouseDown(e: MouseEvent) {
+      if (
+        popoverRef.current &&
+        !popoverRef.current.contains(e.target as Node)
+      ) {
+        setActiveHighlight(null);
+      }
+    }
+    // Delay to avoid closing immediately on the click that opened it
+    const timer = setTimeout(
+      () => document.addEventListener("mousedown", handleMouseDown),
+      0
+    );
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("mousedown", handleMouseDown);
+    };
+  }, [activeHighlight]);
+
   // Text selection handler
   useEffect(() => {
     function handleMouseUp() {
@@ -145,7 +308,6 @@ export default function ReviewDocDetailPage({
 
       const selection = window.getSelection();
       if (!selection || selection.isCollapsed || !selection.rangeCount) {
-        // Delay clearing to allow toolbar click to fire
         setTimeout(() => {
           const sel = window.getSelection();
           if (!sel || sel.isCollapsed) {
@@ -163,7 +325,6 @@ export default function ReviewDocDetailPage({
         return;
       }
 
-      // Check if selection is within our content area
       if (!contentRef.current.contains(range.commonAncestorContainer)) {
         return;
       }
@@ -171,7 +332,6 @@ export default function ReviewDocDetailPage({
       const rect = range.getBoundingClientRect();
       const containerRect = contentRef.current.getBoundingClientRect();
 
-      // Calculate offsets relative to the content text
       const preCaretRange = document.createRange();
       preCaretRange.selectNodeContents(contentRef.current);
       preCaretRange.setEnd(range.startContainer, range.startOffset);
@@ -224,6 +384,11 @@ export default function ReviewDocDetailPage({
 
   const isClosed = doc?.status === "CLOSED";
   const commentCount = doc?.comments?.length ?? 0;
+
+  // Find the active comment for the popover
+  const popoverComment = activeHighlight
+    ? doc?.comments.find((c) => c.id === activeHighlight.commentId)
+    : null;
 
   if (
     authStatus === "loading" ||
@@ -338,6 +503,25 @@ export default function ReviewDocDetailPage({
               )}
             </div>
 
+            {/* Legend for highlight colors */}
+            {doc.comments.some(
+              (c) => !c.resolved && c.highlightFrom !== null
+            ) && (
+              <div className="flex items-center gap-3 mb-2 text-xs text-gray-500">
+                <span className="flex items-center gap-1">
+                  <span className="inline-block w-3 h-3 rounded-sm bg-yellow-200 border-b-2 border-yellow-400" />
+                  Comment
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="inline-block w-3 h-3 rounded-sm bg-amber-200 border-b-2 border-amber-400" />
+                  Suggestion
+                </span>
+                <span className="text-gray-400">
+                  · Click highlighted text to preview
+                </span>
+              </div>
+            )}
+
             {/* Document content */}
             <div className="bg-white rounded-xl border border-gray-200 p-5 sm:p-8 relative">
               <div
@@ -422,6 +606,8 @@ export default function ReviewDocDetailPage({
             onCommentAdded={handleCommentAdded}
             pendingComment={pendingComment}
             onPendingCommentClear={() => setPendingComment(null)}
+            activeCommentId={activeCommentId}
+            onActiveCommentIdChange={setActiveCommentId}
           />
         </div>
 
@@ -454,11 +640,130 @@ export default function ReviewDocDetailPage({
                 onCommentAdded={handleCommentAdded}
                 pendingComment={pendingComment}
                 onPendingCommentClear={() => setPendingComment(null)}
+                activeCommentId={activeCommentId}
+                onActiveCommentIdChange={setActiveCommentId}
               />
             </div>
           </div>
         )}
       </div>
+
+      {/* Inline comment popover (fixed, appears over highlighted text) */}
+      {activeHighlight && popoverComment && (
+        <div
+          ref={popoverRef}
+          className="fixed z-[100] w-72 bg-white border border-gray-200 rounded-xl shadow-xl p-3"
+          style={{
+            left: Math.max(
+              8,
+              Math.min(
+                activeHighlight.rect.left,
+                (typeof window !== "undefined" ? window.innerWidth : 800) - 296
+              )
+            ),
+            top: activeHighlight.rect.bottom + 6,
+          }}
+        >
+          {/* Popover header */}
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span
+                className={`shrink-0 px-1.5 py-0.5 rounded text-xs font-medium ${
+                  popoverComment.type === "SUGGESTION"
+                    ? "bg-amber-100 text-amber-700"
+                    : "bg-blue-100 text-blue-700"
+                }`}
+              >
+                {popoverComment.type === "SUGGESTION"
+                  ? "Suggestion"
+                  : "Comment"}
+              </span>
+              <span className="text-xs text-gray-600 truncate font-medium">
+                {popoverComment.resident.name}
+              </span>
+              <span className="text-xs text-gray-400 shrink-0">
+                · {timeAgo(popoverComment.createdAt)}
+              </span>
+            </div>
+            <button
+              onClick={() => setActiveHighlight(null)}
+              className="shrink-0 ml-1 p-0.5 text-gray-400 hover:text-gray-600 rounded"
+            >
+              <X size={14} />
+            </button>
+          </div>
+
+          {/* Suggestion diff */}
+          {popoverComment.type === "SUGGESTION" &&
+            popoverComment.highlightedText && (
+              <div className="mb-2 text-xs bg-amber-50 rounded px-2.5 py-1.5 border border-amber-100">
+                <span className="line-through text-red-500">
+                  {popoverComment.highlightedText}
+                </span>
+                {popoverComment.suggestedText && (
+                  <>
+                    {" "}
+                    <span className="text-green-600 font-medium">
+                      {popoverComment.suggestedText}
+                    </span>
+                  </>
+                )}
+              </div>
+            )}
+
+          {/* Comment content */}
+          <p className="text-sm text-gray-700 leading-relaxed line-clamp-4">
+            {popoverComment.content}
+          </p>
+
+          {/* Replies preview */}
+          {popoverComment.replies.length > 0 && (
+            <div className="mt-2 pt-2 border-t border-gray-100 space-y-1.5">
+              {popoverComment.replies.slice(0, 2).map((reply) => (
+                <div key={reply.id} className="flex items-start gap-1.5">
+                  <Reply
+                    size={10}
+                    className="text-gray-300 rotate-180 mt-1 shrink-0"
+                  />
+                  <div className="min-w-0">
+                    <span className="text-xs font-medium text-gray-700">
+                      {reply.resident.name}
+                    </span>
+                    <span className="text-xs text-gray-500 ml-1 line-clamp-1">
+                      {reply.content}
+                    </span>
+                  </div>
+                </div>
+              ))}
+              {popoverComment.replies.length > 2 && (
+                <p className="text-xs text-gray-400">
+                  +{popoverComment.replies.length - 2} more repl
+                  {popoverComment.replies.length - 2 !== 1 ? "ies" : "y"}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Footer actions */}
+          <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
+            <span className="text-xs text-gray-400">
+              {popoverComment.replies.length > 0
+                ? `${popoverComment.replies.length} repl${popoverComment.replies.length !== 1 ? "ies" : "y"}`
+                : "No replies yet"}
+            </span>
+            <button
+              onClick={() => {
+                setActiveCommentId(popoverComment.id);
+                setSidebarOpen(true);
+                setActiveHighlight(null);
+              }}
+              className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+            >
+              Open in sidebar →
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Floating comments button (always visible to toggle sidebar) */}
       {!sidebarOpen && (
