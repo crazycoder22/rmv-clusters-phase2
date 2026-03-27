@@ -11,7 +11,7 @@ interface ReviewDoc {
   title: string;
   status: string;
   createdAt: string;
-  author: { name: string; email: string };
+  createdBy: { id: string; name: string; email: string; flatNumber: string };
   _count: { comments: number };
 }
 
@@ -154,7 +154,7 @@ export default function AdminReviewDocsPage() {
                   <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500">
                     <span className="flex items-center gap-1">
                       <User size={14} />
-                      {doc.author.name}
+                      {doc.createdBy.name}
                     </span>
                     <span className="flex items-center gap-1">
                       <MessageSquare size={14} />

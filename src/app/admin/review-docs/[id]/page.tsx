@@ -22,20 +22,20 @@ import RichTextViewer from "@/components/editor/RichTextViewer";
 interface Comment {
   id: string;
   type: string;
-  text: string;
+  content: string;
   highlightedText: string | null;
   suggestedText: string | null;
   resolved: boolean;
   createdAt: string;
-  author: { name: string; email: string };
+  resident: { id: string; name: string; email: string; flatNumber: string };
   replies: CommentReply[];
 }
 
 interface CommentReply {
   id: string;
-  text: string;
+  content: string;
   createdAt: string;
-  author: { name: string; email: string };
+  resident: { id: string; name: string; email: string; flatNumber: string };
 }
 
 interface ReviewDoc {
@@ -44,7 +44,7 @@ interface ReviewDoc {
   content: string;
   status: string;
   createdAt: string;
-  author: { name: string; email: string };
+  createdBy: { id: string; name: string; email: string; flatNumber: string };
   linkedDocument: {
     id: string;
     name: string;
@@ -208,7 +208,7 @@ export default function ReviewDocDetailPage({
           <div className="flex items-center gap-3 text-sm text-gray-500">
             <span className="flex items-center gap-1">
               <User size={14} />
-              {doc.author.name}
+              {doc.createdBy.name}
             </span>
             <span>
               {new Date(doc.createdAt).toLocaleDateString("en-IN", {
@@ -384,7 +384,7 @@ export default function ReviewDocDetailPage({
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-gray-900">
-                      {comment.author.name}
+                      {comment.resident.name}
                     </span>
                     <span
                       className={`px-1.5 py-0.5 rounded text-xs font-medium ${
@@ -446,7 +446,7 @@ export default function ReviewDocDetailPage({
                 )}
 
                 {/* Comment text */}
-                <p className="text-sm text-gray-700">{comment.text}</p>
+                <p className="text-sm text-gray-700">{comment.content}</p>
 
                 {/* Replies */}
                 {comment.replies.length > 0 && (
@@ -459,7 +459,7 @@ export default function ReviewDocDetailPage({
                             className="text-gray-300 rotate-180"
                           />
                           <span className="text-sm font-medium text-gray-800">
-                            {reply.author.name}
+                            {reply.resident.name}
                           </span>
                           <span className="text-xs text-gray-400">
                             {new Date(reply.createdAt).toLocaleDateString(
@@ -474,7 +474,7 @@ export default function ReviewDocDetailPage({
                           </span>
                         </div>
                         <p className="text-sm text-gray-600 ml-5">
-                          {reply.text}
+                          {reply.content}
                         </p>
                       </div>
                     ))}
