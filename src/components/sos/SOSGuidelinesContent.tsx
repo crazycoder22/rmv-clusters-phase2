@@ -17,6 +17,7 @@ import {
   Info,
   IndianRupee,
   Phone,
+  HelpCircle,
 } from "lucide-react";
 import clsx from "clsx";
 import sosData from "@/data/sos-guidelines.json";
@@ -28,6 +29,48 @@ interface FlatOption {
   flatNumber: string;
 }
 
+const QUIZ_QUESTIONS = [
+  {
+    id: "q1",
+    question:
+      "Your elderly neighbour has a high fever and needs to see a doctor tomorrow. Should you post in the SOS group?",
+    options: [
+      "Yes, elderly residents always qualify",
+      "No — routine medical appointments are not SOS emergencies",
+      "Yes, if no one else can help",
+      "Only if it's after midnight",
+    ],
+    correct: 1,
+    hint: "Re-read the Non-Emergencies (Not Allowed) section.",
+  },
+  {
+    id: "q2",
+    question:
+      "What happens the first time someone violates the group rules by sending a non-emergency message?",
+    options: [
+      "A warning is issued with no penalty",
+      "Permanently banned from the group",
+      "Removed from the group and must pay ₹1,000 to rejoin",
+      "Removed and must pay ₹2,000 to rejoin",
+    ],
+    correct: 2,
+    hint: "Re-read the Discipline & Usage Rules section.",
+  },
+  {
+    id: "q3",
+    question:
+      "What is the simplest way to decide if something belongs in the SOS group?",
+    options: [
+      "Ask in the residents' general WhatsApp group first",
+      "Only post if more than 2 people agree it's an emergency",
+      "If it can wait, it's NOT for SOS — only use it if a delay could risk life or serious damage",
+      "Post anytime between 6am and 10pm",
+    ],
+    correct: 2,
+    hint: "Re-read the simple rule highlighted near the bottom of the guidelines.",
+  },
+];
+
 export default function SOSGuidelinesContent() {
   const { data: session, status: sessionStatus } = useSession();
   const [accepted, setAccepted] = useState(false);
@@ -35,6 +78,18 @@ export default function SOSGuidelinesContent() {
   const [hydrated, setHydrated] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  // Quiz state: selected answer index per question (-1 = not answered)
+  const [quizAnswers, setQuizAnswers] = useState<number[]>([-1, -1, -1]);
+  const [quizSubmitted, setQuizSubmitted] = useState<boolean[]>([
+    false,
+    false,
+    false,
+  ]);
+
+  const quizPassed = QUIZ_QUESTIONS.every(
+    (q, i) => quizAnswers[i] === q.correct
+  );
 
   // Form fields for non-logged-in or guest users
   const [form, setForm] = useState({
@@ -411,8 +466,125 @@ export default function SOSGuidelinesContent() {
           </div>
         </section>
 
+        {/* Comprehension Quiz */}
+        {!accepted && (
+          <section className="mt-12">
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+              <div className="flex items-center gap-3 mb-1">
+                <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center shrink-0">
+                  <HelpCircle size={20} className="text-red-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Quick Comprehension Check
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    Answer all 3 questions correctly to unlock the acceptance
+                    form.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-5 space-y-6">
+                {QUIZ_QUESTIONS.map((q, qi) => {
+                  const answered = quizSubmitted[qi];
+                  const selected = quizAnswers[qi];
+                  const isCorrect = selected === q.correct;
+
+                  return (
+                    <div
+                      key={q.id}
+                      className={clsx(
+                        "rounded-lg border p-4 transition-colors",
+                        answered && isCorrect
+                          ? "border-green-200 bg-green-50"
+                          : answered && !isCorrect
+                          ? "border-red-200 bg-red-50"
+                          : "border-gray-200 bg-gray-50"
+                      )}
+                    >
+                      <p className="text-sm font-medium text-gray-800 mb-3">
+                        <span className="text-red-600 font-bold mr-1">
+                          Q{qi + 1}.
+                        </span>
+                        {q.question}
+                      </p>
+
+                      <div className="space-y-2">
+                        {q.options.map((opt, oi) => {
+                          const isSelected = selected === oi;
+                          const showResult = answered;
+                          const isCorrectOpt = oi === q.correct;
+
+                          return (
+                            <button
+                              key={oi}
+                              disabled={answered && isCorrect}
+                              onClick={() => {
+                                const newAnswers = [...quizAnswers];
+                                newAnswers[qi] = oi;
+                                setQuizAnswers(newAnswers);
+                                const newSubmitted = [...quizSubmitted];
+                                newSubmitted[qi] = true;
+                                setQuizSubmitted(newSubmitted);
+                              }}
+                              className={clsx(
+                                "w-full text-left text-sm px-3 py-2 rounded-lg border transition-colors",
+                                showResult && isCorrectOpt
+                                  ? "border-green-400 bg-green-100 text-green-800 font-medium"
+                                  : showResult && isSelected && !isCorrectOpt
+                                  ? "border-red-400 bg-red-100 text-red-800"
+                                  : isSelected && !showResult
+                                  ? "border-primary-400 bg-primary-50 text-primary-800"
+                                  : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
+                              )}
+                            >
+                              <span className="font-medium mr-2 text-gray-400">
+                                {String.fromCharCode(65 + oi)}.
+                              </span>
+                              {opt}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Feedback */}
+                      {answered && isCorrect && (
+                        <div className="mt-2 flex items-center gap-1.5 text-sm text-green-700 font-medium">
+                          <CheckCircle size={14} />
+                          Correct!
+                        </div>
+                      )}
+                      {answered && !isCorrect && (
+                        <div className="mt-2 space-y-1">
+                          <div className="flex items-center gap-1.5 text-sm text-red-600 font-medium">
+                            <XCircle size={14} />
+                            Incorrect — try again.
+                          </div>
+                          <p className="text-xs text-red-500 ml-5">
+                            Hint: {q.hint}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {quizPassed && (
+                <div className="mt-4 flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-4 py-3">
+                  <BadgeCheck size={18} className="text-green-600 shrink-0" />
+                  <p className="text-sm text-green-800 font-medium">
+                    All correct! You can now proceed to accept the guidelines.
+                  </p>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
         {/* Acceptance Section */}
-        <section className="mt-12">
+        <section className="mt-6">
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
             {accepted ? (
               <div className="text-center space-y-4">
@@ -553,12 +725,26 @@ export default function SOSGuidelinesContent() {
                 </div>
 
                 {/* Checkbox + Accept */}
-                <label className="flex items-start gap-3 cursor-pointer select-none">
+                {!quizPassed && (
+                  <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                    <HelpCircle size={15} className="text-amber-500 shrink-0" />
+                    <p className="text-xs text-amber-800">
+                      Complete the comprehension check above to unlock this form.
+                    </p>
+                  </div>
+                )}
+                <label
+                  className={clsx(
+                    "flex items-start gap-3 select-none",
+                    quizPassed ? "cursor-pointer" : "cursor-not-allowed opacity-50"
+                  )}
+                >
                   <input
                     type="checkbox"
                     checked={checked}
+                    disabled={!quizPassed}
                     onChange={(e) => setChecked(e.target.checked)}
-                    className="mt-1 h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
+                    className="mt-1 h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500 disabled:cursor-not-allowed"
                   />
                   <span className="text-sm text-gray-700">
                     I have read and understood the RMV SOS Group guidelines. I
@@ -574,10 +760,10 @@ export default function SOSGuidelinesContent() {
 
                 <button
                   onClick={handleAccept}
-                  disabled={!checked || !formValid || !hydrated || submitting}
+                  disabled={!checked || !formValid || !hydrated || submitting || !quizPassed}
                   className={clsx(
                     "w-full py-3 px-6 rounded-lg font-medium text-white transition-colors",
-                    checked && formValid && hydrated && !submitting
+                    checked && formValid && hydrated && !submitting && quizPassed
                       ? "bg-red-600 hover:bg-red-700 cursor-pointer"
                       : "bg-gray-300 cursor-not-allowed"
                   )}
