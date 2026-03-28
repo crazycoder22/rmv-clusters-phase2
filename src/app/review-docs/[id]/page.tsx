@@ -113,8 +113,8 @@ export default function ReviewDocDetailPage({
 
   // Ref for click handler so DOM event listeners always use latest callback
   const onHighlightClickRef = useRef<
-    (commentId: string, el: HTMLElement) => void
-  >();
+    ((commentId: string, el: HTMLElement) => void) | undefined
+  >(undefined);
   onHighlightClickRef.current = (commentId: string, el: HTMLElement) => {
     const rect = el.getBoundingClientRect();
     setActiveHighlight({ commentId, rect });
