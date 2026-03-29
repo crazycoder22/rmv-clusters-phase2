@@ -110,6 +110,11 @@ export async function POST(
     );
   }
 
+  // Total distinct days tracked across all participants = challenge duration
+  const challengeDays = new Set(
+    stepEntries.map((se) => se.date.toISOString().split("T")[0])
+  ).size;
+
   // Group step entries by participant
   const stepsByParticipant = new Map<string, { date: Date; steps: number }[]>();
   for (const se of stepEntries) {
@@ -245,6 +250,10 @@ export async function POST(
       );
 
       // Render email HTML
+      const completionThreshold = Math.max(1, challengeDays - 2);
+      const completed =
+        challengeDays > 0 && participant.daysTracked >= completionThreshold;
+
       const html = renderStepStatsEmailHtml({
         eventTitle: announcement.title,
         name: participant.name,
@@ -257,13 +266,18 @@ export async function POST(
         dailyGoal: participant.dailyGoal,
         daysTracked: participant.daysTracked,
         daysGoalMet: participant.daysGoalMet,
+        challengeDays,
         bestDay: participant.bestDay,
       });
+
+      const subject = completed
+        ? `🎉 You completed the StepUp Challenge! – ${announcement.title}`
+        : `Your StepUp Challenge Stats – ${announcement.title}`;
 
       const { error: sendError } = await resend.emails.send({
         from: EMAIL_FROM,
         to: participant.email,
-        subject: `Your Step Challenge Stats: ${announcement.title}`,
+        subject,
         html,
         attachments: [
           {

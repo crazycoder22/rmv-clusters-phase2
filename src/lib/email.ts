@@ -205,6 +205,7 @@ interface StepStatsEmailParams {
   dailyGoal: number;
   daysTracked: number;
   daysGoalMet: number;
+  challengeDays: number;
   bestDay: { date: string; steps: number } | null;
 }
 
@@ -235,8 +236,29 @@ export function renderStepStatsEmailHtml(params: StepStatsEmailParams): string {
     dailyGoal,
     daysTracked,
     daysGoalMet,
+    challengeDays,
     bestDay,
   } = params;
+
+  // Completed = tracked at least (challengeDays - 2) days, e.g. 12 of 14
+  const completionThreshold = Math.max(1, challengeDays - 2);
+  const completed = challengeDays > 0 && daysTracked >= completionThreshold;
+
+  const heroTitle = completed
+    ? `Congratulations, ${name}!`
+    : `Thank you for participating, ${name}!`;
+
+  const heroSubtitle = completed
+    ? `You completed the StepUp Challenge! &#127881;`
+    : `You participated in the StepUp Challenge! &#128095;`;
+
+  const encouragement = completed
+    ? `What a fantastic achievement! You showed up for <strong>${daysTracked} of ${challengeDays} days</strong> and proved that consistency is the key. Keep that momentum going &mdash; make daily walking a lifelong habit!`
+    : `Every step you took counts! Don&apos;t stop here &mdash; walking every day, even a little, makes a big difference over time. Keep going, one step at a time!`;
+
+  const heroBg = completed
+    ? "background:linear-gradient(135deg,#16a34a,#059669);"
+    : "background:linear-gradient(135deg,#1d4ed8,#7c3aed);";
 
   const bestDayStr = bestDay
     ? `${formatSteps(bestDay.steps)} <span style="font-size:11px;color:#9ca3af;">(${new Date(bestDay.date).toLocaleDateString("en-IN", { day: "numeric", month: "short" })})</span>`
@@ -268,10 +290,20 @@ export function renderStepStatsEmailHtml(params: StepStatsEmailParams): string {
         <table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background-color:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;">
           <!-- Header -->
           <tr>
-            <td style="background:linear-gradient(135deg,#1d4ed8,#7c3aed);padding:20px 24px;color:#ffffff;">
+            <td style="${heroBg}padding:20px 24px;color:#ffffff;">
               <p style="margin:0;font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.1em;opacity:0.8;">RMV Clusters Phase II</p>
-              <h1 style="margin:6px 0 0;font-size:22px;font-weight:700;">Step Challenge Stats</h1>
-              <p style="margin:4px 0 0;font-size:13px;opacity:0.9;">${eventTitle}</p>
+              <h1 style="margin:6px 0 0;font-size:22px;font-weight:700;">${heroTitle}</h1>
+              <p style="margin:4px 0 0;font-size:14px;opacity:0.95;">${heroSubtitle}</p>
+              <p style="margin:2px 0 0;font-size:12px;opacity:0.75;">${eventTitle}</p>
+            </td>
+          </tr>
+
+          <!-- Encouragement banner -->
+          <tr>
+            <td style="padding:16px 24px 0;">
+              <div style="background-color:${completed ? "#f0fdf4" : "#eff6ff"};border:1px solid ${completed ? "#bbf7d0" : "#bfdbfe"};border-radius:10px;padding:12px 16px;">
+                <p style="margin:0;font-size:13px;color:${completed ? "#15803d" : "#1e40af"};line-height:1.6;">${encouragement}</p>
+              </div>
             </td>
           </tr>
 
@@ -351,7 +383,7 @@ export function renderStepStatsEmailHtml(params: StepStatsEmailParams): string {
           <!-- Footer -->
           <tr>
             <td style="background-color:#f9fafb;padding:14px 24px;text-align:center;border-top:1px solid #e5e7eb;">
-              <p style="margin:0;font-size:11px;color:#9ca3af;">Keep stepping! Every step counts towards your goal.</p>
+              <p style="margin:0;font-size:11px;color:#9ca3af;">&#128095; Keep stepping &mdash; every step is an investment in your health.</p>
             </td>
           </tr>
         </table>
