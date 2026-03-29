@@ -152,7 +152,7 @@ export default function SOSGuidelinesContent() {
   }, [form.block]);
 
   function handleChange(
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) {
     const { name, value } = e.target;
     setForm((prev) => ({
@@ -700,27 +700,34 @@ export default function SOSGuidelinesContent() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Flat / Door Number <span className="text-red-500">*</span>
                     </label>
-                    <select
+                    <input
+                      type="text"
                       name="flatNumber"
+                      list="flat-options"
                       required
                       value={form.flatNumber}
                       onChange={handleChange}
-                      disabled={!form.block || loadingFlats}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 disabled:bg-gray-50 disabled:text-gray-400"
-                    >
-                      <option value="">
-                        {!form.block
+                      disabled={!form.block}
+                      placeholder={
+                        !form.block
                           ? "Select a block first"
                           : loadingFlats
                           ? "Loading flats..."
-                          : "Select Flat"}
-                      </option>
+                          : "Select or type your flat number"
+                      }
+                      autoComplete="off"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 disabled:bg-gray-50 disabled:text-gray-400"
+                    />
+                    <datalist id="flat-options">
                       {flats.map((flat) => (
-                        <option key={flat.id} value={flat.flatNumber}>
-                          {flat.flatNumber}
-                        </option>
+                        <option key={flat.id} value={flat.flatNumber} />
                       ))}
-                    </select>
+                    </datalist>
+                    {form.block && !loadingFlats && flats.length === 0 && (
+                      <p className="mt-1 text-xs text-gray-500">
+                        No flats found for this block — type your flat number manually.
+                      </p>
+                    )}
                   </div>
                 </div>
 
