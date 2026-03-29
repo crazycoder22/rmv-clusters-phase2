@@ -283,6 +283,7 @@ export async function POST(
           {
             filename: "stepchart.png",
             content: chartBuffer,
+            content_id: "stepchart",
           },
         ],
       });
