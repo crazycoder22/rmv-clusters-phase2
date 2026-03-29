@@ -118,6 +118,13 @@ export default function Navbar() {
       match: (p) => p.startsWith("/admin/review-docs"),
     });
   }
+  if (canManageAnnouncements(roles)) {
+    adminLinks.push({
+      href: "/admin/sos-acceptances",
+      label: "SOS Acceptances",
+      match: (p) => p.startsWith("/admin/sos-acceptances"),
+    });
+  }
 
   const isAdminActive = adminLinks.some((link) => {
     if (typeof link.match === "function") return link.match(pathname);
