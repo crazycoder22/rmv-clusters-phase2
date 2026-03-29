@@ -212,7 +212,7 @@ export default function SOSGuidelinesContent() {
             <Siren size={32} className="text-red-600" />
           </div>
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
-            RMV SOS Group
+            RMV Apthamitra - SOS Group
           </h1>
           <p className="mt-2 text-gray-600">
             Emergency Response WhatsApp Group for RMV Clusters
