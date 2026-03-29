@@ -25,7 +25,7 @@ interface Acceptance {
 }
 
 export default function SosAcceptancesPage() {
-  const { canManageAnnouncements, loading: roleLoading } = useRole();
+  const { canManageAnnouncements, isLoading: roleLoading } = useRole();
   const [acceptances, setAcceptances] = useState<Acceptance[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
