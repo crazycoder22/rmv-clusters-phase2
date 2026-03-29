@@ -14,12 +14,27 @@ export async function GET() {
 
   const acceptances = await prisma.sosAcceptance.findMany({
     orderBy: { createdAt: "desc" },
-    include: {
-      resident: {
-        select: { id: true, name: true },
-      },
-    },
   });
 
-  return NextResponse.json({ acceptances });
+  // Manually resolve linked residents
+  const residentIds = acceptances
+    .map((a) => a.residentId)
+    .filter((id): id is string => !!id);
+
+  const residents =
+    residentIds.length > 0
+      ? await prisma.resident.findMany({
+          where: { id: { in: residentIds } },
+          select: { id: true, name: true },
+        })
+      : [];
+
+  const residentMap = new Map(residents.map((r) => [r.id, r]));
+
+  const result = acceptances.map((a) => ({
+    ...a,
+    resident: a.residentId ? residentMap.get(a.residentId) || null : null,
+  }));
+
+  return NextResponse.json({ acceptances: result });
 }
