@@ -687,6 +687,82 @@ model ReviewDocument {
   @@index([createdById])
 }
 
+// ─── Fantasy League ────────────────────────────────────────────────────────
+
+model FantasyMatch {
+  id        String          @id @default(cuid())
+  title     String          // e.g. "RCB vs CSK – IPL 2026"
+  opponent  String          // e.g. "CSK"
+  venue     String?
+  matchDate DateTime
+  status    String          @default("OPEN") // OPEN | LOCKED | COMPLETED
+  players   FantasyPlayer[]
+  teams     FantasyTeam[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@index([status])
+  @@index([matchDate])
+}
+
+model FantasyPlayer {
+  id         String             @id @default(cuid())
+  matchId    String
+  match      FantasyMatch       @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  name       String
+  role       String             // BATSMAN | BOWLER | ALLROUNDER | WICKETKEEPER
+  teamSlots  FantasyTeamPlayer[]
+  scoreEvent FantasyScoreEvent?
+  createdAt  DateTime           @default(now())
+
+  @@index([matchId])
+}
+
+model FantasyTeam {
+  id         String              @id @default(cuid())
+  matchId    String
+  match      FantasyMatch        @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  name       String
+  email      String?
+  phone      String
+  block      String
+  flatNumber String
+  frozen     Boolean             @default(false)
+  players    FantasyTeamPlayer[]
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+
+  @@unique([matchId, phone])
+  @@index([matchId])
+}
+
+model FantasyTeamPlayer {
+  id            String        @id @default(cuid())
+  teamId        String
+  team          FantasyTeam   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  playerId      String
+  player        FantasyPlayer @relation(fields: [playerId], references: [id])
+  isCaptain     Boolean       @default(false)
+  isViceCaptain Boolean       @default(false)
+
+  @@unique([teamId, playerId])
+  @@index([teamId])
+}
+
+model FantasyScoreEvent {
+  id        String        @id @default(cuid())
+  playerId  String        @unique
+  player    FantasyPlayer @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  runs      Int           @default(0)
+  wickets   Int           @default(0)
+  catches   Int           @default(0)
+  runOuts   Int           @default(0)
+  stumpings Int           @default(0)
+  updatedAt DateTime      @updatedAt
+}
+
+// ─── End Fantasy League ───────────────────────────────────────────────────
+
 model ReviewComment {
   id               String          @id @default(cuid())
   reviewDocumentId String

@@ -29,6 +29,7 @@ const navLinks = [
   { href: "/", label: "Home" },
   { href: "/guidelines", label: "Guidelines" },
   { href: "/sos-guidelines", label: "SOS" },
+  { href: "/fantasy", label: "🏏 Fantasy" },
   { href: "/news", label: "News" },
   { href: "/gallery", label: "Gallery" },
   { href: "/faq", label: "FAQ" },
@@ -123,6 +124,11 @@ export default function Navbar() {
       href: "/admin/sos-acceptances",
       label: "SOS Acceptances",
       match: (p) => p.startsWith("/admin/sos-acceptances"),
+    });
+    adminLinks.push({
+      href: "/admin/fantasy",
+      label: "🏏 Fantasy Cricket",
+      match: (p) => p.startsWith("/admin/fantasy"),
     });
   }
 
