@@ -741,7 +741,7 @@ model FantasyTeamPlayer {
   teamId        String
   team          FantasyTeam   @relation(fields: [teamId], references: [id], onDelete: Cascade)
   playerId      String
-  player        FantasyPlayer @relation(fields: [playerId], references: [id])
+  player        FantasyPlayer @relation(fields: [playerId], references: [id], onDelete: Cascade)
   isCaptain     Boolean       @default(false)
   isViceCaptain Boolean       @default(false)
 
