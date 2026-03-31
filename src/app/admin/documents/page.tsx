@@ -311,7 +311,7 @@ export default function AdminDocumentsPage() {
                   <ExternalLink size={14} />
                 </a>
               )}
-              <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity">
+              <div className="flex items-center gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                 <button
                   onClick={() => {
                     setAddingFolderParentId(folder.id);
@@ -547,7 +547,7 @@ export default function AdminDocumentsPage() {
                 <ExternalLink size={14} />
               </a>
             )}
-            <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity">
+            <div className="flex items-center gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
               <button
                 onClick={() => {
                   setEditingFile(file.id);
