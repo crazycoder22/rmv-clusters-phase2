@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { Menu, X, ChevronDown, Shield } from "lucide-react";
 import clsx from "clsx";
@@ -25,45 +25,157 @@ import {
   canManagePolls,
 } from "@/lib/roles";
 
+type NavLink = { href: string; label: string };
+type NavGroup = { label: string; links: NavLink[] };
+type NavItem = NavLink | NavGroup;
+
+function isGroup(item: NavItem): item is NavGroup {
+  return "links" in item;
+}
+
 const publicPaths = ["/", "/contact"];
 
-const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/guidelines", label: "Guidelines" },
-  { href: "/sos-guidelines", label: "SOS" },
-  { href: "/fantasy", label: "🏏 Fantasy" },
+// Top-level links shown directly in the navbar
+const topLevelLinks: NavLink[] = [
   { href: "/news", label: "News" },
-  { href: "/gallery", label: "Gallery" },
-  { href: "/faq", label: "FAQ" },
   { href: "/calendar", label: "Calendar" },
-  { href: "/newsletters", label: "Newsletters" },
-  { href: "/community", label: "Community" },
-  { href: "/issues", label: "Issues" },
-  { href: "/checklist", label: "Checklist" },
-  { href: "/documents", label: "Documents" },
-  { href: "/marketplace", label: "Marketplace" },
-  { href: "/domestic-help", label: "Domestic Help" },
-  { href: "/polls", label: "Polls" },
-  { href: "/review-docs", label: "Reviews" },
-  { href: "/contact", label: "Contact" },
+  { href: "/fantasy", label: "Fantasy" },
 ];
+
+// Grouped dropdown links
+const navGroups: NavGroup[] = [
+  {
+    label: "Info",
+    links: [
+      { href: "/guidelines", label: "Guidelines" },
+      { href: "/sos-guidelines", label: "SOS" },
+      { href: "/faq", label: "FAQ" },
+      { href: "/gallery", label: "Gallery" },
+      { href: "/newsletters", label: "Newsletters" },
+      { href: "/contact", label: "Contact" },
+    ],
+  },
+  {
+    label: "Community",
+    links: [
+      { href: "/community", label: "Community" },
+      { href: "/issues", label: "Issues" },
+      { href: "/polls", label: "Polls" },
+      { href: "/review-docs", label: "Reviews" },
+    ],
+  },
+  {
+    label: "Services",
+    links: [
+      { href: "/marketplace", label: "Marketplace" },
+      { href: "/domestic-help", label: "Domestic Help" },
+      { href: "/documents", label: "Documents" },
+      { href: "/checklist", label: "Checklist" },
+    ],
+  },
+];
+
+// Combined ordered nav items for desktop
+const navItems: NavItem[] = [
+  ...topLevelLinks,
+  ...navGroups,
+];
+
+// All link hrefs for filtering by auth
+const allLinkHrefs = [
+  ...topLevelLinks.map((l) => l.href),
+  ...navGroups.flatMap((g) => g.links.map((l) => l.href)),
+];
+
+function NavDropdown({
+  group,
+  pathname,
+  openDropdown,
+  setOpenDropdown,
+}: {
+  group: NavGroup;
+  pathname: string;
+  openDropdown: string | null;
+  setOpenDropdown: (name: string | null) => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const isOpen = openDropdown === group.label;
+  const isActive = group.links.some((l) => pathname === l.href || pathname.startsWith(l.href + "/"));
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        if (isOpen) setOpenDropdown(null);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen, setOpenDropdown]);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpenDropdown(isOpen ? null : group.label)}
+        className={clsx(
+          "flex items-center gap-1 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+          isActive
+            ? "bg-primary-50 text-primary-700 dark:bg-primary-900/50 dark:text-primary-300"
+            : "text-gray-600 hover:text-primary-700 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-primary-300 dark:hover:bg-primary-900/50"
+        )}
+      >
+        {group.label}
+        <ChevronDown
+          size={14}
+          className={clsx("transition-transform", isOpen && "rotate-180")}
+        />
+      </button>
+      {isOpen && (
+        <div className="absolute left-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
+          {group.links.map((link) => {
+            const active = pathname === link.href || pathname.startsWith(link.href + "/");
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={clsx(
+                  "block px-4 py-2 text-sm transition-colors",
+                  active
+                    ? "bg-primary-50 text-primary-700 font-medium dark:bg-primary-900/50 dark:text-primary-300"
+                    : "text-gray-700 hover:bg-gray-50 hover:text-primary-700 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-primary-300"
+                )}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [adminOpen, setAdminOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const adminDropdownRef = useRef<HTMLDivElement>(null);
   const { data: session } = useSession();
   useRegistrationGuard();
 
   const isApproved = session?.user?.isApproved;
   const roles = session?.user?.roles ?? [];
+  const isLoggedIn = !!session;
+  const isFullAccess = isLoggedIn && isApproved;
 
-  const visibleLinks = session
-    ? isApproved
-      ? navLinks.filter((l) => l.href !== "/")
-      : [] // Hide all nav links for unapproved users
-    : navLinks.filter((l) => publicPaths.includes(l.href));
+  // Filter which links are visible based on auth state
+  const isLinkVisible = useCallback(
+    (href: string) => {
+      if (!isLoggedIn) return publicPaths.includes(href);
+      if (!isFullAccess) return false;
+      return href !== "/"; // Hide Home for logged-in users
+    },
+    [isLoggedIn, isFullAccess]
+  );
 
   // Build admin links based on roles
   const adminLinks: { href: string; label: string; match: string | ((p: string) => boolean) }[] = [];
@@ -144,7 +256,7 @@ export default function Navbar() {
     });
     adminLinks.push({
       href: "/admin/fantasy",
-      label: "🏏 Fantasy Cricket",
+      label: "Fantasy Cricket",
       match: (p) => p.startsWith("/admin/fantasy"),
     });
   }
@@ -154,36 +266,37 @@ export default function Navbar() {
     return pathname === link.match;
   });
 
-  // Close admin dropdown when clicking outside
+  // Close all dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (
         adminDropdownRef.current &&
         !adminDropdownRef.current.contains(e.target as Node)
       ) {
-        setAdminOpen(false);
+        setOpenDropdown((prev) => (prev === "admin" ? null : prev));
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Close admin dropdown on route change
+  // Close all dropdowns on route change
   useEffect(() => {
-    setAdminOpen(false);
+    setOpenDropdown(null);
+    setMobileOpen(false);
   }, [pathname]);
 
   return (
     <nav className="sticky top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-sm dark:shadow-gray-800/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link href="/" className="font-bold text-xl text-primary-800 dark:text-primary-200">
+          <Link href="/" className="font-bold text-xl text-primary-800 dark:text-primary-200 shrink-0">
             RMV Clusters
           </Link>
 
           {/* Desktop links + auth */}
-          <div className="hidden md:flex items-center gap-1">
-            {session?.user?.isRegistered && session?.user?.isApproved && (
+          <div className="hidden lg:flex items-center gap-1">
+            {isFullAccess && (
               <Link
                 href="/dashboard"
                 className={clsx(
@@ -196,31 +309,51 @@ export default function Navbar() {
                 Dashboard
               </Link>
             )}
-            {visibleLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={clsx(
-                  "px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                  pathname === link.href
-                    ? "bg-primary-50 text-primary-700 dark:bg-primary-900/50 dark:text-primary-300"
-                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-primary-300 dark:hover:bg-primary-900/50"
-                )}
-              >
-                {link.label}
-              </Link>
-            ))}
+
+            {navItems.map((item) => {
+              if (isGroup(item)) {
+                // Filter group links by visibility
+                const visibleGroupLinks = item.links.filter((l) => isLinkVisible(l.href));
+                if (visibleGroupLinks.length === 0) return null;
+                const filteredGroup = { ...item, links: visibleGroupLinks };
+                return (
+                  <NavDropdown
+                    key={item.label}
+                    group={filteredGroup}
+                    pathname={pathname}
+                    openDropdown={openDropdown}
+                    setOpenDropdown={setOpenDropdown}
+                  />
+                );
+              }
+              // Top-level link
+              if (!isLinkVisible(item.href)) return null;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={clsx(
+                    "px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                    pathname === item.href
+                      ? "bg-primary-50 text-primary-700 dark:bg-primary-900/50 dark:text-primary-300"
+                      : "text-gray-600 hover:text-primary-700 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-primary-300 dark:hover:bg-primary-900/50"
+                  )}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
 
             {/* Admin Dropdown */}
             {adminLinks.length > 0 && (
               <div className="relative" ref={adminDropdownRef}>
                 <button
-                  onClick={() => setAdminOpen(!adminOpen)}
+                  onClick={() => setOpenDropdown(openDropdown === "admin" ? null : "admin")}
                   className={clsx(
                     "flex items-center gap-1 px-3 py-2 rounded-md text-sm font-medium transition-colors",
                     isAdminActive
-                      ? "bg-primary-50 text-primary-700"
-                      : "text-gray-600 hover:text-primary-700 hover:bg-primary-50"
+                      ? "bg-primary-50 text-primary-700 dark:bg-primary-900/50 dark:text-primary-300"
+                      : "text-gray-600 hover:text-primary-700 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-primary-300 dark:hover:bg-primary-900/50"
                   )}
                 >
                   <Shield size={15} />
@@ -229,12 +362,12 @@ export default function Navbar() {
                     size={14}
                     className={clsx(
                       "transition-transform",
-                      adminOpen && "rotate-180"
+                      openDropdown === "admin" && "rotate-180"
                     )}
                   />
                 </button>
 
-                {adminOpen && (
+                {openDropdown === "admin" && (
                   <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
                     {adminLinks.map((link) => {
                       const active =
@@ -270,7 +403,7 @@ export default function Navbar() {
 
           {/* Mobile menu button */}
           <button
-            className="md:hidden p-2 rounded-md text-gray-600 hover:text-primary-700 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-primary-300 dark:hover:bg-primary-900/50"
+            className="lg:hidden p-2 rounded-md text-gray-600 hover:text-primary-700 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-primary-300 dark:hover:bg-primary-900/50"
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label="Toggle menu"
           >
@@ -281,9 +414,9 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden bg-white dark:bg-gray-900 border-t dark:border-gray-700">
+        <div className="lg:hidden bg-white dark:bg-gray-900 border-t dark:border-gray-700 max-h-[calc(100vh-4rem)] overflow-y-auto">
           <div className="px-4 py-2 space-y-1">
-            {session?.user?.isRegistered && session?.user?.isApproved && (
+            {isFullAccess && (
               <Link
                 href="/dashboard"
                 onClick={() => setMobileOpen(false)}
@@ -297,21 +430,55 @@ export default function Navbar() {
                 Dashboard
               </Link>
             )}
-            {visibleLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileOpen(false)}
-                className={clsx(
-                  "block px-3 py-2 rounded-md text-base font-medium transition-colors",
-                  pathname === link.href
-                    ? "bg-primary-50 text-primary-700 dark:bg-primary-900/50 dark:text-primary-300"
-                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-primary-300 dark:hover:bg-primary-900/50"
-                )}
-              >
-                {link.label}
-              </Link>
-            ))}
+
+            {/* Top-level links */}
+            {topLevelLinks
+              .filter((l) => isLinkVisible(l.href))
+              .map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileOpen(false)}
+                  className={clsx(
+                    "block px-3 py-2 rounded-md text-base font-medium transition-colors",
+                    pathname === link.href
+                      ? "bg-primary-50 text-primary-700 dark:bg-primary-900/50 dark:text-primary-300"
+                      : "text-gray-600 hover:text-primary-700 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-primary-300 dark:hover:bg-primary-900/50"
+                  )}
+                >
+                  {link.label}
+                </Link>
+              ))}
+
+            {/* Grouped sections */}
+            {navGroups.map((group) => {
+              const visibleGroupLinks = group.links.filter((l) => isLinkVisible(l.href));
+              if (visibleGroupLinks.length === 0) return null;
+              return (
+                <div key={group.label}>
+                  <div className="border-t dark:border-gray-700 mt-2 pt-2">
+                    <p className="px-3 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                      {group.label}
+                    </p>
+                  </div>
+                  {visibleGroupLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setMobileOpen(false)}
+                      className={clsx(
+                        "block px-3 py-2 rounded-md text-base font-medium transition-colors",
+                        pathname === link.href || pathname.startsWith(link.href + "/")
+                          ? "bg-primary-50 text-primary-700 dark:bg-primary-900/50 dark:text-primary-300"
+                          : "text-gray-600 hover:text-primary-700 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-primary-300 dark:hover:bg-primary-900/50"
+                      )}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              );
+            })}
 
             {/* Mobile Admin Section */}
             {adminLinks.length > 0 && (
@@ -335,8 +502,8 @@ export default function Navbar() {
                       className={clsx(
                         "block px-3 py-2 rounded-md text-base font-medium transition-colors",
                         active
-                          ? "bg-primary-50 text-primary-700"
-                          : "text-gray-600 hover:text-primary-700 hover:bg-primary-50"
+                          ? "bg-primary-50 text-primary-700 dark:bg-primary-900/50 dark:text-primary-300"
+                          : "text-gray-600 hover:text-primary-700 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-primary-300 dark:hover:bg-primary-900/50"
                       )}
                     >
                       {link.label}
