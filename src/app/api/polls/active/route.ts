@@ -12,6 +12,7 @@ export async function GET() {
     where: {
       status: "ACTIVE",
       deadline: { gt: new Date() },
+      surveyId: null,
     },
     select: {
       id: true,
