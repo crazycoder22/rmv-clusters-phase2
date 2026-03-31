@@ -40,6 +40,7 @@ const navLinks = [
   { href: "/issues", label: "Issues" },
   { href: "/checklist", label: "Checklist" },
   { href: "/documents", label: "Documents" },
+  { href: "/marketplace", label: "Marketplace" },
   { href: "/domestic-help", label: "Domestic Help" },
   { href: "/polls", label: "Polls" },
   { href: "/review-docs", label: "Reviews" },

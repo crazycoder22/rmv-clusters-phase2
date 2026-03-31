@@ -150,6 +150,13 @@ export function canManageReviewDocs(
   return isAdmin(roles);
 }
 
+/** Check if user can manage marketplace listings (delete any) */
+export function canManageMarketplace(
+  roles: UserRole[] | string[] | null | undefined
+): boolean {
+  return isAdmin(roles);
+}
+
 /** Check if user can manage domestic help directory (delete inappropriate entries) */
 export function canManageDomesticHelp(
   roles: UserRole[] | string[] | null | undefined

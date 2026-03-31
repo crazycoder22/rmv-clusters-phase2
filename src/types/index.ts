@@ -267,6 +267,12 @@ export interface NotificationType {
     title: string;
     status: string;
   } | null;
+  marketplaceListingId: string | null;
+  marketplaceListing: {
+    id: string;
+    title: string;
+    listingType: string;
+  } | null;
 }
 
 // Visitor types

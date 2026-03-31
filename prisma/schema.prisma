@@ -79,6 +79,9 @@ model Resident {
   pollVotes                PollVote[]
   domesticHelpAdded        DomesticHelp[]       @relation("DomesticHelpAdded")
   domesticHelpReviews      DomesticHelpReview[] @relation("DomesticHelpReviews")
+  marketplaceListings      MarketplaceListing[]               @relation("MarketplaceListings")
+  marketplaceWishlist      MarketplaceWishlist[]               @relation("MarketplaceWishlist")
+  marketplaceCategorySubs  MarketplaceCategorySubscription[]   @relation("MarketplaceCategorySubscriptions")
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 }
@@ -333,6 +336,8 @@ model Notification {
   poll           Poll?          @relation(fields: [pollId], references: [id], onDelete: Cascade)
   surveyId       String?
   survey         Survey?        @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  marketplaceListingId String?
+  marketplaceListing   MarketplaceListing? @relation(fields: [marketplaceListingId], references: [id], onDelete: Cascade)
   message        String?
   read           Boolean       @default(false)
   createdAt      DateTime      @default(now())
@@ -346,6 +351,7 @@ model Notification {
   @@index([reviewDocId])
   @@index([pollId])
   @@index([surveyId])
+  @@index([marketplaceListingId])
 }
 
 model Issue {
@@ -887,6 +893,59 @@ model DomesticHelpReview {
 }
 
 // ─── End Domestic Help Directory ──────────────────────────────────────────
+
+// ─── Marketplace ──────────────────────────────────────────────────────────
+
+model MarketplaceListing {
+  id              String                @id @default(cuid())
+  title           String
+  description     String
+  images          String[]              // Vercel Blob URLs
+  category        String                // "FURNITURE", "ELECTRONICS", etc.
+  listingType     String                // "SELL", "GIVEAWAY", "RENT"
+  price           Float                 @default(0)
+  rentPeriod      String?               // "DAY", "WEEK", "MONTH" — for RENT type
+  status          String                @default("ACTIVE") // "ACTIVE", "SOLD"
+  whatsappNumber  String
+  sellerId        String
+  seller          Resident              @relation("MarketplaceListings", fields: [sellerId], references: [id], onDelete: Cascade)
+  wishlistedBy    MarketplaceWishlist[]
+  notifications   Notification[]
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  @@index([sellerId])
+  @@index([category])
+  @@index([listingType])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model MarketplaceWishlist {
+  id         String             @id @default(cuid())
+  listingId  String
+  listing    MarketplaceListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  residentId String
+  resident   Resident           @relation("MarketplaceWishlist", fields: [residentId], references: [id], onDelete: Cascade)
+  createdAt  DateTime           @default(now())
+
+  @@unique([listingId, residentId])
+  @@index([listingId])
+  @@index([residentId])
+}
+
+model MarketplaceCategorySubscription {
+  id         String   @id @default(cuid())
+  residentId String
+  resident   Resident @relation("MarketplaceCategorySubscriptions", fields: [residentId], references: [id], onDelete: Cascade)
+  category   String
+  createdAt  DateTime @default(now())
+
+  @@unique([residentId, category])
+  @@index([category])
+}
+
+// ─── End Marketplace ──────────────────────────────────────────────────────
 
 model ReviewComment {
   id               String          @id @default(cuid())

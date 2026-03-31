@@ -19,6 +19,7 @@ import {
   ClipboardList,
   BarChart3,
   Users2,
+  ShoppingBag,
 } from "lucide-react";
 import siteData from "@/data/site.json";
 import { formatDate } from "@/lib/utils";
@@ -83,6 +84,7 @@ const quickLinks = [
   { href: "/news", label: "News", icon: Newspaper, color: "bg-red-50 text-red-600" },
   { href: "/issues", label: "Issues", icon: Wrench, color: "bg-orange-50 text-orange-600" },
   { href: "/tasks", label: "Tasks", icon: ClipboardList, color: "bg-teal-50 text-teal-600" },
+  { href: "/marketplace", label: "Marketplace", icon: ShoppingBag, color: "bg-emerald-50 text-emerald-600" },
   { href: "/domestic-help", label: "Domestic Help", icon: Users2, color: "bg-pink-50 text-pink-600" },
 ];
 

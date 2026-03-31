@@ -45,6 +45,9 @@ export async function GET() {
       survey: {
         select: { id: true, title: true, status: true },
       },
+      marketplaceListing: {
+        select: { id: true, title: true, listingType: true },
+      },
     },
   });
 

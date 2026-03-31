@@ -116,7 +116,8 @@ export default function NotificationBell() {
       notification.postId ?? null,
       notification.reviewDocId ?? null,
       notification.pollId ?? null,
-      notification.surveyId ?? null
+      notification.surveyId ?? null,
+      notification.marketplaceListingId ?? null
     );
     router.push(url);
   };
@@ -207,6 +208,8 @@ export default function NotificationBell() {
                         ? (n.message || "New activity on your post")
                         : n.reviewDoc
                         ? (n.message || `Review: ${n.reviewDoc.title}`)
+                        : n.marketplaceListing
+                        ? (n.message || `Listing: ${n.marketplaceListing.title}`)
                         : n.survey
                         ? (n.message || `Survey: ${n.survey.title}`)
                         : n.poll
@@ -217,10 +220,10 @@ export default function NotificationBell() {
                   <div className="flex items-center gap-2 mt-1">
                     <span
                       className={`inline-block px-1.5 py-0.5 text-[10px] font-medium rounded capitalize ${getCategoryColor(
-                        n.announcement?.category ?? (n.survey ? "poll" : n.poll ? "poll" : n.reviewDoc ? "review" : n.post ? "community" : n.task ? "task" : n.issue ? "issue" : "visitor")
+                        n.announcement?.category ?? (n.marketplaceListing ? "marketplace" : n.survey ? "poll" : n.poll ? "poll" : n.reviewDoc ? "review" : n.post ? "community" : n.task ? "task" : n.issue ? "issue" : "visitor")
                       )}`}
                     >
-                      {n.announcement?.category ?? (n.survey ? "survey" : n.poll ? "poll" : n.reviewDoc ? "review" : n.post ? "community" : n.task ? "task" : n.issue ? "issue" : "visitor")}
+                      {n.announcement?.category ?? (n.marketplaceListing ? "marketplace" : n.survey ? "survey" : n.poll ? "poll" : n.reviewDoc ? "review" : n.post ? "community" : n.task ? "task" : n.issue ? "issue" : "visitor")}
                     </span>
                     <span className="text-[10px] text-gray-400">
                       {timeAgo(n.createdAt)}

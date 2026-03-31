@@ -6,8 +6,12 @@ export function getNotificationUrl(
   postId?: string | null,
   reviewDocId?: string | null,
   pollId?: string | null,
-  surveyId?: string | null
+  surveyId?: string | null,
+  marketplaceListingId?: string | null
 ): string {
+  if (marketplaceListingId) {
+    return `/marketplace/${marketplaceListingId}`;
+  }
   if (surveyId) {
     return `/surveys/${surveyId}`;
   }
@@ -48,6 +52,7 @@ export function getCategoryColor(category: string): string {
     community: "bg-emerald-100 text-emerald-700",
     review: "bg-indigo-100 text-indigo-700",
     poll: "bg-violet-100 text-violet-700",
+    marketplace: "bg-emerald-100 text-emerald-700",
   };
   return colors[category] || "bg-gray-100 text-gray-700";
 }
