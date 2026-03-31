@@ -255,6 +255,12 @@ export interface NotificationType {
     id: string;
     title: string;
   } | null;
+  pollId: string | null;
+  poll: {
+    id: string;
+    title: string;
+    status: string;
+  } | null;
 }
 
 // Visitor types

@@ -4,8 +4,12 @@ export function getNotificationUrl(
   issueId?: string | null,
   taskId?: string | null,
   postId?: string | null,
-  reviewDocId?: string | null
+  reviewDocId?: string | null,
+  pollId?: string | null
 ): string {
+  if (pollId) {
+    return `/polls/${pollId}`;
+  }
   if (reviewDocId) {
     return `/review-docs/${reviewDocId}`;
   }
@@ -39,6 +43,7 @@ export function getCategoryColor(category: string): string {
     task: "bg-teal-100 text-teal-700",
     community: "bg-emerald-100 text-emerald-700",
     review: "bg-indigo-100 text-indigo-700",
+    poll: "bg-violet-100 text-violet-700",
   };
   return colors[category] || "bg-gray-100 text-gray-700";
 }

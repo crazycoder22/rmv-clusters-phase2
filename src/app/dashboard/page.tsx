@@ -17,6 +17,8 @@ import {
   ChevronRight,
   Wrench,
   ClipboardList,
+  BarChart3,
+  Users2,
 } from "lucide-react";
 import siteData from "@/data/site.json";
 import { formatDate } from "@/lib/utils";
@@ -49,6 +51,14 @@ interface RsvpRegistration {
   paid: boolean;
 }
 
+interface ActivePoll {
+  id: string;
+  title: string;
+  type: string;
+  deadline: string;
+  _count: { votes: number };
+}
+
 interface SportsRegistration {
   id: string;
   announcementId: string;
@@ -66,6 +76,7 @@ const quickLinks = [
   { href: "/news", label: "News", icon: Newspaper, color: "bg-red-50 text-red-600" },
   { href: "/issues", label: "Issues", icon: Wrench, color: "bg-orange-50 text-orange-600" },
   { href: "/tasks", label: "Tasks", icon: ClipboardList, color: "bg-teal-50 text-teal-600" },
+  { href: "/domestic-help", label: "Domestic Help", icon: Users2, color: "bg-pink-50 text-pink-600" },
 ];
 
 export default function DashboardPage() {
@@ -83,6 +94,10 @@ export default function DashboardPage() {
   const [rsvps, setRsvps] = useState<RsvpRegistration[]>([]);
   const [sportsRegs, setSportsRegs] = useState<SportsRegistration[]>([]);
   const [loadingRegs, setLoadingRegs] = useState(true);
+
+  // Active polls
+  const [activePolls, setActivePolls] = useState<ActivePoll[]>([]);
+  const [loadingPolls, setLoadingPolls] = useState(true);
 
   // Auth guard
   useEffect(() => {
@@ -102,6 +117,17 @@ export default function DashboardPage() {
         })
         .catch(() => {})
         .finally(() => setLoadingRegs(false));
+    }
+  }, [status, session]);
+
+  // Fetch active polls
+  useEffect(() => {
+    if (status === "authenticated" && session?.user?.isRegistered) {
+      fetch("/api/polls/active")
+        .then((res) => (res.ok ? res.json() : { polls: [] }))
+        .then((data) => setActivePolls(data.polls || []))
+        .catch(() => {})
+        .finally(() => setLoadingPolls(false));
     }
   }, [status, session]);
 
@@ -361,7 +387,51 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Section 5: News Feed */}
+      {/* Section 5: Active Polls */}
+      {!loadingPolls && activePolls.length > 0 && (
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <BarChart3 size={20} className="text-violet-600" />
+              <h2 className="text-lg font-semibold text-gray-800">
+                Active Polls
+              </h2>
+            </div>
+            <Link
+              href="/polls"
+              className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+            >
+              View all
+            </Link>
+          </div>
+          <div className="space-y-3">
+            {activePolls.map((poll) => (
+              <Link
+                key={poll.id}
+                href={`/polls/${poll.id}`}
+                className="flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:border-violet-200 hover:bg-violet-50/30 transition-all group"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-gray-800 truncate">
+                    {poll.title}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {poll._count.votes} vote{poll._count.votes !== 1 ? "s" : ""}{" "}
+                    &middot; Ends{" "}
+                    {new Date(poll.deadline).toLocaleDateString()}
+                  </p>
+                </div>
+                <ChevronRight
+                  size={18}
+                  className="text-gray-300 group-hover:text-violet-500 shrink-0"
+                />
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Section 6: News Feed */}
       <div>
         <h2 className="text-lg font-semibold text-gray-800 mb-4">
           Latest News

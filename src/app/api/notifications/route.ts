@@ -39,6 +39,9 @@ export async function GET() {
       reviewDoc: {
         select: { id: true, title: true },
       },
+      poll: {
+        select: { id: true, title: true, status: true },
+      },
     },
   });
 

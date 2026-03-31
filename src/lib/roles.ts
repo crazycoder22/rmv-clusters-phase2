@@ -150,6 +150,20 @@ export function canManageReviewDocs(
   return isAdmin(roles);
 }
 
+/** Check if user can manage domestic help directory (delete inappropriate entries) */
+export function canManageDomesticHelp(
+  roles: UserRole[] | string[] | null | undefined
+): boolean {
+  return isAdmin(roles);
+}
+
+/** Check if user can manage polls (COMMUNITY_ADMIN, ADMIN, SUPERADMIN) */
+export function canManagePolls(
+  roles: UserRole[] | string[] | null | undefined
+): boolean {
+  return isAdmin(roles);
+}
+
 /** Check if user can manage meetings (COMMUNITY_ADMIN, ADMIN, SUPERADMIN) */
 export function canManageMeetings(
   roles: UserRole[] | string[] | null | undefined

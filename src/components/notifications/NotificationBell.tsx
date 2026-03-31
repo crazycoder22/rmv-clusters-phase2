@@ -114,7 +114,8 @@ export default function NotificationBell() {
       notification.issueId ?? null,
       notification.taskId ?? null,
       notification.postId ?? null,
-      notification.reviewDocId ?? null
+      notification.reviewDocId ?? null,
+      notification.pollId ?? null
     );
     router.push(url);
   };
@@ -205,16 +206,18 @@ export default function NotificationBell() {
                         ? (n.message || "New activity on your post")
                         : n.reviewDoc
                         ? (n.message || `Review: ${n.reviewDoc.title}`)
+                        : n.poll
+                        ? (n.message || `Poll: ${n.poll.title}`)
                         : "Notification"}
                     </p>
                   </div>
                   <div className="flex items-center gap-2 mt-1">
                     <span
                       className={`inline-block px-1.5 py-0.5 text-[10px] font-medium rounded capitalize ${getCategoryColor(
-                        n.announcement?.category ?? (n.reviewDoc ? "review" : n.post ? "community" : n.task ? "task" : n.issue ? "issue" : "visitor")
+                        n.announcement?.category ?? (n.poll ? "poll" : n.reviewDoc ? "review" : n.post ? "community" : n.task ? "task" : n.issue ? "issue" : "visitor")
                       )}`}
                     >
-                      {n.announcement?.category ?? (n.reviewDoc ? "review" : n.post ? "community" : n.task ? "task" : n.issue ? "issue" : "visitor")}
+                      {n.announcement?.category ?? (n.poll ? "poll" : n.reviewDoc ? "review" : n.post ? "community" : n.task ? "task" : n.issue ? "issue" : "visitor")}
                     </span>
                     <span className="text-[10px] text-gray-400">
                       {timeAgo(n.createdAt)}

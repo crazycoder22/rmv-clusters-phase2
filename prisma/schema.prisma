@@ -74,6 +74,10 @@ model Resident {
   reviewDocuments          ReviewDocument[]
   reviewComments           ReviewComment[]
   resolvedReviewComments   ReviewComment[] @relation("ResolvedComments")
+  pollsCreated             Poll[]          @relation("PollsCreated")
+  pollVotes                PollVote[]
+  domesticHelpAdded        DomesticHelp[]       @relation("DomesticHelpAdded")
+  domesticHelpReviews      DomesticHelpReview[] @relation("DomesticHelpReviews")
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 }
@@ -324,6 +328,8 @@ model Notification {
   post           Post?         @relation(fields: [postId], references: [id], onDelete: Cascade)
   reviewDocId    String?
   reviewDoc      ReviewDocument? @relation(fields: [reviewDocId], references: [id], onDelete: Cascade)
+  pollId         String?
+  poll           Poll?          @relation(fields: [pollId], references: [id], onDelete: Cascade)
   message        String?
   read           Boolean       @default(false)
   createdAt      DateTime      @default(now())
@@ -335,6 +341,7 @@ model Notification {
   @@index([taskId])
   @@index([postId])
   @@index([reviewDocId])
+  @@index([pollId])
 }
 
 model Issue {
@@ -762,6 +769,97 @@ model FantasyScoreEvent {
 }
 
 // ─── End Fantasy League ───────────────────────────────────────────────────
+
+// ─── Polls & Surveys ──────────────────────────────────────────────────────
+
+model Poll {
+  id            String         @id @default(cuid())
+  title         String
+  description   String?
+  type          String         @default("SINGLE") // "SINGLE" or "MULTIPLE"
+  isAnonymous   Boolean        @default(false)
+  deadline      DateTime
+  status        String         @default("ACTIVE") // "ACTIVE" or "CLOSED"
+  createdById   String
+  createdBy     Resident       @relation("PollsCreated", fields: [createdById], references: [id])
+  options       PollOption[]
+  votes         PollVote[]
+  notifications Notification[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([status])
+  @@index([deadline])
+  @@index([createdById])
+}
+
+model PollOption {
+  id        String     @id @default(cuid())
+  pollId    String
+  poll      Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  text      String
+  sortOrder Int        @default(0)
+  votes     PollVote[]
+  createdAt DateTime   @default(now())
+
+  @@index([pollId])
+}
+
+model PollVote {
+  id           String     @id @default(cuid())
+  pollId       String
+  poll         Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  pollOptionId String
+  pollOption   PollOption @relation(fields: [pollOptionId], references: [id], onDelete: Cascade)
+  residentId   String
+  resident     Resident   @relation(fields: [residentId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+
+  @@unique([pollId, pollOptionId, residentId])
+  @@index([pollId])
+  @@index([residentId])
+}
+
+// ─── End Polls & Surveys ──────────────────────────────────────────────────
+
+// ─── Domestic Help Directory ──────────────────────────────────────────────
+
+model DomesticHelp {
+  id           String               @id @default(cuid())
+  name         String
+  phone        String
+  categories   String[]             // e.g. ["MAID", "COOK"]
+  description  String?
+  availability String?              // e.g. "Mon-Sat, 8am-6pm"
+  addedById    String
+  addedBy      Resident             @relation("DomesticHelpAdded", fields: [addedById], references: [id])
+  reviews      DomesticHelpReview[]
+  avgRating    Float                @default(0)
+  reviewCount  Int                  @default(0)
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  @@index([addedById])
+  @@index([avgRating])
+}
+
+model DomesticHelpReview {
+  id             String       @id @default(cuid())
+  domesticHelpId String
+  domesticHelp   DomesticHelp @relation(fields: [domesticHelpId], references: [id], onDelete: Cascade)
+  residentId     String
+  resident       Resident     @relation("DomesticHelpReviews", fields: [residentId], references: [id], onDelete: Cascade)
+  rating         Int          // 1-5
+  comment        String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([domesticHelpId, residentId])
+  @@index([domesticHelpId])
+  @@index([residentId])
+}
+
+// ─── End Domestic Help Directory ──────────────────────────────────────────
 
 model ReviewComment {
   id               String          @id @default(cuid())
