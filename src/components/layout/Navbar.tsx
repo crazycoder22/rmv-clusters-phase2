@@ -128,6 +128,11 @@ export default function Navbar() {
       label: "Polls",
       match: (p) => p.startsWith("/admin/polls"),
     });
+    adminLinks.push({
+      href: "/admin/surveys/new",
+      label: "Surveys",
+      match: (p) => p.startsWith("/admin/surveys"),
+    });
   }
   if (canManageAnnouncements(roles)) {
     adminLinks.push({

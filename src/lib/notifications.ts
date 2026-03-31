@@ -5,8 +5,12 @@ export function getNotificationUrl(
   taskId?: string | null,
   postId?: string | null,
   reviewDocId?: string | null,
-  pollId?: string | null
+  pollId?: string | null,
+  surveyId?: string | null
 ): string {
+  if (surveyId) {
+    return `/surveys/${surveyId}`;
+  }
   if (pollId) {
     return `/polls/${pollId}`;
   }

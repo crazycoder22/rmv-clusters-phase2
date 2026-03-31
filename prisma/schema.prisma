@@ -74,6 +74,7 @@ model Resident {
   reviewDocuments          ReviewDocument[]
   reviewComments           ReviewComment[]
   resolvedReviewComments   ReviewComment[] @relation("ResolvedComments")
+  surveysCreated           Survey[]        @relation("SurveysCreated")
   pollsCreated             Poll[]          @relation("PollsCreated")
   pollVotes                PollVote[]
   domesticHelpAdded        DomesticHelp[]       @relation("DomesticHelpAdded")
@@ -330,6 +331,8 @@ model Notification {
   reviewDoc      ReviewDocument? @relation(fields: [reviewDocId], references: [id], onDelete: Cascade)
   pollId         String?
   poll           Poll?          @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  surveyId       String?
+  survey         Survey?        @relation(fields: [surveyId], references: [id], onDelete: Cascade)
   message        String?
   read           Boolean       @default(false)
   createdAt      DateTime      @default(now())
@@ -342,6 +345,7 @@ model Notification {
   @@index([postId])
   @@index([reviewDocId])
   @@index([pollId])
+  @@index([surveyId])
 }
 
 model Issue {
@@ -772,6 +776,25 @@ model FantasyScoreEvent {
 
 // ─── Polls & Surveys ──────────────────────────────────────────────────────
 
+model Survey {
+  id            String         @id @default(cuid())
+  title         String
+  description   String?
+  deadline      DateTime
+  isAnonymous   Boolean        @default(false)
+  status        String         @default("ACTIVE") // "ACTIVE" or "CLOSED"
+  createdById   String
+  createdBy     Resident       @relation("SurveysCreated", fields: [createdById], references: [id])
+  polls         Poll[]
+  notifications Notification[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([status])
+  @@index([deadline])
+  @@index([createdById])
+}
+
 model Poll {
   id            String         @id @default(cuid())
   title         String
@@ -780,8 +803,11 @@ model Poll {
   isAnonymous   Boolean        @default(false)
   deadline      DateTime
   status        String         @default("ACTIVE") // "ACTIVE" or "CLOSED"
+  sortOrder     Int            @default(0)
   createdById   String
   createdBy     Resident       @relation("PollsCreated", fields: [createdById], references: [id])
+  surveyId      String?
+  survey        Survey?        @relation(fields: [surveyId], references: [id], onDelete: Cascade)
   options       PollOption[]
   votes         PollVote[]
   notifications Notification[]
@@ -791,6 +817,7 @@ model Poll {
   @@index([status])
   @@index([deadline])
   @@index([createdById])
+  @@index([surveyId])
 }
 
 model PollOption {

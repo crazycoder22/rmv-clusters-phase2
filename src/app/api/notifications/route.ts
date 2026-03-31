@@ -42,6 +42,9 @@ export async function GET() {
       poll: {
         select: { id: true, title: true, status: true },
       },
+      survey: {
+        select: { id: true, title: true, status: true },
+      },
     },
   });
 

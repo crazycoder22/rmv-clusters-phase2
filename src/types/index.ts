@@ -261,6 +261,12 @@ export interface NotificationType {
     title: string;
     status: string;
   } | null;
+  surveyId: string | null;
+  survey: {
+    id: string;
+    title: string;
+    status: string;
+  } | null;
 }
 
 // Visitor types

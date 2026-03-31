@@ -59,6 +59,13 @@ interface ActivePoll {
   _count: { votes: number };
 }
 
+interface ActiveSurvey {
+  id: string;
+  title: string;
+  deadline: string;
+  _count: { polls: number };
+}
+
 interface SportsRegistration {
   id: string;
   announcementId: string;
@@ -95,8 +102,9 @@ export default function DashboardPage() {
   const [sportsRegs, setSportsRegs] = useState<SportsRegistration[]>([]);
   const [loadingRegs, setLoadingRegs] = useState(true);
 
-  // Active polls
+  // Active polls & surveys
   const [activePolls, setActivePolls] = useState<ActivePoll[]>([]);
+  const [activeSurveys, setActiveSurveys] = useState<ActiveSurvey[]>([]);
   const [loadingPolls, setLoadingPolls] = useState(true);
 
   // Auth guard
@@ -120,12 +128,21 @@ export default function DashboardPage() {
     }
   }, [status, session]);
 
-  // Fetch active polls
+  // Fetch active polls & surveys
   useEffect(() => {
     if (status === "authenticated" && session?.user?.isRegistered) {
-      fetch("/api/polls/active")
-        .then((res) => (res.ok ? res.json() : { polls: [] }))
-        .then((data) => setActivePolls(data.polls || []))
+      Promise.all([
+        fetch("/api/polls/active").then((res) =>
+          res.ok ? res.json() : { polls: [] }
+        ),
+        fetch("/api/surveys?status=ACTIVE").then((res) =>
+          res.ok ? res.json() : { surveys: [] }
+        ),
+      ])
+        .then(([pollsData, surveysData]) => {
+          setActivePolls(pollsData.polls || []);
+          setActiveSurveys(surveysData.surveys || []);
+        })
         .catch(() => {})
         .finally(() => setLoadingPolls(false));
     }
@@ -387,14 +404,14 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Section 5: Active Polls */}
-      {!loadingPolls && activePolls.length > 0 && (
+      {/* Section 5: Active Polls & Surveys */}
+      {!loadingPolls && (activePolls.length > 0 || activeSurveys.length > 0) && (
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <BarChart3 size={20} className="text-violet-600" />
               <h2 className="text-lg font-semibold text-gray-800">
-                Active Polls
+                Active Polls & Surveys
               </h2>
             </div>
             <Link
@@ -405,9 +422,36 @@ export default function DashboardPage() {
             </Link>
           </div>
           <div className="space-y-3">
+            {activeSurveys.map((survey) => (
+              <Link
+                key={`survey-${survey.id}`}
+                href={`/surveys/${survey.id}`}
+                className="flex items-center justify-between p-3 rounded-lg border border-indigo-100 hover:border-indigo-200 hover:bg-indigo-50/30 transition-all group"
+              >
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <span className="inline-block px-1.5 py-0.5 text-[10px] font-medium rounded bg-indigo-100 text-indigo-700">
+                      Survey
+                    </span>
+                  </div>
+                  <p className="text-sm font-medium text-gray-800 truncate">
+                    {survey.title}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {survey._count.polls} question{survey._count.polls !== 1 ? "s" : ""}{" "}
+                    &middot; Ends{" "}
+                    {new Date(survey.deadline).toLocaleDateString()}
+                  </p>
+                </div>
+                <ChevronRight
+                  size={18}
+                  className="text-gray-300 group-hover:text-indigo-500 shrink-0"
+                />
+              </Link>
+            ))}
             {activePolls.map((poll) => (
               <Link
-                key={poll.id}
+                key={`poll-${poll.id}`}
                 href={`/polls/${poll.id}`}
                 className="flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:border-violet-200 hover:bg-violet-50/30 transition-all group"
               >
