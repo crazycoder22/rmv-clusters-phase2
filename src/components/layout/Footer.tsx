@@ -9,7 +9,7 @@ const quickLinks = [
 
 export default function Footer() {
   return (
-    <footer className="bg-primary-900 text-white">
+    <footer className="bg-primary-900 dark:bg-gray-950 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* About */}
@@ -90,7 +90,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-primary-800 mt-8 pt-8 text-center text-sm text-primary-300">
+        <div className="border-t border-primary-800 dark:border-gray-800 mt-8 pt-8 text-center text-sm text-primary-300">
           <p>
             &copy; {new Date().getFullYear()} {siteData.name}. All rights
             reserved.

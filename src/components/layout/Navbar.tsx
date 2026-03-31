@@ -9,6 +9,7 @@ import clsx from "clsx";
 import SignInButton from "@/components/auth/SignInButton";
 import UserMenu from "@/components/auth/UserMenu";
 import NotificationBell from "@/components/notifications/NotificationBell";
+import ThemeToggle from "@/components/layout/ThemeToggle";
 import { useRegistrationGuard } from "@/hooks/useRegistrationGuard";
 import {
   canManageAnnouncements,
@@ -173,10 +174,10 @@ export default function Navbar() {
   }, [pathname]);
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm">
+    <nav className="sticky top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-sm dark:shadow-gray-800/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link href="/" className="font-bold text-xl text-primary-800">
+          <Link href="/" className="font-bold text-xl text-primary-800 dark:text-primary-200">
             RMV Clusters
           </Link>
 
@@ -188,8 +189,8 @@ export default function Navbar() {
                 className={clsx(
                   "px-3 py-2 rounded-md text-sm font-medium transition-colors",
                   pathname === "/dashboard"
-                    ? "bg-primary-50 text-primary-700"
-                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50"
+                    ? "bg-primary-50 text-primary-700 dark:bg-primary-900/50 dark:text-primary-300"
+                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-primary-300 dark:hover:bg-primary-900/50"
                 )}
               >
                 Dashboard
@@ -202,8 +203,8 @@ export default function Navbar() {
                 className={clsx(
                   "px-3 py-2 rounded-md text-sm font-medium transition-colors",
                   pathname === link.href
-                    ? "bg-primary-50 text-primary-700"
-                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50"
+                    ? "bg-primary-50 text-primary-700 dark:bg-primary-900/50 dark:text-primary-300"
+                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-primary-300 dark:hover:bg-primary-900/50"
                 )}
               >
                 {link.label}
@@ -234,7 +235,7 @@ export default function Navbar() {
                 </button>
 
                 {adminOpen && (
-                  <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                  <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
                     {adminLinks.map((link) => {
                       const active =
                         typeof link.match === "function"
@@ -247,8 +248,8 @@ export default function Navbar() {
                           className={clsx(
                             "block px-4 py-2 text-sm transition-colors",
                             active
-                              ? "bg-primary-50 text-primary-700 font-medium"
-                              : "text-gray-700 hover:bg-gray-50 hover:text-primary-700"
+                              ? "bg-primary-50 text-primary-700 font-medium dark:bg-primary-900/50 dark:text-primary-300"
+                              : "text-gray-700 hover:bg-gray-50 hover:text-primary-700 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-primary-300"
                           )}
                         >
                           {link.label}
@@ -260,15 +261,16 @@ export default function Navbar() {
               </div>
             )}
 
+            <ThemeToggle />
             <NotificationBell />
-            <div className="ml-2 border-l pl-2">
+            <div className="ml-2 border-l border-gray-200 dark:border-gray-700 pl-2">
               {session ? <UserMenu /> : <SignInButton />}
             </div>
           </div>
 
           {/* Mobile menu button */}
           <button
-            className="md:hidden p-2 rounded-md text-gray-600 hover:text-primary-700 hover:bg-primary-50"
+            className="md:hidden p-2 rounded-md text-gray-600 hover:text-primary-700 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-primary-300 dark:hover:bg-primary-900/50"
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label="Toggle menu"
           >
@@ -279,7 +281,7 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden bg-white border-t">
+        <div className="md:hidden bg-white dark:bg-gray-900 border-t dark:border-gray-700">
           <div className="px-4 py-2 space-y-1">
             {session?.user?.isRegistered && session?.user?.isApproved && (
               <Link
@@ -288,8 +290,8 @@ export default function Navbar() {
                 className={clsx(
                   "block px-3 py-2 rounded-md text-base font-medium transition-colors",
                   pathname === "/dashboard"
-                    ? "bg-primary-50 text-primary-700"
-                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50"
+                    ? "bg-primary-50 text-primary-700 dark:bg-primary-900/50 dark:text-primary-300"
+                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-primary-300 dark:hover:bg-primary-900/50"
                 )}
               >
                 Dashboard
@@ -303,8 +305,8 @@ export default function Navbar() {
                 className={clsx(
                   "block px-3 py-2 rounded-md text-base font-medium transition-colors",
                   pathname === link.href
-                    ? "bg-primary-50 text-primary-700"
-                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50"
+                    ? "bg-primary-50 text-primary-700 dark:bg-primary-900/50 dark:text-primary-300"
+                    : "text-gray-600 hover:text-primary-700 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-primary-300 dark:hover:bg-primary-900/50"
                 )}
               >
                 {link.label}
@@ -314,7 +316,7 @@ export default function Navbar() {
             {/* Mobile Admin Section */}
             {adminLinks.length > 0 && (
               <>
-                <div className="border-t mt-2 pt-2">
+                <div className="border-t dark:border-gray-700 mt-2 pt-2">
                   <p className="px-3 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-1">
                     <Shield size={12} />
                     Admin
@@ -344,13 +346,14 @@ export default function Navbar() {
               </>
             )}
 
-            <div className="border-t mt-2 pt-2 flex items-center justify-between">
+            <div className="border-t dark:border-gray-700 mt-2 pt-2 flex items-center justify-between">
+              <ThemeToggle />
               <NotificationBell />
             </div>
-            <div className="border-t mt-2 pt-2">
+            <div className="border-t dark:border-gray-700 mt-2 pt-2">
               {session ? (
                 <div className="px-3 py-2">
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                     {session.user?.name}
                   </p>
                   <button
@@ -358,7 +361,7 @@ export default function Navbar() {
                       signOut({ callbackUrl: "/" });
                       setMobileOpen(false);
                     }}
-                    className="mt-1 text-sm text-gray-600 hover:text-primary-700"
+                    className="mt-1 text-sm text-gray-600 hover:text-primary-700 dark:text-gray-400 dark:hover:text-primary-300"
                   >
                     Sign Out
                   </button>
@@ -369,7 +372,7 @@ export default function Navbar() {
                     signIn("google");
                     setMobileOpen(false);
                   }}
-                  className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-primary-700 hover:bg-primary-50"
+                  className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-primary-700 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-primary-300 dark:hover:bg-primary-900/50"
                 >
                   Sign In
                 </button>
