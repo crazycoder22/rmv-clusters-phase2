@@ -46,7 +46,7 @@ export default function FAQPage() {
                 "px-4 py-2 rounded-full text-sm font-medium transition-colors capitalize",
                 activeCategory === cat
                   ? "bg-primary-600 text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
               )}
             >
               {cat}
@@ -61,13 +61,13 @@ export default function FAQPage() {
             return (
               <div
                 key={item.id}
-                className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden"
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden"
               >
                 <button
                   onClick={() => toggleItem(item.id)}
                   className="w-full flex items-center justify-between p-5 text-left"
                 >
-                  <span className="font-medium text-gray-900 pr-4">
+                  <span className="font-medium text-gray-900 dark:text-gray-100 pr-4">
                     {item.question}
                   </span>
                   <ChevronDown
@@ -80,7 +80,7 @@ export default function FAQPage() {
                 </button>
                 {isOpen && (
                   <div className="px-5 pb-5 -mt-1">
-                    <p className="text-gray-600 text-sm leading-relaxed">
+                    <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
                       {item.answer}
                     </p>
                   </div>

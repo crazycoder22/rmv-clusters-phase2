@@ -40,15 +40,15 @@ export default function NewslettersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
             <Newspaper className="text-primary-600" size={32} />
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Newsletters</h1>
-              <p className="text-sm text-gray-500">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Newsletters</h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Community news, articles, and updates
               </p>
             </div>
@@ -66,10 +66,10 @@ export default function NewslettersPage() {
 
         {/* List */}
         {newsletters.length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
             <FileText className="mx-auto text-gray-400 mb-3" size={48} />
-            <p className="text-gray-500">No newsletters published yet.</p>
-            <p className="text-sm text-gray-400 mt-1">
+            <p className="text-gray-500 dark:text-gray-400">No newsletters published yet.</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
               Check back later for community updates.
             </p>
           </div>
@@ -79,14 +79,14 @@ export default function NewslettersPage() {
               <Link
                 key={nl.id}
                 href={`/newsletters/${nl.id}`}
-                className="block bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md hover:border-primary-200 transition-all group"
+                className="block bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm hover:shadow-md hover:border-primary-200 transition-all group"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h2 className="text-lg font-semibold text-gray-900 group-hover:text-primary-700 transition-colors">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 group-hover:text-primary-700 transition-colors">
                       {nl.title}
                     </h2>
-                    <div className="flex items-center gap-3 mt-1 text-sm text-gray-500">
+                    <div className="flex items-center gap-3 mt-1 text-sm text-gray-500 dark:text-gray-400">
                       {nl.edition && (
                         <span className="text-primary-600 font-medium">
                           {nl.edition}

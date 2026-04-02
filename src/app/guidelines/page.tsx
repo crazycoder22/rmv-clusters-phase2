@@ -29,10 +29,10 @@ export default function GuidelinesPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100">
             Community Guidelines
           </h1>
-          <p className="mt-2 text-gray-600">
+          <p className="mt-2 text-gray-600 dark:text-gray-400">
             Last updated: {formatDate(guidelinesData.lastUpdated)}
           </p>
           <div className="mt-4 h-1 w-16 bg-primary-500 rounded mx-auto" />
@@ -56,8 +56,8 @@ export default function GuidelinesPage() {
         <div className="flex gap-8">
           {/* Table of Contents - desktop sidebar */}
           <aside className="hidden lg:block w-64 shrink-0">
-            <nav className="sticky top-24 bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+            <nav className="sticky top-24 bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
+              <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
                 Sections
               </h3>
               <ul className="space-y-1">
@@ -67,7 +67,7 @@ export default function GuidelinesPage() {
                     <li key={section.id}>
                       <a
                         href={`#${section.id}`}
-                        className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-primary-700 hover:bg-primary-50 rounded-md transition-colors"
+                        className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-primary-700 dark:hover:text-primary-300 hover:bg-primary-50 dark:hover:bg-primary-900/50 rounded-md transition-colors"
                       >
                         {Icon && <Icon size={14} />}
                         {section.title}
@@ -95,7 +95,7 @@ export default function GuidelinesPage() {
                         <Icon size={20} className="text-primary-600" />
                       </div>
                     )}
-                    <h2 className="text-xl font-bold text-gray-900">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
                       {section.title}
                     </h2>
                   </div>
@@ -103,12 +103,12 @@ export default function GuidelinesPage() {
                     {section.rules.map((rule, rIndex) => (
                       <div
                         key={rIndex}
-                        className="bg-white rounded-lg p-5 shadow-sm border border-gray-100"
+                        className="bg-white dark:bg-gray-800 rounded-lg p-5 shadow-sm border border-gray-100 dark:border-gray-700"
                       >
-                        <h3 className="font-semibold text-gray-900 mb-1">
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
                           {rule.title}
                         </h3>
-                        <p className="text-gray-600 text-sm leading-relaxed">
+                        <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
                           {rule.description}
                         </p>
                       </div>

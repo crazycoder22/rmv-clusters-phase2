@@ -82,7 +82,7 @@ export default function DomesticHelpPage() {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <Users2 size={24} className="text-primary-600" />
-          <h1 className="text-2xl font-bold text-primary-800">
+          <h1 className="text-2xl font-bold text-primary-800 dark:text-primary-200">
             Domestic Help Directory
           </h1>
         </div>
@@ -107,13 +107,13 @@ export default function DomesticHelpPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name..."
-            className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+            className="w-full pl-9 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm bg-white dark:bg-gray-800 dark:text-gray-100"
           />
         </div>
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm bg-white"
+          className="px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm bg-white dark:bg-gray-800 dark:text-gray-100"
         >
           <option value="">All Categories</option>
           {DOMESTIC_HELP_CATEGORIES.map((cat) => (
@@ -124,7 +124,7 @@ export default function DomesticHelpPage() {
         </select>
         <button
           onClick={() => setSort(sort === "recent" ? "rating" : "recent")}
-          className="inline-flex items-center gap-1.5 px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+          className="inline-flex items-center gap-1.5 px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
         >
           <ArrowUpDown size={15} />
           {sort === "rating" ? "Top Rated" : "Recent"}
@@ -148,11 +148,11 @@ export default function DomesticHelpPage() {
             <Link
               key={worker.id}
               href={`/domestic-help/${worker.id}`}
-              className="block bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:border-primary-200 hover:shadow-md transition-all"
+              className="block bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 hover:border-primary-200 hover:shadow-md transition-all"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-1">
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-1">
                     {worker.name}
                   </h3>
                   <div className="flex flex-wrap gap-1.5 mb-2">
@@ -196,7 +196,7 @@ export default function DomesticHelpPage() {
                           : "text-gray-300"
                       }
                     />
-                    <span className="text-sm font-semibold text-gray-700">
+                    <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                       {worker.avgRating > 0
                         ? worker.avgRating.toFixed(1)
                         : "—"}

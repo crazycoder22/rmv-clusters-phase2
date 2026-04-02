@@ -115,7 +115,7 @@ export default function MarketplacePage() {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <ShoppingBag size={24} className="text-primary-600" />
-          <h1 className="text-2xl font-bold text-primary-800">Marketplace</h1>
+          <h1 className="text-2xl font-bold text-primary-800 dark:text-primary-200">Marketplace</h1>
         </div>
         <Link
           href="/marketplace/new"
@@ -163,13 +163,13 @@ export default function MarketplacePage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search listings..."
-            className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+            className="w-full pl-9 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm bg-white dark:bg-gray-800 dark:text-gray-100"
           />
         </div>
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm bg-white"
+          className="px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm bg-white dark:bg-gray-800 dark:text-gray-100"
         >
           <option value="">All Categories</option>
           {MARKETPLACE_CATEGORIES.map((cat) => (
@@ -180,7 +180,7 @@ export default function MarketplacePage() {
         </select>
         <button
           onClick={nextSort}
-          className="inline-flex items-center gap-1.5 px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+          className="inline-flex items-center gap-1.5 px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
         >
           <ArrowUpDown size={15} />
           {sortOptions.find((s) => s.value === sort)?.label}
@@ -188,14 +188,14 @@ export default function MarketplacePage() {
       </div>
 
       {/* Type pills */}
-      <div className="flex gap-1 mb-6 bg-gray-100 rounded-lg p-1 w-fit">
+      <div className="flex gap-1 mb-6 bg-gray-100 dark:bg-gray-800 rounded-lg p-1 w-fit">
         <button
           onClick={() => setType("")}
           className={clsx(
             "px-4 py-1.5 rounded-md text-sm font-medium transition-colors",
             type === ""
-              ? "bg-white text-primary-700 shadow-sm"
-              : "text-gray-500 hover:text-gray-700"
+              ? "bg-white dark:bg-gray-700 text-primary-700 dark:text-primary-300 shadow-sm"
+              : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
           )}
         >
           All
@@ -233,7 +233,7 @@ export default function MarketplacePage() {
             <Link
               key={listing.id}
               href={`/marketplace/${listing.id}`}
-              className="block bg-white rounded-xl shadow-sm border border-gray-100 hover:border-primary-200 hover:shadow-md transition-all overflow-hidden relative"
+              className="block bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:border-primary-200 hover:shadow-md transition-all overflow-hidden relative"
             >
               {/* SOLD overlay */}
               {listing.status === "SOLD" && (
@@ -261,7 +261,7 @@ export default function MarketplacePage() {
 
               {/* Card content */}
               <div className="p-4">
-                <h3 className="text-base font-semibold text-gray-800 mb-1 line-clamp-1">
+                <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100 mb-1 line-clamp-1">
                   {listing.title}
                 </h3>
                 <p className="text-lg font-bold text-primary-700 mb-2">

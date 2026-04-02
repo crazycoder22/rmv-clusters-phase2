@@ -21,8 +21,8 @@ export default function ContactPage() {
         <div className="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Contact Information */}
           <div className="space-y-6">
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
                 Management Office
               </h3>
               <ul className="space-y-4">
@@ -31,8 +31,8 @@ export default function ContactPage() {
                     <MapPin size={18} className="text-primary-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">Address</p>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Address</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       {siteData.address.line1}
                       <br />
                       {siteData.address.line2}
@@ -47,8 +47,8 @@ export default function ContactPage() {
                     <Phone size={18} className="text-primary-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">Phone</p>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Phone</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       {siteData.contact.phone}
                     </p>
                   </div>
@@ -58,8 +58,8 @@ export default function ContactPage() {
                     <Mail size={18} className="text-primary-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">Email</p>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Email</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       {siteData.contact.email}
                     </p>
                   </div>
@@ -69,10 +69,10 @@ export default function ContactPage() {
                     <Clock size={18} className="text-primary-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       Office Hours
                     </p>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       {siteData.contact.officeHours}
                     </p>
                   </div>
@@ -90,7 +90,7 @@ export default function ContactPage() {
           </div>
 
           {/* Map */}
-          <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
+          <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-700">
             <iframe
               src={siteData.googleMapsEmbedUrl}
               width="100%"

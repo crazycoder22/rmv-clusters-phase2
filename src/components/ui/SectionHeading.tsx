@@ -11,9 +11,9 @@ export default function SectionHeading({
 }: SectionHeadingProps) {
   return (
     <div className={centered ? "text-center" : ""}>
-      <h2 className="text-2xl md:text-3xl font-bold text-gray-900">{title}</h2>
+      <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">{title}</h2>
       {subtitle && (
-        <p className="mt-2 text-gray-600 max-w-2xl mx-auto">{subtitle}</p>
+        <p className="mt-2 text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">{subtitle}</p>
       )}
       <div
         className={`mt-4 h-1 w-16 bg-primary-500 rounded ${centered ? "mx-auto" : ""}`}
