@@ -88,7 +88,7 @@ export default function CreatePollPage() {
   if (authStatus === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-gray-500 dark:text-gray-400">Loading...</p>
       </div>
     );
   }
@@ -97,20 +97,20 @@ export default function CreatePollPage() {
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <Link
         href="/polls"
-        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-primary-600 mb-6"
+        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 mb-6"
       >
         <ArrowLeft size={16} />
         Back to Polls
       </Link>
 
-      <h1 className="text-2xl font-bold text-primary-800 mb-6">
+      <h1 className="text-2xl font-bold text-primary-800 dark:text-primary-300 mb-6">
         Create New Poll
       </h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Title */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Question / Title <span className="text-red-500">*</span>
           </label>
           <input
@@ -119,13 +119,13 @@ export default function CreatePollPage() {
             onChange={(e) => setTitle(e.target.value)}
             required
             placeholder="e.g., Should we install EV charging stations?"
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+            className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
           />
         </div>
 
         {/* Description */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Description <span className="text-gray-400">(optional)</span>
           </label>
           <textarea
@@ -133,13 +133,13 @@ export default function CreatePollPage() {
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
             placeholder="Add more context for voters..."
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+            className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
           />
         </div>
 
         {/* Type */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Poll Type
           </label>
           <div className="flex gap-4">
@@ -155,7 +155,7 @@ export default function CreatePollPage() {
                   onChange={() => setType(t)}
                   className="text-primary-600 focus:ring-primary-500"
                 />
-                <span className="text-sm text-gray-700">
+                <span className="text-sm text-gray-700 dark:text-gray-300">
                   {t === "SINGLE" ? "Single Choice" : "Multiple Choice"}
                 </span>
               </label>
@@ -172,7 +172,7 @@ export default function CreatePollPage() {
               onChange={(e) => setIsAnonymous(e.target.checked)}
               className="rounded text-primary-600 focus:ring-primary-500"
             />
-            <span className="text-sm text-gray-700">Anonymous voting</span>
+            <span className="text-sm text-gray-700 dark:text-gray-300">Anonymous voting</span>
             <span className="text-xs text-gray-400">
               (voter identities hidden in results)
             </span>
@@ -181,7 +181,7 @@ export default function CreatePollPage() {
 
         {/* Deadline */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Deadline <span className="text-red-500">*</span>
           </label>
           <input
@@ -189,13 +189,13 @@ export default function CreatePollPage() {
             value={deadline}
             onChange={(e) => setDeadline(e.target.value)}
             required
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+            className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
           />
         </div>
 
         {/* Options */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Options <span className="text-red-500">*</span>
           </label>
           <div className="space-y-2">
@@ -206,7 +206,7 @@ export default function CreatePollPage() {
                     type="button"
                     onClick={() => moveOption(index, index - 1)}
                     disabled={index === 0}
-                    className="text-gray-300 hover:text-gray-500 disabled:opacity-30"
+                    className="text-gray-300 hover:text-gray-500 dark:text-gray-600 dark:hover:text-gray-400 disabled:opacity-30"
                     tabIndex={-1}
                   >
                     <GripVertical size={14} />
@@ -217,7 +217,7 @@ export default function CreatePollPage() {
                   value={option}
                   onChange={(e) => updateOption(index, e.target.value)}
                   placeholder={`Option ${index + 1}`}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
                 />
                 <button
                   type="button"
@@ -242,8 +242,8 @@ export default function CreatePollPage() {
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-            <p className="text-sm text-red-700">{error}</p>
+          <div className="bg-red-50 border border-red-200 text-red-700 dark:bg-red-900/30 dark:border-red-800 dark:text-red-300 rounded-lg p-3">
+            <p className="text-sm">{error}</p>
           </div>
         )}
 

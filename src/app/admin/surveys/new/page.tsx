@@ -136,7 +136,7 @@ export default function CreateSurveyPage() {
   if (authStatus === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-gray-500 dark:text-gray-400">Loading...</p>
       </div>
     );
   }
@@ -145,20 +145,20 @@ export default function CreateSurveyPage() {
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <Link
         href="/polls"
-        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-primary-600 mb-6"
+        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 mb-6"
       >
         <ArrowLeft size={16} />
         Back to Polls & Surveys
       </Link>
 
-      <h1 className="text-2xl font-bold text-primary-800 mb-6">
+      <h1 className="text-2xl font-bold text-primary-800 dark:text-primary-300 mb-6">
         Create New Survey
       </h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Survey Title */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Survey Title <span className="text-red-500">*</span>
           </label>
           <input
@@ -167,13 +167,13 @@ export default function CreateSurveyPage() {
             onChange={(e) => setTitle(e.target.value)}
             required
             placeholder="e.g., MyGate Adoption Survey"
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
           />
         </div>
 
         {/* Description */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Description <span className="text-gray-400">(optional)</span>
           </label>
           <textarea
@@ -181,14 +181,14 @@ export default function CreateSurveyPage() {
             onChange={(e) => setDescription(e.target.value)}
             rows={2}
             placeholder="Briefly describe the purpose of this survey..."
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
           />
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4">
           {/* Deadline */}
           <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Deadline <span className="text-red-500">*</span>
             </label>
             <input
@@ -196,7 +196,7 @@ export default function CreateSurveyPage() {
               value={deadline}
               onChange={(e) => setDeadline(e.target.value)}
               required
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
             />
           </div>
 
@@ -209,7 +209,7 @@ export default function CreateSurveyPage() {
                 onChange={(e) => setIsAnonymous(e.target.checked)}
                 className="rounded text-primary-600 focus:ring-primary-500"
               />
-              <span className="text-sm text-gray-700">Anonymous</span>
+              <span className="text-sm text-gray-700 dark:text-gray-300">Anonymous</span>
             </label>
           </div>
         </div>
@@ -217,7 +217,7 @@ export default function CreateSurveyPage() {
         {/* Questions */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <label className="text-sm font-medium text-gray-700">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Questions <span className="text-red-500">*</span>
             </label>
             <span className="text-xs text-gray-400">
@@ -229,18 +229,18 @@ export default function CreateSurveyPage() {
             {questions.map((q, qIdx) => (
               <div
                 key={qIdx}
-                className="border border-gray-200 rounded-xl overflow-hidden"
+                className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden"
               >
                 {/* Question header */}
                 <div
-                  className="flex items-center justify-between px-4 py-3 bg-gray-50 cursor-pointer"
+                  className="flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-800 cursor-pointer"
                   onClick={() => toggleExpanded(qIdx)}
                 >
                   <div className="flex items-center gap-2">
-                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary-100 text-primary-700 text-xs font-bold">
+                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 text-xs font-bold">
                       {qIdx + 1}
                     </span>
-                    <span className="text-sm font-medium text-gray-700 truncate max-w-[250px]">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate max-w-[250px]">
                       {q.title || "Untitled Question"}
                     </span>
                     <span className="text-xs text-gray-400">
@@ -279,7 +279,7 @@ export default function CreateSurveyPage() {
                           updateQuestion(qIdx, "title", e.target.value)
                         }
                         placeholder="Question title"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                       />
                     </div>
 
@@ -291,7 +291,7 @@ export default function CreateSurveyPage() {
                           updateQuestion(qIdx, "description", e.target.value)
                         }
                         placeholder="Description (optional)"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm text-gray-500"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm text-gray-500 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-700"
                       />
                     </div>
 
@@ -310,7 +310,7 @@ export default function CreateSurveyPage() {
                             }
                             className="text-primary-600 focus:ring-primary-500"
                           />
-                          <span className="text-sm text-gray-700">
+                          <span className="text-sm text-gray-700 dark:text-gray-300">
                             {t === "SINGLE" ? "Single Choice" : "Multiple Choice"}
                           </span>
                         </label>
@@ -323,7 +323,7 @@ export default function CreateSurveyPage() {
                         <div key={oIdx} className="flex items-center gap-2">
                           <div
                             className={clsx(
-                              "w-4 h-4 border-2 border-gray-300 shrink-0",
+                              "w-4 h-4 border-2 border-gray-300 dark:border-gray-600 shrink-0",
                               q.type === "SINGLE"
                                 ? "rounded-full"
                                 : "rounded"
@@ -336,7 +336,7 @@ export default function CreateSurveyPage() {
                               updateOption(qIdx, oIdx, e.target.value)
                             }
                             placeholder={`Option ${oIdx + 1}`}
-                            className="flex-1 px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                            className="flex-1 px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                           />
                           <button
                             type="button"
@@ -366,7 +366,7 @@ export default function CreateSurveyPage() {
           <button
             type="button"
             onClick={addQuestion}
-            className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 border-2 border-dashed border-gray-300 rounded-xl text-sm text-gray-600 hover:border-primary-400 hover:text-primary-600 transition-colors w-full justify-center"
+            className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 border-2 border-dashed border-gray-300 rounded-xl text-sm text-gray-600 hover:border-primary-400 hover:text-primary-600 dark:border-gray-600 dark:text-gray-400 dark:hover:border-primary-500 transition-colors w-full justify-center"
           >
             <Plus size={16} />
             Add Question
@@ -374,8 +374,8 @@ export default function CreateSurveyPage() {
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-            <p className="text-sm text-red-700">{error}</p>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 dark:bg-red-900/30 dark:border-red-800">
+            <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
           </div>
         )}
 
