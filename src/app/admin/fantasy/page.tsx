@@ -18,9 +18,9 @@ interface FantasyMatch {
 }
 
 const STATUS_COLOR: Record<string, string> = {
-  OPEN: "bg-green-100 text-green-700",
-  LOCKED: "bg-amber-100 text-amber-700",
-  COMPLETED: "bg-gray-100 text-gray-600",
+  OPEN: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
+  LOCKED: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
+  COMPLETED: "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400",
 };
 
 export default function AdminFantasyPage() {
@@ -71,7 +71,7 @@ export default function AdminFantasyPage() {
   }
 
   if (isLoading || loading) {
-    return <div className="py-12 text-center text-gray-400">Loading…</div>;
+    return <div className="py-12 text-center text-gray-400 dark:text-gray-500">Loading…</div>;
   }
 
   return (
@@ -80,12 +80,12 @@ export default function AdminFantasyPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-yellow-100 flex items-center justify-center">
-              <Trophy size={20} className="text-yellow-600" />
+            <div className="w-10 h-10 rounded-lg bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
+              <Trophy size={20} className="text-yellow-600 dark:text-yellow-400" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Fantasy Cricket</h1>
-              <p className="text-sm text-gray-500">Manage matches, players and scores</p>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Fantasy Cricket</h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Manage matches, players and scores</p>
             </div>
           </div>
           <button
@@ -99,47 +99,47 @@ export default function AdminFantasyPage() {
 
         {/* Create form */}
         {showForm && (
-          <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6 space-y-4">
-            <h2 className="font-semibold text-gray-900">Create New Match</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 mb-6 space-y-4">
+            <h2 className="font-semibold text-gray-900 dark:text-gray-100">Create New Match</h2>
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Match Title *</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Match Title *</label>
                 <input
                   value={form.title}
                   onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
                   placeholder="e.g. RCB vs CSK – IPL 2026"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-red-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Opponent *</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Opponent *</label>
                 <input
                   value={form.opponent}
                   onChange={(e) => setForm((f) => ({ ...f, opponent: e.target.value }))}
                   placeholder="e.g. CSK"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-red-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Match Date *</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Match Date *</label>
                 <input
                   type="datetime-local"
                   value={form.matchDate}
                   onChange={(e) => setForm((f) => ({ ...f, matchDate: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-red-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Venue</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Venue</label>
                 <input
                   value={form.venue}
                   onChange={(e) => setForm((f) => ({ ...f, venue: e.target.value }))}
                   placeholder="e.g. M. Chinnaswamy Stadium"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-red-500"
                 />
               </div>
             </div>
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && <p className="text-sm text-red-600 dark:text-red-300">{error}</p>}
             <div className="flex gap-3">
               <button
                 onClick={handleCreate}
@@ -150,7 +150,7 @@ export default function AdminFantasyPage() {
               </button>
               <button
                 onClick={() => { setShowForm(false); setError(""); }}
-                className="px-5 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50"
+                className="px-5 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
               >
                 Cancel
               </button>
@@ -160,23 +160,23 @@ export default function AdminFantasyPage() {
 
         {/* Match list */}
         {matches.length === 0 ? (
-          <div className="text-center py-16 text-gray-400">
+          <div className="text-center py-16 text-gray-400 dark:text-gray-500">
             <Trophy size={40} className="mx-auto mb-3 opacity-20" />
             <p>No matches yet. Create your first one!</p>
           </div>
         ) : (
           <div className="space-y-3">
             {matches.map((m) => (
-              <div key={m.id} className="flex items-center gap-3 bg-white rounded-xl border border-gray-200 p-4 hover:border-gray-300 transition-colors group">
+              <div key={m.id} className="flex items-center gap-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 hover:border-gray-300 dark:hover:border-gray-600 transition-colors group">
                 <Link href={`/admin/fantasy/${m.id}`} className="flex-1 flex items-center gap-3 min-w-0">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-medium text-gray-900">{m.title}</span>
+                      <span className="font-medium text-gray-900 dark:text-gray-100">{m.title}</span>
                       <span className={clsx("text-xs px-2 py-0.5 rounded-full font-medium", STATUS_COLOR[m.status])}>
                         {m.status}
                       </span>
                     </div>
-                    <div className="flex items-center gap-3 mt-0.5 text-sm text-gray-500">
+                    <div className="flex items-center gap-3 mt-0.5 text-sm text-gray-500 dark:text-gray-400">
                       <span className="flex items-center gap-1">
                         <CalendarDays size={12} />
                         {new Date(m.matchDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
@@ -187,11 +187,11 @@ export default function AdminFantasyPage() {
                       </span>
                     </div>
                   </div>
-                  <ChevronRight size={16} className="text-gray-300 group-hover:text-gray-500 shrink-0" />
+                  <ChevronRight size={16} className="text-gray-300 dark:text-gray-600 group-hover:text-gray-500 dark:group-hover:text-gray-400 shrink-0" />
                 </Link>
                 <button
                   onClick={() => handleDelete(m.id)}
-                  className="p-2 text-gray-300 hover:text-red-500 transition-colors shrink-0"
+                  className="p-2 text-gray-300 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 transition-colors shrink-0"
                   title="Delete match"
                 >
                   <Trash2 size={16} />

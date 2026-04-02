@@ -47,10 +47,10 @@ const ROLE_ICON: Record<string, React.ReactNode> = {
 };
 
 const ROLE_COLOR: Record<string, string> = {
-  BATSMAN: "bg-blue-100 text-blue-700",
-  BOWLER: "bg-orange-100 text-orange-700",
-  ALLROUNDER: "bg-purple-100 text-purple-700",
-  WICKETKEEPER: "bg-teal-100 text-teal-700",
+  BATSMAN: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+  BOWLER: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300",
+  ALLROUNDER: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
+  WICKETKEEPER: "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300",
 };
 
 const STATUS_NEXT: Record<string, { label: string; value: string; color: string }> = {
@@ -170,7 +170,7 @@ export default function AdminFantasyMatchPage() {
     <div className="py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
         {/* Back */}
-        <Link href="/admin/fantasy" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800 mb-5">
+        <Link href="/admin/fantasy" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-primary-400 mb-5">
           <ArrowLeft size={14} /> Back to matches
         </Link>
 
@@ -205,14 +205,14 @@ export default function AdminFantasyMatchPage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-200 mb-6">
+        <div className="flex border-b border-gray-200 dark:border-gray-700 mb-6">
           {(["players", "scores"] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
               className={clsx(
                 "px-5 py-2.5 text-sm font-medium border-b-2 transition-colors",
-                tab === t ? "border-red-500 text-red-600" : "border-transparent text-gray-500 hover:text-gray-700"
+                tab === t ? "border-red-500 text-red-600 dark:text-red-400" : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
               )}
             >
               {t === "players" ? "🏏 Players" : "📊 Scores"}
@@ -224,20 +224,20 @@ export default function AdminFantasyMatchPage() {
         {tab === "players" && (
           <div className="space-y-5">
             {/* Add player form */}
-            <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
-              <h3 className="font-semibold text-gray-900 text-sm">Add Player</h3>
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 space-y-3">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">Add Player</h3>
               <div className="flex gap-2 flex-wrap">
                 <input
                   value={newPlayer.name}
                   onChange={(e) => setNewPlayer((p) => ({ ...p, name: e.target.value }))}
                   placeholder="Player name"
-                  className="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500"
+                  className="flex-1 min-w-0 px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-red-500"
                   onKeyDown={(e) => e.key === "Enter" && handleAddPlayer()}
                 />
                 <select
                   value={newPlayer.role}
                   onChange={(e) => setNewPlayer((p) => ({ ...p, role: e.target.value }))}
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500"
+                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-red-500"
                 >
                   <option value="BATSMAN">Batsman</option>
                   <option value="BOWLER">Bowler</option>
@@ -247,13 +247,13 @@ export default function AdminFantasyMatchPage() {
                 <button
                   onClick={handleAddPlayer}
                   disabled={addingPlayer}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:bg-gray-300 transition-colors"
+                  className="flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:bg-gray-300 dark:disabled:bg-gray-600 transition-colors"
                 >
                   <Plus size={15} />
                   {addingPlayer ? "Adding…" : "Add"}
                 </button>
               </div>
-              {playerError && <p className="text-sm text-red-600">{playerError}</p>}
+              {playerError && <p className="text-sm text-red-600 dark:text-red-300">{playerError}</p>}
             </div>
 
             {/* Players list grouped by role */}
@@ -266,21 +266,21 @@ export default function AdminFantasyMatchPage() {
                 const players = match.players.filter((p) => p.role === role);
                 if (!players.length) return null;
                 return (
-                  <div key={role} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                    <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 border-b border-gray-100">
+                  <div key={role} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
                       <span className={clsx("inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full", ROLE_COLOR[role])}>
                         {ROLE_ICON[role]}
                         {role === "WICKETKEEPER" ? "Wicket-keepers" : `${role.charAt(0)}${role.slice(1).toLowerCase()}s`}
                       </span>
                       <span className="text-xs text-gray-400">({players.length})</span>
                     </div>
-                    <div className="divide-y divide-gray-50">
+                    <div className="divide-y divide-gray-50 dark:divide-gray-700">
                       {players.map((p) => (
                         <div key={p.id} className="flex items-center px-4 py-3 gap-3">
-                          <span className="flex-1 text-sm font-medium text-gray-800">{p.name}</span>
+                          <span className="flex-1 text-sm font-medium text-gray-800 dark:text-gray-200">{p.name}</span>
                           <button
                             onClick={() => handleDeletePlayer(p.id)}
-                            className="p-1.5 text-gray-300 hover:text-red-500 transition-colors"
+                            className="p-1.5 text-gray-300 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 transition-colors"
                           >
                             <Trash2 size={15} />
                           </button>
@@ -297,7 +297,7 @@ export default function AdminFantasyMatchPage() {
         {/* ── SCORES TAB ── */}
         {tab === "scores" && (
           <div className="space-y-4">
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
+            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl p-4 text-sm text-blue-800 dark:text-blue-300">
               Enter the <strong>final totals</strong> for each player (e.g. total runs scored, wickets taken, catches, run-outs, stumpings). Points are calculated automatically.
             </div>
 
@@ -305,22 +305,22 @@ export default function AdminFantasyMatchPage() {
               <div className="text-center py-10 text-gray-400 text-sm">Add players first in the Players tab.</div>
             ) : (
               <>
-                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="bg-gray-50 border-b border-gray-100">
-                          <th className="text-left px-4 py-3 font-medium text-gray-600 w-40">Player</th>
-                          <th className="text-left px-4 py-3 font-medium text-gray-600 w-20">Role</th>
-                          <th className="text-center px-3 py-3 font-medium text-gray-600">Runs</th>
-                          <th className="text-center px-3 py-3 font-medium text-gray-600">Wkts</th>
-                          <th className="text-center px-3 py-3 font-medium text-gray-600">Catch</th>
-                          <th className="text-center px-3 py-3 font-medium text-gray-600">Run-out</th>
-                          <th className="text-center px-3 py-3 font-medium text-gray-600">Stump</th>
-                          <th className="text-center px-3 py-3 font-medium text-gray-600">Pts</th>
+                        <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
+                          <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-300 w-40">Player</th>
+                          <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-300 w-20">Role</th>
+                          <th className="text-center px-3 py-3 font-medium text-gray-600 dark:text-gray-300">Runs</th>
+                          <th className="text-center px-3 py-3 font-medium text-gray-600 dark:text-gray-300">Wkts</th>
+                          <th className="text-center px-3 py-3 font-medium text-gray-600 dark:text-gray-300">Catch</th>
+                          <th className="text-center px-3 py-3 font-medium text-gray-600 dark:text-gray-300">Run-out</th>
+                          <th className="text-center px-3 py-3 font-medium text-gray-600 dark:text-gray-300">Stump</th>
+                          <th className="text-center px-3 py-3 font-medium text-gray-600 dark:text-gray-300">Pts</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-50">
+                      <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
                         {roleOrder.flatMap((role) =>
                           match.players
                             .filter((p) => p.role === role)
@@ -328,8 +328,8 @@ export default function AdminFantasyMatchPage() {
                               const s = scores[p.id] ?? { runs: 0, wickets: 0, catches: 0, runOuts: 0, stumpings: 0 };
                               const pts = s.runs * 1 + s.wickets * 30 + s.catches * 20 + s.runOuts * 20 + s.stumpings * 20;
                               return (
-                                <tr key={p.id} className="hover:bg-gray-50">
-                                  <td className="px-4 py-2.5 font-medium text-gray-800">{p.name}</td>
+                                <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                  <td className="px-4 py-2.5 font-medium text-gray-800 dark:text-gray-200">{p.name}</td>
                                   <td className="px-4 py-2.5">
                                     <span className={clsx("inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full font-semibold", ROLE_COLOR[p.role])}>
                                       {ROLE_ICON[p.role]}
@@ -342,11 +342,11 @@ export default function AdminFantasyMatchPage() {
                                         min={0}
                                         value={s[field]}
                                         onChange={(e) => updateScore(p.id, field, e.target.value)}
-                                        className="w-16 text-center px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-red-400 focus:border-red-400"
+                                        className="w-16 text-center px-2 py-1.5 border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-red-400 focus:border-red-400"
                                       />
                                     </td>
                                   ))}
-                                  <td className="px-3 py-2.5 text-center font-bold text-gray-900">{pts}</td>
+                                  <td className="px-3 py-2.5 text-center font-bold text-gray-900 dark:text-gray-100">{pts}</td>
                                 </tr>
                               );
                             })
@@ -360,19 +360,19 @@ export default function AdminFantasyMatchPage() {
                   <button
                     onClick={handleSaveScores}
                     disabled={savingScores}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:bg-gray-300 transition-colors"
+                    className="flex items-center gap-2 px-5 py-2.5 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:bg-gray-300 dark:disabled:bg-gray-600 transition-colors"
                   >
                     <Save size={15} />
                     {savingScores ? "Saving…" : "Save All Scores"}
                   </button>
                   {scoreSuccess && (
-                    <span className="flex items-center gap-1.5 text-sm text-green-600 font-medium">
+                    <span className="flex items-center gap-1.5 text-sm text-green-600 dark:text-green-400 font-medium">
                       <CheckCircle size={15} /> {scoreSuccess}
                     </span>
                   )}
                 </div>
 
-                <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-500">
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-xs text-gray-500 dark:text-gray-400">
                   <strong>Points formula:</strong> 1 run = 1pt · 1 wicket = 30pts · 1 catch = 20pts · run-out = 20pts · stumping = 20pts.
                   Captain gets 2× · Vice-captain gets 1.5× (applied on leaderboard).
                 </div>
