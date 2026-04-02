@@ -36,7 +36,7 @@ export default function SOSWarriorsContent() {
         {/* Back link */}
         <Link
           href="/sos-guidelines"
-          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-8"
+          className="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 mb-8"
         >
           <ArrowLeft size={16} />
           Back to SOS Guidelines
@@ -47,8 +47,8 @@ export default function SOSWarriorsContent() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4">
             <Shield size={32} className="text-red-600" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">RMV SOS Warriors</h1>
-          <p className="mt-2 text-gray-600">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">RMV SOS Warriors</h1>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">
             Trained volunteers ready to help during emergencies
           </p>
           <div className="mt-4 h-1 w-16 bg-red-500 rounded mx-auto" />
@@ -70,7 +70,7 @@ export default function SOSWarriorsContent() {
               if (!blockWarriors || blockWarriors.length === 0) return null;
               return (
                 <div key={block}>
-                  <h2 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                  <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3 flex items-center gap-2">
                     <MapPin size={18} className="text-red-500" />
                     Block {block}
                   </h2>
@@ -78,22 +78,22 @@ export default function SOSWarriorsContent() {
                     {blockWarriors.map((w) => (
                       <div
                         key={w.id}
-                        className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 flex items-center gap-4"
+                        className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-4"
                       >
-                        <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0">
+                        <div className="w-10 h-10 rounded-full bg-red-50 dark:bg-red-900/30 flex items-center justify-center shrink-0">
                           <Shield size={18} className="text-red-500" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="font-medium text-gray-900 truncate">
+                          <p className="font-medium text-gray-900 dark:text-gray-100 truncate">
                             {w.name}
                           </p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
                             Flat {w.flatNumber}
                           </p>
                         </div>
                         <a
                           href={`tel:${w.phone}`}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-50 text-green-700 text-sm font-medium hover:bg-green-100 transition-colors shrink-0"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm font-medium hover:bg-green-100 dark:hover:bg-green-900/50 transition-colors shrink-0"
                         >
                           <Phone size={14} />
                           Call

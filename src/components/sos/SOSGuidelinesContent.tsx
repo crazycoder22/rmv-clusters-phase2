@@ -211,13 +211,13 @@ export default function SOSGuidelinesContent() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4">
             <Siren size={32} className="text-red-600" />
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100">
             RMV Apthamitra - SOS Group
           </h1>
-          <p className="mt-2 text-gray-600">
+          <p className="mt-2 text-gray-600 dark:text-gray-400">
             Emergency Response WhatsApp Group for RMV Clusters
           </p>
-          <p className="mt-1 text-sm text-gray-400">
+          <p className="mt-1 text-sm text-gray-400 dark:text-gray-500">
             Version {sosData.version} &middot; Last updated:{" "}
             {formatDate(sosData.lastUpdated)}
           </p>
@@ -225,8 +225,8 @@ export default function SOSGuidelinesContent() {
         </div>
 
         {/* Intro banner */}
-        <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-10">
-          <p className="text-red-800 font-medium text-center">
+        <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl p-6 mb-10">
+          <p className="text-red-800 dark:text-red-300 font-medium text-center">
             This group is strictly for{" "}
             <span className="font-bold">life-threatening emergencies only</span>
             . Read the guidelines below carefully before joining.
@@ -243,7 +243,7 @@ export default function SOSGuidelinesContent() {
               return (
                 <div
                   key={s.id}
-                  className="bg-white rounded-lg p-5 shadow-sm border border-gray-100"
+                  className="bg-white dark:bg-gray-800 rounded-lg p-5 shadow-sm border border-gray-100 dark:border-gray-700"
                 >
                   <div className="flex items-center gap-3 mb-3">
                     <div
@@ -263,13 +263,13 @@ export default function SOSGuidelinesContent() {
                         }
                       />
                     </div>
-                    <h3 className="font-semibold text-gray-900">{s.title}</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100">{s.title}</h3>
                   </div>
                   <ul className="space-y-2">
                     {s.items.map((item, i) => (
                       <li
                         key={i}
-                        className="flex items-start gap-2 text-sm text-gray-600"
+                        className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400"
                       >
                         <span className="mt-1 w-1.5 h-1.5 rounded-full bg-gray-400 shrink-0" />
                         {item}
@@ -285,13 +285,13 @@ export default function SOSGuidelinesContent() {
         {/* How It Works */}
         <section className="mb-10">
           <SectionTitle icon={Info} title="How It Works" color="primary" />
-          <div className="mt-4 bg-white rounded-lg p-5 shadow-sm border border-gray-100 space-y-3">
+          <div className="mt-4 bg-white dark:bg-gray-800 rounded-lg p-5 shadow-sm border border-gray-100 dark:border-gray-700 space-y-3">
             {sosData.howItWorks.map((item, i) => (
               <div key={i} className="flex items-start gap-3">
-                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary-100 text-primary-700 text-xs font-bold shrink-0 mt-0.5">
+                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300 text-xs font-bold shrink-0 mt-0.5">
                   {i + 1}
                 </span>
-                <p className="text-sm text-gray-700 leading-relaxed">{item}</p>
+                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{item}</p>
               </div>
             ))}
           </div>
@@ -301,7 +301,7 @@ export default function SOSGuidelinesContent() {
         <section className="mb-10">
           <Link
             href="/sos-warriors"
-            className="block bg-red-50 border border-red-200 rounded-xl p-5 hover:bg-red-100 transition-colors group"
+            className="block bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl p-5 hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors group"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -312,7 +312,7 @@ export default function SOSGuidelinesContent() {
                   <h3 className="font-semibold text-red-900">
                     SOS Warriors Directory
                   </h3>
-                  <p className="text-sm text-red-700">
+                  <p className="text-sm text-red-700 dark:text-red-400">
                     View trained volunteers &amp; their contact numbers
                   </p>
                 </div>
@@ -323,9 +323,9 @@ export default function SOSGuidelinesContent() {
         </section>
 
         {/* Senior citizen note */}
-        <div className="mb-8 bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
-          <Phone size={20} className="text-blue-600 mt-0.5 shrink-0" />
-          <p className="text-sm text-blue-800">
+        <div className="mb-8 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl p-4 flex items-start gap-3">
+          <Phone size={20} className="text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
+          <p className="text-sm text-blue-800 dark:text-blue-300">
             <span className="font-semibold">For senior citizens:</span> If you are not
             comfortable with technology, a printed copy of the warrior contact list will
             be handed over to you. In an emergency, simply call any warrior directly
@@ -335,16 +335,16 @@ export default function SOSGuidelinesContent() {
 
         {/* Important Note */}
         <section className="mb-10">
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 flex items-start gap-3">
+          <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-xl p-5 flex items-start gap-3">
             <IndianRupee
               size={20}
-              className="text-amber-600 shrink-0 mt-0.5"
+              className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5"
             />
             <div>
-              <h3 className="font-semibold text-amber-900 mb-1">
+              <h3 className="font-semibold text-amber-900 dark:text-amber-300 mb-1">
                 Important Note
               </h3>
-              <p className="text-sm text-amber-800">
+              <p className="text-sm text-amber-800 dark:text-amber-300">
                 All expenses (hospital, transport, etc.) must be borne by the
                 individual/family. The RMV SOS group and warriors provide{" "}
                 <span className="font-medium">
@@ -370,7 +370,7 @@ export default function SOSGuidelinesContent() {
               </p>
               <div className="space-y-2">
                 {sosData.rules[0].items.map((item, i) => (
-                  <div key={i} className="flex items-center gap-2 text-sm text-gray-700">
+                  <div key={i} className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
                     <XCircle size={16} className="text-red-500 shrink-0" />
                     {item}
                   </div>
@@ -378,14 +378,14 @@ export default function SOSGuidelinesContent() {
               </div>
             </div>
             <div className="bg-white rounded-lg p-5 shadow-sm border border-gray-100">
-              <p className="text-sm font-semibold text-gray-900 mb-3">
+              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
                 Strict Action Policy
               </p>
               <div className="space-y-2">
                 {sosData.rules[1].items.map((item, i) => (
                   <div
                     key={i}
-                    className="flex items-center gap-2 text-sm text-gray-700"
+                    className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300"
                   >
                     <AlertTriangle
                       size={16}
@@ -396,7 +396,7 @@ export default function SOSGuidelinesContent() {
                 ))}
               </div>
             </div>
-            <p className="text-sm text-gray-500 italic">
+            <p className="text-sm text-gray-500 dark:text-gray-400 italic">
               The intent is to keep the group signal strong and noise-free
               during critical moments.
             </p>
@@ -413,11 +413,11 @@ export default function SOSGuidelinesContent() {
                 title="Emergencies (Allowed)"
                 color="green"
               />
-              <div className="mt-4 bg-white rounded-lg p-5 shadow-sm border border-green-100 space-y-2">
+              <div className="mt-4 bg-white dark:bg-gray-800 rounded-lg p-5 shadow-sm border border-green-100 dark:border-green-900 space-y-2">
                 {sosData.emergencyExamples.map((item, i) => (
                   <div
                     key={i}
-                    className="flex items-start gap-2 text-sm text-gray-700"
+                    className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300"
                   >
                     <CheckCircle
                       size={16}
@@ -435,11 +435,11 @@ export default function SOSGuidelinesContent() {
                 title="Non-Emergencies (Not Allowed)"
                 color="red"
               />
-              <div className="mt-4 bg-white rounded-lg p-5 shadow-sm border border-red-100 space-y-2">
+              <div className="mt-4 bg-white dark:bg-gray-800 rounded-lg p-5 shadow-sm border border-red-100 dark:border-red-900 space-y-2">
                 {sosData.nonEmergencyExamples.map((item, i) => (
                   <div
                     key={i}
-                    className="flex items-start gap-2 text-sm text-gray-700"
+                    className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300"
                   >
                     <XCircle
                       size={16}
@@ -455,11 +455,11 @@ export default function SOSGuidelinesContent() {
 
         {/* Simple Rule */}
         <section className="mb-10">
-          <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 text-center space-y-2">
-            <p className="text-gray-800 font-medium">
-              If it can wait, it&apos;s <span className="font-bold text-red-600">NOT</span> for SOS
+          <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 text-center space-y-2">
+            <p className="text-gray-800 dark:text-gray-200 font-medium">
+              If it can wait, it&apos;s <span className="font-bold text-red-600 dark:text-red-400">NOT</span> for SOS
             </p>
-            <p className="text-gray-800 font-medium">
+            <p className="text-gray-800 dark:text-gray-200 font-medium">
               If delay can risk life or serious damage,{" "}
               <span className="font-bold text-green-600">use SOS</span>
             </p>
@@ -469,16 +469,16 @@ export default function SOSGuidelinesContent() {
         {/* Comprehension Quiz */}
         {!accepted && (
           <section className="mt-12">
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
               <div className="flex items-center gap-3 mb-1">
-                <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center shrink-0">
-                  <HelpCircle size={20} className="text-red-600" />
+                <div className="w-10 h-10 rounded-lg bg-red-100 dark:bg-red-900/50 flex items-center justify-center shrink-0">
+                  <HelpCircle size={20} className="text-red-600 dark:text-red-400" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                     Quick Comprehension Check
                   </h3>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
                     Answer all 3 questions correctly to unlock the acceptance
                     form.
                   </p>
@@ -497,13 +497,13 @@ export default function SOSGuidelinesContent() {
                       className={clsx(
                         "rounded-lg border p-4 transition-colors",
                         answered && isCorrect
-                          ? "border-green-200 bg-green-50"
+                          ? "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/30"
                           : answered && !isCorrect
-                          ? "border-red-200 bg-red-50"
-                          : "border-gray-200 bg-gray-50"
+                          ? "border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/30"
+                          : "border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50"
                       )}
                     >
-                      <p className="text-sm font-medium text-gray-800 mb-3">
+                      <p className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-3">
                         <span className="text-red-600 font-bold mr-1">
                           Q{qi + 1}.
                         </span>
@@ -531,12 +531,12 @@ export default function SOSGuidelinesContent() {
                               className={clsx(
                                 "w-full text-left text-sm px-3 py-2 rounded-lg border transition-colors",
                                 showResult && isCorrectOpt
-                                  ? "border-green-400 bg-green-100 text-green-800 font-medium"
+                                  ? "border-green-400 bg-green-100 text-green-800 font-medium dark:border-green-600 dark:bg-green-900/50 dark:text-green-300"
                                   : showResult && isSelected && !isCorrectOpt
-                                  ? "border-red-400 bg-red-100 text-red-800"
+                                  ? "border-red-400 bg-red-100 text-red-800 dark:border-red-600 dark:bg-red-900/50 dark:text-red-300"
                                   : isSelected && !showResult
-                                  ? "border-primary-400 bg-primary-50 text-primary-800"
-                                  : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
+                                  ? "border-primary-400 bg-primary-50 text-primary-800 dark:border-primary-600 dark:bg-primary-900/50 dark:text-primary-300"
+                                  : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:border-gray-500 dark:hover:bg-gray-600"
                               )}
                             >
                               <span className="font-medium mr-2 text-gray-400">
@@ -585,16 +585,16 @@ export default function SOSGuidelinesContent() {
 
         {/* Acceptance Section */}
         <section className="mt-6">
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
             {accepted ? (
               <div className="text-center space-y-4">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-green-100">
-                  <BadgeCheck size={28} className="text-green-600" />
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-green-100 dark:bg-green-900/50">
+                  <BadgeCheck size={28} className="text-green-600 dark:text-green-400" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                   You have accepted the guidelines
                 </h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Please contact the RMV SOS admin to be added to the WhatsApp
                   group.
                 </p>
@@ -607,27 +607,27 @@ export default function SOSGuidelinesContent() {
               </div>
             ) : (
               <div className="space-y-5">
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                   Accept Guidelines to Join
                 </h3>
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                  <p className="text-sm text-amber-900 font-medium">
+                <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                  <p className="text-sm text-amber-900 dark:text-amber-300 font-medium">
                     Please read through all the guidelines above carefully before
                     accepting. This acceptance is mandatory — the SOS group admin
                     will only approve your joining request after you have
                     accepted the guidelines here.
                   </p>
                 </div>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Fill in your details below and check the box to confirm your
                   acceptance.
                 </p>
 
                 {/* User info form */}
-                <div className="space-y-4 border-t border-gray-100 pt-4">
+                <div className="space-y-4 border-t border-gray-100 dark:border-gray-700 pt-4">
                   {/* Name */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Name <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -638,13 +638,13 @@ export default function SOSGuidelinesContent() {
                       onChange={handleChange}
                       disabled={isLoggedIn && !!session?.user?.name}
                       placeholder="Your full name"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 disabled:bg-gray-50 disabled:text-gray-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 disabled:bg-gray-50 dark:disabled:bg-gray-800 disabled:text-gray-500"
                     />
                   </div>
 
                   {/* Email */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Email <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -655,13 +655,13 @@ export default function SOSGuidelinesContent() {
                       onChange={handleChange}
                       disabled={isLoggedIn && !!session?.user?.email}
                       placeholder="your@email.com"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 disabled:bg-gray-50 disabled:text-gray-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 disabled:bg-gray-50 dark:disabled:bg-gray-800 disabled:text-gray-500"
                     />
                   </div>
 
                   {/* Phone */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Mobile Number <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -671,13 +671,13 @@ export default function SOSGuidelinesContent() {
                       value={form.phone}
                       onChange={handleChange}
                       placeholder="e.g., 9876543210"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
                     />
                   </div>
 
                   {/* Block */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Block <span className="text-red-500">*</span>
                     </label>
                     <select
@@ -685,7 +685,7 @@ export default function SOSGuidelinesContent() {
                       required
                       value={form.block}
                       onChange={handleChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
                     >
                       <option value="">Select Block</option>
                       <option value="1">Block 1</option>
@@ -697,7 +697,7 @@ export default function SOSGuidelinesContent() {
 
                   {/* Flat */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Flat / Door Number <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -716,7 +716,7 @@ export default function SOSGuidelinesContent() {
                           : "Select or type your flat number"
                       }
                       autoComplete="off"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 disabled:bg-gray-50 disabled:text-gray-400"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 disabled:bg-gray-50 dark:disabled:bg-gray-800 disabled:text-gray-400"
                     />
                     <datalist id="flat-options">
                       {flats.map((flat) => (
@@ -753,7 +753,7 @@ export default function SOSGuidelinesContent() {
                     onChange={(e) => setChecked(e.target.checked)}
                     className="mt-1 h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500 disabled:cursor-not-allowed"
                   />
-                  <span className="text-sm text-gray-700">
+                  <span className="text-sm text-gray-700 dark:text-gray-300">
                     I have read and understood the RMV SOS Group guidelines. I
                     agree to use this group strictly for life-threatening
                     emergencies and accept the disciplinary actions for any
@@ -814,7 +814,7 @@ function SectionTitle({
       >
         <Icon size={20} className={c.text} />
       </div>
-      <h2 className="text-xl font-bold text-gray-900">{title}</h2>
+      <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">{title}</h2>
     </div>
   );
 }
