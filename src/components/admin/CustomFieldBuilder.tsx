@@ -48,7 +48,7 @@ export default function CustomFieldBuilder({ fields, onChange }: CustomFieldBuil
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
           Custom Fields
         </label>
         <button
@@ -67,15 +67,15 @@ export default function CustomFieldBuilder({ fields, onChange }: CustomFieldBuil
       )}
 
       {fields.map((field, index) => (
-        <div key={field.tempId} className="space-y-2 border border-gray-200 rounded-md p-3">
+        <div key={field.tempId} className="space-y-2 border border-gray-200 dark:border-gray-700 rounded-md p-3">
           <div className="flex items-center gap-3">
-            <span className="text-xs text-gray-400 w-5 shrink-0">{index + 1}.</span>
+            <span className="text-xs text-gray-400 dark:text-gray-500 w-5 shrink-0">{index + 1}.</span>
             <input
               type="text"
               value={field.label}
               onChange={(e) => updateField(field.tempId, { label: e.target.value })}
               placeholder="Field label (e.g., Profession)"
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-gray-100"
             />
             <select
               value={field.fieldType}
@@ -85,24 +85,24 @@ export default function CustomFieldBuilder({ fields, onChange }: CustomFieldBuil
                   options: e.target.value === "text" ? "" : field.options,
                 })
               }
-              className="w-28 px-2 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              className="w-28 px-2 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-gray-100"
             >
               <option value="text">Text</option>
               <option value="select">Dropdown</option>
             </select>
-            <label className="flex items-center gap-1.5 text-sm text-gray-600 shrink-0">
+            <label className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400 shrink-0">
               <input
                 type="checkbox"
                 checked={field.required}
                 onChange={(e) => updateField(field.tempId, { required: e.target.checked })}
-                className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
               />
               Required
             </label>
             <button
               type="button"
               onClick={() => removeField(field.tempId)}
-              className="text-red-400 hover:text-red-600 text-lg font-bold shrink-0"
+              className="text-red-400 hover:text-red-600 dark:hover:text-red-400 text-lg font-bold shrink-0"
               title="Remove field"
             >
               &times;
@@ -111,7 +111,7 @@ export default function CustomFieldBuilder({ fields, onChange }: CustomFieldBuil
 
           {field.fieldType === "select" && (
             <div className="pl-8 space-y-2">
-              <p className="text-xs text-gray-500 font-medium">Dropdown Options</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Dropdown Options</p>
               {parseOptions(field.options).map((opt, i) => (
                 <div key={i} className="flex items-center gap-2">
                   <input
@@ -123,7 +123,7 @@ export default function CustomFieldBuilder({ fields, onChange }: CustomFieldBuil
                       updateField(field.tempId, { options: buildOptions(opts, hasOtherFlag(field.options)) });
                     }}
                     placeholder={`Option ${i + 1}`}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-gray-100"
                   />
                   <button
                     type="button"
@@ -132,7 +132,7 @@ export default function CustomFieldBuilder({ fields, onChange }: CustomFieldBuil
                       opts.splice(i, 1);
                       updateField(field.tempId, { options: buildOptions(opts, hasOtherFlag(field.options)) });
                     }}
-                    className="text-red-400 hover:text-red-600 text-lg font-bold shrink-0"
+                    className="text-red-400 hover:text-red-600 dark:hover:text-red-400 text-lg font-bold shrink-0"
                     title="Remove option"
                   >
                     &times;
@@ -150,7 +150,7 @@ export default function CustomFieldBuilder({ fields, onChange }: CustomFieldBuil
               >
                 + Add Option
               </button>
-              <label className="flex items-center gap-1.5 text-sm text-gray-600">
+              <label className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400">
                 <input
                   type="checkbox"
                   checked={hasOtherFlag(field.options)}
@@ -158,7 +158,7 @@ export default function CustomFieldBuilder({ fields, onChange }: CustomFieldBuil
                     const opts = parseOptions(field.options);
                     updateField(field.tempId, { options: buildOptions(opts, e.target.checked) });
                   }}
-                  className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                  className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
                 />
                 Allow &quot;Other&quot; (free text input)
               </label>

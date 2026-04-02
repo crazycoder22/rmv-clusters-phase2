@@ -30,7 +30,7 @@ export default function MenuItemBuilder({ items, onChange }: MenuItemBuilderProp
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
           Menu Items
         </label>
         <button
@@ -50,16 +50,16 @@ export default function MenuItemBuilder({ items, onChange }: MenuItemBuilderProp
 
       {items.map((item, index) => (
         <div key={item.tempId} className="flex items-center gap-3">
-          <span className="text-xs text-gray-400 w-5 shrink-0">{index + 1}.</span>
+          <span className="text-xs text-gray-400 dark:text-gray-500 w-5 shrink-0">{index + 1}.</span>
           <input
             type="text"
             value={item.name}
             onChange={(e) => updateItem(item.tempId, "name", e.target.value)}
             placeholder="Item name (e.g., Veg Biryani)"
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-gray-100"
           />
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">₹</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm">₹</span>
             <input
               type="number"
               value={item.pricePerPlate}
@@ -67,13 +67,13 @@ export default function MenuItemBuilder({ items, onChange }: MenuItemBuilderProp
               placeholder="Price"
               min="0"
               step="0.01"
-              className="w-28 pl-7 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              className="w-28 pl-7 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-gray-100"
             />
           </div>
           <button
             type="button"
             onClick={() => removeItem(item.tempId)}
-            className="text-red-400 hover:text-red-600 text-lg font-bold shrink-0"
+            className="text-red-400 hover:text-red-600 dark:hover:text-red-400 text-lg font-bold shrink-0"
             title="Remove item"
           >
             &times;

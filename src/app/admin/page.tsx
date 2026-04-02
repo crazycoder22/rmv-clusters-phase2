@@ -188,7 +188,7 @@ export default function AdminPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-gray-500 dark:text-gray-400">Loading...</p>
       </div>
     );
   }
@@ -197,10 +197,10 @@ export default function AdminPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">
             Access Denied
           </h1>
-          <p className="text-gray-500">
+          <p className="text-gray-500 dark:text-gray-400">
             You do not have permission to access this page.
           </p>
         </div>
@@ -532,15 +532,15 @@ export default function AdminPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
-      <h1 className="text-2xl font-bold text-primary-800 mb-1">
+      <h1 className="text-2xl font-bold text-primary-800 dark:text-primary-300 mb-1">
         Admin Dashboard
       </h1>
-      <p className="text-gray-500 mb-8">
+      <p className="text-gray-500 dark:text-gray-400 mb-8">
         Manage news, residents and roles for RMV Clusters Phase II.
       </p>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200 mb-8">
+      <div className="border-b border-gray-200 dark:border-gray-700 mb-8">
         <nav className="flex space-x-8">
           {tabs
             .filter((tab) => tab.visible())
@@ -552,7 +552,7 @@ export default function AdminPage() {
                   "pb-3 px-1 border-b-2 font-medium text-sm transition-colors",
                   activeTab === tab.id
                     ? "border-primary-600 text-primary-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
                 )}
               >
                 {tab.label}
@@ -565,7 +565,7 @@ export default function AdminPage() {
       {activeTab === "approvals" && (
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-800">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
               Pending Registrations
             </h2>
             <button
@@ -578,13 +578,13 @@ export default function AdminPage() {
           </div>
 
           {loadingPending && pendingResidents.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">
+            <p className="text-gray-500 dark:text-gray-400 text-center py-8">
               Loading pending registrations...
             </p>
           ) : pendingResidents.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-500">No pending registrations.</p>
-              <p className="text-gray-400 text-sm mt-1">
+              <p className="text-gray-500 dark:text-gray-400">No pending registrations.</p>
+              <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">
                 New registrations will appear here for approval.
               </p>
             </div>
@@ -592,7 +592,7 @@ export default function AdminPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-gray-200 text-left text-gray-600">
+                  <tr className="border-b border-gray-200 dark:border-gray-700 text-left text-gray-600 dark:text-gray-300">
                     <th className="pb-3 pr-4 font-medium">Name</th>
                     <th className="pb-3 pr-4 font-medium">Email</th>
                     <th className="pb-3 pr-4 font-medium">Block / Flat</th>
@@ -605,13 +605,13 @@ export default function AdminPage() {
                   {pendingResidents.map((r) => (
                     <tr
                       key={r.id}
-                      className="border-b border-gray-100 hover:bg-gray-50"
+                      className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
                     >
-                      <td className="py-3 pr-4 font-medium text-gray-900">
+                      <td className="py-3 pr-4 font-medium text-gray-900 dark:text-gray-100">
                         {r.name}
                       </td>
-                      <td className="py-3 pr-4 text-gray-600">{r.email}</td>
-                      <td className="py-3 pr-4 text-gray-600">
+                      <td className="py-3 pr-4 text-gray-600 dark:text-gray-400">{r.email}</td>
+                      <td className="py-3 pr-4 text-gray-600 dark:text-gray-400">
                         B{r.block} - {r.flatNumber}
                       </td>
                       <td className="py-3 pr-4">
@@ -619,14 +619,14 @@ export default function AdminPage() {
                           className={clsx(
                             "inline-block px-2 py-0.5 text-xs font-medium rounded-full",
                             r.residentType === "OWNER"
-                              ? "bg-blue-100 text-blue-700"
-                              : "bg-amber-100 text-amber-700"
+                              ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+                              : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
                           )}
                         >
                           {r.residentType}
                         </span>
                       </td>
-                      <td className="py-3 pr-4 text-gray-500 text-xs">
+                      <td className="py-3 pr-4 text-gray-500 dark:text-gray-400 text-xs">
                         {r.createdAt
                           ? new Date(r.createdAt).toLocaleDateString()
                           : "—"}
@@ -663,19 +663,19 @@ export default function AdminPage() {
         <div>
           {/* Create / Edit Form */}
           <div className="max-w-2xl mb-10">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
               {editingId ? "Edit Announcement" : "Create Announcement"}
             </h2>
 
             {newsSuccess && (
-              <div className="rounded-md bg-green-50 border border-green-200 p-3 mb-4">
-                <p className="text-sm text-green-800">{newsSuccess}</p>
+              <div className="rounded-md bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 p-3 mb-4">
+                <p className="text-sm text-green-800 dark:text-green-300">{newsSuccess}</p>
               </div>
             )}
 
             <form onSubmit={handleNewsSubmit} className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Title
                 </label>
                 <input
@@ -685,13 +685,13 @@ export default function AdminPage() {
                   value={newsForm.title}
                   onChange={handleNewsChange}
                   placeholder="Announcement title"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Date
                   </label>
                   <input
@@ -699,19 +699,19 @@ export default function AdminPage() {
                     name="date"
                     value={newsForm.date}
                     onChange={handleNewsChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Category
                   </label>
                   <select
                     name="category"
                     value={newsForm.category}
                     onChange={handleNewsChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   >
                     <option value="general">General</option>
                     <option value="maintenance">Maintenance</option>
@@ -722,14 +722,14 @@ export default function AdminPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Priority
                   </label>
                   <select
                     name="priority"
                     value={newsForm.priority}
                     onChange={handleNewsChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   >
                     <option value="low">Low</option>
                     <option value="normal">Normal</option>
@@ -739,7 +739,7 @@ export default function AdminPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Author
                 </label>
                 <input
@@ -749,12 +749,12 @@ export default function AdminPage() {
                   value={newsForm.author}
                   onChange={handleNewsChange}
                   placeholder="e.g., RMV Committee"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Summary
                 </label>
                 <textarea
@@ -764,12 +764,12 @@ export default function AdminPage() {
                   value={newsForm.summary}
                   onChange={handleNewsChange}
                   placeholder="Brief summary shown in the news feed"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Detailed Description
                 </label>
                 <textarea
@@ -779,13 +779,13 @@ export default function AdminPage() {
                   value={newsForm.body}
                   onChange={handleNewsChange}
                   placeholder="Full details shown when &quot;Read more&quot; is expanded"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Link (optional)
                   </label>
                   <input
@@ -794,12 +794,12 @@ export default function AdminPage() {
                     value={newsForm.link}
                     onChange={handleNewsChange}
                     placeholder="https://..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Link Text (optional)
                   </label>
                   <input
@@ -808,7 +808,7 @@ export default function AdminPage() {
                     value={newsForm.linkText}
                     onChange={handleNewsChange}
                     placeholder="e.g., View Details"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
               </div>
@@ -824,7 +824,7 @@ export default function AdminPage() {
                 />
                 <label
                   htmlFor="published"
-                  className="text-sm font-medium text-gray-700"
+                  className="text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
                   Published (visible on News page)
                 </label>
@@ -832,7 +832,7 @@ export default function AdminPage() {
 
               {/* Event RSVP Settings */}
               {newsForm.category === "event" && (
-                <div className="border border-gray-200 rounded-lg p-4 space-y-4">
+                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-4">
                   <div className="flex items-center gap-2">
                     <input
                       type="checkbox"
@@ -844,7 +844,7 @@ export default function AdminPage() {
                     />
                     <label
                       htmlFor="enableRsvp"
-                      className="text-sm font-semibold text-gray-700"
+                      className="text-sm font-semibold text-gray-700 dark:text-gray-300"
                     >
                       Enable RSVP
                     </label>
@@ -853,7 +853,7 @@ export default function AdminPage() {
                   {newsForm.enableRsvp && (
                     <div className="space-y-4 pl-6 border-l-2 border-primary-100">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                           RSVP Deadline
                         </label>
                         <input
@@ -862,7 +862,7 @@ export default function AdminPage() {
                           value={newsForm.rsvpDeadline}
                           onChange={handleNewsChange}
                           required={newsForm.enableRsvp}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                         />
                       </div>
 
@@ -878,7 +878,7 @@ export default function AdminPage() {
                         />
                         <label
                           htmlFor="enableEntranceFee"
-                          className="text-sm font-medium text-gray-700"
+                          className="text-sm font-medium text-gray-700 dark:text-gray-300"
                         >
                           Add Entrance / Registration Fee
                         </label>
@@ -887,7 +887,7 @@ export default function AdminPage() {
                       {newsForm.enableEntranceFee && (
                         <div className="space-y-3 pl-6 border-l-2 border-amber-100">
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                               Fee Amount (₹)
                             </label>
                             <input
@@ -899,11 +899,11 @@ export default function AdminPage() {
                               step="1"
                               required={newsForm.enableEntranceFee}
                               placeholder="e.g., 150"
-                              className="w-full max-w-xs px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                              className="w-full max-w-xs px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                               Fee Label (optional)
                             </label>
                             <input
@@ -912,7 +912,7 @@ export default function AdminPage() {
                               value={newsForm.entranceFeeLabel}
                               onChange={handleNewsChange}
                               placeholder="Entrance Fee"
-                              className="w-full max-w-xs px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                              className="w-full max-w-xs px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                             />
                           </div>
                         </div>
@@ -930,7 +930,7 @@ export default function AdminPage() {
                         />
                         <label
                           htmlFor="enableFoodOrdering"
-                          className="text-sm font-medium text-gray-700"
+                          className="text-sm font-medium text-gray-700 dark:text-gray-300"
                         >
                           Include Food Ordering
                         </label>
@@ -939,14 +939,14 @@ export default function AdminPage() {
                       {newsForm.enableFoodOrdering && (
                         <div className="space-y-4 pl-6 border-l-2 border-green-100">
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                               Meal Type
                             </label>
                             <select
                               name="mealType"
                               value={newsForm.mealType}
                               onChange={handleNewsChange}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                             >
                               <option value="breakfast">Breakfast</option>
                               <option value="lunch">Lunch</option>
@@ -976,7 +976,7 @@ export default function AdminPage() {
                           />
                           <label
                             htmlFor="requirePayment"
-                            className="text-sm font-medium text-gray-700"
+                            className="text-sm font-medium text-gray-700 dark:text-gray-300"
                           >
                             Require Online Payment (Razorpay)
                           </label>
@@ -1001,7 +1001,7 @@ export default function AdminPage() {
                         />
                         <label
                           htmlFor="enableFeedback"
-                          className="text-sm font-medium text-gray-700"
+                          className="text-sm font-medium text-gray-700 dark:text-gray-300"
                         >
                           Enable Post-Event Feedback
                         </label>
@@ -1009,7 +1009,7 @@ export default function AdminPage() {
 
                       {newsForm.enableFeedback && (
                         <div className="ml-6">
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Rating Style
                           </label>
                           <select
@@ -1020,7 +1020,7 @@ export default function AdminPage() {
                                 feedbackStyle: e.target.value as "stars" | "emoji",
                               }))
                             }
-                            className="w-full max-w-xs px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                            className="w-full max-w-xs px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                           >
                             <option value="stars">Stars ★★★★★</option>
                             <option value="emoji">Emoji 😞😕😐🙂😄</option>
@@ -1032,7 +1032,7 @@ export default function AdminPage() {
                       <div>
                         <label
                           htmlFor="confirmationMessage"
-                          className="block text-sm font-medium text-gray-700 mb-1"
+                          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                         >
                           Post-Registration Message (optional)
                         </label>
@@ -1043,9 +1043,9 @@ export default function AdminPage() {
                           value={newsForm.confirmationMessage}
                           onChange={handleNewsChange}
                           placeholder="e.g., Join our WhatsApp group: https://chat.whatsapp.com/..."
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                         />
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                           This message will be shown to participants right after they register. URLs will be clickable.
                         </p>
                       </div>
@@ -1056,7 +1056,7 @@ export default function AdminPage() {
 
               {/* Sports Registration Settings */}
               {newsForm.category === "sports" && (
-                <div className="border border-orange-200 rounded-lg p-4 space-y-4">
+                <div className="border border-orange-200 dark:border-orange-800 rounded-lg p-4 space-y-4">
                   <div className="flex items-center gap-2">
                     <input
                       type="checkbox"
@@ -1068,7 +1068,7 @@ export default function AdminPage() {
                     />
                     <label
                       htmlFor="enableSportsRegistration"
-                      className="text-sm font-semibold text-gray-700"
+                      className="text-sm font-semibold text-gray-700 dark:text-gray-300"
                     >
                       Enable Sports Registration
                     </label>
@@ -1077,7 +1077,7 @@ export default function AdminPage() {
                   {newsForm.enableSportsRegistration && (
                     <div className="space-y-4 pl-6 border-l-2 border-orange-100">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                           Registration Deadline
                         </label>
                         <input
@@ -1086,7 +1086,7 @@ export default function AdminPage() {
                           value={newsForm.registrationDeadline}
                           onChange={handleNewsChange}
                           required={newsForm.enableSportsRegistration}
-                          className="w-full max-w-xs px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                          className="w-full max-w-xs px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                         />
                       </div>
 
@@ -1102,8 +1102,8 @@ export default function AdminPage() {
               )}
 
               {newsError && (
-                <div className="rounded-md bg-red-50 border border-red-200 p-3">
-                  <p className="text-sm text-red-800">{newsError}</p>
+                <div className="rounded-md bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 p-3">
+                  <p className="text-sm text-red-800 dark:text-red-300">{newsError}</p>
                 </div>
               )}
 
@@ -1125,7 +1125,7 @@ export default function AdminPage() {
                   <button
                     type="button"
                     onClick={handleCancelEdit}
-                    className="py-2 px-4 bg-gray-100 text-gray-700 font-medium rounded-md hover:bg-gray-200 transition-colors"
+                    className="py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
                     Cancel
                   </button>
@@ -1137,7 +1137,7 @@ export default function AdminPage() {
           {/* Announcements List */}
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-800">
+              <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
                 All Announcements
               </h2>
               <button
@@ -1150,18 +1150,18 @@ export default function AdminPage() {
             </div>
 
             {loadingNews && announcements.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">
+              <p className="text-gray-500 dark:text-gray-400 text-center py-8">
                 Loading announcements...
               </p>
             ) : announcements.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">
+              <p className="text-gray-500 dark:text-gray-400 text-center py-8">
                 No announcements yet. Create one above.
               </p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-gray-200 text-left text-gray-600">
+                    <tr className="border-b border-gray-200 dark:border-gray-700 text-left text-gray-600 dark:text-gray-300">
                       <th className="pb-3 pr-4 font-medium">Title</th>
                       <th className="pb-3 pr-4 font-medium">Date</th>
                       <th className="pb-3 pr-4 font-medium">Category</th>
@@ -1174,12 +1174,12 @@ export default function AdminPage() {
                     {announcements.map((a) => (
                       <tr
                         key={a.id}
-                        className="border-b border-gray-100 hover:bg-gray-50"
+                        className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
                       >
-                        <td className="py-3 pr-4 font-medium text-gray-900 max-w-[200px] truncate">
+                        <td className="py-3 pr-4 font-medium text-gray-900 dark:text-gray-100 max-w-[200px] truncate">
                           {a.title}
                         </td>
-                        <td className="py-3 pr-4 text-gray-600 whitespace-nowrap">
+                        <td className="py-3 pr-4 text-gray-600 dark:text-gray-400 whitespace-nowrap">
                           {new Date(a.date).toLocaleDateString()}
                         </td>
                         <td className="py-3 pr-4">
@@ -1187,15 +1187,15 @@ export default function AdminPage() {
                             className={clsx(
                               "inline-block px-2 py-0.5 text-xs font-medium rounded-full capitalize",
                               a.category === "urgent" &&
-                                "bg-red-100 text-red-700",
+                                "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300",
                               a.category === "maintenance" &&
-                                "bg-yellow-100 text-yellow-700",
+                                "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300",
                               a.category === "event" &&
-                                "bg-blue-100 text-blue-700",
+                                "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
                               a.category === "sports" &&
-                                "bg-orange-100 text-orange-700",
+                                "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300",
                               a.category === "general" &&
-                                "bg-gray-100 text-gray-700"
+                                "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
                             )}
                           >
                             {a.category}
@@ -1206,11 +1206,11 @@ export default function AdminPage() {
                             className={clsx(
                               "inline-block px-2 py-0.5 text-xs font-medium rounded-full capitalize",
                               a.priority === "high" &&
-                                "bg-red-100 text-red-700",
+                                "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300",
                               a.priority === "normal" &&
-                                "bg-gray-100 text-gray-700",
+                                "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300",
                               a.priority === "low" &&
-                                "bg-green-100 text-green-700"
+                                "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
                             )}
                           >
                             {a.priority}
@@ -1225,8 +1225,8 @@ export default function AdminPage() {
                             className={clsx(
                               "inline-block px-2 py-0.5 text-xs font-medium rounded-full cursor-pointer transition-colors disabled:opacity-50",
                               a.published !== false
-                                ? "bg-green-100 text-green-700 hover:bg-green-200"
-                                : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                                ? "bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50"
+                                : "bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:hover:bg-gray-600"
                             )}
                           >
                             {a.published !== false ? "Published" : "Draft"}
@@ -1286,19 +1286,19 @@ export default function AdminPage() {
       {/* Tab: Add Resident */}
       {activeTab === "add" && canManageResidents() && (
         <div className="max-w-lg">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
             Add Resident on Behalf
           </h2>
 
           {success && (
-            <div className="rounded-md bg-green-50 border border-green-200 p-3 mb-4">
-              <p className="text-sm text-green-800">{success}</p>
+            <div className="rounded-md bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 p-3 mb-4">
+              <p className="text-sm text-green-800 dark:text-green-300">{success}</p>
             </div>
           )}
 
           <form onSubmit={handleAddResident} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Name
               </label>
               <input
@@ -1308,12 +1308,12 @@ export default function AdminPage() {
                 value={form.name}
                 onChange={handleChange}
                 placeholder="Full name"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Email
               </label>
               <input
@@ -1323,12 +1323,12 @@ export default function AdminPage() {
                 value={form.email}
                 onChange={handleChange}
                 placeholder="email@example.com"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Phone Number
               </label>
               <input
@@ -1338,13 +1338,13 @@ export default function AdminPage() {
                 value={form.phone}
                 onChange={handleChange}
                 placeholder="e.g., 9876543210"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Block
                 </label>
                 <select
@@ -1352,7 +1352,7 @@ export default function AdminPage() {
                   required
                   value={form.block}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 >
                   <option value="">Select</option>
                   <option value="1">Block 1</option>
@@ -1363,7 +1363,7 @@ export default function AdminPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Flat / Door No.
                 </label>
                 <select
@@ -1392,7 +1392,7 @@ export default function AdminPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Resident Type
                 </label>
                 <select
@@ -1400,7 +1400,7 @@ export default function AdminPage() {
                   required
                   value={form.residentType}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 >
                   <option value="">Select</option>
                   <option value="OWNER">Owner</option>
@@ -1409,14 +1409,14 @@ export default function AdminPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Role
                 </label>
                 <select
                   name="roleName"
                   value={form.roleName}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 >
                   <option value="RESIDENT">Resident</option>
                   <option value="ADMIN">Admin</option>
@@ -1429,8 +1429,8 @@ export default function AdminPage() {
             </div>
 
             {error && (
-              <div className="rounded-md bg-red-50 border border-red-200 p-3">
-                <p className="text-sm text-red-800">{error}</p>
+              <div className="rounded-md bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 p-3">
+                <p className="text-sm text-red-800 dark:text-red-300">{error}</p>
               </div>
             )}
 
@@ -1449,7 +1449,7 @@ export default function AdminPage() {
       {activeTab === "manage" && isSuperAdmin() && (
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-800">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
               All Residents
             </h2>
             <button
@@ -1462,18 +1462,18 @@ export default function AdminPage() {
           </div>
 
           {loadingResidents && residents.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">
+            <p className="text-gray-500 dark:text-gray-400 text-center py-8">
               Loading residents...
             </p>
           ) : residents.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">
+            <p className="text-gray-500 dark:text-gray-400 text-center py-8">
               No residents found.
             </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-gray-200 text-left text-gray-600">
+                  <tr className="border-b border-gray-200 dark:border-gray-700 text-left text-gray-600 dark:text-gray-300">
                     <th className="pb-3 pr-4 font-medium">Name</th>
                     <th className="pb-3 pr-4 font-medium">Email</th>
                     <th className="pb-3 pr-4 font-medium">Block / Flat</th>
@@ -1488,16 +1488,16 @@ export default function AdminPage() {
                   {residents.map((r) => (
                     <tr
                       key={r.id}
-                      className="border-b border-gray-100 hover:bg-gray-50"
+                      className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
                     >
-                      <td className="py-3 pr-4 font-medium text-gray-900">
+                      <td className="py-3 pr-4 font-medium text-gray-900 dark:text-gray-100">
                         {r.name}
                       </td>
-                      <td className="py-3 pr-4 text-gray-600">{r.email}</td>
-                      <td className="py-3 pr-4 text-gray-600">
+                      <td className="py-3 pr-4 text-gray-600 dark:text-gray-400">{r.email}</td>
+                      <td className="py-3 pr-4 text-gray-600 dark:text-gray-400">
                         B{r.block} - {r.flatNumber}
                       </td>
-                      <td className="py-3 pr-4 text-gray-600">{r.phone}</td>
+                      <td className="py-3 pr-4 text-gray-600 dark:text-gray-400">{r.phone}</td>
                       <td className="py-3 pr-4">
                         <select
                           value={r.residentType}
@@ -1527,8 +1527,8 @@ export default function AdminPage() {
                           className={clsx(
                             "text-xs font-medium rounded-full px-2 py-0.5 border-0 cursor-pointer focus:ring-2 focus:ring-primary-500",
                             r.residentType === "OWNER"
-                              ? "bg-blue-100 text-blue-700"
-                              : "bg-amber-100 text-amber-700"
+                              ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+                              : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
                           )}
                         >
                           <option value="OWNER">Owner</option>
@@ -1572,7 +1572,7 @@ export default function AdminPage() {
                       <td className="py-3 pr-4">
                         <div className="flex flex-wrap gap-1">
                           {r.roles.length === 0 ? (
-                            <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
+                            <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                               Resident
                             </span>
                           ) : (
@@ -1633,23 +1633,23 @@ export default function AdminPage() {
       {/* Delete Confirmation Modal */}
       {confirmDeleteAnn && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
-            <h3 className="text-lg font-semibold text-red-600 mb-2">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+            <h3 className="text-lg font-semibold text-red-600 dark:text-red-400 mb-2">
               Delete Announcement
             </h3>
-            <p className="text-sm text-gray-700 mb-1">
+            <p className="text-sm text-gray-700 dark:text-gray-300 mb-1">
               Are you sure you want to delete:
             </p>
-            <p className="text-sm font-bold text-gray-900 mb-3">
+            <p className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-3">
               &ldquo;{confirmDeleteAnn.title}&rdquo;
             </p>
-            <p className="text-xs text-gray-500 mb-5">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-5">
               This action cannot be undone. All RSVPs and related data will be permanently deleted.
             </p>
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setConfirmDeleteAnn(null)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md"
               >
                 Cancel
               </button>
