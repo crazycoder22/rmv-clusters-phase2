@@ -27,8 +27,8 @@ export default function ContactPage() {
               </h3>
               <ul className="space-y-4">
                 <li className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-primary-100 flex items-center justify-center shrink-0 mt-0.5">
-                    <MapPin size={18} className="text-primary-600" />
+                  <div className="w-9 h-9 rounded-lg bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center shrink-0 mt-0.5">
+                    <MapPin size={18} className="text-primary-600 dark:text-primary-400" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Address</p>
@@ -43,8 +43,8 @@ export default function ContactPage() {
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-primary-100 flex items-center justify-center shrink-0">
-                    <Phone size={18} className="text-primary-600" />
+                  <div className="w-9 h-9 rounded-lg bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center shrink-0">
+                    <Phone size={18} className="text-primary-600 dark:text-primary-400" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Phone</p>
@@ -54,8 +54,8 @@ export default function ContactPage() {
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-primary-100 flex items-center justify-center shrink-0">
-                    <Mail size={18} className="text-primary-600" />
+                  <div className="w-9 h-9 rounded-lg bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center shrink-0">
+                    <Mail size={18} className="text-primary-600 dark:text-primary-400" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Email</p>
@@ -65,8 +65,8 @@ export default function ContactPage() {
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-primary-100 flex items-center justify-center shrink-0">
-                    <Clock size={18} className="text-primary-600" />
+                  <div className="w-9 h-9 rounded-lg bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center shrink-0">
+                    <Clock size={18} className="text-primary-600 dark:text-primary-400" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
