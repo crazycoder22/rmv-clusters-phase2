@@ -145,8 +145,8 @@ export default function AdminCalendarPage() {
   if (!hasAccess) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
-        <p className="text-gray-600">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Access Denied</h1>
+        <p className="text-gray-600 dark:text-gray-400">
           You do not have permission to manage calendar events.
         </p>
       </div>
@@ -157,7 +157,7 @@ export default function AdminCalendarPage() {
     <div className="max-w-3xl mx-auto px-4 py-8">
       <Link
         href="/admin"
-        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4"
+        className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 mb-4"
       >
         <ArrowLeft size={16} />
         Back to Admin
@@ -165,22 +165,22 @@ export default function AdminCalendarPage() {
 
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Calendar Events</h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Calendar Events</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Add standalone events to the calendar. Announcements appear automatically.
           </p>
         </div>
         <div className="flex gap-2">
           <Link
             href="/calendar"
-            className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors text-sm"
+            className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-sm"
           >
             <Calendar size={16} />
             View Calendar
           </Link>
           <Link
             href="/admin/calendar/poster"
-            className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors text-sm"
+            className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-sm"
           >
             <Image size={16} />
             Generate Poster
@@ -202,13 +202,13 @@ export default function AdminCalendarPage() {
 
       {/* Add/Edit Form */}
       {showForm && (
-        <div className="bg-white rounded-lg border border-gray-200 p-5 mb-6">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 mb-6">
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-4">
             {editingId ? "Edit Event" : "Add New Event"}
           </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Title
               </label>
               <input
@@ -216,22 +216,22 @@ export default function AdminCalendarPage() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g., Diwali Celebration"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Date
               </label>
               <input
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Color
               </label>
               <div className="flex flex-wrap gap-2">
@@ -242,8 +242,8 @@ export default function AdminCalendarPage() {
                     onClick={() => setColor(preset.value)}
                     className={`w-8 h-8 rounded-full border-2 transition-all ${
                       color === preset.value
-                        ? "border-gray-800 scale-110"
-                        : "border-transparent hover:border-gray-300"
+                        ? "border-gray-800 dark:border-white scale-110"
+                        : "border-transparent hover:border-gray-300 dark:hover:border-gray-500"
                     }`}
                     style={{ backgroundColor: preset.value }}
                     title={preset.label}
@@ -265,7 +265,7 @@ export default function AdminCalendarPage() {
               <button
                 type="button"
                 onClick={resetForm}
-                className="px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors text-sm"
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-sm"
               >
                 Cancel
               </button>
@@ -276,7 +276,7 @@ export default function AdminCalendarPage() {
 
       {/* Events List */}
       {events.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
+        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
           <Calendar size={32} className="mx-auto text-gray-300 mb-3" />
           <p className="text-gray-500">No calendar events yet.</p>
           <p className="text-sm text-gray-400 mt-1">
@@ -284,10 +284,10 @@ export default function AdminCalendarPage() {
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-200 text-left text-gray-600 bg-gray-50">
+              <tr className="border-b border-gray-200 dark:border-gray-700 text-left text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800">
                 <th className="py-3 px-4 font-medium">Color</th>
                 <th className="py-3 px-4 font-medium">Title</th>
                 <th className="py-3 px-4 font-medium">Date</th>
@@ -298,7 +298,7 @@ export default function AdminCalendarPage() {
               {events.map((ev) => (
                 <tr
                   key={ev.id}
-                  className="border-b border-gray-100 hover:bg-gray-50"
+                  className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   <td className="py-3 px-4">
                     <span
@@ -306,10 +306,10 @@ export default function AdminCalendarPage() {
                       style={{ backgroundColor: ev.color }}
                     />
                   </td>
-                  <td className="py-3 px-4 font-medium text-gray-900">
+                  <td className="py-3 px-4 font-medium text-gray-900 dark:text-gray-100">
                     {ev.title}
                   </td>
-                  <td className="py-3 px-4 text-gray-600">
+                  <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
                     {new Date(ev.date).toLocaleDateString("en-IN", {
                       day: "numeric",
                       month: "short",
@@ -337,14 +337,14 @@ export default function AdminCalendarPage() {
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => startEdit(ev)}
-                          className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-700"
+                          className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                           title="Edit"
                         >
                           <Pencil size={14} />
                         </button>
                         <button
                           onClick={() => setDeleteConfirm(ev.id)}
-                          className="p-1.5 rounded hover:bg-red-50 text-gray-500 hover:text-red-600"
+                          className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/30 text-gray-500 hover:text-red-600"
                           title="Delete"
                         >
                           <Trash2 size={14} />
