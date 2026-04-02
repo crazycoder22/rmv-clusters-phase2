@@ -106,17 +106,17 @@ export default function RegisterPage() {
 
   return (
     <div className="max-w-lg mx-auto px-4 py-16">
-      <h1 className="text-2xl font-bold text-primary-800 mb-2">
+      <h1 className="text-2xl font-bold text-primary-800 dark:text-primary-200 mb-2">
         Complete Your Registration
       </h1>
-      <p className="text-gray-600 mb-8">
+      <p className="text-gray-600 dark:text-gray-400 mb-8">
         Please provide your details to join the RMV Clusters community.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Pre-filled fields (read-only) */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Name
           </label>
           <input
@@ -127,7 +127,7 @@ export default function RegisterPage() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Email
           </label>
           <input
@@ -140,7 +140,7 @@ export default function RegisterPage() {
 
         {/* Editable fields */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Phone Number
           </label>
           <input
@@ -150,12 +150,12 @@ export default function RegisterPage() {
             value={form.phone}
             onChange={handleChange}
             placeholder="e.g., 9876543210"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-800 dark:text-gray-100"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Block
           </label>
           <select
@@ -163,7 +163,7 @@ export default function RegisterPage() {
             required
             value={form.block}
             onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-800 dark:text-gray-100"
           >
             <option value="">Select Block</option>
             <option value="1">Block 1</option>
@@ -174,7 +174,7 @@ export default function RegisterPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Flat / Door Number
           </label>
           <select
@@ -183,7 +183,7 @@ export default function RegisterPage() {
             value={form.flatNumber}
             onChange={handleChange}
             disabled={!form.block || loadingFlats}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-50 disabled:text-gray-400"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-800 dark:text-gray-100 disabled:bg-gray-50 disabled:text-gray-400"
           >
             <option value="">
               {!form.block
@@ -201,7 +201,7 @@ export default function RegisterPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Resident Type
           </label>
           <select
@@ -209,7 +209,7 @@ export default function RegisterPage() {
             required
             value={form.residentType}
             onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-800 dark:text-gray-100"
           >
             <option value="">Select Type</option>
             <option value="OWNER">Owner</option>

@@ -12,20 +12,20 @@ export default function PendingApprovalPage() {
         <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-6">
           <Clock size={32} className="text-amber-600" />
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-3">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">
           Registration Submitted
         </h1>
-        <p className="text-gray-600 mb-2">
+        <p className="text-gray-600 dark:text-gray-400 mb-2">
           Thank you{session?.user?.name ? `, ${session.user.name}` : ""}! Your
           registration has been received.
         </p>
-        <p className="text-gray-500 text-sm mb-8">
+        <p className="text-gray-500 dark:text-gray-400 text-sm mb-8">
           Your account is pending admin approval. You&apos;ll be able to access
           the community portal once an administrator approves your registration.
         </p>
         <button
           onClick={() => signOut({ callbackUrl: "/" })}
-          className="px-6 py-2 bg-gray-100 text-gray-700 font-medium rounded-md hover:bg-gray-200 transition-colors"
+          className="px-6 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-medium rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
         >
           Sign Out
         </button>

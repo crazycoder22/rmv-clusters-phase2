@@ -144,7 +144,7 @@ export default function PassPage({ params }: { params: Promise<{ code: string }>
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <p className="text-gray-500">Loading pass...</p>
       </div>
     );
@@ -152,9 +152,9 @@ export default function PassPage({ params }: { params: Promise<{ code: string }>
 
   if (error || !pass) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">Pass Not Found</h1>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">Pass Not Found</h1>
           <p className="text-gray-500">{error || "This pass does not exist."}</p>
         </div>
       </div>

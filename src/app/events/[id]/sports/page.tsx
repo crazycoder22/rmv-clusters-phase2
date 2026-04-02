@@ -226,7 +226,7 @@ export default function SportsRegistrationPage({
   if (status === "unauthenticated") {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">Sign In Required</h1>
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">Sign In Required</h1>
         <p className="text-gray-500 mb-4">Please sign in to register for this event.</p>
         <Link href="/" className="text-primary-600 hover:text-primary-700 font-medium">
           Go to Home
@@ -238,7 +238,7 @@ export default function SportsRegistrationPage({
   if (!session?.user?.isRegistered) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">Registration Required</h1>
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">Registration Required</h1>
         <p className="text-gray-500 mb-4">Please register as a resident first.</p>
         <Link href="/register" className="text-primary-600 hover:text-primary-700 font-medium">
           Go to Registration
@@ -250,7 +250,7 @@ export default function SportsRegistrationPage({
   if (!announcement || !sportsConfig) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">Event Not Found</h1>
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">Event Not Found</h1>
         <p className="text-gray-500 mb-4">
           {error || "This event does not have sports registration enabled."}
         </p>
@@ -273,7 +273,7 @@ export default function SportsRegistrationPage({
 
       {/* Event header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
           {announcement.title}
         </h1>
         <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500">
@@ -282,7 +282,7 @@ export default function SportsRegistrationPage({
             Sports Event
           </span>
         </div>
-        <p className="text-gray-600 mt-3 text-sm">{announcement.summary}</p>
+        <p className="text-gray-600 dark:text-gray-400 mt-3 text-sm">{announcement.summary}</p>
       </div>
 
       {/* Deadline info */}
@@ -306,7 +306,7 @@ export default function SportsRegistrationPage({
 
       {/* Available sports */}
       <div className="mb-6">
-        <h2 className="text-sm font-semibold text-gray-700 mb-2">
+        <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
           Available Sports
         </h2>
         <div className="flex flex-wrap gap-2">
@@ -324,7 +324,7 @@ export default function SportsRegistrationPage({
       {/* Registration Form */}
       <form onSubmit={handleSubmit}>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-800">Participants</h2>
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Participants</h2>
           {!deadlinePassed && (
             <button
               type="button"
@@ -347,10 +347,10 @@ export default function SportsRegistrationPage({
           {participants.map((participant, index) => (
             <div
               key={participant.tempId}
-              className="bg-white rounded-lg border border-gray-200 p-4"
+              className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4"
             >
               <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-semibold text-gray-700">
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
                   Participant {index + 1}
                 </span>
                 {!deadlinePassed && (
@@ -366,7 +366,7 @@ export default function SportsRegistrationPage({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
                     Name
                   </label>
                   <input
@@ -377,11 +377,11 @@ export default function SportsRegistrationPage({
                     }
                     disabled={deadlinePassed}
                     placeholder="Participant name"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 disabled:bg-gray-50"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-gray-100 disabled:bg-gray-50"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
                     Age Category
                   </label>
                   <select
@@ -394,7 +394,7 @@ export default function SportsRegistrationPage({
                       )
                     }
                     disabled={deadlinePassed}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 disabled:bg-gray-50"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-gray-100 disabled:bg-gray-50"
                   >
                     <option value="kid">{ageCategoryLabels.kid}</option>
                     <option value="teen">{ageCategoryLabels.teen}</option>
@@ -435,7 +435,7 @@ export default function SportsRegistrationPage({
         {/* Notes */}
         {!deadlinePassed && participants.length > 0 && (
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Notes (optional)
             </label>
             <textarea
@@ -443,7 +443,7 @@ export default function SportsRegistrationPage({
               onChange={(e) => setNotes(e.target.value)}
               placeholder="e.g., Any special requirements..."
               rows={2}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-gray-100"
             />
           </div>
         )}

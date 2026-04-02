@@ -172,17 +172,17 @@ export default function CalendarPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setYear((y) => y - 1)}
-            className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+            className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors dark:text-gray-300"
             aria-label="Previous year"
           >
             <ChevronLeft size={18} />
           </button>
-          <span className="text-lg font-semibold text-gray-800 min-w-[60px] text-center">
+          <span className="text-lg font-semibold text-gray-800 dark:text-gray-100 min-w-[60px] text-center">
             {year}
           </span>
           <button
             onClick={() => setYear((y) => y + 1)}
-            className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+            className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors dark:text-gray-300"
             aria-label="Next year"
           >
             <ChevronRight size={18} />

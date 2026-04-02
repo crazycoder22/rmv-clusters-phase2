@@ -188,7 +188,7 @@ export default function VisitorsPage() {
   if (!hasAccess) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Access Denied</h1>
         <p className="text-gray-600">
           You do not have permission to access this page.
         </p>
@@ -198,13 +198,13 @@ export default function VisitorsPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">
         Visitor Management
       </h1>
 
       {/* Search returning visitor */}
-      <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100 mb-6">
-        <h2 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-100 dark:border-gray-700 mb-6">
+        <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3 flex items-center gap-2">
           <Search size={16} />
           Look up Returning Visitor
         </h2>
@@ -214,7 +214,7 @@ export default function VisitorsPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by phone number or email..."
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
           />
           {searching && (
             <span className="absolute right-3 top-2.5 text-xs text-gray-400">
@@ -230,7 +230,7 @@ export default function VisitorsPage() {
                 onClick={() => fillFromVisitor(v)}
                 className="w-full text-left px-4 py-3 hover:bg-primary-50 transition-colors"
               >
-                <p className="text-sm font-medium text-gray-900">{v.name}</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{v.name}</p>
                 <p className="text-xs text-gray-500">
                   {v.phone && `Phone: ${v.phone}`}
                   {v.phone && v.email && " · "}
@@ -245,8 +245,8 @@ export default function VisitorsPage() {
       </div>
 
       {/* Registration form */}
-      <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100 mb-6">
-        <h2 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-100 dark:border-gray-700 mb-6">
+        <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-4 flex items-center gap-2">
           <UserPlus size={16} />
           Register Visitor
         </h2>
@@ -265,14 +265,14 @@ export default function VisitorsPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Visitor Name <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
               placeholder="Full name"
             />
           </div>
@@ -280,26 +280,26 @@ export default function VisitorsPage() {
           {/* Phone & Email row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Phone Number
               </label>
               <input
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                 placeholder="e.g. 9876543210"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Email
               </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                 placeholder="visitor@example.com"
               />
             </div>
@@ -310,14 +310,14 @@ export default function VisitorsPage() {
 
           {/* Vehicle number */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Vehicle Number
             </label>
             <input
               type="text"
               value={vehicleNumber}
               onChange={(e) => setVehicleNumber(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
               placeholder="e.g. KA01AB1234"
             />
           </div>
@@ -325,7 +325,7 @@ export default function VisitorsPage() {
           {/* Visiting Block & Flat */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Visiting Block <span className="text-red-500">*</span>
               </label>
               <select
@@ -334,7 +334,7 @@ export default function VisitorsPage() {
                   setVisitingBlock(e.target.value);
                   setVisitingFlat("");
                 }}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
               >
                 <option value="">Select Block</option>
                 <option value="1">Block 1</option>
@@ -344,14 +344,14 @@ export default function VisitorsPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Flat Number <span className="text-red-500">*</span>
               </label>
               <select
                 value={visitingFlat}
                 onChange={(e) => setVisitingFlat(e.target.value)}
                 disabled={!visitingBlock || loadingVisitorFlats}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-400"
+                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 disabled:bg-gray-50 disabled:text-gray-400"
               >
                 <option value="">
                   {!visitingBlock
@@ -380,8 +380,8 @@ export default function VisitorsPage() {
       </div>
 
       {/* Recent visitors */}
-      <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
-        <h2 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+        <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-4 flex items-center gap-2">
           <Clock size={16} />
           Recent Visitors
         </h2>
@@ -396,8 +396,8 @@ export default function VisitorsPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-2 px-2 font-medium text-gray-600">
+                <tr className="border-b border-gray-200 dark:border-gray-600">
+                  <th className="text-left py-2 px-2 font-medium text-gray-600 dark:text-gray-400">
                     Name
                   </th>
                   <th className="text-left py-2 px-2 font-medium text-gray-600">
@@ -424,7 +424,7 @@ export default function VisitorsPage() {
                     onClick={() => router.push(`/visitors/${v.id}`)}
                     className="border-b border-gray-50 hover:bg-gray-50 cursor-pointer"
                   >
-                    <td className="py-2 px-2 text-gray-900">{v.name}</td>
+                    <td className="py-2 px-2 text-gray-900 dark:text-gray-100">{v.name}</td>
                     <td className="py-2 px-2 text-gray-600">
                       {v.phone || v.email || "—"}
                     </td>

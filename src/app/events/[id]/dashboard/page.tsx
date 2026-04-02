@@ -120,7 +120,7 @@ export default function EventDashboardPage({
   if (error) {
     return (
       <div className="max-w-5xl mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Dashboard</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Dashboard</h1>
         <p className="text-gray-600 mb-4">{error}</p>
         <Link
           href={`/events/${id}/rsvp`}
@@ -137,14 +137,14 @@ export default function EventDashboardPage({
       {/* Header */}
       <Link
         href={`/events/${id}/rsvp`}
-        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4"
+        className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 mb-4"
       >
         <ArrowLeft size={16} />
         Back to Event
       </Link>
 
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">{eventTitle}</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">{eventTitle}</h1>
         {eventSummary && (
           <p className="text-gray-500 text-sm">{eventSummary}</p>
         )}
@@ -152,61 +152,61 @@ export default function EventDashboardPage({
 
       {/* Summary Cards */}
       <div className={`grid gap-4 mb-6 ${hasStepTracking ? "grid-cols-2 sm:grid-cols-3" : ""}`}>
-        <div className="bg-white rounded-lg border border-gray-200 p-4 flex items-center gap-3">
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 flex items-center gap-3">
           <div className="bg-primary-50 rounded-full p-2">
             <Users size={20} className="text-primary-600" />
           </div>
           <div>
-            <p className="text-2xl font-bold text-gray-900">{totalParticipants}</p>
-            <p className="text-sm text-gray-500">Participants</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{totalParticipants}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Participants</p>
           </div>
         </div>
         {hasStepTracking && (
           <>
-            <div className="bg-white rounded-lg border border-gray-200 p-4 flex items-center gap-3">
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 flex items-center gap-3">
               <div className="bg-orange-50 rounded-full p-2">
                 <Flame size={20} className="text-orange-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                   {stepLeaderboard.length > 0
                     ? Math.max(...stepLeaderboard.map((p) => p.totalSteps)).toLocaleString("en-IN")
                     : 0}
                 </p>
-                <p className="text-sm text-gray-500">Top Steps</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Top Steps</p>
               </div>
             </div>
-            <div className="bg-white rounded-lg border border-gray-200 p-4 flex items-center gap-3">
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 flex items-center gap-3">
               <div className="bg-green-50 rounded-full p-2">
                 <CheckCircle size={20} className="text-green-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                   {onTrackCount} / {totalWithGoal}
                 </p>
-                <p className="text-sm text-gray-500">On Track</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">On Track</p>
               </div>
             </div>
-            <div className="bg-white rounded-lg border border-gray-200 p-4 flex items-center gap-3">
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 flex items-center gap-3">
               <div className="bg-purple-50 rounded-full p-2">
                 <Target size={20} className="text-purple-600" />
               </div>
               <div>
-                <p className="text-lg sm:text-2xl font-bold text-gray-900">
+                <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
                   {totalStepTarget > 0 ? totalStepTarget.toLocaleString("en-IN") : "\u2014"}
                 </p>
-                <p className="text-sm text-gray-500">Total Step Target</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Total Step Target</p>
               </div>
             </div>
-            <div className="bg-white rounded-lg border border-gray-200 p-4 flex items-center gap-3">
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 flex items-center gap-3">
               <div className="bg-blue-50 rounded-full p-2">
                 <TrendingUp size={20} className="text-blue-600" />
               </div>
               <div>
-                <p className="text-lg sm:text-2xl font-bold text-gray-900">
+                <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
                   {totalActualSteps > 0 ? totalActualSteps.toLocaleString("en-IN") : "0"}
                 </p>
-                <p className="text-sm text-gray-500">Total Actual Steps</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Total Actual Steps</p>
               </div>
             </div>
           </>
@@ -216,7 +216,7 @@ export default function EventDashboardPage({
       {/* Sort Toggle (step tracking only) */}
       {hasStepTracking && stepLeaderboard.length > 0 && (
         <div className="flex items-center gap-2 mb-4">
-          <span className="text-sm text-gray-500">Sort by:</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">Sort by:</span>
           <button
             onClick={() => setSortBy("total")}
             className={`px-3 py-1 text-sm rounded-full transition-colors ${
@@ -249,7 +249,7 @@ export default function EventDashboardPage({
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by name, block, or flat..."
-            className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="w-full pl-9 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-800 dark:text-gray-100"
           />
         </div>
       )}
@@ -262,10 +262,10 @@ export default function EventDashboardPage({
       ) : hasStepTracking ? (
         <>
           {/* Step Leaderboard - Desktop */}
-          <div className="hidden sm:block overflow-x-auto bg-white rounded-lg border border-gray-200">
+          <div className="hidden sm:block overflow-x-auto bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-200 text-left text-gray-600 bg-gray-50">
+                <tr className="border-b border-gray-200 dark:border-gray-600 text-left text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700">
                   <th className="py-3 px-4 font-medium w-12 text-center">Rank</th>
                   <th className="py-3 px-4 font-medium">Name</th>
                   <th className="py-3 px-4 font-medium">Block / Flat</th>
@@ -280,20 +280,20 @@ export default function EventDashboardPage({
                 {filteredParticipants.map((p, index) => (
                   <tr
                     key={p.id}
-                    className={`border-b border-gray-100 hover:bg-gray-50 ${
+                    className={`border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 ${
                       index < 3 ? "bg-yellow-50/30" : ""
                     }`}
                   >
                     <td className="py-3 px-4 text-center">
                       {getRankDisplay(index)}
                     </td>
-                    <td className="py-3 px-4 font-medium text-gray-900">
+                    <td className="py-3 px-4 font-medium text-gray-900 dark:text-gray-100">
                       {p.name}
                     </td>
                     <td className="py-3 px-4 text-gray-600">
                       B{p.block} - {p.flatNumber}
                     </td>
-                    <td className="py-3 px-4 text-right font-semibold text-gray-900">
+                    <td className="py-3 px-4 text-right font-semibold text-gray-900 dark:text-gray-100">
                       {p.totalSteps.toLocaleString("en-IN")}
                     </td>
                     <td className="py-3 px-4 text-right text-gray-700">
@@ -330,14 +330,14 @@ export default function EventDashboardPage({
             {filteredParticipants.map((p, index) => (
               <div
                 key={p.id}
-                className={`bg-white rounded-lg border border-gray-200 p-4 ${
+                className={`bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 ${
                   index < 3 ? "border-yellow-300" : ""
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     {getRankDisplay(index)}
-                    <p className="font-medium text-gray-900">{p.name}</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-100">{p.name}</p>
                   </div>
                   <span className="text-xs text-gray-500">
                     B{p.block} - {p.flatNumber}
@@ -376,10 +376,10 @@ export default function EventDashboardPage({
       ) : (
         <>
           {/* Default Participant Table - Desktop */}
-          <div className="hidden sm:block overflow-x-auto bg-white rounded-lg border border-gray-200">
+          <div className="hidden sm:block overflow-x-auto bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-200 text-left text-gray-600 bg-gray-50">
+                <tr className="border-b border-gray-200 dark:border-gray-600 text-left text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700">
                   <th className="py-3 px-4 font-medium w-10">#</th>
                   <th className="py-3 px-4 font-medium">Name</th>
                   <th className="py-3 px-4 font-medium">Block / Flat</th>
@@ -395,12 +395,12 @@ export default function EventDashboardPage({
                 {filteredParticipants.map((p, index) => (
                   <tr
                     key={p.id}
-                    className="border-b border-gray-100 hover:bg-gray-50"
+                    className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
                   >
                     <td className="py-3 px-4 text-gray-400 text-xs">
                       {index + 1}
                     </td>
-                    <td className="py-3 px-4 font-medium text-gray-900">
+                    <td className="py-3 px-4 font-medium text-gray-900 dark:text-gray-100">
                       {p.name}
                     </td>
                     <td className="py-3 px-4 text-gray-600">
@@ -433,14 +433,14 @@ export default function EventDashboardPage({
             {filteredParticipants.map((p, index) => (
               <div
                 key={p.id}
-                className="bg-white rounded-lg border border-gray-200 p-4"
+                className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4"
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-medium text-gray-400 bg-gray-100 rounded-full w-6 h-6 flex items-center justify-center">
                       {index + 1}
                     </span>
-                    <p className="font-medium text-gray-900">{p.name}</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-100">{p.name}</p>
                   </div>
                   <span className="text-xs text-gray-500">
                     B{p.block} - {p.flatNumber}
@@ -566,7 +566,7 @@ function DetailsModal({
           {/* Bar Chart */}
           {p.dailySteps.length > 0 && (
             <div>
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Daily Steps</h3>
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">Daily Steps</h3>
               <div className="flex items-end gap-1 h-32">
                 {p.dailySteps.map((d) => {
                   const height = Math.max((d.steps / maxSteps) * 100, 2);
@@ -606,7 +606,7 @@ function DetailsModal({
           {/* Daily Log Table */}
           {p.dailySteps.length > 0 && (
             <div>
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">Daily Log</h3>
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Daily Log</h3>
               <div className="border border-gray-200 rounded-lg overflow-hidden">
                 <table className="w-full text-sm">
                   <thead>
@@ -630,7 +630,7 @@ function DetailsModal({
                               month: "short",
                             })}
                           </td>
-                          <td className="py-2 px-3 text-right font-medium text-gray-900">
+                          <td className="py-2 px-3 text-right font-medium text-gray-900 dark:text-gray-100">
                             {d.steps.toLocaleString("en-IN")}
                           </td>
                           {p.dailyGoal > 0 && (

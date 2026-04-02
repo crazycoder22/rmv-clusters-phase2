@@ -202,17 +202,17 @@ export default function DashboardPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-primary-800">
+        <h1 className="text-2xl font-bold text-primary-800 dark:text-primary-200">
           Welcome back, {firstName}!
         </h1>
-        <p className="text-gray-500 mt-1">Your resident dashboard</p>
+        <p className="text-gray-500 dark:text-gray-400 mt-1">Your resident dashboard</p>
       </div>
 
       {/* Section 1: Resident Directory Search */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-8">
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 mb-8">
         <div className="flex items-center gap-2 mb-4">
           <Search size={20} className="text-primary-600" />
-          <h2 className="text-lg font-semibold text-gray-800">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
             Resident Directory
           </h2>
         </div>
@@ -238,7 +238,7 @@ export default function DashboardPage() {
           <div className="mt-4 overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-200 text-left text-gray-500">
+                <tr className="border-b border-gray-200 dark:border-gray-600 text-left text-gray-500 dark:text-gray-400">
                   <th className="pb-2 pr-4 font-medium">Name</th>
                   <th className="pb-2 pr-4 font-medium">Block</th>
                   <th className="pb-2 font-medium">Flat</th>
@@ -250,7 +250,7 @@ export default function DashboardPage() {
                     key={`${r.block}-${r.flatNumber}-${i}`}
                     className="border-b border-gray-50"
                   >
-                    <td className="py-2.5 pr-4 font-medium text-gray-900">
+                    <td className="py-2.5 pr-4 font-medium text-gray-900 dark:text-gray-100">
                       {r.name}
                     </td>
                     <td className="py-2.5 pr-4 text-gray-600">
@@ -268,8 +268,8 @@ export default function DashboardPage() {
       {/* Section 2 + 3: Emergency Contacts + Quick Links (side by side) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         {/* Emergency Contacts */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
             Emergency Contacts
           </h2>
           <div className="space-y-3">
@@ -285,7 +285,7 @@ export default function DashboardPage() {
                     <IconComp size={18} className="text-red-600" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-gray-800 group-hover:text-primary-700">
+                    <p className="text-sm font-medium text-gray-800 dark:text-gray-200 group-hover:text-primary-700">
                       {contact.name}
                     </p>
                     <p className="text-xs text-gray-400">{contact.phone}</p>
@@ -297,8 +297,8 @@ export default function DashboardPage() {
         </div>
 
         {/* Quick Links */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
             Quick Links
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -308,14 +308,14 @@ export default function DashboardPage() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="flex flex-col items-center gap-2 p-4 rounded-lg border border-gray-100 hover:border-primary-200 hover:shadow-sm transition-all group"
+                  className="flex flex-col items-center gap-2 p-4 rounded-lg border border-gray-100 dark:border-gray-700 hover:border-primary-200 hover:shadow-sm transition-all group"
                 >
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center ${link.color}`}
                   >
                     <IconComp size={20} />
                   </div>
-                  <span className="text-sm font-medium text-gray-700 group-hover:text-primary-700">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-primary-700">
                     {link.label}
                   </span>
                 </Link>
@@ -326,8 +326,8 @@ export default function DashboardPage() {
       </div>
 
       {/* Section 4: My Upcoming Registrations */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-8">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 mb-8">
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
           My Upcoming Registrations
         </h2>
 
@@ -343,7 +343,7 @@ export default function DashboardPage() {
               <Link
                 key={r.id}
                 href={`/events/${r.announcementId}/rsvp`}
-                className="flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:border-primary-200 hover:bg-primary-50/30 transition-all group"
+                className="flex items-center justify-between p-3 rounded-lg border border-gray-100 dark:border-gray-700 hover:border-primary-200 hover:bg-primary-50/30 transition-all group"
               >
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 mb-0.5">
@@ -360,7 +360,7 @@ export default function DashboardPage() {
                       {r.paid ? "Paid" : "Unpaid"}
                     </span>
                   </div>
-                  <p className="text-sm font-medium text-gray-800 truncate">
+                  <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
                     {r.eventTitle}
                   </p>
                   <p className="text-xs text-gray-400">
@@ -387,7 +387,7 @@ export default function DashboardPage() {
                       Sports
                     </span>
                   </div>
-                  <p className="text-sm font-medium text-gray-800 truncate">
+                  <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
                     {sr.eventTitle}
                   </p>
                   <p className="text-xs text-gray-400">
@@ -408,11 +408,11 @@ export default function DashboardPage() {
 
       {/* Section 5: Active Polls & Surveys */}
       {!loadingPolls && (activePolls.length > 0 || activeSurveys.length > 0) && (
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <BarChart3 size={20} className="text-violet-600" />
-              <h2 className="text-lg font-semibold text-gray-800">
+              <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
                 Active Polls & Surveys
               </h2>
             </div>
@@ -436,7 +436,7 @@ export default function DashboardPage() {
                       Survey
                     </span>
                   </div>
-                  <p className="text-sm font-medium text-gray-800 truncate">
+                  <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
                     {survey.title}
                   </p>
                   <p className="text-xs text-gray-400">
@@ -458,7 +458,7 @@ export default function DashboardPage() {
                 className="flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:border-violet-200 hover:bg-violet-50/30 transition-all group"
               >
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-gray-800 truncate">
+                  <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
                     {poll.title}
                   </p>
                   <p className="text-xs text-gray-400">
@@ -479,7 +479,7 @@ export default function DashboardPage() {
 
       {/* Section 6: News Feed */}
       <div>
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
           Latest News
         </h2>
         <NewsFeed />

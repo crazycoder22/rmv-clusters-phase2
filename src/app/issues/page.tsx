@@ -139,10 +139,10 @@ export default function IssuesPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-10">
-      <h1 className="text-2xl font-bold text-primary-800 mb-1">
+      <h1 className="text-2xl font-bold text-primary-800 dark:text-primary-200 mb-1">
         {isManager ? "Issue Management" : "My Issues"}
       </h1>
-      <p className="text-gray-500 mb-8">
+      <p className="text-gray-500 dark:text-gray-400 mb-8">
         {isManager
           ? "View and resolve issues raised by residents."
           : "Raise and track maintenance issues."}
@@ -150,8 +150,8 @@ export default function IssuesPage() {
 
       {/* Raise Issue Form - for residents and admins (not facility managers) */}
       {canRaise && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 mb-8">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
             Raise New Issue
           </h2>
 
@@ -163,7 +163,7 @@ export default function IssuesPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Title
               </label>
               <input
@@ -174,12 +174,12 @@ export default function IssuesPage() {
                   setForm((prev) => ({ ...prev, title: e.target.value }))
                 }
                 placeholder="Brief description of the issue"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-gray-100"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Category
               </label>
               <select
@@ -188,7 +188,7 @@ export default function IssuesPage() {
                 onChange={(e) =>
                   setForm((prev) => ({ ...prev, category: e.target.value }))
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-gray-100"
               >
                 <option value="">Select category</option>
                 <option value="ELECTRICAL">Electrical</option>
@@ -198,7 +198,7 @@ export default function IssuesPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Description
               </label>
               <textarea
@@ -212,7 +212,7 @@ export default function IssuesPage() {
                   }))
                 }
                 placeholder="Detailed description of the issue"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-gray-100"
               />
             </div>
 
@@ -235,7 +235,7 @@ export default function IssuesPage() {
 
       {/* Issues List */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-800">
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
           {isManager ? "All Issues" : "My Issues"}
         </h2>
         <button
@@ -261,14 +261,14 @@ export default function IssuesPage() {
           {issues.map((issue) => (
             <div
               key={issue.id}
-              className="bg-white rounded-xl border border-gray-200 overflow-hidden"
+              className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
             >
               {/* Issue header row */}
               <button
                 onClick={() =>
                   setExpandedId(expandedId === issue.id ? null : issue.id)
                 }
-                className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50 transition-colors"
+                className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               >
                 <div className="flex items-center gap-3 min-w-0">
                   {issue.status === "OPEN" ? (
@@ -283,7 +283,7 @@ export default function IssuesPage() {
                     />
                   )}
                   <div className="min-w-0">
-                    <p className="font-medium text-gray-900 truncate">
+                    <p className="font-medium text-gray-900 dark:text-gray-100 truncate">
                       {issue.title}
                     </p>
                     <div className="flex items-center gap-2 mt-0.5">
@@ -373,7 +373,7 @@ export default function IssuesPage() {
                             value={closureComment}
                             onChange={(e) => setClosureComment(e.target.value)}
                             placeholder="Add closure comment..."
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-gray-100 text-sm"
                           />
                           {closingError && (
                             <p className="text-xs text-red-600">
