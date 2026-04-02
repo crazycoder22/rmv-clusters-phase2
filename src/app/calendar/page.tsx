@@ -57,15 +57,15 @@ function MiniMonth({
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-3">
-      <h3 className="text-sm font-semibold text-gray-800 text-center mb-2">
+    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+      <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100 text-center mb-2">
         {MONTH_NAMES[month]}
       </h3>
       <div className="grid grid-cols-7 gap-0">
         {DAY_LABELS.map((d) => (
           <div
             key={d}
-            className="text-[10px] font-medium text-gray-400 text-center py-0.5"
+            className="text-[10px] font-medium text-gray-400 dark:text-gray-500 text-center py-0.5"
           >
             {d}
           </div>
@@ -88,8 +88,8 @@ function MiniMonth({
                   <span
                     className={`text-xs ${
                       hasEvents
-                        ? "font-bold text-gray-900"
-                        : "text-gray-600"
+                        ? "font-bold text-gray-900 dark:text-gray-100"
+                        : "text-gray-600 dark:text-gray-400"
                     }`}
                   >
                     {day}
@@ -199,11 +199,11 @@ export default function CalendarPage() {
       </div>
 
       {/* Calendar Grid (this is what gets exported) */}
-      <div ref={calendarRef} className="p-4 bg-white rounded-xl">
-        <h1 className="text-xl font-bold text-gray-900 text-center mb-1">
+      <div ref={calendarRef} className="p-4 bg-white dark:bg-gray-900 rounded-xl">
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 text-center mb-1">
           RMV Clusters Phase II
         </h1>
-        <p className="text-sm text-gray-500 text-center mb-6">
+        <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-6">
           Event Calendar {year}
         </p>
 
@@ -227,7 +227,7 @@ export default function CalendarPage() {
 
         {/* Legend */}
         {!loading && events.length > 0 && (
-          <div className="flex flex-wrap items-center justify-center gap-4 mt-6 text-xs text-gray-500">
+          <div className="flex flex-wrap items-center justify-center gap-4 mt-6 text-xs text-gray-500 dark:text-gray-400">
             <span className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-[#22c55e]" />
               Events
@@ -251,14 +251,14 @@ export default function CalendarPage() {
       {/* Popover for day events */}
       {popover && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full mx-4 overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-              <h3 className="font-semibold text-gray-900 text-sm">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-sm w-full mx-4 overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
                 {MONTH_NAMES[popover.month]} {popover.day}, {year}
               </h3>
               <button
                 onClick={() => setPopover(null)}
-                className="p-1 rounded hover:bg-gray-100"
+                className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-400"
               >
                 <X size={16} />
               </button>
@@ -274,7 +274,7 @@ export default function CalendarPage() {
                     style={{ backgroundColor: ev.color }}
                   />
                   <div>
-                    <p className="font-medium text-gray-800">{ev.title}</p>
+                    <p className="font-medium text-gray-800 dark:text-gray-200">{ev.title}</p>
                     <p className="text-xs text-gray-400 capitalize">
                       {ev.source === "announcement" ? "Announcement" : "Calendar Event"}
                     </p>
