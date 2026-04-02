@@ -17,9 +17,9 @@ interface SearchDocument {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  DRAFT: "bg-gray-100 text-gray-700",
-  PUBLISHED: "bg-green-100 text-green-700",
-  CLOSED: "bg-red-100 text-red-700",
+  DRAFT: "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300",
+  PUBLISHED: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
+  CLOSED: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300",
 };
 
 export default function EditReviewDocPage({
@@ -106,8 +106,8 @@ export default function EditReviewDocPage({
     return (
       <div className="max-w-2xl mx-auto px-4 py-12">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-48" />
-          <div className="h-64 bg-gray-200 rounded" />
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-48" />
+          <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded" />
         </div>
       </div>
     );
@@ -116,7 +116,7 @@ export default function EditReviewDocPage({
   if (!hasAccess) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-12 text-center">
-        <p className="text-gray-500">You do not have access to this page.</p>
+        <p className="text-gray-500 dark:text-gray-400">You do not have access to this page.</p>
       </div>
     );
   }
@@ -138,7 +138,7 @@ export default function EditReviewDocPage({
   if (docStatus === "CLOSED") {
     return (
       <div className="max-w-2xl mx-auto px-4 py-12 text-center">
-        <p className="text-gray-500">
+        <p className="text-gray-500 dark:text-gray-400">
           This document is closed and cannot be edited.
         </p>
         <Link
@@ -179,19 +179,19 @@ export default function EditReviewDocPage({
     <div className="max-w-2xl mx-auto px-4 py-8">
       <Link
         href={`/admin/review-docs/${id}`}
-        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-primary-600 mb-6"
+        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 mb-6"
       >
         <ArrowLeft size={16} />
         Back to Document
       </Link>
 
       <div className="flex items-center gap-3 mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
           Edit Review Document
         </h1>
         <span
           className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
-            STATUS_COLORS[docStatus] || "bg-gray-100 text-gray-700"
+            STATUS_COLORS[docStatus] || "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
           }`}
         >
           {docStatus.charAt(0) + docStatus.slice(1).toLowerCase()}
@@ -200,7 +200,7 @@ export default function EditReviewDocPage({
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Title <span className="text-red-500">*</span>
           </label>
           <input
@@ -208,12 +208,12 @@ export default function EditReviewDocPage({
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Content <span className="text-red-500">*</span>
           </label>
           <RichTextEditor
@@ -225,13 +225,13 @@ export default function EditReviewDocPage({
 
         {/* Document link */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Linked Document (optional)
           </label>
           {linkedDoc ? (
-            <div className="flex items-center gap-3 bg-gray-50 rounded-lg px-3 py-2.5">
+            <div className="flex items-center gap-3 bg-gray-50 dark:bg-gray-700 rounded-lg px-3 py-2.5">
               <Paperclip size={16} className="text-gray-400 flex-shrink-0" />
-              <span className="text-sm text-gray-800 flex-1 truncate">
+              <span className="text-sm text-gray-800 dark:text-gray-200 flex-1 truncate">
                 {linkedDoc.name}
               </span>
               <button
@@ -253,8 +253,8 @@ export default function EditReviewDocPage({
           )}
 
           {showDocSearch && (
-            <div className="mt-2 border border-gray-200 rounded-lg overflow-hidden">
-              <div className="bg-gray-50 px-3 py-2 flex items-center gap-2 border-b border-gray-200">
+            <div className="mt-2 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+              <div className="bg-gray-50 dark:bg-gray-700 px-3 py-2 flex items-center gap-2 border-b border-gray-200 dark:border-gray-700">
                 <Search size={14} className="text-gray-400" />
                 <input
                   type="text"
@@ -264,13 +264,13 @@ export default function EditReviewDocPage({
                     searchDocuments(e.target.value);
                   }}
                   placeholder="Search documents..."
-                  className="flex-1 bg-transparent text-sm outline-none placeholder-gray-400"
+                  className="flex-1 bg-transparent dark:text-gray-100 text-sm outline-none placeholder-gray-400"
                   autoFocus
                 />
                 <button
                   type="button"
                   onClick={() => setShowDocSearch(false)}
-                  className="p-1 text-gray-400 hover:text-gray-600"
+                  className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                 >
                   <X size={14} />
                 </button>
@@ -292,14 +292,14 @@ export default function EditReviewDocPage({
                       key={doc.id}
                       type="button"
                       onClick={() => selectDocument(doc)}
-                      className="w-full text-left px-3 py-2 hover:bg-primary-50 flex items-center gap-3 border-b border-gray-100 last:border-0"
+                      className="w-full text-left px-3 py-2 hover:bg-primary-50 dark:hover:bg-primary-900/30 flex items-center gap-3 border-b border-gray-100 dark:border-gray-700 last:border-0"
                     >
                       <Paperclip
                         size={14}
                         className="text-gray-400 flex-shrink-0"
                       />
                       <div className="min-w-0 flex-1">
-                        <span className="text-sm text-gray-800 truncate block">
+                        <span className="text-sm text-gray-800 dark:text-gray-200 truncate block">
                           {doc.name}
                         </span>
                         <span className="text-xs text-gray-400">
@@ -317,7 +317,7 @@ export default function EditReviewDocPage({
         </div>
 
         {error && (
-          <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+          <p className="text-sm text-red-600 dark:text-red-300 bg-red-50 dark:bg-red-900/30 px-3 py-2 rounded-lg">
             {error}
           </p>
         )}
@@ -332,7 +332,7 @@ export default function EditReviewDocPage({
           </button>
           <Link
             href={`/admin/review-docs/${id}`}
-            className="px-5 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+            className="px-5 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors text-sm font-medium"
           >
             Cancel
           </Link>
