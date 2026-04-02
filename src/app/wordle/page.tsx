@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Trophy, ArrowLeft, Share2 } from "lucide-react";
 
@@ -229,6 +230,7 @@ function Keyboard({
 }
 
 export default function WordlePage() {
+  const { data: session, status: sessionStatus } = useSession();
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [playerName, setPlayerName] = useState<string>("");
   const [guesses, setGuesses] = useState<GuessResult[]>([]);
@@ -241,16 +243,42 @@ export default function WordlePage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  // Check for existing player on mount
+  // Auto-register logged-in users or restore from localStorage
   useEffect(() => {
+    if (sessionStatus === "loading") return;
+
     const storedId = localStorage.getItem("wordle_player_id");
     const storedName = localStorage.getItem("wordle_player_name");
+
     if (storedId) {
       setPlayerId(storedId);
       setPlayerName(storedName || "");
+      setLoading(false);
+      return;
     }
-    setLoading(false);
-  }, []);
+
+    // Auto-register if user is logged in and registered
+    if (session?.user?.isRegistered && session.user.email) {
+      fetch("/api/wordle/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fromSession: true }),
+      })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data) {
+            localStorage.setItem("wordle_player_id", data.playerId);
+            localStorage.setItem("wordle_player_name", data.name);
+            setPlayerId(data.playerId);
+            setPlayerName(data.name);
+          }
+        })
+        .catch(() => {})
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
+    }
+  }, [session, sessionStatus]);
 
   // Fetch today's game state
   useEffect(() => {
