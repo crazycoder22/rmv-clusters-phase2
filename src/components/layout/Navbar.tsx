@@ -23,6 +23,7 @@ import {
   canManageMeetings,
   canManageReviewDocs,
   canManagePolls,
+  isSuperAdmin,
 } from "@/lib/roles";
 
 type NavLink = { href: string; label: string };
@@ -168,14 +169,19 @@ export default function Navbar() {
   const isLoggedIn = !!session;
   const isFullAccess = isLoggedIn && isApproved;
 
+  // Links hidden from everyone except superadmins
+  const superAdminOnlyPaths = ["/community", "/documents", "/checklist"];
+  const isSuperAdminUser = isSuperAdmin(roles);
+
   // Filter which links are visible based on auth state
   const isLinkVisible = useCallback(
     (href: string) => {
       if (!isLoggedIn) return publicPaths.includes(href);
       if (!isFullAccess) return false;
+      if (superAdminOnlyPaths.includes(href) && !isSuperAdminUser) return false;
       return href !== "/"; // Hide Home for logged-in users
     },
-    [isLoggedIn, isFullAccess]
+    [isLoggedIn, isFullAccess, isSuperAdminUser]
   );
 
   // Build admin links based on roles
