@@ -241,7 +241,7 @@ export default function AdminDocumentsPage() {
 
   if (!canManageDocuments()) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-8 text-center text-gray-500">
+      <div className="max-w-2xl mx-auto px-4 py-8 text-center text-gray-500 dark:text-gray-400">
         You do not have permission to manage documents.
       </div>
     );
@@ -253,10 +253,10 @@ export default function AdminDocumentsPage() {
 
     return (
       <div key={folder.id} style={{ marginLeft: depth * 20 }}>
-        <div className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-gray-50 group">
+        <div className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 group">
           <button
             onClick={() => toggleExpand(folder.id)}
-            className="text-gray-400 hover:text-gray-600 flex-shrink-0"
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex-shrink-0"
           >
             {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
           </button>
@@ -268,7 +268,7 @@ export default function AdminDocumentsPage() {
                 type="text"
                 value={editFolderName}
                 onChange={(e) => setEditFolderName(e.target.value)}
-                className="border border-gray-300 rounded px-2 py-1 text-sm flex-1"
+                className="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded px-2 py-1 text-sm flex-1"
                 placeholder="Folder name"
                 autoFocus
                 onKeyDown={(e) => {
@@ -280,7 +280,7 @@ export default function AdminDocumentsPage() {
                 type="text"
                 value={editFolderDriveUrl}
                 onChange={(e) => setEditFolderDriveUrl(e.target.value)}
-                className="border border-gray-300 rounded px-2 py-1 text-sm w-48"
+                className="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded px-2 py-1 text-sm w-48"
                 placeholder="Google Drive URL (optional)"
               />
               <button
@@ -292,14 +292,14 @@ export default function AdminDocumentsPage() {
               </button>
               <button
                 onClick={() => setEditingFolder(null)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
               >
                 <X size={16} />
               </button>
             </div>
           ) : (
             <>
-              <span className="text-sm font-medium text-gray-800 flex-1">{folder.name}</span>
+              <span className="text-sm font-medium text-gray-800 dark:text-gray-200 flex-1">{folder.name}</span>
               {folder.driveUrl && (
                 <a
                   href={folder.driveUrl}
@@ -341,7 +341,7 @@ export default function AdminDocumentsPage() {
                     setEditFolderName(folder.name);
                     setEditFolderDriveUrl(folder.driveUrl || "");
                   }}
-                  className="text-gray-400 hover:text-gray-600 p-1"
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1"
                   title="Edit folder"
                 >
                   <Pencil size={14} />
@@ -363,7 +363,7 @@ export default function AdminDocumentsPage() {
             {/* Add subfolder form */}
             {addingFolderParentId === folder.id && (
               <div
-                className="flex items-center gap-2 py-2 px-3 ml-5 bg-amber-50 rounded-lg"
+                className="flex items-center gap-2 py-2 px-3 ml-5 bg-amber-50 dark:bg-amber-900/20 rounded-lg"
                 style={{ marginLeft: (depth + 1) * 20 }}
               >
                 <Folder size={18} className="text-amber-400 flex-shrink-0" />
@@ -371,7 +371,7 @@ export default function AdminDocumentsPage() {
                   type="text"
                   value={newFolderName}
                   onChange={(e) => setNewFolderName(e.target.value)}
-                  className="border border-gray-300 rounded px-2 py-1 text-sm flex-1"
+                  className="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded px-2 py-1 text-sm flex-1"
                   placeholder="Subfolder name"
                   autoFocus
                   onKeyDown={(e) => {
@@ -383,7 +383,7 @@ export default function AdminDocumentsPage() {
                   type="text"
                   value={newFolderDriveUrl}
                   onChange={(e) => setNewFolderDriveUrl(e.target.value)}
-                  className="border border-gray-300 rounded px-2 py-1 text-sm w-48"
+                  className="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded px-2 py-1 text-sm w-48"
                   placeholder="Google Drive URL (optional)"
                 />
                 <button
@@ -395,7 +395,7 @@ export default function AdminDocumentsPage() {
                 </button>
                 <button
                   onClick={() => setAddingFolderParentId(null)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                 >
                   <X size={16} />
                 </button>
@@ -405,7 +405,7 @@ export default function AdminDocumentsPage() {
             {/* Add file form */}
             {addingFileToFolderId === folder.id && (
               <div
-                className="flex items-center gap-2 py-2 px-3 bg-blue-50 rounded-lg"
+                className="flex items-center gap-2 py-2 px-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg"
                 style={{ marginLeft: (depth + 1) * 20 }}
               >
                 <FileText size={18} className="text-primary-400 flex-shrink-0" />
@@ -413,7 +413,7 @@ export default function AdminDocumentsPage() {
                   type="text"
                   value={newFileName}
                   onChange={(e) => setNewFileName(e.target.value)}
-                  className="border border-gray-300 rounded px-2 py-1 text-sm flex-1"
+                  className="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded px-2 py-1 text-sm flex-1"
                   placeholder="File name"
                   autoFocus
                   onKeyDown={(e) => {
@@ -425,13 +425,13 @@ export default function AdminDocumentsPage() {
                   type="text"
                   value={newFileDriveUrl}
                   onChange={(e) => setNewFileDriveUrl(e.target.value)}
-                  className="border border-gray-300 rounded px-2 py-1 text-sm w-48"
+                  className="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded px-2 py-1 text-sm w-48"
                   placeholder="Google Drive URL"
                 />
                 <select
                   value={newFileType}
                   onChange={(e) => setNewFileType(e.target.value)}
-                  className="border border-gray-300 rounded px-2 py-1 text-sm"
+                  className="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded px-2 py-1 text-sm"
                 >
                   <option value="">Type</option>
                   <option value="pdf">PDF</option>
@@ -450,7 +450,7 @@ export default function AdminDocumentsPage() {
                 </button>
                 <button
                   onClick={() => setAddingFileToFolderId(null)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                 >
                   <X size={16} />
                 </button>
@@ -474,7 +474,7 @@ export default function AdminDocumentsPage() {
     return (
       <div
         key={file.id}
-        className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-gray-50 group"
+        className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 group"
         style={{ marginLeft: depth * 20 }}
       >
         <div className="w-4 flex-shrink-0" />
@@ -486,7 +486,7 @@ export default function AdminDocumentsPage() {
               type="text"
               value={editFileName}
               onChange={(e) => setEditFileName(e.target.value)}
-              className="border border-gray-300 rounded px-2 py-1 text-sm flex-1"
+              className="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded px-2 py-1 text-sm flex-1"
               placeholder="File name"
               autoFocus
               onKeyDown={(e) => {
@@ -498,13 +498,13 @@ export default function AdminDocumentsPage() {
               type="text"
               value={editFileDriveUrl}
               onChange={(e) => setEditFileDriveUrl(e.target.value)}
-              className="border border-gray-300 rounded px-2 py-1 text-sm w-48"
+              className="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded px-2 py-1 text-sm w-48"
               placeholder="Google Drive URL"
             />
             <select
               value={editFileType}
               onChange={(e) => setEditFileType(e.target.value)}
-              className="border border-gray-300 rounded px-2 py-1 text-sm"
+              className="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded px-2 py-1 text-sm"
             >
               <option value="">Type</option>
               <option value="pdf">PDF</option>
@@ -523,16 +523,16 @@ export default function AdminDocumentsPage() {
             </button>
             <button
               onClick={() => setEditingFile(null)}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
             >
               <X size={16} />
             </button>
           </div>
         ) : (
           <>
-            <span className="text-sm text-gray-700 flex-1">{file.name}</span>
+            <span className="text-sm text-gray-700 dark:text-gray-300 flex-1">{file.name}</span>
             {file.fileType && (
-              <span className="text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded uppercase">
+              <span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded uppercase">
                 {file.fileType}
               </span>
             )}
@@ -555,7 +555,7 @@ export default function AdminDocumentsPage() {
                   setEditFileDriveUrl(file.driveUrl || "");
                   setEditFileType(file.fileType || "");
                 }}
-                className="text-gray-400 hover:text-gray-600 p-1"
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1"
                 title="Edit file"
               >
                 <Pencil size={14} />
@@ -577,7 +577,7 @@ export default function AdminDocumentsPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Manage Documents</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Manage Documents</h1>
         <button
           onClick={() => {
             setAddingFolderParentId("root");
@@ -593,13 +593,13 @@ export default function AdminDocumentsPage() {
 
       {/* Add root folder form */}
       {addingFolderParentId === "root" && (
-        <div className="flex items-center gap-2 py-2 px-3 mb-4 bg-amber-50 rounded-lg">
+        <div className="flex items-center gap-2 py-2 px-3 mb-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
           <Folder size={18} className="text-amber-400 flex-shrink-0" />
           <input
             type="text"
             value={newFolderName}
             onChange={(e) => setNewFolderName(e.target.value)}
-            className="border border-gray-300 rounded px-2 py-1 text-sm flex-1"
+            className="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded px-2 py-1 text-sm flex-1"
             placeholder="Folder name"
             autoFocus
             onKeyDown={(e) => {
@@ -611,7 +611,7 @@ export default function AdminDocumentsPage() {
             type="text"
             value={newFolderDriveUrl}
             onChange={(e) => setNewFolderDriveUrl(e.target.value)}
-            className="border border-gray-300 rounded px-2 py-1 text-sm w-64"
+            className="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded px-2 py-1 text-sm w-64"
             placeholder="Google Drive URL (optional)"
           />
           <button
@@ -623,14 +623,14 @@ export default function AdminDocumentsPage() {
           </button>
           <button
             onClick={() => setAddingFolderParentId(null)}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
           >
             <X size={16} />
           </button>
         </div>
       )}
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
         {treeFolders.length === 0 ? (
           <p className="text-gray-400 text-center py-8">
             No folders yet. Create your first folder to get started.
