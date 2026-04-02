@@ -947,6 +947,38 @@ model MarketplaceCategorySubscription {
 
 // ─── End Marketplace ──────────────────────────────────────────────────────
 
+// ─── Wordle Game ──────────────────────────────────────────────────────────
+
+model WordlePlayer {
+  id         String       @id @default(cuid())
+  name       String
+  block      Int
+  flatNumber String
+  email      String       @unique
+  phone      String
+  games      WordleGame[]
+  createdAt  DateTime     @default(now())
+}
+
+model WordleGame {
+  id        String       @id @default(cuid())
+  playerId  String
+  player    WordlePlayer @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  date      String       // YYYY-MM-DD in IST
+  won       Boolean      @default(false)
+  attempts  Int          @default(0) // number of guesses used (1-6)
+  guesses   String       @default("[]") // JSON array of guesses
+  completed Boolean      @default(false)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@unique([playerId, date])
+  @@index([playerId])
+  @@index([date])
+}
+
+// ─── End Wordle Game ──────────────────────────────────────────────────────
+
 model ReviewComment {
   id               String          @id @default(cuid())
   reviewDocumentId String
