@@ -172,7 +172,7 @@ export default function PollDetailPage({
   if (loading || authStatus === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-gray-500 dark:text-gray-400">Loading...</p>
       </div>
     );
   }
@@ -180,7 +180,7 @@ export default function PollDetailPage({
   if (error && !poll) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-10 text-center">
-        <p className="text-gray-500">{error}</p>
+        <p className="text-gray-500 dark:text-gray-400">{error}</p>
         <Link
           href="/polls"
           className="text-primary-600 hover:underline text-sm mt-2 inline-block"
@@ -205,13 +205,13 @@ export default function PollDetailPage({
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <Link
         href="/polls"
-        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-primary-600 mb-6"
+        className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-gray-300 mb-6"
       >
         <ArrowLeft size={16} />
         Back to Polls
       </Link>
 
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-2">
@@ -219,28 +219,28 @@ export default function PollDetailPage({
               className={clsx(
                 "inline-block px-2 py-0.5 text-xs font-medium rounded-full",
                 isClosed
-                  ? "bg-gray-100 text-gray-500"
-                  : "bg-green-100 text-green-700"
+                  ? "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400"
+                  : "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400"
               )}
             >
               {isClosed ? "Closed" : "Active"}
             </span>
-            <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-violet-100 text-violet-700">
+            <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-400">
               {poll.type === "MULTIPLE" ? "Multiple Choice" : "Single Choice"}
             </span>
             {poll.isAnonymous && (
-              <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-amber-100 text-amber-700">
+              <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400">
                 Anonymous
               </span>
             )}
           </div>
-          <h1 className="text-xl font-bold text-gray-800 mb-1">
+          <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-1">
             {poll.title}
           </h1>
           {poll.description && (
-            <p className="text-gray-500 text-sm mb-3">{poll.description}</p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mb-3">{poll.description}</p>
           )}
-          <div className="flex items-center gap-4 text-xs text-gray-400">
+          <div className="flex items-center gap-4 text-xs text-gray-400 dark:text-gray-500">
             <span className="flex items-center gap-1">
               <Users size={13} />
               {poll.isAnonymous
@@ -264,7 +264,7 @@ export default function PollDetailPage({
         {/* Voting or Results */}
         {showResults ? (
           <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
               Results
             </h3>
             {poll.options.map((option) => {
@@ -281,8 +281,8 @@ export default function PollDetailPage({
                     className={clsx(
                       "relative rounded-lg border p-3 overflow-hidden",
                       isMyVote
-                        ? "border-primary-300 bg-primary-50/30"
-                        : "border-gray-100"
+                        ? "border-primary-300 bg-primary-50/30 dark:border-primary-500 dark:bg-primary-900/20"
+                        : "border-gray-100 dark:border-gray-700"
                     )}
                   >
                     {/* Background bar */}
@@ -290,8 +290,8 @@ export default function PollDetailPage({
                       className={clsx(
                         "absolute inset-y-0 left-0 transition-all duration-500",
                         isMyVote
-                          ? "bg-primary-100/60"
-                          : "bg-gray-100/60"
+                          ? "bg-primary-100/60 dark:bg-primary-800/30"
+                          : "bg-gray-100/60 dark:bg-gray-700/60"
                       )}
                       style={{ width: `${percentage}%` }}
                     />
@@ -303,15 +303,15 @@ export default function PollDetailPage({
                             className="text-primary-600 shrink-0"
                           />
                         )}
-                        <span className="text-sm font-medium text-gray-800">
+                        <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
                           {option.text}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-gray-700">
+                        <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                           {percentage}%
                         </span>
-                        <span className="text-xs text-gray-400">
+                        <span className="text-xs text-gray-400 dark:text-gray-500">
                           ({option.voteCount})
                         </span>
                       </div>
@@ -323,7 +323,7 @@ export default function PollDetailPage({
                       onClick={() =>
                         setExpandedOption(isExpanded ? null : option.id)
                       }
-                      className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 mt-1 ml-1"
+                      className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 mt-1 ml-1"
                     >
                       {isExpanded ? (
                         <ChevronUp size={12} />
@@ -337,9 +337,9 @@ export default function PollDetailPage({
                   {isExpanded && !poll.isAnonymous && (
                     <div className="mt-1 ml-6 space-y-0.5">
                       {option.voters.map((v, i) => (
-                        <p key={i} className="text-xs text-gray-500">
+                        <p key={i} className="text-xs text-gray-500 dark:text-gray-400">
                           {v.name}{" "}
-                          <span className="text-gray-400">
+                          <span className="text-gray-400 dark:text-gray-500">
                             (Block {v.block}, {v.flatNumber})
                           </span>
                         </p>
@@ -358,7 +358,7 @@ export default function PollDetailPage({
           </div>
         ) : (
           <div className="space-y-2">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
               {poll.type === "SINGLE"
                 ? "Select one option"
                 : "Select one or more options"}
@@ -370,8 +370,8 @@ export default function PollDetailPage({
                 className={clsx(
                   "w-full text-left p-3 rounded-lg border transition-all",
                   selectedOptions.includes(option.id)
-                    ? "border-primary-400 bg-primary-50 ring-1 ring-primary-200"
-                    : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                    ? "border-primary-400 bg-primary-50 ring-1 ring-primary-200 dark:border-primary-500 dark:bg-primary-900/20 dark:ring-primary-700"
+                    : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700"
                 )}
               >
                 <div className="flex items-center gap-3">
@@ -381,7 +381,7 @@ export default function PollDetailPage({
                       poll.type === "SINGLE" ? "rounded-full" : "rounded",
                       selectedOptions.includes(option.id)
                         ? "border-primary-500 bg-primary-500"
-                        : "border-gray-300"
+                        : "border-gray-300 dark:border-gray-500"
                     )}
                   >
                     {selectedOptions.includes(option.id) && (
@@ -400,7 +400,7 @@ export default function PollDetailPage({
                       </svg>
                     )}
                   </div>
-                  <span className="text-sm text-gray-700">{option.text}</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">{option.text}</span>
                 </div>
               </button>
             ))}
@@ -421,12 +421,12 @@ export default function PollDetailPage({
 
         {/* Admin controls */}
         {canManagePolls() && (
-          <div className="mt-6 pt-4 border-t border-gray-100 flex items-center gap-3">
+          <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center gap-3">
             {!isClosed && (
               <button
                 onClick={handleClose}
                 disabled={closing}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-amber-700 bg-amber-50 rounded-lg hover:bg-amber-100 transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-amber-700 bg-amber-50 rounded-lg hover:bg-amber-100 dark:text-amber-400 dark:bg-amber-900/30 dark:hover:bg-amber-900/50 transition-colors"
               >
                 <XCircle size={15} />
                 {closing ? "Closing..." : "Close Poll"}
@@ -435,7 +435,7 @@ export default function PollDetailPage({
             <button
               onClick={handleDelete}
               disabled={deleting}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-red-700 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-red-700 bg-red-50 rounded-lg hover:bg-red-100 dark:text-red-400 dark:bg-red-900/30 dark:hover:bg-red-900/50 transition-colors"
             >
               <Trash2 size={15} />
               {deleting ? "Deleting..." : "Delete Poll"}

@@ -89,7 +89,7 @@ export default function PollsPage() {
   if (authStatus === "loading" || !session?.user?.isApproved) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-gray-500 dark:text-gray-400">Loading...</p>
       </div>
     );
   }
@@ -117,18 +117,18 @@ export default function PollsPage() {
               <ChevronDown size={14} />
             </button>
             {createOpen && (
-              <div className="absolute right-0 mt-1 w-44 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+              <div className="absolute right-0 mt-1 w-44 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
                 <Link
                   href="/admin/polls/new"
                   onClick={() => setCreateOpen(false)}
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                  className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   Single Poll
                 </Link>
                 <Link
                   href="/admin/surveys/new"
                   onClick={() => setCreateOpen(false)}
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                  className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   Multi-Question Survey
                 </Link>
@@ -139,7 +139,7 @@ export default function PollsPage() {
       </div>
 
       {/* Filter tabs */}
-      <div className="flex gap-1 mb-6 bg-gray-100 rounded-lg p-1 w-fit">
+      <div className="flex gap-1 mb-6 bg-gray-100 dark:bg-gray-800 rounded-lg p-1 w-fit">
         {(["ACTIVE", "CLOSED", "ALL"] as const).map((tab) => (
           <button
             key={tab}
@@ -147,8 +147,8 @@ export default function PollsPage() {
             className={clsx(
               "px-4 py-1.5 rounded-md text-sm font-medium transition-colors",
               filter === tab
-                ? "bg-white text-primary-700 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
+                ? "bg-white dark:bg-gray-700 text-primary-700 dark:text-primary-400 shadow-sm"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
             )}
           >
             {tab === "ALL" ? "All" : tab === "ACTIVE" ? "Active" : "Closed"}
@@ -157,11 +157,11 @@ export default function PollsPage() {
       </div>
 
       {loading ? (
-        <p className="text-gray-400 text-sm">Loading...</p>
+        <p className="text-gray-400 dark:text-gray-500 text-sm">Loading...</p>
       ) : !hasContent ? (
         <div className="text-center py-16">
-          <BarChart3 size={48} className="mx-auto text-gray-300 mb-3" />
-          <p className="text-gray-400">No polls or surveys found</p>
+          <BarChart3 size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-3" />
+          <p className="text-gray-400 dark:text-gray-500">No polls or surveys found</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -173,7 +173,7 @@ export default function PollsPage() {
               <Link
                 key={`survey-${survey.id}`}
                 href={`/surveys/${survey.id}`}
-                className="block bg-white rounded-xl p-5 shadow-sm border border-indigo-100 hover:border-indigo-300 hover:shadow-md transition-all"
+                className="block bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-indigo-100 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-500 hover:shadow-md transition-all"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
@@ -182,30 +182,30 @@ export default function PollsPage() {
                         className={clsx(
                           "inline-block px-2 py-0.5 text-xs font-medium rounded-full",
                           isClosed
-                            ? "bg-gray-100 text-gray-500"
-                            : "bg-green-100 text-green-700"
+                            ? "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400"
+                            : "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400"
                         )}
                       >
                         {isClosed ? "Closed" : "Active"}
                       </span>
-                      <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-indigo-100 text-indigo-700">
+                      <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-400">
                         Survey &middot; {survey._count.polls} questions
                       </span>
                       {survey.isAnonymous && (
-                        <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-amber-100 text-amber-700">
+                        <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400">
                           Anonymous
                         </span>
                       )}
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-1">
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-1">
                       {survey.title}
                     </h3>
                     {survey.description && (
-                      <p className="text-sm text-gray-500 mb-2 line-clamp-2">
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-2 line-clamp-2">
                         {survey.description}
                       </p>
                     )}
-                    <div className="flex items-center gap-4 text-xs text-gray-400">
+                    <div className="flex items-center gap-4 text-xs text-gray-400 dark:text-gray-500">
                       <span className="flex items-center gap-1">
                         <Clock size={13} />
                         {isClosed
@@ -219,7 +219,7 @@ export default function PollsPage() {
                     size={20}
                     className={clsx(
                       "shrink-0 mt-1",
-                      isClosed ? "text-gray-300" : "text-indigo-400"
+                      isClosed ? "text-gray-300 dark:text-gray-600" : "text-indigo-400"
                     )}
                   />
                 </div>
@@ -235,7 +235,7 @@ export default function PollsPage() {
               <Link
                 key={`poll-${poll.id}`}
                 href={`/polls/${poll.id}`}
-                className="block bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:border-primary-200 hover:shadow-md transition-all"
+                className="block bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 hover:border-primary-200 dark:hover:border-primary-500 hover:shadow-md transition-all"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
@@ -244,32 +244,32 @@ export default function PollsPage() {
                         className={clsx(
                           "inline-block px-2 py-0.5 text-xs font-medium rounded-full",
                           isClosed
-                            ? "bg-gray-100 text-gray-500"
-                            : "bg-green-100 text-green-700"
+                            ? "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400"
+                            : "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400"
                         )}
                       >
                         {isClosed ? "Closed" : "Active"}
                       </span>
-                      <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-violet-100 text-violet-700">
+                      <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-400">
                         {poll.type === "MULTIPLE"
                           ? "Multiple Choice"
                           : "Single Choice"}
                       </span>
                       {poll.isAnonymous && (
-                        <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-amber-100 text-amber-700">
+                        <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400">
                           Anonymous
                         </span>
                       )}
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-1">
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-1">
                       {poll.title}
                     </h3>
                     {poll.description && (
-                      <p className="text-sm text-gray-500 mb-2 line-clamp-2">
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-2 line-clamp-2">
                         {poll.description}
                       </p>
                     )}
-                    <div className="flex items-center gap-4 text-xs text-gray-400">
+                    <div className="flex items-center gap-4 text-xs text-gray-400 dark:text-gray-500">
                       <span className="flex items-center gap-1">
                         <Users size={13} />
                         {poll._count.votes} vote

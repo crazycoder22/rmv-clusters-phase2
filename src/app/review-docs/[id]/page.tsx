@@ -421,7 +421,7 @@ export default function ReviewDocDetailPage({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Desktop layout: document + sidebar */}
       <div className="flex h-[calc(100vh-64px)]">
         {/* Document viewer */}
@@ -434,7 +434,7 @@ export default function ReviewDocDetailPage({
             {/* Back button */}
             <Link
               href="/review-docs"
-              className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-primary-600 transition-colors mb-6"
+              className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-gray-300 transition-colors mb-6"
             >
               <ArrowLeft size={16} />
               Back to Review Documents
@@ -442,9 +442,9 @@ export default function ReviewDocDetailPage({
 
             {/* Closed banner */}
             {isClosed && (
-              <div className="flex items-center gap-2 bg-gray-100 border border-gray-200 rounded-lg px-4 py-3 mb-4">
-                <AlertCircle size={16} className="text-gray-500 shrink-0" />
-                <p className="text-sm text-gray-600">
+              <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-3 mb-4">
+                <AlertCircle size={16} className="text-gray-500 dark:text-gray-400 shrink-0" />
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   This document is closed for review. No new comments can be
                   added.
                 </p>
@@ -452,11 +452,11 @@ export default function ReviewDocDetailPage({
             )}
 
             {/* Document header */}
-            <div className="bg-white rounded-xl border border-gray-200 p-5 sm:p-6 mb-4">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 sm:p-6 mb-4">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-3">
                 {doc.title}
               </h1>
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500 dark:text-gray-400">
                 <span className="flex items-center gap-1">
                   <User size={14} />
                   {doc.createdBy.name}
@@ -472,8 +472,8 @@ export default function ReviewDocDetailPage({
                 <span
                   className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
                     isClosed
-                      ? "bg-gray-100 text-gray-600"
-                      : "bg-green-100 text-green-700"
+                      ? "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400"
+                      : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
                   }`}
                 >
                   {isClosed ? "Closed" : "Open for Review"}
@@ -483,8 +483,8 @@ export default function ReviewDocDetailPage({
               {/* Linked document */}
               {doc.linkedDocument && (
                 <div className="mt-3 flex items-center gap-2 text-sm">
-                  <LinkIcon size={14} className="text-gray-400" />
-                  <span className="text-gray-500">Linked document:</span>
+                  <LinkIcon size={14} className="text-gray-400 dark:text-gray-500" />
+                  <span className="text-gray-500 dark:text-gray-400">Linked document:</span>
                   {doc.linkedDocument.driveUrl ? (
                     <a
                       href={doc.linkedDocument.driveUrl}
@@ -495,7 +495,7 @@ export default function ReviewDocDetailPage({
                       {doc.linkedDocument.name}
                     </a>
                   ) : (
-                    <span className="font-medium text-gray-800">
+                    <span className="font-medium text-gray-800 dark:text-gray-200">
                       {doc.linkedDocument.name}
                     </span>
                   )}
@@ -507,7 +507,7 @@ export default function ReviewDocDetailPage({
             {doc.comments.some(
               (c) => !c.resolved && c.highlightFrom !== null
             ) && (
-              <div className="flex items-center gap-3 mb-2 text-xs text-gray-500">
+              <div className="flex items-center gap-3 mb-2 text-xs text-gray-500 dark:text-gray-400">
                 <span className="flex items-center gap-1">
                   <span className="inline-block w-3 h-3 rounded-sm bg-yellow-200 border-b-2 border-yellow-400" />
                   Comment
@@ -516,17 +516,17 @@ export default function ReviewDocDetailPage({
                   <span className="inline-block w-3 h-3 rounded-sm bg-amber-200 border-b-2 border-amber-400" />
                   Suggestion
                 </span>
-                <span className="text-gray-400">
+                <span className="text-gray-400 dark:text-gray-500">
                   · Click highlighted text to preview
                 </span>
               </div>
             )}
 
             {/* Document content */}
-            <div className="bg-white rounded-xl border border-gray-200 p-5 sm:p-8 relative">
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 sm:p-8 relative">
               <div
                 ref={contentRef}
-                className="newsletter-content prose prose-gray max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-p:leading-relaxed prose-a:text-primary-600 prose-img:rounded-lg"
+                className="newsletter-content prose prose-gray dark:prose-invert max-w-none prose-headings:text-gray-900 dark:prose-headings:text-gray-100 prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-p:leading-relaxed prose-a:text-primary-600 prose-img:rounded-lg"
                 dangerouslySetInnerHTML={{ __html: doc.content }}
               />
 
@@ -581,18 +581,18 @@ export default function ReviewDocDetailPage({
 
         {/* Desktop sidebar */}
         <div
-          className={`hidden lg:flex flex-col fixed right-0 top-16 bottom-0 w-[400px] bg-white border-l border-gray-200 transition-transform ${
+          className={`hidden lg:flex flex-col fixed right-0 top-16 bottom-0 w-[400px] bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 transition-transform ${
             sidebarOpen ? "translate-x-0" : "translate-x-full"
           }`}
         >
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-            <h2 className="font-semibold text-gray-900 flex items-center gap-2">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
               <MessageSquare size={18} />
               Comments
             </h2>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="p-1 text-gray-400 hover:text-gray-600 rounded transition-colors"
+              className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded transition-colors"
             >
               <X size={18} />
             </button>
@@ -618,15 +618,15 @@ export default function ReviewDocDetailPage({
               className="absolute inset-0 bg-black/30"
               onClick={() => setSidebarOpen(false)}
             />
-            <div className="absolute right-0 top-0 bottom-0 w-full max-w-[400px] bg-white shadow-xl flex flex-col">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-                <h2 className="font-semibold text-gray-900 flex items-center gap-2">
+            <div className="absolute right-0 top-0 bottom-0 w-full max-w-[400px] bg-white dark:bg-gray-800 shadow-xl flex flex-col">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                <h2 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                   <MessageSquare size={18} />
                   Comments
                 </h2>
                 <button
                   onClick={() => setSidebarOpen(false)}
-                  className="p-1 text-gray-400 hover:text-gray-600 rounded transition-colors"
+                  className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded transition-colors"
                 >
                   <X size={18} />
                 </button>
@@ -652,7 +652,7 @@ export default function ReviewDocDetailPage({
       {activeHighlight && popoverComment && (
         <div
           ref={popoverRef}
-          className="fixed z-[100] w-72 bg-white border border-gray-200 rounded-xl shadow-xl p-3"
+          className="fixed z-[100] w-72 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl p-3"
           style={{
             left: Math.max(
               8,
@@ -670,24 +670,24 @@ export default function ReviewDocDetailPage({
               <span
                 className={`shrink-0 px-1.5 py-0.5 rounded text-xs font-medium ${
                   popoverComment.type === "SUGGESTION"
-                    ? "bg-amber-100 text-amber-700"
-                    : "bg-blue-100 text-blue-700"
+                    ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                    : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
                 }`}
               >
                 {popoverComment.type === "SUGGESTION"
                   ? "Suggestion"
                   : "Comment"}
               </span>
-              <span className="text-xs text-gray-600 truncate font-medium">
+              <span className="text-xs text-gray-600 dark:text-gray-300 truncate font-medium">
                 {popoverComment.resident.name}
               </span>
-              <span className="text-xs text-gray-400 shrink-0">
+              <span className="text-xs text-gray-400 dark:text-gray-500 shrink-0">
                 · {timeAgo(popoverComment.createdAt)}
               </span>
             </div>
             <button
               onClick={() => setActiveHighlight(null)}
-              className="shrink-0 ml-1 p-0.5 text-gray-400 hover:text-gray-600 rounded"
+              className="shrink-0 ml-1 p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded"
             >
               <X size={14} />
             </button>
@@ -696,14 +696,14 @@ export default function ReviewDocDetailPage({
           {/* Suggestion diff */}
           {popoverComment.type === "SUGGESTION" &&
             popoverComment.highlightedText && (
-              <div className="mb-2 text-xs bg-amber-50 rounded px-2.5 py-1.5 border border-amber-100">
-                <span className="line-through text-red-500">
+              <div className="mb-2 text-xs bg-amber-50 dark:bg-amber-900/20 rounded px-2.5 py-1.5 border border-amber-100 dark:border-amber-800">
+                <span className="line-through text-red-500 dark:text-red-400">
                   {popoverComment.highlightedText}
                 </span>
                 {popoverComment.suggestedText && (
                   <>
                     {" "}
-                    <span className="text-green-600 font-medium">
+                    <span className="text-green-600 dark:text-green-400 font-medium">
                       {popoverComment.suggestedText}
                     </span>
                   </>
@@ -712,13 +712,13 @@ export default function ReviewDocDetailPage({
             )}
 
           {/* Comment content */}
-          <p className="text-sm text-gray-700 leading-relaxed line-clamp-4">
+          <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-4">
             {popoverComment.content}
           </p>
 
           {/* Replies preview */}
           {popoverComment.replies.length > 0 && (
-            <div className="mt-2 pt-2 border-t border-gray-100 space-y-1.5">
+            <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700 space-y-1.5">
               {popoverComment.replies.slice(0, 2).map((reply) => (
                 <div key={reply.id} className="flex items-start gap-1.5">
                   <Reply
@@ -726,17 +726,17 @@ export default function ReviewDocDetailPage({
                     className="text-gray-300 rotate-180 mt-1 shrink-0"
                   />
                   <div className="min-w-0">
-                    <span className="text-xs font-medium text-gray-700">
+                    <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
                       {reply.resident.name}
                     </span>
-                    <span className="text-xs text-gray-500 ml-1 line-clamp-1">
+                    <span className="text-xs text-gray-500 dark:text-gray-400 ml-1 line-clamp-1">
                       {reply.content}
                     </span>
                   </div>
                 </div>
               ))}
               {popoverComment.replies.length > 2 && (
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-gray-400 dark:text-gray-500">
                   +{popoverComment.replies.length - 2} more repl
                   {popoverComment.replies.length - 2 !== 1 ? "ies" : "y"}
                 </p>
@@ -745,8 +745,8 @@ export default function ReviewDocDetailPage({
           )}
 
           {/* Footer actions */}
-          <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
-            <span className="text-xs text-gray-400">
+          <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
+            <span className="text-xs text-gray-400 dark:text-gray-500">
               {popoverComment.replies.length > 0
                 ? `${popoverComment.replies.length} repl${popoverComment.replies.length !== 1 ? "ies" : "y"}`
                 : "No replies yet"}
@@ -782,7 +782,7 @@ export default function ReviewDocDetailPage({
       {!sidebarOpen && (
         <button
           onClick={() => setSidebarOpen(true)}
-          className="hidden lg:flex fixed top-1/2 right-0 -translate-y-1/2 items-center gap-1 bg-white border border-gray-200 border-r-0 text-gray-600 px-2 py-4 rounded-l-lg shadow-sm hover:bg-gray-50 transition-colors z-30"
+          className="hidden lg:flex fixed top-1/2 right-0 -translate-y-1/2 items-center gap-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 border-r-0 text-gray-600 dark:text-gray-300 px-2 py-4 rounded-l-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors z-30"
           style={{ writingMode: "vertical-rl" }}
         >
           <MessageSquare size={14} />

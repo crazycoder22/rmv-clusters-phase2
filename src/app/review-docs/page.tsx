@@ -26,11 +26,11 @@ interface ReviewDocItem {
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
   PUBLISHED: {
     label: "Open for Review",
-    className: "bg-green-100 text-green-700",
+    className: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
   },
   CLOSED: {
     label: "Closed",
-    className: "bg-gray-100 text-gray-600",
+    className: "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400",
   },
 };
 
@@ -105,22 +105,22 @@ export default function ReviewDocsPage() {
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-1">
           <FileText className="text-primary-600" size={28} />
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             Review Documents
           </h1>
         </div>
-        <p className="text-sm text-gray-500 ml-10">
+        <p className="text-sm text-gray-500 dark:text-gray-400 ml-10">
           Review community documents and share your feedback
         </p>
       </div>
 
       {docs.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
-          <FileText className="mx-auto mb-3 text-gray-300" size={48} />
-          <p className="text-gray-500">
+        <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+          <FileText className="mx-auto mb-3 text-gray-300 dark:text-gray-600" size={48} />
+          <p className="text-gray-500 dark:text-gray-400">
             No documents are available for review right now.
           </p>
-          <p className="text-sm text-gray-400 mt-1">
+          <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
             Check back later for new documents.
           </p>
         </div>
@@ -129,19 +129,19 @@ export default function ReviewDocsPage() {
           {docs.map((doc) => {
             const statusCfg = STATUS_CONFIG[doc.status] || {
               label: doc.status,
-              className: "bg-gray-100 text-gray-700",
+              className: "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300",
             };
 
             return (
               <Link
                 key={doc.id}
                 href={`/review-docs/${doc.id}`}
-                className="block bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md hover:border-gray-300 transition-all"
+                className="block bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 hover:shadow-md hover:border-gray-300 dark:hover:border-gray-600 transition-all"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
-                      <h3 className="font-semibold text-gray-900 truncate">
+                      <h3 className="font-semibold text-gray-900 dark:text-gray-100 truncate">
                         {doc.title}
                       </h3>
                       <span
@@ -151,7 +151,7 @@ export default function ReviewDocsPage() {
                       </span>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500 dark:text-gray-400">
                       <span className="flex items-center gap-1">
                         <User size={14} />
                         {doc.createdBy.name}
