@@ -105,14 +105,14 @@ export default function DocumentsPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Documents</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Documents</h1>
 
       {/* Breadcrumb */}
-      <div className="flex items-center gap-1 text-sm text-gray-500 mb-4 flex-wrap">
+      <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 mb-4 flex-wrap">
         <button
           onClick={() => setPath([])}
           className={`hover:text-primary-600 transition-colors ${
-            path.length === 0 ? "text-gray-900 font-medium" : ""
+            path.length === 0 ? "text-gray-900 dark:text-gray-100 font-medium" : ""
           }`}
         >
           Documents
@@ -123,7 +123,7 @@ export default function DocumentsPage() {
             <button
               onClick={() => navigateTo(i)}
               className={`hover:text-primary-600 transition-colors ${
-                i === path.length - 1 ? "text-gray-900 font-medium" : ""
+                i === path.length - 1 ? "text-gray-900 dark:text-gray-100 font-medium" : ""
               }`}
             >
               {folder.name}
@@ -136,14 +136,14 @@ export default function DocumentsPage() {
       {path.length > 0 && (
         <button
           onClick={navigateBack}
-          className="flex items-center gap-2 text-sm text-gray-500 hover:text-primary-600 mb-4 transition-colors"
+          className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-primary-600 mb-4 transition-colors"
         >
           <ArrowLeft size={16} />
           Back
         </button>
       )}
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
         {displayFolders.length === 0 && displayFiles.length === 0 ? (
           <p className="text-gray-400 text-center py-12">
             {path.length === 0
@@ -151,16 +151,16 @@ export default function DocumentsPage() {
               : "This folder is empty."}
           </p>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-gray-100 dark:divide-gray-700">
             {/* Folders */}
             {displayFolders.map((folder) => (
               <div
                 key={folder.id}
-                className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
                 onClick={() => navigateInto(folder)}
               >
                 <Folder size={20} className="text-amber-500 flex-shrink-0" />
-                <span className="text-sm font-medium text-gray-800 flex-1">
+                <span className="text-sm font-medium text-gray-800 dark:text-gray-200 flex-1">
                   {folder.name}
                 </span>
                 {folder.driveUrl && (
@@ -175,7 +175,7 @@ export default function DocumentsPage() {
                     <ExternalLink size={15} />
                   </a>
                 )}
-                <ChevronRight size={16} className="text-gray-300" />
+                <ChevronRight size={16} className="text-gray-300 dark:text-gray-500" />
               </div>
             ))}
 
@@ -185,12 +185,12 @@ export default function DocumentsPage() {
               return (
                 <div
                   key={file.id}
-                  className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
+                  className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
                   {getFileIcon(file.fileType)}
-                  <span className="text-sm text-gray-700 flex-1">{file.name}</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300 flex-1">{file.name}</span>
                   {file.fileType && (
-                    <span className="text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded uppercase">
+                    <span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded uppercase">
                       {file.fileType}
                     </span>
                   )}
