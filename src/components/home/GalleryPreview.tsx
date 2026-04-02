@@ -8,7 +8,7 @@ export default function GalleryPreview() {
   const featured = galleryData.images.filter((img) => img.featured).slice(0, 4);
 
   return (
-    <section className="py-16 bg-gray-50">
+    <section className="py-16 bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <SectionHeading
           title="Community Gallery"
@@ -38,7 +38,7 @@ export default function GalleryPreview() {
         <div className="mt-8 text-center">
           <Link
             href="/gallery"
-            className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 font-medium transition-colors"
+            className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium transition-colors"
           >
             View All Photos
             <ArrowRight size={16} />
