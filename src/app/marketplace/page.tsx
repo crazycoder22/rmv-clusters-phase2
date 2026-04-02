@@ -93,7 +93,7 @@ export default function MarketplacePage() {
   if (authStatus === "loading" || !session?.user?.isApproved) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-gray-500 dark:text-gray-400">Loading...</p>
       </div>
     );
   }
@@ -207,8 +207,8 @@ export default function MarketplacePage() {
             className={clsx(
               "px-4 py-1.5 rounded-md text-sm font-medium transition-colors",
               type === lt.value
-                ? "bg-white text-primary-700 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
+                ? "bg-white dark:bg-gray-700 text-primary-700 dark:text-primary-300 shadow-sm"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             )}
           >
             {lt.label}
@@ -221,9 +221,9 @@ export default function MarketplacePage() {
         <p className="text-gray-400 text-sm">Loading...</p>
       ) : listings.length === 0 ? (
         <div className="text-center py-16">
-          <ShoppingBag size={48} className="mx-auto text-gray-300 mb-3" />
-          <p className="text-gray-400">No listings found</p>
-          <p className="text-sm text-gray-400 mt-1">
+          <ShoppingBag size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-3" />
+          <p className="text-gray-400 dark:text-gray-500">No listings found</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
             Be the first to list something!
           </p>
         </div>
@@ -245,7 +245,7 @@ export default function MarketplacePage() {
               )}
 
               {/* Thumbnail */}
-              <div className="aspect-[4/3] bg-gray-100 relative">
+              <div className="aspect-[4/3] bg-gray-100 dark:bg-gray-700 relative">
                 {listing.images.length > 0 ? (
                   <img
                     src={listing.images[0]}
@@ -254,7 +254,7 @@ export default function MarketplacePage() {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <ShoppingBag size={40} className="text-gray-300" />
+                    <ShoppingBag size={40} className="text-gray-300 dark:text-gray-500" />
                   </div>
                 )}
               </div>
@@ -264,7 +264,7 @@ export default function MarketplacePage() {
                 <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100 mb-1 line-clamp-1">
                   {listing.title}
                 </h3>
-                <p className="text-lg font-bold text-primary-700 mb-2">
+                <p className="text-lg font-bold text-primary-700 dark:text-primary-300 mb-2">
                   {formatPrice(
                     listing.price,
                     listing.listingType,

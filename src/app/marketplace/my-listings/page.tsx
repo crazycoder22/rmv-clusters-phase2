@@ -91,7 +91,7 @@ export default function MyListingsPage() {
   if (authStatus === "loading" || !session?.user?.isApproved) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-gray-500 dark:text-gray-400">Loading...</p>
       </div>
     );
   }
@@ -108,15 +108,15 @@ export default function MyListingsPage() {
 
       <div className="flex items-center gap-2 mb-6">
         <Package size={24} className="text-primary-600" />
-        <h1 className="text-2xl font-bold text-primary-800">My Listings</h1>
+        <h1 className="text-2xl font-bold text-primary-800 dark:text-primary-200">My Listings</h1>
       </div>
 
       {loading ? (
         <p className="text-gray-400 text-sm">Loading...</p>
       ) : listings.length === 0 ? (
         <div className="text-center py-16">
-          <Package size={48} className="mx-auto text-gray-300 mb-3" />
-          <p className="text-gray-400">You haven&apos;t listed anything yet</p>
+          <Package size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-3" />
+          <p className="text-gray-400 dark:text-gray-500">You haven&apos;t listed anything yet</p>
           <Link
             href="/marketplace/new"
             className="inline-block mt-3 text-sm text-primary-600 hover:text-primary-700 font-medium"
@@ -130,7 +130,7 @@ export default function MyListingsPage() {
             <Link
               key={listing.id}
               href={`/marketplace/${listing.id}`}
-              className="block bg-white rounded-xl shadow-sm border border-gray-100 hover:border-primary-200 hover:shadow-md transition-all overflow-hidden relative"
+              className="block bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:border-primary-200 hover:shadow-md transition-all overflow-hidden relative"
             >
               {listing.status === "SOLD" && (
                 <div className="absolute inset-0 bg-black/40 z-10 flex items-center justify-center">
@@ -140,7 +140,7 @@ export default function MyListingsPage() {
                 </div>
               )}
 
-              <div className="aspect-[4/3] bg-gray-100 relative">
+              <div className="aspect-[4/3] bg-gray-100 dark:bg-gray-700 relative">
                 {listing.images.length > 0 ? (
                   <img
                     src={listing.images[0]}
@@ -149,7 +149,7 @@ export default function MyListingsPage() {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <ShoppingBag size={40} className="text-gray-300" />
+                    <ShoppingBag size={40} className="text-gray-300 dark:text-gray-500" />
                   </div>
                 )}
                 {/* Status badge */}
@@ -166,10 +166,10 @@ export default function MyListingsPage() {
               </div>
 
               <div className="p-4">
-                <h3 className="text-base font-semibold text-gray-800 mb-1 line-clamp-1">
+                <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100 mb-1 line-clamp-1">
                   {listing.title}
                 </h3>
-                <p className="text-lg font-bold text-primary-700 mb-2">
+                <p className="text-lg font-bold text-primary-700 dark:text-primary-300 mb-2">
                   {formatPrice(
                     listing.price,
                     listing.listingType,
@@ -203,7 +203,7 @@ export default function MyListingsPage() {
                     <button
                       onClick={(e) => markAsSold(listing.id, e)}
                       disabled={markingSoldId === listing.id}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-md text-xs font-medium hover:bg-amber-100 transition-colors z-20 relative"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 rounded-md text-xs font-medium hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors z-20 relative"
                     >
                       {markingSoldId === listing.id ? (
                         <Loader2 size={12} className="animate-spin" />

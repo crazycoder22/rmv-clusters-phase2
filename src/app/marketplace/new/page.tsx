@@ -37,7 +37,7 @@ export default function CreateListingPage() {
   if (authStatus === "loading" || !session?.user?.isApproved) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-gray-500 dark:text-gray-400">Loading...</p>
       </div>
     );
   }
@@ -94,12 +94,12 @@ export default function CreateListingPage() {
         Back to Marketplace
       </Link>
 
-      <h1 className="text-2xl font-bold text-primary-800 mb-6">
+      <h1 className="text-2xl font-bold text-primary-800 dark:text-primary-200 mb-6">
         Create Listing
       </h1>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+        <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-400">
           {error}
         </div>
       )}
@@ -107,7 +107,7 @@ export default function CreateListingPage() {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Title */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Title <span className="text-red-500">*</span>
           </label>
           <input
@@ -116,13 +116,13 @@ export default function CreateListingPage() {
             onChange={(e) => setTitle(e.target.value)}
             required
             placeholder="What are you listing?"
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+            className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm dark:bg-gray-700 dark:text-gray-100"
           />
         </div>
 
         {/* Description */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Description <span className="text-red-500">*</span>
           </label>
           <textarea
@@ -131,13 +131,13 @@ export default function CreateListingPage() {
             required
             rows={4}
             placeholder="Describe the item, condition, etc."
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+            className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm dark:bg-gray-700 dark:text-gray-100"
           />
         </div>
 
         {/* Images */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Images
           </label>
           <ImageUpload images={images} onChange={setImages} maxImages={5} />
@@ -145,13 +145,13 @@ export default function CreateListingPage() {
 
         {/* Category */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Category
           </label>
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm bg-white"
+            className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm bg-white dark:bg-gray-700 dark:text-gray-100"
           >
             {MARKETPLACE_CATEGORIES.map((cat) => (
               <option key={cat.value} value={cat.value}>
@@ -163,10 +163,10 @@ export default function CreateListingPage() {
 
         {/* Listing Type */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Listing Type
           </label>
-          <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit">
+          <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1 w-fit">
             {LISTING_TYPES.map((lt) => (
               <button
                 key={lt.value}
@@ -175,8 +175,8 @@ export default function CreateListingPage() {
                 className={clsx(
                   "px-4 py-1.5 rounded-md text-sm font-medium transition-colors",
                   listingType === lt.value
-                    ? "bg-white text-primary-700 shadow-sm"
-                    : "text-gray-500 hover:text-gray-700"
+                    ? "bg-white dark:bg-gray-700 text-primary-700 dark:text-primary-300 shadow-sm"
+                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                 )}
               >
                 {lt.label}
@@ -188,7 +188,7 @@ export default function CreateListingPage() {
         {/* Price (hidden for GIVEAWAY) */}
         {listingType !== "GIVEAWAY" && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Price <span className="text-red-500">*</span>
             </label>
             <input
@@ -198,7 +198,7 @@ export default function CreateListingPage() {
               required
               min="0"
               placeholder="0"
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+              className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm dark:bg-gray-700 dark:text-gray-100"
             />
           </div>
         )}
@@ -206,13 +206,13 @@ export default function CreateListingPage() {
         {/* Rent Period (shown only for RENT) */}
         {listingType === "RENT" && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Rent Period
             </label>
             <select
               value={rentPeriod}
               onChange={(e) => setRentPeriod(e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm bg-white"
+              className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm bg-white dark:bg-gray-700 dark:text-gray-100"
             >
               {RENT_PERIODS.map((rp) => (
                 <option key={rp.value} value={rp.value}>
@@ -225,7 +225,7 @@ export default function CreateListingPage() {
 
         {/* WhatsApp Number */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             WhatsApp Number <span className="text-red-500">*</span>
           </label>
           <input
@@ -234,7 +234,7 @@ export default function CreateListingPage() {
             onChange={(e) => setWhatsappNumber(e.target.value)}
             required
             placeholder="10-digit number"
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+            className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm dark:bg-gray-700 dark:text-gray-100"
           />
         </div>
 

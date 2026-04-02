@@ -58,7 +58,7 @@ export default function WishlistPage() {
   if (authStatus === "loading" || !session?.user?.isApproved) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-gray-500 dark:text-gray-400">Loading...</p>
       </div>
     );
   }
@@ -75,15 +75,15 @@ export default function WishlistPage() {
 
       <div className="flex items-center gap-2 mb-6">
         <Heart size={24} className="text-primary-600" />
-        <h1 className="text-2xl font-bold text-primary-800">My Wishlist</h1>
+        <h1 className="text-2xl font-bold text-primary-800 dark:text-primary-200">My Wishlist</h1>
       </div>
 
       {loading ? (
         <p className="text-gray-400 text-sm">Loading...</p>
       ) : listings.length === 0 ? (
         <div className="text-center py-16">
-          <Heart size={48} className="mx-auto text-gray-300 mb-3" />
-          <p className="text-gray-400">No saved items yet</p>
+          <Heart size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-3" />
+          <p className="text-gray-400 dark:text-gray-500">No saved items yet</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -91,7 +91,7 @@ export default function WishlistPage() {
             <Link
               key={listing.id}
               href={`/marketplace/${listing.id}`}
-              className="block bg-white rounded-xl shadow-sm border border-gray-100 hover:border-primary-200 hover:shadow-md transition-all overflow-hidden relative"
+              className="block bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:border-primary-200 hover:shadow-md transition-all overflow-hidden relative"
             >
               {listing.status === "SOLD" && (
                 <div className="absolute inset-0 bg-black/40 z-10 flex items-center justify-center">
@@ -101,7 +101,7 @@ export default function WishlistPage() {
                 </div>
               )}
 
-              <div className="aspect-[4/3] bg-gray-100 relative">
+              <div className="aspect-[4/3] bg-gray-100 dark:bg-gray-700 relative">
                 {listing.images.length > 0 ? (
                   <img
                     src={listing.images[0]}
@@ -110,16 +110,16 @@ export default function WishlistPage() {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <ShoppingBag size={40} className="text-gray-300" />
+                    <ShoppingBag size={40} className="text-gray-300 dark:text-gray-500" />
                   </div>
                 )}
               </div>
 
               <div className="p-4">
-                <h3 className="text-base font-semibold text-gray-800 mb-1 line-clamp-1">
+                <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100 mb-1 line-clamp-1">
                   {listing.title}
                 </h3>
-                <p className="text-lg font-bold text-primary-700 mb-2">
+                <p className="text-lg font-bold text-primary-700 dark:text-primary-300 mb-2">
                   {formatPrice(
                     listing.price,
                     listing.listingType,

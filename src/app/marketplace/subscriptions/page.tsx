@@ -69,7 +69,7 @@ export default function SubscriptionsPage() {
   if (authStatus === "loading" || !session?.user?.isApproved) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-gray-500 dark:text-gray-400">Loading...</p>
       </div>
     );
   }
@@ -86,12 +86,12 @@ export default function SubscriptionsPage() {
 
       <div className="flex items-center gap-2 mb-2">
         <Bell size={24} className="text-primary-600" />
-        <h1 className="text-2xl font-bold text-primary-800">
+        <h1 className="text-2xl font-bold text-primary-800 dark:text-primary-200">
           Listing Notifications
         </h1>
       </div>
 
-      <p className="text-sm text-gray-500 mb-6">
+      <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
         Get notified when new items are listed in these categories
       </p>
 
@@ -109,8 +109,8 @@ export default function SubscriptionsPage() {
                   className={clsx(
                     "relative px-4 py-3 rounded-xl text-sm font-medium border-2 transition-all text-center",
                     isActive
-                      ? "border-primary-600 bg-primary-50 text-primary-700"
-                      : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+                      ? "border-primary-600 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300"
+                      : "border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-500"
                   )}
                 >
                   {cat.label}

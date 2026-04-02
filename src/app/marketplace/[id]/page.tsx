@@ -138,7 +138,7 @@ export default function ListingDetailPage({
   if (authStatus === "loading" || !session?.user?.isApproved) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-gray-500 dark:text-gray-400">Loading...</p>
       </div>
     );
   }
@@ -178,8 +178,8 @@ export default function ListingDetailPage({
 
       {/* SOLD banner */}
       {listing.status === "SOLD" && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-center">
-          <span className="text-red-700 font-bold text-lg">SOLD</span>
+        <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg text-center">
+          <span className="text-red-700 dark:text-red-400 font-bold text-lg">SOLD</span>
         </div>
       )}
 
@@ -204,17 +204,17 @@ export default function ListingDetailPage({
           />
         </div>
       ) : (
-        <div className="mb-6 aspect-video bg-gray-100 rounded-xl flex items-center justify-center">
-          <ShoppingBag size={64} className="text-gray-300" />
+        <div className="mb-6 aspect-video bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center">
+          <ShoppingBag size={64} className="text-gray-300 dark:text-gray-500" />
         </div>
       )}
 
       {/* Listing info */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-4">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 mb-4">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
           {listing.title}
         </h1>
-        <p className="text-2xl font-bold text-primary-700 mb-3">
+        <p className="text-2xl font-bold text-primary-700 dark:text-primary-300 mb-3">
           {formatPrice(listing.price, listing.listingType, listing.rentPeriod)}
         </p>
         <div className="flex flex-wrap gap-1.5 mb-4">
@@ -235,16 +235,16 @@ export default function ListingDetailPage({
             {listing.listingType}
           </span>
         </div>
-        <p className="text-sm text-gray-600 whitespace-pre-wrap">
+        <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
           {listing.description}
         </p>
       </div>
 
       {/* Seller info */}
-      <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 mb-4">
-        <p className="text-sm text-gray-600">
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 mb-4">
+        <p className="text-sm text-gray-600 dark:text-gray-400">
           Listed by{" "}
-          <span className="font-semibold text-gray-800">
+          <span className="font-semibold text-gray-800 dark:text-gray-200">
             {listing.seller.name}
           </span>{" "}
           &mdash; Block {listing.seller.block}, {listing.seller.flatNumber}
@@ -270,8 +270,8 @@ export default function ListingDetailPage({
           className={clsx(
             "inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors border",
             wishlisted
-              ? "bg-red-50 text-red-600 border-red-200 hover:bg-red-100"
-              : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
+              ? "bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/50"
+              : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
           )}
         >
           <Heart
@@ -286,7 +286,7 @@ export default function ListingDetailPage({
           <button
             onClick={markAsSold}
             disabled={markingSold}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg text-sm font-medium hover:bg-amber-100 transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 rounded-lg text-sm font-medium hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors"
           >
             {markingSold ? (
               <Loader2 size={16} className="animate-spin" />
@@ -301,7 +301,7 @@ export default function ListingDetailPage({
           <button
             onClick={deleteListing}
             disabled={deleting}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-red-50 text-red-600 border border-red-200 rounded-lg text-sm font-medium hover:bg-red-100 transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg text-sm font-medium hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
           >
             {deleting ? (
               <Loader2 size={16} className="animate-spin" />
