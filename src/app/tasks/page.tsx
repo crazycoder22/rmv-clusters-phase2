@@ -40,18 +40,18 @@ interface Task {
 const STATUS_OPTIONS = ["ALL", "OPEN", "IN_PROGRESS", "ON_HOLD", "BLOCKED", "CLOSED"];
 
 const STATUS_COLORS: Record<string, string> = {
-  OPEN: "bg-amber-100 text-amber-700",
-  IN_PROGRESS: "bg-blue-100 text-blue-700",
-  ON_HOLD: "bg-yellow-100 text-yellow-700",
-  BLOCKED: "bg-red-100 text-red-700",
-  CLOSED: "bg-green-100 text-green-700",
+  OPEN: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
+  IN_PROGRESS: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+  ON_HOLD: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300",
+  BLOCKED: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300",
+  CLOSED: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
 };
 
 const PRIORITY_COLORS: Record<string, string> = {
-  LOW: "bg-gray-100 text-gray-600",
-  NORMAL: "bg-blue-100 text-blue-600",
-  HIGH: "bg-orange-100 text-orange-700",
-  URGENT: "bg-red-100 text-red-700",
+  LOW: "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300",
+  NORMAL: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300",
+  HIGH: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300",
+  URGENT: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300",
 };
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
@@ -247,17 +247,17 @@ export default function TasksPage() {
   if (status === "loading" || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-gray-500 dark:text-gray-400">Loading...</p>
       </div>
     );
   }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-10">
-      <h1 className="text-2xl font-bold text-primary-800 mb-1">
+      <h1 className="text-2xl font-bold text-primary-800 dark:text-primary-300 mb-1">
         {isAdmin ? "Task Management" : "My Tasks"}
       </h1>
-      <p className="text-gray-500 mb-8">
+      <p className="text-gray-500 dark:text-gray-400 mb-8">
         {isAdmin
           ? "Create and manage tasks for facility managers."
           : "View and update your assigned tasks."}
@@ -265,20 +265,20 @@ export default function TasksPage() {
 
       {/* Create Task Form - Admin only */}
       {isAdmin && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 mb-8">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
             Create New Task
           </h2>
 
           {success && (
-            <div className="rounded-md bg-green-50 border border-green-200 p-3 mb-4">
-              <p className="text-sm text-green-800">{success}</p>
+            <div className="rounded-md bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 p-3 mb-4">
+              <p className="text-sm text-green-800 dark:text-green-300">{success}</p>
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Title
               </label>
               <input
@@ -287,20 +287,20 @@ export default function TasksPage() {
                 value={form.title}
                 onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
                 placeholder="Brief description of the task"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-gray-100"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Category
                 </label>
                 <select
                   required
                   value={form.category}
                   onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-gray-100"
                 >
                   <option value="">Select category</option>
                   <option value="MAINTENANCE">Maintenance</option>
@@ -312,13 +312,13 @@ export default function TasksPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Priority
                 </label>
                 <select
                   value={form.priority}
                   onChange={(e) => setForm((prev) => ({ ...prev, priority: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-gray-100"
                 >
                   <option value="LOW">Low</option>
                   <option value="NORMAL">Normal</option>
@@ -328,7 +328,7 @@ export default function TasksPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Deadline
                 </label>
                 <input
@@ -336,20 +336,20 @@ export default function TasksPage() {
                   required
                   value={form.deadline}
                   onChange={(e) => setForm((prev) => ({ ...prev, deadline: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-gray-100"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Assign To
               </label>
               <select
                 required
                 value={form.ownerId}
                 onChange={(e) => setForm((prev) => ({ ...prev, ownerId: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-gray-100"
               >
                 <option value="">Select facility manager</option>
                 {facilityManagers.map((fm) => (
@@ -361,7 +361,7 @@ export default function TasksPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Description
               </label>
               <textarea
@@ -370,13 +370,13 @@ export default function TasksPage() {
                 value={form.description}
                 onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
                 placeholder="Detailed description of the task"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-gray-100"
               />
             </div>
 
             {error && (
-              <div className="rounded-md bg-red-50 border border-red-200 p-3">
-                <p className="text-sm text-red-800">{error}</p>
+              <div className="rounded-md bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 p-3">
+                <p className="text-sm text-red-800 dark:text-red-300">{error}</p>
               </div>
             )}
 
@@ -401,7 +401,7 @@ export default function TasksPage() {
               "px-3 py-1.5 text-xs font-medium rounded-full transition-colors",
               statusFilter === s
                 ? "bg-primary-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
             )}
           >
             {STATUS_LABELS[s] || "All"}
@@ -419,7 +419,7 @@ export default function TasksPage() {
       {/* Task List */}
       {tasks.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-500">No tasks found.</p>
+          <p className="text-gray-500 dark:text-gray-400">No tasks found.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -428,25 +428,25 @@ export default function TasksPage() {
             return (
               <div
                 key={task.id}
-                className="bg-white rounded-xl border border-gray-200 overflow-hidden"
+                className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
               >
                 {/* Task header */}
                 <button
                   onClick={() =>
                     setExpandedId(expandedId === task.id ? null : task.id)
                   }
-                  className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50 transition-colors"
+                  className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="min-w-0">
-                      <p className="font-medium text-gray-900 truncate">
+                      <p className="font-medium text-gray-900 dark:text-gray-100 truncate">
                         {task.title}
                       </p>
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
                         <span
                           className={clsx(
                             "inline-block px-2 py-0.5 text-xs font-medium rounded-full",
-                            STATUS_COLORS[task.status] || "bg-gray-100 text-gray-700"
+                            STATUS_COLORS[task.status] || "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
                           )}
                         >
                           {STATUS_LABELS[task.status] || task.status}
@@ -454,16 +454,16 @@ export default function TasksPage() {
                         <span
                           className={clsx(
                             "inline-block px-2 py-0.5 text-xs font-medium rounded-full",
-                            PRIORITY_COLORS[task.priority] || "bg-gray-100 text-gray-600"
+                            PRIORITY_COLORS[task.priority] || "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300"
                           )}
                         >
                           {task.priority}
                         </span>
-                        <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
+                        <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400">
                           {task.category}
                         </span>
                         {isAdmin && (
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
                             → {task.owner.name}
                           </span>
                         )}
@@ -475,7 +475,7 @@ export default function TasksPage() {
                       <div
                         className={clsx(
                           "flex items-center gap-1 text-xs",
-                          overdue ? "text-red-600 font-medium" : "text-gray-500"
+                          overdue ? "text-red-600 font-medium" : "text-gray-500 dark:text-gray-400"
                         )}
                       >
                         {overdue && <AlertTriangle size={12} />}
@@ -499,7 +499,7 @@ export default function TasksPage() {
 
                 {/* Expanded detail */}
                 {expandedId === task.id && (
-                  <div className="px-5 pb-5 border-t border-gray-100 pt-4 space-y-4">
+                  <div className="px-5 pb-5 border-t border-gray-100 dark:border-gray-700 pt-4 space-y-4">
                     {loadingDetail ? (
                       <p className="text-sm text-gray-400">Loading details...</p>
                     ) : (
@@ -507,31 +507,31 @@ export default function TasksPage() {
                         {/* Task info */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                           <div>
-                            <p className="text-xs font-medium text-gray-500">Description</p>
-                            <p className="text-gray-700 whitespace-pre-wrap mt-0.5">
+                            <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Description</p>
+                            <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap mt-0.5">
                               {task.description}
                             </p>
                           </div>
                           <div className="space-y-2">
                             <div>
-                              <p className="text-xs font-medium text-gray-500">Created By</p>
-                              <p className="text-gray-700">{task.createdBy.name}</p>
+                              <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Created By</p>
+                              <p className="text-gray-700 dark:text-gray-300">{task.createdBy.name}</p>
                             </div>
                             <div>
-                              <p className="text-xs font-medium text-gray-500">Assigned To</p>
-                              <p className="text-gray-700">{task.owner.name}</p>
+                              <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Assigned To</p>
+                              <p className="text-gray-700 dark:text-gray-300">{task.owner.name}</p>
                             </div>
                             <div>
-                              <p className="text-xs font-medium text-gray-500">Created</p>
-                              <p className="text-gray-700">
+                              <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Created</p>
+                              <p className="text-gray-700 dark:text-gray-300">
                                 {new Date(task.createdAt).toLocaleString()}
                               </p>
                             </div>
                             <div>
-                              <p className="text-xs font-medium text-gray-500">Deadline</p>
+                              <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Deadline</p>
                               <p
                                 className={clsx(
-                                  overdue ? "text-red-600 font-medium" : "text-gray-700"
+                                  overdue ? "text-red-600 font-medium" : "text-gray-700 dark:text-gray-300"
                                 )}
                               >
                                 {new Date(task.deadline).toLocaleDateString()}
@@ -540,8 +540,8 @@ export default function TasksPage() {
                             </div>
                             {task.closedAt && (
                               <div>
-                                <p className="text-xs font-medium text-gray-500">Closed</p>
-                                <p className="text-gray-700">
+                                <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Closed</p>
+                                <p className="text-gray-700 dark:text-gray-300">
                                   {new Date(task.closedAt).toLocaleString()}
                                 </p>
                               </div>
@@ -551,8 +551,8 @@ export default function TasksPage() {
 
                         {/* Status update controls */}
                         {task.status !== "CLOSED" || (isAdmin && task.status === "CLOSED") ? (
-                          <div className="border-t border-gray-100 pt-3">
-                            <p className="text-xs font-medium text-gray-500 mb-2">
+                          <div className="border-t border-gray-100 dark:border-gray-700 pt-3">
+                            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
                               Update Status
                             </p>
                             <div className="flex items-center gap-2 flex-wrap">
@@ -585,7 +585,7 @@ export default function TasksPage() {
                               value={statusComment}
                               onChange={(e) => setStatusComment(e.target.value)}
                               placeholder="Optional comment for status change..."
-                              className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                              className="w-full mt-2 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-gray-100 text-sm"
                             />
                             {statusError && (
                               <p className="text-xs text-red-600 mt-1">{statusError}</p>
@@ -595,8 +595,8 @@ export default function TasksPage() {
 
                         {/* Comment timeline */}
                         {taskDetail && taskDetail.comments.length > 0 && (
-                          <div className="border-t border-gray-100 pt-3">
-                            <p className="text-xs font-medium text-gray-500 mb-3">
+                          <div className="border-t border-gray-100 dark:border-gray-700 pt-3">
+                            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-3">
                               Activity ({taskDetail.comments.length})
                             </p>
                             <div className="space-y-3">
@@ -606,12 +606,12 @@ export default function TasksPage() {
                                   className={clsx(
                                     "rounded-md p-3 text-sm",
                                     c.oldStatus
-                                      ? "bg-gray-50 border border-gray-200"
-                                      : "bg-blue-50/50 border border-blue-100"
+                                      ? "bg-gray-50 border border-gray-200 dark:bg-gray-700 dark:border-gray-600"
+                                      : "bg-blue-50/50 border border-blue-100 dark:bg-blue-900/20 dark:border-blue-800"
                                   )}
                                 >
                                   <div className="flex items-center justify-between mb-1">
-                                    <span className="font-medium text-gray-800 text-xs">
+                                    <span className="font-medium text-gray-800 dark:text-gray-100 text-xs">
                                       {c.author.name}
                                     </span>
                                     <span className="text-[10px] text-gray-400">
@@ -639,7 +639,7 @@ export default function TasksPage() {
                                       </span>
                                     </div>
                                   )}
-                                  <p className="text-gray-700 text-xs">{c.content}</p>
+                                  <p className="text-gray-700 dark:text-gray-300 text-xs">{c.content}</p>
                                 </div>
                               ))}
                             </div>
@@ -647,14 +647,14 @@ export default function TasksPage() {
                         )}
 
                         {/* Add comment */}
-                        <div className="border-t border-gray-100 pt-3">
+                        <div className="border-t border-gray-100 dark:border-gray-700 pt-3">
                           <div className="flex gap-2">
                             <input
                               type="text"
                               value={newComment}
                               onChange={(e) => setNewComment(e.target.value)}
                               placeholder="Add a comment..."
-                              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                              className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-gray-100 text-sm"
                               onKeyDown={(e) => {
                                 if (e.key === "Enter" && !e.shiftKey) {
                                   e.preventDefault();
