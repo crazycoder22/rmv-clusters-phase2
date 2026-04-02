@@ -92,14 +92,14 @@ export default function SosAcceptancesPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-lg bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
             <Shield size={20} className="text-red-600" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               SOS Guidelines Acceptances
             </h1>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               {acceptances.length} resident{acceptances.length !== 1 ? "s" : ""}{" "}
               accepted
             </p>
@@ -107,7 +107,7 @@ export default function SosAcceptancesPage() {
         </div>
         <button
           onClick={exportCsv}
-          className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
         >
           <Download size={16} />
           Export CSV
@@ -124,14 +124,14 @@ export default function SosAcceptancesPage() {
             }
             className={`rounded-lg border p-3 text-center transition-colors ${
               blockFilter === String(b)
-                ? "border-red-300 bg-red-50"
-                : "border-gray-200 bg-white hover:bg-gray-50"
+                ? "border-red-300 bg-red-50 dark:border-red-700 dark:bg-red-900/20"
+                : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
             }`}
           >
-            <p className="text-2xl font-bold text-gray-900">
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               {blockCounts[b - 1]}
             </p>
-            <p className="text-xs text-gray-500">Block {b}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Block {b}</p>
           </button>
         ))}
       </div>
@@ -147,37 +147,37 @@ export default function SosAcceptancesPage() {
           placeholder="Search by name, email, phone, or flat..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
+          className="w-full pl-9 pr-4 py-2.5 border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
         />
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
+              <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                <th className="text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider px-4 py-3">
                   #
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
+                <th className="text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider px-4 py-3">
                   Name
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
+                <th className="text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider px-4 py-3">
                   Contact
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
+                <th className="text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider px-4 py-3">
                   Block / Flat
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
+                <th className="text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider px-4 py-3">
                   Linked
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
+                <th className="text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider px-4 py-3">
                   Accepted On
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
               {filtered.length === 0 ? (
                 <tr>
                   <td
@@ -189,44 +189,44 @@ export default function SosAcceptancesPage() {
                 </tr>
               ) : (
                 filtered.map((a, i) => (
-                  <tr key={a.id} className="hover:bg-gray-50">
+                  <tr key={a.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-4 py-3 text-sm text-gray-400">
                       {i + 1}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <User size={14} className="text-gray-400" />
-                        <span className="text-sm font-medium text-gray-900">
+                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                           {a.name}
                         </span>
                       </div>
                       <p className="text-xs text-gray-400 mt-0.5">{a.email}</p>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-1.5 text-sm text-gray-700">
+                      <div className="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300">
                         <Phone size={13} className="text-gray-400" />
                         {a.phone}
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-1.5 text-sm text-gray-700">
+                      <div className="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300">
                         <Home size={13} className="text-gray-400" />
                         B{a.block} - {a.flatNumber}
                       </div>
                     </td>
                     <td className="px-4 py-3">
                       {a.resident ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">
                           Resident
                         </span>
                       ) : (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400">
                           Guest
                         </span>
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-1.5 text-sm text-gray-600">
+                      <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400">
                         <Calendar size={13} className="text-gray-400" />
                         {new Date(a.createdAt).toLocaleDateString("en-IN", {
                           day: "numeric",
