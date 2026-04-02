@@ -112,7 +112,7 @@ export default function FeedPost({ post, currentUserId, isAdmin, onDelete }: Fee
 
     if (count === 1) {
       return (
-        <div className="mt-3 rounded-lg overflow-hidden bg-gray-50">
+        <div className="mt-3 rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-700">
           <img src={post.images[0]} alt="" className="w-full object-contain max-h-[500px]" />
         </div>
       );
@@ -123,7 +123,7 @@ export default function FeedPost({ post, currentUserId, isAdmin, onDelete }: Fee
         count === 2 ? "grid-cols-2" : "grid-cols-2"
       }`}>
         {post.images.map((url, i) => (
-          <div key={i} className={`${count === 3 && i === 0 ? "row-span-2" : ""} bg-gray-50`}>
+          <div key={i} className={`${count === 3 && i === 0 ? "row-span-2" : ""} bg-gray-50 dark:bg-gray-700`}>
             <img src={url} alt="" className="w-full h-full object-contain" style={{ minHeight: "120px", maxHeight: count <= 2 ? "300px" : "200px" }} />
           </div>
         ))}
@@ -132,7 +132,7 @@ export default function FeedPost({ post, currentUserId, isAdmin, onDelete }: Fee
   };
 
   return (
-    <div className={`bg-white rounded-xl border border-gray-200 p-4 mb-4 ${deleting ? "opacity-50" : ""}`}>
+    <div className={`bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 mb-4 ${deleting ? "opacity-50" : ""}`}>
       {/* Author header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
@@ -151,7 +151,7 @@ export default function FeedPost({ post, currentUserId, isAdmin, onDelete }: Fee
             )}
           </div>
           <div>
-            <p className="text-sm font-semibold text-gray-900">{post.author.name}</p>
+            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{post.author.name}</p>
             <p className="text-xs text-gray-400">
               B{post.author.block} - {post.author.flatNumber} &middot; {timeAgo(post.createdAt)}
             </p>
@@ -171,7 +171,7 @@ export default function FeedPost({ post, currentUserId, isAdmin, onDelete }: Fee
       </div>
 
       {/* Content */}
-      <div className="text-sm text-gray-800 whitespace-pre-line">{post.content}</div>
+      <div className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-line">{post.content}</div>
 
       {/* Images */}
       {renderImages()}
@@ -180,7 +180,7 @@ export default function FeedPost({ post, currentUserId, isAdmin, onDelete }: Fee
       {post.videoUrl && <YouTubeEmbed url={post.videoUrl} />}
 
       {/* Like & Comment buttons */}
-      <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100">
+      <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
         <button
           onClick={handleLike}
           className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${

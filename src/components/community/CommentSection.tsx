@@ -90,7 +90,7 @@ export default function CommentSection({
   };
 
   return (
-    <div className="border-t border-gray-100 pt-3 mt-3">
+    <div className="border-t border-gray-100 dark:border-gray-700 pt-3 mt-3">
       {loading ? (
         <div className="flex justify-center py-3">
           <Loader2 size={16} className="animate-spin text-gray-400" />
@@ -101,7 +101,7 @@ export default function CommentSection({
             <div className="space-y-3 mb-3 max-h-60 overflow-y-auto">
               {comments.map((c) => (
                 <div key={c.id} className="flex gap-2 group">
-                  <div className="w-7 h-7 rounded-full bg-gray-200 flex-shrink-0 flex items-center justify-center overflow-hidden">
+                  <div className="w-7 h-7 rounded-full bg-gray-200 dark:bg-gray-600 flex-shrink-0 flex items-center justify-center overflow-hidden">
                     {c.author.googleImage ? (
                       <img
                         src={c.author.googleImage}
@@ -116,16 +116,16 @@ export default function CommentSection({
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="bg-gray-50 rounded-lg px-3 py-2">
+                    <div className="bg-gray-50 dark:bg-gray-700 rounded-lg px-3 py-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold text-gray-900">
+                        <span className="text-xs font-semibold text-gray-900 dark:text-gray-100">
                           {c.author.name}
                         </span>
                         <span className="text-[10px] text-gray-400">
                           {timeAgo(c.createdAt)}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-700 mt-0.5">{c.content}</p>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 mt-0.5">{c.content}</p>
                     </div>
                   </div>
                   {(c.author.id === currentUserId || isAdmin) && (
@@ -152,7 +152,7 @@ export default function CommentSection({
           onChange={(e) => setNewComment(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSubmit()}
           placeholder="Write a comment..."
-          className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          className="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm dark:text-gray-100 dark:placeholder:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
         />
         <button
           onClick={handleSubmit}

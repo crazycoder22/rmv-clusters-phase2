@@ -60,13 +60,13 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
+    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 mb-6">
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
         placeholder="Share something with your community..."
         rows={3}
-        className="w-full resize-none border-0 focus:ring-0 text-sm text-gray-900 placeholder:text-gray-400 p-0"
+        className="w-full resize-none border-0 focus:ring-0 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 p-0 bg-transparent"
       />
 
       <ImageUpload images={images} onChange={setImages} disabled={posting} />
@@ -78,21 +78,21 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
             value={videoUrl}
             onChange={(e) => setVideoUrl(e.target.value)}
             placeholder="Paste YouTube link..."
-            className="flex-1 px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="flex-1 px-3 py-1.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           />
           <button
             onClick={() => {
               setShowVideoInput(false);
               setVideoUrl("");
             }}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
           >
             <X size={16} />
           </button>
         </div>
       )}
 
-      <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+      <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
         <div className="flex items-center gap-1">
           {!showVideoInput && (
             <button

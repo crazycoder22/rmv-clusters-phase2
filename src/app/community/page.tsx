@@ -120,7 +120,7 @@ export default function CommunityPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Community</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Community</h1>
 
       <CreatePost onPostCreated={handlePostCreated} />
 
@@ -147,7 +147,7 @@ export default function CommunityPage() {
               <button
                 onClick={loadMore}
                 disabled={loadingMore}
-                className="px-6 py-2 text-sm font-medium text-primary-600 bg-primary-50 rounded-lg hover:bg-primary-100 disabled:opacity-50 transition-colors"
+                className="px-6 py-2 text-sm font-medium text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/50 disabled:opacity-50 transition-colors"
               >
                 {loadingMore ? (
                   <span className="flex items-center gap-2">
