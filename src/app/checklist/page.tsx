@@ -104,7 +104,7 @@ export default function ChecklistPage() {
 
   if (!session) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-12 text-center text-gray-500">
+      <div className="max-w-7xl mx-auto px-4 py-12 text-center text-gray-500 dark:text-gray-400">
         Please sign in to view the facility checklist.
       </div>
     );
@@ -112,7 +112,7 @@ export default function ChecklistPage() {
 
   if (!session.user?.isApproved) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-12 text-center text-gray-500">
+      <div className="max-w-7xl mx-auto px-4 py-12 text-center text-gray-500 dark:text-gray-400">
         Your account is pending approval.
       </div>
     );
@@ -128,21 +128,21 @@ export default function ChecklistPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Facility Checklist</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Facility Checklist</h1>
         <div className="flex items-center gap-3">
           <button
             onClick={prevMonth}
-            className="p-2 rounded-lg hover:bg-gray-100 text-gray-600"
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
             aria-label="Previous month"
           >
             <ChevronLeft size={20} />
           </button>
-          <span className="text-lg font-semibold text-gray-800 min-w-[180px] text-center">
+          <span className="text-lg font-semibold text-gray-800 dark:text-gray-100 min-w-[180px] text-center">
             {MONTH_NAMES[currentMonth.getMonth()]} {currentMonth.getFullYear()}
           </span>
           <button
             onClick={nextMonth}
-            className="p-2 rounded-lg hover:bg-gray-100 text-gray-600"
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
             aria-label="Next month"
           >
             <ChevronRight size={20} />
@@ -151,7 +151,7 @@ export default function ChecklistPage() {
       </div>
 
       {canFill && (
-        <p className="text-sm text-gray-500 mb-4">
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
           Click on a cell to mark it as done or not done.
         </p>
       )}
@@ -161,25 +161,25 @@ export default function ChecklistPage() {
           <Loader2 className="animate-spin text-primary-600" size={32} />
         </div>
       ) : items.length === 0 ? (
-        <div className="text-center py-20 text-gray-500">
+        <div className="text-center py-20 text-gray-500 dark:text-gray-400">
           No checklist items configured yet. An admin can add items from the Admin panel.
         </div>
       ) : (
-        <div className="overflow-x-auto border rounded-xl shadow-sm">
+        <div className="overflow-x-auto border dark:border-gray-700 rounded-xl shadow-sm">
           <table className="min-w-full border-collapse">
             <thead>
-              <tr className="bg-gray-50">
-                <th className="sticky left-0 z-10 bg-gray-50 px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b border-r min-w-[160px]">
+              <tr className="bg-gray-50 dark:bg-gray-800">
+                <th className="sticky left-0 z-10 bg-gray-50 dark:bg-gray-800 px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300 border-b dark:border-gray-700 border-r dark:border-r-gray-700 min-w-[160px]">
                   Task
                 </th>
                 {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((day) => (
                   <th
                     key={day}
                     className={clsx(
-                      "px-1 py-3 text-center text-xs font-medium border-b min-w-[36px]",
+                      "px-1 py-3 text-center text-xs font-medium border-b dark:border-gray-700 min-w-[36px]",
                       isCurrentMonth && day === todayDay
-                        ? "bg-primary-100 text-primary-700 font-bold"
-                        : "text-gray-500"
+                        ? "bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-bold"
+                        : "text-gray-500 dark:text-gray-400"
                     )}
                   >
                     {day}
@@ -192,12 +192,13 @@ export default function ChecklistPage() {
                 <tr
                   key={item.id}
                   className={clsx(
-                    idx % 2 === 0 ? "bg-white" : "bg-gray-50/50"
+                    idx % 2 === 0 ? "bg-white dark:bg-gray-900" : "bg-gray-50/50 dark:bg-gray-800/50"
                   )}
                 >
-                  <td className="sticky left-0 z-10 px-4 py-2 text-sm font-medium text-gray-800 border-r whitespace-nowrap"
-                    style={{ backgroundColor: idx % 2 === 0 ? "white" : "rgb(249 250 251 / 0.5)" }}
-                  >
+                  <td className={clsx(
+                    "sticky left-0 z-10 px-4 py-2 text-sm font-medium text-gray-800 dark:text-gray-200 border-r dark:border-r-gray-700 whitespace-nowrap",
+                    idx % 2 === 0 ? "bg-white dark:bg-gray-900" : "bg-gray-50 dark:bg-gray-800"
+                  )}>
                     {item.name}
                   </td>
                   {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((day) => {
@@ -210,9 +211,9 @@ export default function ChecklistPage() {
                       <td
                         key={day}
                         className={clsx(
-                          "px-1 py-2 text-center border-l border-gray-100",
-                          isToday && "bg-primary-50/50",
-                          canFill && "cursor-pointer hover:bg-gray-100"
+                          "px-1 py-2 text-center border-l border-gray-100 dark:border-gray-700",
+                          isToday && "bg-primary-50/50 dark:bg-primary-900/20",
+                          canFill && "cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
                         )}
                         onClick={() => toggleEntry(item.id, day)}
                         title={
@@ -242,7 +243,7 @@ export default function ChecklistPage() {
 
       {/* Legend */}
       {items.length > 0 && !loading && (
-        <div className="flex items-center gap-6 mt-4 text-sm text-gray-500">
+        <div className="flex items-center gap-6 mt-4 text-sm text-gray-500 dark:text-gray-400">
           <span className="flex items-center gap-1">
             <Check className="text-emerald-600" size={16} strokeWidth={3} /> Done
           </span>
@@ -250,7 +251,7 @@ export default function ChecklistPage() {
             <X className="text-red-500" size={16} strokeWidth={3} /> Not done
           </span>
           <span className="flex items-center gap-1">
-            <span className="inline-block w-4 h-4 border border-gray-200 rounded" /> Not filled
+            <span className="inline-block w-4 h-4 border border-gray-200 dark:border-gray-600 rounded" /> Not filled
           </span>
         </div>
       )}
