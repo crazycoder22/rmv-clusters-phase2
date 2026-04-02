@@ -20,9 +20,9 @@ interface Meeting {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  SCHEDULED: "bg-blue-100 text-blue-700",
-  COMPLETED: "bg-green-100 text-green-700",
-  CANCELLED: "bg-red-100 text-red-700",
+  SCHEDULED: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+  COMPLETED: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
+  CANCELLED: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300",
 };
 
 export default function AdminMeetingsPage() {
@@ -57,9 +57,9 @@ export default function AdminMeetingsPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-48" />
-          <div className="h-32 bg-gray-200 rounded" />
-          <div className="h-32 bg-gray-200 rounded" />
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-48" />
+          <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded" />
+          <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded" />
         </div>
       </div>
     );
@@ -68,7 +68,7 @@ export default function AdminMeetingsPage() {
   if (!hasAccess) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12 text-center">
-        <p className="text-gray-500">You do not have access to this page.</p>
+        <p className="text-gray-500 dark:text-gray-400">You do not have access to this page.</p>
       </div>
     );
   }
@@ -78,7 +78,7 @@ export default function AdminMeetingsPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Meetings</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Meetings</h1>
         <Link
           href="/admin/meetings/new"
           className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
@@ -97,7 +97,7 @@ export default function AdminMeetingsPage() {
             className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
               filter === s
                 ? "bg-primary-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
             }`}
           >
             {s === "ALL" ? "All" : s.charAt(0) + s.slice(1).toLowerCase()}
@@ -106,9 +106,9 @@ export default function AdminMeetingsPage() {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
+        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
           <Calendar className="mx-auto mb-3 text-gray-300" size={48} />
-          <p className="text-gray-500">No meetings found.</p>
+          <p className="text-gray-500 dark:text-gray-400">No meetings found.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -116,23 +116,23 @@ export default function AdminMeetingsPage() {
             <Link
               key={meeting.id}
               href={`/admin/meetings/${meeting.id}`}
-              className="block bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow"
+              className="block bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 hover:shadow-md transition-shadow"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-gray-900 truncate">
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 truncate">
                       {meeting.title}
                     </h3>
                     <span
                       className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                        STATUS_COLORS[meeting.status] || "bg-gray-100 text-gray-700"
+                        STATUS_COLORS[meeting.status] || "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
                       }`}
                     >
                       {meeting.status.charAt(0) + meeting.status.slice(1).toLowerCase()}
                     </span>
                   </div>
-                  <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500">
+                  <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
                     <span className="flex items-center gap-1">
                       <Calendar size={14} />
                       {new Date(meeting.date).toLocaleDateString("en-IN", {

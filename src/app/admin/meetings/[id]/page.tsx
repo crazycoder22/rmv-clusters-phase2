@@ -77,9 +77,9 @@ interface Meeting {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  SCHEDULED: "bg-blue-100 text-blue-700",
-  COMPLETED: "bg-green-100 text-green-700",
-  CANCELLED: "bg-red-100 text-red-700",
+  SCHEDULED: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+  COMPLETED: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
+  CANCELLED: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300",
 };
 
 const RSVP_ICONS: Record<string, typeof CheckCircle2> = {
@@ -95,9 +95,9 @@ const RSVP_COLORS: Record<string, string> = {
 };
 
 const RSVP_OUTLINE: Record<string, string> = {
-  ATTENDING: "border-green-600 text-green-700 hover:bg-green-50",
-  MAYBE: "border-amber-500 text-amber-600 hover:bg-amber-50",
-  DECLINED: "border-red-600 text-red-700 hover:bg-red-50",
+  ATTENDING: "border-green-600 text-green-700 hover:bg-green-50 dark:hover:bg-green-900/30",
+  MAYBE: "border-amber-500 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/30",
+  DECLINED: "border-red-600 text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30",
 };
 
 const FILE_TYPE_ICONS: Record<string, typeof File> = {
@@ -265,9 +265,9 @@ export default function MeetingDetailPage({
     return (
       <div className="max-w-3xl mx-auto px-4 py-12">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-64" />
-          <div className="h-48 bg-gray-200 rounded" />
-          <div className="h-32 bg-gray-200 rounded" />
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-64" />
+          <div className="h-48 bg-gray-200 dark:bg-gray-700 rounded" />
+          <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded" />
         </div>
       </div>
     );
@@ -276,7 +276,7 @@ export default function MeetingDetailPage({
   if (!hasAccess) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-12 text-center">
-        <p className="text-gray-500">You do not have access to this page.</p>
+        <p className="text-gray-500 dark:text-gray-400">You do not have access to this page.</p>
       </div>
     );
   }
@@ -284,7 +284,7 @@ export default function MeetingDetailPage({
   if (!meeting) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-12 text-center">
-        <p className="text-gray-500">Meeting not found.</p>
+        <p className="text-gray-500 dark:text-gray-400">Meeting not found.</p>
       </div>
     );
   }
@@ -297,7 +297,7 @@ export default function MeetingDetailPage({
     <div className="max-w-3xl mx-auto px-4 py-8">
       <Link
         href="/admin/meetings"
-        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-primary-600 mb-6"
+        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 mb-6"
       >
         <ArrowLeft size={16} />
         Back to Meetings
@@ -307,10 +307,10 @@ export default function MeetingDetailPage({
       <div className="flex items-start justify-between mb-6">
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-2xl font-bold text-gray-900">{meeting.title}</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{meeting.title}</h1>
             <span
               className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                STATUS_COLORS[meeting.status] || "bg-gray-100 text-gray-700"
+                STATUS_COLORS[meeting.status] || "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
               }`}
             >
               {meeting.status.charAt(0) + meeting.status.slice(1).toLowerCase()}
@@ -321,14 +321,14 @@ export default function MeetingDetailPage({
           {meeting.status !== "CANCELLED" && (
             <Link
               href={`/admin/meetings/${id}/edit`}
-              className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+              className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/30 rounded-lg transition-colors"
             >
               <Pencil size={18} />
             </Link>
           )}
           <button
             onClick={() => setDeleteConfirm(true)}
-            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
           >
             <Trash2 size={18} />
           </button>
@@ -337,8 +337,8 @@ export default function MeetingDetailPage({
 
       {/* Delete confirmation */}
       {deleteConfirm && (
-        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-sm text-red-700 mb-3">
+        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 dark:bg-red-900/30 dark:border-red-800">
+          <p className="text-sm text-red-700 dark:text-red-300 mb-3">
             Are you sure you want to delete this meeting? This cannot be undone.
           </p>
           <div className="flex gap-2">
@@ -350,7 +350,7 @@ export default function MeetingDetailPage({
             </button>
             <button
               onClick={() => setDeleteConfirm(false)}
-              className="px-3 py-1.5 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50"
+              className="px-3 py-1.5 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600"
             >
               Cancel
             </button>
@@ -359,9 +359,9 @@ export default function MeetingDetailPage({
       )}
 
       {/* Details card */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
+      <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6 dark:bg-gray-800 dark:border-gray-700">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-          <div className="flex items-center gap-2 text-gray-600">
+          <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
             <Calendar size={16} className="text-gray-400" />
             {new Date(meeting.date).toLocaleDateString("en-IN", {
               weekday: "long",
@@ -372,15 +372,15 @@ export default function MeetingDetailPage({
               minute: "2-digit",
             })}
           </div>
-          <div className="flex items-center gap-2 text-gray-600">
+          <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
             <MapPin size={16} className="text-gray-400" />
             {meeting.location}
           </div>
-          <div className="flex items-center gap-2 text-gray-600">
+          <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
             <User size={16} className="text-gray-400" />
             Created by {meeting.creator.name}
           </div>
-          <div className="flex items-center gap-2 text-gray-600">
+          <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
             {meeting.isPublic ? (
               <>
                 <Globe size={16} className="text-gray-400" />
@@ -412,7 +412,7 @@ export default function MeetingDetailPage({
             <button
               onClick={() => handleStatusChange("CANCELLED")}
               disabled={statusLoading}
-              className="px-4 py-2 bg-white border border-red-300 text-red-600 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors disabled:opacity-50"
+              className="px-4 py-2 bg-white border border-red-300 text-red-600 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors disabled:opacity-50 dark:bg-gray-800 dark:border-red-700"
             >
               Cancel Meeting
             </button>
@@ -421,19 +421,19 @@ export default function MeetingDetailPage({
       )}
 
       {/* Agenda */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">Agenda</h2>
-        <div className="text-sm text-gray-700 whitespace-pre-wrap">{meeting.agenda}</div>
+      <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6 dark:bg-gray-800 dark:border-gray-700">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Agenda</h2>
+        <div className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{meeting.agenda}</div>
       </div>
 
       {/* RSVP section */}
       {meeting.status !== "CANCELLED" && (
-        <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">RSVP</h2>
+        <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6 dark:bg-gray-800 dark:border-gray-700">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">RSVP</h2>
 
           {/* Your RSVP */}
           <div className="mb-5">
-            <p className="text-sm text-gray-500 mb-2">Your response:</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Your response:</p>
             <div className="flex gap-2">
               {(["ATTENDING", "MAYBE", "DECLINED"] as const).map((status) => (
                 <button
@@ -502,9 +502,9 @@ export default function MeetingDetailPage({
       )}
 
       {/* Minutes of Meeting */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
+      <div className="bg-white rounded-xl border border-gray-200 p-5 dark:bg-gray-800 dark:border-gray-700">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
             <FileText size={20} />
             Minutes of Meeting
           </h2>
@@ -521,26 +521,26 @@ export default function MeetingDetailPage({
         {editingMom ? (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Google Drive Link
               </label>
               <input
                 type="url"
                 value={momUrl}
                 onChange={(e) => setMomUrl(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                 placeholder="https://drive.google.com/..."
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Summary / Highlights
               </label>
               <textarea
                 value={momSummary}
                 onChange={(e) => setMomSummary(e.target.value)}
                 rows={4}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                 placeholder="Key decisions and action items from the meeting..."
               />
             </div>
@@ -558,7 +558,7 @@ export default function MeetingDetailPage({
                   setMomUrl(meeting.momUrl || "");
                   setMomSummary(meeting.momSummary || "");
                 }}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200"
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
               >
                 Cancel
               </button>
@@ -578,7 +578,7 @@ export default function MeetingDetailPage({
               </a>
             )}
             {meeting.momSummary && (
-              <div className="text-sm text-gray-700 whitespace-pre-wrap bg-gray-50 rounded-lg p-4">
+              <div className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
                 {meeting.momSummary}
               </div>
             )}
@@ -590,9 +590,9 @@ export default function MeetingDetailPage({
         )}
 
         {/* Linked Documents */}
-        <div className="mt-6 pt-5 border-t border-gray-100">
+        <div className="mt-6 pt-5 border-t border-gray-100 dark:border-gray-700">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
               <Paperclip size={16} />
               Linked Documents
               {meeting.documents.length > 0 && (
@@ -621,7 +621,7 @@ export default function MeetingDetailPage({
                 return (
                   <div
                     key={link.id}
-                    className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2.5 group"
+                    className="flex items-center justify-between bg-gray-50 dark:bg-gray-700 rounded-lg px-3 py-2.5 group"
                   >
                     <div className="flex items-center gap-3 min-w-0 flex-1">
                       <FileIcon
@@ -639,7 +639,7 @@ export default function MeetingDetailPage({
                             {link.document.name}
                           </a>
                         ) : (
-                          <span className="text-sm font-medium text-gray-800 truncate block">
+                          <span className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate block">
                             {link.document.name}
                           </span>
                         )}
@@ -681,8 +681,8 @@ export default function MeetingDetailPage({
 
           {/* Document picker */}
           {showDocPicker && (
-            <div className="mt-3 border border-gray-200 rounded-lg overflow-hidden">
-              <div className="bg-gray-50 px-3 py-2 flex items-center gap-2 border-b border-gray-200">
+            <div className="mt-3 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+              <div className="bg-gray-50 dark:bg-gray-700 px-3 py-2 flex items-center gap-2 border-b border-gray-200 dark:border-gray-700">
                 <Search size={14} className="text-gray-400" />
                 <input
                   type="text"
@@ -692,12 +692,12 @@ export default function MeetingDetailPage({
                     searchDocuments(e.target.value);
                   }}
                   placeholder="Search documents..."
-                  className="flex-1 bg-transparent text-sm outline-none placeholder-gray-400"
+                  className="flex-1 bg-transparent text-sm outline-none placeholder-gray-400 dark:text-gray-100"
                   autoFocus
                 />
                 <button
                   onClick={() => setShowDocPicker(false)}
-                  className="p-1 text-gray-400 hover:text-gray-600"
+                  className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                 >
                   <X size={14} />
                 </button>
@@ -722,14 +722,14 @@ export default function MeetingDetailPage({
                         key={doc.id}
                         onClick={() => handleLinkDocument(doc.id)}
                         disabled={linkingDocId === doc.id}
-                        className="w-full text-left px-3 py-2 hover:bg-primary-50 flex items-center gap-3 border-b border-gray-100 last:border-0 disabled:opacity-50"
+                        className="w-full text-left px-3 py-2 hover:bg-primary-50 dark:hover:bg-primary-900/30 flex items-center gap-3 border-b border-gray-100 dark:border-gray-700 last:border-0 disabled:opacity-50"
                       >
                         <FileIcon
                           size={14}
                           className="text-gray-400 flex-shrink-0"
                         />
                         <div className="min-w-0 flex-1">
-                          <span className="text-sm text-gray-800 truncate block">
+                          <span className="text-sm text-gray-800 dark:text-gray-200 truncate block">
                             {doc.name}
                           </span>
                           <span className="text-xs text-gray-400">
@@ -775,7 +775,7 @@ function RsvpRow({ rsvp }: { rsvp: MeetingRsvp }) {
             : "text-amber-500"
         }
       />
-      <span className="text-gray-800">{rsvp.resident.name}</span>
+      <span className="text-gray-800 dark:text-gray-200">{rsvp.resident.name}</span>
       <span className="text-gray-400">
         Block {rsvp.resident.block}, {rsvp.resident.flatNumber}
       </span>

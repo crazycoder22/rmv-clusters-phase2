@@ -59,8 +59,8 @@ export default function EditMeetingPage({
     return (
       <div className="max-w-2xl mx-auto px-4 py-12">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-48" />
-          <div className="h-64 bg-gray-200 rounded" />
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-48" />
+          <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded" />
         </div>
       </div>
     );
@@ -69,7 +69,7 @@ export default function EditMeetingPage({
   if (!hasAccess) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-12 text-center">
-        <p className="text-gray-500">You do not have access to this page.</p>
+        <p className="text-gray-500 dark:text-gray-400">You do not have access to this page.</p>
       </div>
     );
   }
@@ -98,17 +98,17 @@ export default function EditMeetingPage({
     <div className="max-w-2xl mx-auto px-4 py-8">
       <Link
         href={`/admin/meetings/${id}`}
-        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-primary-600 mb-6"
+        className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 mb-6"
       >
         <ArrowLeft size={16} />
         Back to Meeting
       </Link>
 
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Edit Meeting</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Edit Meeting</h1>
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Title <span className="text-red-500">*</span>
           </label>
           <input
@@ -116,12 +116,12 @@ export default function EditMeetingPage({
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Agenda <span className="text-red-500">*</span>
           </label>
           <textarea
@@ -129,13 +129,13 @@ export default function EditMeetingPage({
             onChange={(e) => setAgenda(e.target.value)}
             required
             rows={5}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Date & Time <span className="text-red-500">*</span>
             </label>
             <input
@@ -143,12 +143,12 @@ export default function EditMeetingPage({
               value={date}
               onChange={(e) => setDate(e.target.value)}
               required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Location <span className="text-red-500">*</span>
             </label>
             <input
@@ -156,7 +156,7 @@ export default function EditMeetingPage({
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             />
           </div>
         </div>
@@ -169,13 +169,13 @@ export default function EditMeetingPage({
             onChange={(e) => setIsPublic(e.target.checked)}
             className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
           />
-          <label htmlFor="isPublic" className="text-sm text-gray-700">
+          <label htmlFor="isPublic" className="text-sm text-gray-700 dark:text-gray-300">
             Show on public calendar
           </label>
         </div>
 
         {error && (
-          <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+          <p className="text-sm text-red-600 dark:text-red-300 bg-red-50 dark:bg-red-900/30 px-3 py-2 rounded-lg">
             {error}
           </p>
         )}
@@ -190,7 +190,7 @@ export default function EditMeetingPage({
           </button>
           <Link
             href={`/admin/meetings/${id}`}
-            className="px-5 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+            className="px-5 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm font-medium"
           >
             Cancel
           </Link>
