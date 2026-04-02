@@ -364,7 +364,7 @@ export default function SOSGuidelinesContent() {
             color="red"
           />
           <div className="mt-4 space-y-4">
-            <div className="bg-white rounded-lg p-5 shadow-sm border border-gray-100">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-5 shadow-sm border border-gray-100 dark:border-gray-700">
               <p className="text-sm font-semibold text-red-700 mb-3">
                 This group is ONLY for real emergencies
               </p>
@@ -377,7 +377,7 @@ export default function SOSGuidelinesContent() {
                 ))}
               </div>
             </div>
-            <div className="bg-white rounded-lg p-5 shadow-sm border border-gray-100">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-5 shadow-sm border border-gray-100 dark:border-gray-700">
               <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
                 Strict Action Policy
               </p>
