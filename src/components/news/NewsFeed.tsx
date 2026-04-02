@@ -60,7 +60,7 @@ export default function NewsFeed() {
               "px-4 py-2 rounded-full text-sm font-medium transition-colors capitalize",
               activeCategory === cat
                 ? "bg-primary-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
             )}
           >
             {cat}
@@ -89,7 +89,7 @@ export default function NewsFeed() {
               <article
                 key={announcement.id}
                 className={clsx(
-                  "bg-white rounded-lg p-6 shadow-sm border border-gray-100",
+                  "bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-100 dark:border-gray-700",
                   getPriorityBorder(announcement.priority)
                 )}
               >
@@ -102,10 +102,10 @@ export default function NewsFeed() {
                       {ec.mealType}
                     </span>
                   )}
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
                     {formatDate(announcement.date)}
                   </span>
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-gray-400 dark:text-gray-500">
                     &middot; {announcement.author}
                   </span>
                 </div>
@@ -113,10 +113,10 @@ export default function NewsFeed() {
                   href={`/news/${announcement.id}`}
                   className="block group"
                 >
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-primary-700 transition-colors">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2 group-hover:text-primary-700 transition-colors">
                     {announcement.title}
                   </h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">
+                  <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
                     {announcement.summary}
                   </p>
                 </Link>
@@ -124,7 +124,7 @@ export default function NewsFeed() {
                   <summary className="text-sm text-primary-600 hover:text-primary-700 cursor-pointer font-medium">
                     Read more
                   </summary>
-                  <p className="mt-2 text-gray-600 text-sm leading-relaxed">
+                  <p className="mt-2 text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
                     {announcement.body}
                   </p>
 
