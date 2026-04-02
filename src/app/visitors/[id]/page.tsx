@@ -19,10 +19,10 @@ import type { VisitorRecord } from "@/types";
 function StatusBadge({ status }: { status: string }) {
   const styles =
     status === "APPROVED"
-      ? "bg-green-100 text-green-700"
+      ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
       : status === "REJECTED"
-      ? "bg-red-100 text-red-700"
-      : "bg-yellow-100 text-yellow-700";
+      ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
+      : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300";
 
   return (
     <span
@@ -102,7 +102,7 @@ export default function VisitorDetailPage() {
   if (sessionStatus === "loading" || loading) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-12">
-        <p className="text-center text-gray-500">Loading...</p>
+        <p className="text-center text-gray-500 dark:text-gray-400">Loading...</p>
       </div>
     );
   }
@@ -110,10 +110,10 @@ export default function VisitorDetailPage() {
   if (notFound || !visitor) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
           Visitor Not Found
         </h1>
-        <p className="text-gray-600 mb-6">
+        <p className="text-gray-600 dark:text-gray-400 mb-6">
           This visitor record may have been removed.
         </p>
         <button
@@ -130,8 +130,8 @@ export default function VisitorDetailPage() {
   if (forbidden) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
-        <p className="text-gray-600 mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Access Denied</h1>
+        <p className="text-gray-600 dark:text-gray-400 mb-6">
           You do not have permission to view this visitor record.
         </p>
         <button
@@ -149,16 +149,16 @@ export default function VisitorDetailPage() {
     <div className="max-w-2xl mx-auto px-4 py-8">
       <button
         onClick={() => router.back()}
-        className="inline-flex items-center gap-2 text-gray-500 hover:text-primary-700 font-medium mb-6 transition-colors"
+        className="inline-flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-primary-700 dark:hover:text-primary-400 font-medium mb-6 transition-colors"
       >
         <ArrowLeft size={16} />
         Back
       </button>
 
-      <div className="bg-white rounded-lg p-6 sm:p-8 shadow-sm border border-gray-100">
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 sm:p-8 shadow-sm border border-gray-100 dark:border-gray-700">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
             Visitor Details
           </h1>
           <StatusBadge status={visitor.status} />
@@ -167,12 +167,12 @@ export default function VisitorDetailPage() {
         {/* Visitor info */}
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-              <User size={18} className="text-gray-600" />
+            <div className="w-9 h-9 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center shrink-0">
+              <User size={18} className="text-gray-600 dark:text-gray-400" />
             </div>
             <div>
-              <p className="text-xs text-gray-500">Name</p>
-              <p className="text-sm font-medium text-gray-900">
+              <p className="text-xs text-gray-500 dark:text-gray-400">Name</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                 {visitor.name}
               </p>
             </div>
@@ -180,11 +180,11 @@ export default function VisitorDetailPage() {
 
           {visitor.phone && (
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-                <Phone size={18} className="text-gray-600" />
+              <div className="w-9 h-9 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center shrink-0">
+                <Phone size={18} className="text-gray-600 dark:text-gray-400" />
               </div>
               <div>
-                <p className="text-xs text-gray-500">Phone</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Phone</p>
                 <a
                   href={`tel:${visitor.phone}`}
                   className="text-sm font-medium text-primary-600 hover:text-primary-700"
@@ -197,12 +197,12 @@ export default function VisitorDetailPage() {
 
           {visitor.email && (
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-                <Mail size={18} className="text-gray-600" />
+              <div className="w-9 h-9 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center shrink-0">
+                <Mail size={18} className="text-gray-600 dark:text-gray-400" />
               </div>
               <div>
-                <p className="text-xs text-gray-500">Email</p>
-                <p className="text-sm font-medium text-gray-900">
+                <p className="text-xs text-gray-500 dark:text-gray-400">Email</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                   {visitor.email}
                 </p>
               </div>
@@ -211,12 +211,12 @@ export default function VisitorDetailPage() {
 
           {visitor.vehicleNumber && (
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-                <Car size={18} className="text-gray-600" />
+              <div className="w-9 h-9 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center shrink-0">
+                <Car size={18} className="text-gray-600 dark:text-gray-400" />
               </div>
               <div>
-                <p className="text-xs text-gray-500">Vehicle Number</p>
-                <p className="text-sm font-medium text-gray-900">
+                <p className="text-xs text-gray-500 dark:text-gray-400">Vehicle Number</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                   {visitor.vehicleNumber}
                 </p>
               </div>
@@ -224,24 +224,24 @@ export default function VisitorDetailPage() {
           )}
 
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-              <Building size={18} className="text-gray-600" />
+            <div className="w-9 h-9 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center shrink-0">
+              <Building size={18} className="text-gray-600 dark:text-gray-400" />
             </div>
             <div>
-              <p className="text-xs text-gray-500">Visiting</p>
-              <p className="text-sm font-medium text-gray-900">
+              <p className="text-xs text-gray-500 dark:text-gray-400">Visiting</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                 Block {visitor.visitingBlock}, Flat {visitor.visitingFlat}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-              <Clock size={18} className="text-gray-600" />
+            <div className="w-9 h-9 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center shrink-0">
+              <Clock size={18} className="text-gray-600 dark:text-gray-400" />
             </div>
             <div>
-              <p className="text-xs text-gray-500">Registered</p>
-              <p className="text-sm font-medium text-gray-900">
+              <p className="text-xs text-gray-500 dark:text-gray-400">Registered</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                 {new Date(visitor.createdAt).toLocaleString("en-IN", {
                   day: "numeric",
                   month: "short",
@@ -256,13 +256,13 @@ export default function VisitorDetailPage() {
 
         {/* Action buttons for residents */}
         {canApprove && (
-          <div className="mt-8 border-t border-gray-100 pt-6">
-            <p className="text-sm text-gray-600 mb-4">
+          <div className="mt-8 border-t border-gray-100 dark:border-gray-700 pt-6">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
               This visitor is waiting for your approval to enter.
             </p>
 
             {actionError && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+              <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
                 {actionError}
               </div>
             )}
@@ -290,8 +290,8 @@ export default function VisitorDetailPage() {
 
         {/* Status message for already processed */}
         {visitor.status === "APPROVED" && (
-          <div className="mt-8 border-t border-gray-100 pt-6">
-            <div className="flex items-center gap-2 text-green-700">
+          <div className="mt-8 border-t border-gray-100 dark:border-gray-700 pt-6">
+            <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
               <CheckCircle size={18} />
               <p className="text-sm font-medium">
                 This visitor has been approved for entry.
@@ -300,8 +300,8 @@ export default function VisitorDetailPage() {
           </div>
         )}
         {visitor.status === "REJECTED" && (
-          <div className="mt-8 border-t border-gray-100 pt-6">
-            <div className="flex items-center gap-2 text-red-700">
+          <div className="mt-8 border-t border-gray-100 dark:border-gray-700 pt-6">
+            <div className="flex items-center gap-2 text-red-700 dark:text-red-400">
               <XCircle size={18} />
               <p className="text-sm font-medium">
                 This visitor has been denied entry.

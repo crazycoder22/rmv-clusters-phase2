@@ -180,7 +180,7 @@ export default function VisitorsPage() {
   if (status === "loading") {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12">
-        <p className="text-center text-gray-500">Loading...</p>
+        <p className="text-center text-gray-500 dark:text-gray-400">Loading...</p>
       </div>
     );
   }
@@ -189,7 +189,7 @@ export default function VisitorsPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12 text-center">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Access Denied</h1>
-        <p className="text-gray-600">
+        <p className="text-gray-600 dark:text-gray-400">
           You do not have permission to access this page.
         </p>
       </div>
@@ -223,15 +223,15 @@ export default function VisitorsPage() {
           )}
         </div>
         {searchResults.length > 0 && (
-          <div className="mt-2 border border-gray-200 rounded-lg divide-y divide-gray-100">
+          <div className="mt-2 border border-gray-200 dark:border-gray-600 rounded-lg divide-y divide-gray-100 dark:divide-gray-700">
             {searchResults.map((v) => (
               <button
                 key={v.id}
                 onClick={() => fillFromVisitor(v)}
-                className="w-full text-left px-4 py-3 hover:bg-primary-50 transition-colors"
+                className="w-full text-left px-4 py-3 hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors"
               >
                 <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{v.name}</p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   {v.phone && `Phone: ${v.phone}`}
                   {v.phone && v.email && " · "}
                   {v.email && `Email: ${v.email}`}
@@ -252,12 +252,12 @@ export default function VisitorsPage() {
         </h2>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+          <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
             {error}
           </div>
         )}
         {success && (
-          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
+          <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg text-sm text-green-700 dark:text-green-300">
             {success}
           </div>
         )}
@@ -351,7 +351,7 @@ export default function VisitorsPage() {
                 value={visitingFlat}
                 onChange={(e) => setVisitingFlat(e.target.value)}
                 disabled={!visitingBlock || loadingVisitorFlats}
-                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 disabled:bg-gray-50 disabled:text-gray-400"
+                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 disabled:bg-gray-50 dark:disabled:bg-gray-800 disabled:text-gray-400"
               >
                 <option value="">
                   {!visitingBlock
@@ -400,19 +400,19 @@ export default function VisitorsPage() {
                   <th className="text-left py-2 px-2 font-medium text-gray-600 dark:text-gray-400">
                     Name
                   </th>
-                  <th className="text-left py-2 px-2 font-medium text-gray-600">
+                  <th className="text-left py-2 px-2 font-medium text-gray-600 dark:text-gray-400">
                     Phone
                   </th>
-                  <th className="text-left py-2 px-2 font-medium text-gray-600">
+                  <th className="text-left py-2 px-2 font-medium text-gray-600 dark:text-gray-400">
                     Vehicle
                   </th>
-                  <th className="text-left py-2 px-2 font-medium text-gray-600">
+                  <th className="text-left py-2 px-2 font-medium text-gray-600 dark:text-gray-400">
                     Visiting
                   </th>
-                  <th className="text-left py-2 px-2 font-medium text-gray-600">
+                  <th className="text-left py-2 px-2 font-medium text-gray-600 dark:text-gray-400">
                     Status
                   </th>
-                  <th className="text-left py-2 px-2 font-medium text-gray-600">
+                  <th className="text-left py-2 px-2 font-medium text-gray-600 dark:text-gray-400">
                     Time
                   </th>
                 </tr>
@@ -422,26 +422,26 @@ export default function VisitorsPage() {
                   <tr
                     key={v.id}
                     onClick={() => router.push(`/visitors/${v.id}`)}
-                    className="border-b border-gray-50 hover:bg-gray-50 cursor-pointer"
+                    className="border-b border-gray-50 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
                   >
                     <td className="py-2 px-2 text-gray-900 dark:text-gray-100">{v.name}</td>
-                    <td className="py-2 px-2 text-gray-600">
+                    <td className="py-2 px-2 text-gray-600 dark:text-gray-400">
                       {v.phone || v.email || "—"}
                     </td>
-                    <td className="py-2 px-2 text-gray-600">
+                    <td className="py-2 px-2 text-gray-600 dark:text-gray-400">
                       {v.vehicleNumber || "—"}
                     </td>
-                    <td className="py-2 px-2 text-gray-600">
+                    <td className="py-2 px-2 text-gray-600 dark:text-gray-400">
                       B{v.visitingBlock}-{v.visitingFlat}
                     </td>
                     <td className="py-2 px-2">
                       <span
                         className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full ${
                           v.status === "APPROVED"
-                            ? "bg-green-100 text-green-700"
+                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
                             : v.status === "REJECTED"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-yellow-100 text-yellow-700"
+                            ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
+                            : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300"
                         }`}
                       >
                         {v.status}
