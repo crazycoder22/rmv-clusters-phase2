@@ -79,18 +79,18 @@ export default function AdminNewslettersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <Newspaper className="text-primary-600" size={28} />
-            <h1 className="text-2xl font-bold text-gray-900">Newsletters</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Newsletters</h1>
           </div>
           <div className="flex gap-2">
             <Link
               href="/admin/newsletters/submissions"
-              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
               <Inbox size={16} />
               Submissions
@@ -109,12 +109,12 @@ export default function AdminNewslettersPage() {
         {showCreate && (
           <form
             onSubmit={handleCreate}
-            className="mb-6 bg-white rounded-xl border border-gray-200 p-6 shadow-sm"
+            className="mb-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm"
           >
-            <h2 className="text-lg font-semibold mb-4">Create Newsletter</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Create Newsletter</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Title *
                 </label>
                 <input
@@ -122,12 +122,12 @@ export default function AdminNewslettersPage() {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g., RMV Clusters Monthly Newsletter"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Edition
                 </label>
                 <input
@@ -135,7 +135,7 @@ export default function AdminNewslettersPage() {
                   value={edition}
                   onChange={(e) => setEdition(e.target.value)}
                   placeholder="e.g., March 2026 / Q1 2026"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 />
               </div>
             </div>
@@ -154,7 +154,7 @@ export default function AdminNewslettersPage() {
                   setTitle("");
                   setEdition("");
                 }}
-                className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                className="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
               >
                 Cancel
               </button>
@@ -164,7 +164,7 @@ export default function AdminNewslettersPage() {
 
         {/* List */}
         {newsletters.length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
             <FileText className="mx-auto text-gray-400 mb-3" size={48} />
             <p className="text-gray-500">No newsletters yet.</p>
             <p className="text-sm text-gray-400 mt-1">
@@ -176,25 +176,25 @@ export default function AdminNewslettersPage() {
             {newsletters.map((nl) => (
               <div
                 key={nl.id}
-                className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow"
+                className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm hover:shadow-md transition-shadow"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-lg font-semibold text-gray-900 truncate">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
                         {nl.title}
                       </h3>
                       <span
                         className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
                           nl.status === "published"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-yellow-100 text-yellow-700"
+                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+                            : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300"
                         }`}
                       >
                         {nl.status === "published" ? "Published" : "Draft"}
                       </span>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-gray-500">
+                    <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                       {nl.edition && <span>{nl.edition}</span>}
                       <span>{nl._count.sections} sections</span>
                       <span>
@@ -221,7 +221,7 @@ export default function AdminNewslettersPage() {
                     {nl.status === "published" && (
                       <Link
                         href={`/newsletters/${nl.id}`}
-                        className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                        className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/30 rounded-lg transition-colors"
                         title="View published"
                       >
                         <Eye size={18} />
@@ -229,14 +229,14 @@ export default function AdminNewslettersPage() {
                     )}
                     <Link
                       href={`/admin/newsletters/${nl.id}`}
-                      className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                      className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/30 rounded-lg transition-colors"
                       title="Edit"
                     >
                       <Edit size={18} />
                     </Link>
                     <button
                       onClick={() => handleDelete(nl.id)}
-                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                       title="Delete"
                     >
                       <Trash2 size={18} />

@@ -90,21 +90,21 @@ export default function AdminSubmissionsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <Link
             href="/admin/newsletters"
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 dark:hover:text-gray-300 dark:hover:bg-gray-700 rounded-lg transition-colors"
           >
             <ArrowLeft size={20} />
           </Link>
           <Inbox className="text-primary-600" size={24} />
-          <h1 className="text-xl font-bold text-gray-900">
+          <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
             Resident Submissions
           </h1>
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-gray-500 dark:text-gray-400">
             ({submissions.filter((s) => s.status === "pending").length} pending)
           </span>
         </div>
@@ -117,8 +117,8 @@ export default function AdminSubmissionsPage() {
               onClick={() => setFilter(f)}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                 filter === f
-                  ? "bg-primary-100 text-primary-700"
-                  : "text-gray-600 hover:bg-gray-100"
+                  ? "bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300"
+                  : "text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
               }`}
             >
               {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -128,36 +128,36 @@ export default function AdminSubmissionsPage() {
 
         {/* List */}
         {filteredSubmissions.length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
             <FileText className="mx-auto text-gray-400 mb-3" size={48} />
-            <p className="text-gray-500">No {filter !== "all" ? filter : ""} submissions.</p>
+            <p className="text-gray-500 dark:text-gray-400">No {filter !== "all" ? filter : ""} submissions.</p>
           </div>
         ) : (
           <div className="space-y-3">
             {filteredSubmissions.map((sub) => (
               <div
                 key={sub.id}
-                className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm"
+                className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-base font-semibold text-gray-900 truncate">
+                      <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 truncate">
                         {sub.title}
                       </h3>
                       <span
                         className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                           sub.status === "approved"
-                            ? "bg-green-100 text-green-700"
+                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
                             : sub.status === "rejected"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-yellow-100 text-yellow-700"
+                            ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
+                            : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300"
                         }`}
                       >
                         {sub.status}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                       by {sub.resident.name} — Block {sub.resident.block},{" "}
                       {sub.resident.flatNumber} &middot;{" "}
                       {new Date(sub.createdAt).toLocaleDateString("en-IN", {
@@ -177,7 +177,7 @@ export default function AdminSubmissionsPage() {
                       onClick={() =>
                         setPreviewId(previewId === sub.id ? null : sub.id)
                       }
-                      className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                      className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/30 rounded-lg transition-colors"
                       title="Preview"
                     >
                       <Eye size={18} />
@@ -189,7 +189,7 @@ export default function AdminSubmissionsPage() {
                             setActionId(sub.id);
                             setActionStatus("approved");
                           }}
-                          className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                          className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors"
                           title="Approve"
                         >
                           <Check size={18} />
@@ -199,7 +199,7 @@ export default function AdminSubmissionsPage() {
                             setActionId(sub.id);
                             setActionStatus("rejected");
                           }}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                           title="Reject"
                         >
                           <X size={18} />
@@ -211,7 +211,7 @@ export default function AdminSubmissionsPage() {
 
                 {/* Preview */}
                 {previewId === sub.id && (
-                  <div className="mt-3 pt-3 border-t border-gray-100">
+                  <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
                     <RichTextViewer html={sub.contentHtml} />
                   </div>
                 )}
@@ -223,20 +223,20 @@ export default function AdminSubmissionsPage() {
         {/* Action Modal */}
         {actionId && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-            <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
-              <h3 className="text-lg font-semibold mb-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
+              <h3 className="text-lg font-semibold dark:text-gray-100 mb-4">
                 {actionStatus === "approved" ? "Approve" : "Reject"} Submission
               </h3>
 
               {actionStatus === "approved" && (
                 <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Add to Newsletter (optional)
                   </label>
                   <select
                     value={targetNewsletterId}
                     onChange={(e) => setTargetNewsletterId(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm"
                   >
                     <option value="">Don&apos;t add to any newsletter</option>
                     {newsletters
@@ -255,7 +255,7 @@ export default function AdminSubmissionsPage() {
               )}
 
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Admin Notes (optional)
                 </label>
                 <textarea
@@ -267,7 +267,7 @@ export default function AdminSubmissionsPage() {
                       ? "Reason for rejection..."
                       : "Any notes..."
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm"
                 />
               </div>
 
@@ -278,7 +278,7 @@ export default function AdminSubmissionsPage() {
                     setAdminNotes("");
                     setTargetNewsletterId("");
                   }}
-                  className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
+                  className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300"
                 >
                   Cancel
                 </button>

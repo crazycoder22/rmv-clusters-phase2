@@ -238,32 +238,32 @@ export default function NewsletterEditorPage() {
   if (!newsletter) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Newsletter not found.</p>
+        <p className="text-gray-500 dark:text-gray-400">Newsletter not found.</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <Link
               href="/admin/newsletters"
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 dark:hover:text-gray-300 dark:hover:bg-gray-700 rounded-lg transition-colors"
             >
               <ArrowLeft size={20} />
             </Link>
             <Newspaper className="text-primary-600" size={24} />
-            <h1 className="text-xl font-bold text-gray-900 truncate">
+            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 truncate">
               {newsletter.title}
             </h1>
             <span
               className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                 newsletter.status === "published"
-                  ? "bg-green-100 text-green-700"
-                  : "bg-yellow-100 text-yellow-700"
+                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+                  : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300"
               }`}
             >
               {newsletter.status === "published" ? "Published" : "Draft"}
@@ -273,7 +273,7 @@ export default function NewsletterEditorPage() {
             {newsletter.status === "published" && (
               <Link
                 href={`/newsletters/${newsletter.id}`}
-                className="flex items-center gap-1 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-1 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
               >
                 <Eye size={16} />
                 View
@@ -295,22 +295,22 @@ export default function NewsletterEditorPage() {
         </div>
 
         {/* Newsletter Details */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm mb-6">
-          <h2 className="text-lg font-semibold mb-4">Newsletter Details</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm mb-6">
+          <h2 className="text-lg font-semibold dark:text-gray-100 mb-4">Newsletter Details</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Title
               </label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Edition
               </label>
               <input
@@ -318,12 +318,12 @@ export default function NewsletterEditorPage() {
                 value={edition}
                 onChange={(e) => setEdition(e.target.value)}
                 placeholder="e.g., March 2026"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
           </div>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Editor&apos;s Note / Introduction
             </label>
             <RichTextEditor content={coverHtml} onChange={setCoverHtml} />
@@ -339,15 +339,15 @@ export default function NewsletterEditorPage() {
         </div>
 
         {/* Sections */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">
+            <h2 className="text-lg font-semibold dark:text-gray-100">
               Sections ({newsletter.sections.length})
             </h2>
             <div className="flex gap-2">
               <button
                 onClick={() => setShowPullEvents(!showPullEvents)}
-                className="flex items-center gap-1 px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
               >
                 <CalendarRange size={16} />
                 Pull Events
@@ -366,33 +366,33 @@ export default function NewsletterEditorPage() {
           {showPullEvents && (
             <form
               onSubmit={handlePullEvents}
-              className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg"
+              className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg"
             >
-              <p className="text-sm font-medium text-blue-800 mb-3">
+              <p className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-3">
                 Pull events from calendar into a new Events section
               </p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                     Start Date
                   </label>
                   <input
                     type="date"
                     value={eventStartDate}
                     onChange={(e) => setEventStartDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                     End Date
                   </label>
                   <input
                     type="date"
                     value={eventEndDate}
                     onChange={(e) => setEventEndDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm"
                     required
                   />
                 </div>
@@ -408,7 +408,7 @@ export default function NewsletterEditorPage() {
                 <button
                   type="button"
                   onClick={() => setShowPullEvents(false)}
-                  className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800"
+                  className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300"
                 >
                   Cancel
                 </button>
@@ -420,11 +420,11 @@ export default function NewsletterEditorPage() {
           {showAddSection && (
             <form
               onSubmit={handleAddSection}
-              className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-lg"
+              className="mb-4 p-4 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg"
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                     Type
                   </label>
                   <select
@@ -432,7 +432,7 @@ export default function NewsletterEditorPage() {
                     onChange={(e) =>
                       setNewSectionType(e.target.value as NewsletterSectionType)
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm"
                   >
                     {SECTION_TYPES.map((t) => (
                       <option key={t.value} value={t.value}>
@@ -442,7 +442,7 @@ export default function NewsletterEditorPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                     Title
                   </label>
                   <input
@@ -450,7 +450,7 @@ export default function NewsletterEditorPage() {
                     value={newSectionTitle}
                     onChange={(e) => setNewSectionTitle(e.target.value)}
                     placeholder="Section title"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm"
                     required
                   />
                 </div>
@@ -465,7 +465,7 @@ export default function NewsletterEditorPage() {
                 <button
                   type="button"
                   onClick={() => setShowAddSection(false)}
-                  className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800"
+                  className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300"
                 >
                   Cancel
                 </button>
@@ -489,24 +489,24 @@ export default function NewsletterEditorPage() {
                 return (
                   <div
                     key={section.id}
-                    className="border border-gray-200 rounded-lg overflow-hidden"
+                    className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden"
                   >
                     {/* Section Header */}
-                    <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 border-b border-gray-200">
+                    <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
                       <GripVertical
                         size={16}
                         className="text-gray-400 flex-shrink-0"
                       />
                       <span className="text-sm">{typeInfo?.emoji}</span>
-                      <span className="text-xs font-medium text-gray-500 uppercase">
+                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                         {typeInfo?.label}
                       </span>
-                      <span className="mx-1 text-gray-300">|</span>
-                      <span className="text-sm font-medium text-gray-900 flex-1 truncate">
+                      <span className="mx-1 text-gray-300 dark:text-gray-600">|</span>
+                      <span className="text-sm font-medium text-gray-900 dark:text-gray-100 flex-1 truncate">
                         {section.title}
                       </span>
                       {section.authorName && (
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
                           by {section.authorName}
                         </span>
                       )}
@@ -514,7 +514,7 @@ export default function NewsletterEditorPage() {
                         <button
                           onClick={() => handleMoveSection(section.id, "up")}
                           disabled={idx === 0}
-                          className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+                          className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 disabled:opacity-30"
                           title="Move up"
                         >
                           <ChevronUp size={16} />
@@ -522,7 +522,7 @@ export default function NewsletterEditorPage() {
                         <button
                           onClick={() => handleMoveSection(section.id, "down")}
                           disabled={idx === newsletter.sections.length - 1}
-                          className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+                          className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 disabled:opacity-30"
                           title="Move down"
                         >
                           <ChevronDown size={16} />
@@ -554,10 +554,10 @@ export default function NewsletterEditorPage() {
 
                     {/* Section Editor (when expanded) */}
                     {isEditing && (
-                      <div className="p-4">
+                      <div className="p-4 dark:bg-gray-800">
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
                           <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">
+                            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                               Type
                             </label>
                             <select
@@ -567,7 +567,7 @@ export default function NewsletterEditorPage() {
                                   e.target.value as NewsletterSectionType
                                 )
                               }
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm"
                             >
                               {SECTION_TYPES.map((t) => (
                                 <option key={t.value} value={t.value}>
@@ -577,7 +577,7 @@ export default function NewsletterEditorPage() {
                             </select>
                           </div>
                           <div className="sm:col-span-2">
-                            <label className="block text-xs font-medium text-gray-600 mb-1">
+                            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                               Title
                             </label>
                             <input
@@ -586,7 +586,7 @@ export default function NewsletterEditorPage() {
                               onChange={(e) =>
                                 setEditSectionTitle(e.target.value)
                               }
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm"
                             />
                           </div>
                         </div>
@@ -595,7 +595,7 @@ export default function NewsletterEditorPage() {
                           editSectionType === "ad") && (
                           <div className="grid grid-cols-3 gap-3 mb-3">
                             <div>
-                              <label className="block text-xs font-medium text-gray-600 mb-1">
+                              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                                 Author Name
                               </label>
                               <input
@@ -604,11 +604,11 @@ export default function NewsletterEditorPage() {
                                 onChange={(e) =>
                                   setEditAuthorName(e.target.value)
                                 }
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm"
                               />
                             </div>
                             <div>
-                              <label className="block text-xs font-medium text-gray-600 mb-1">
+                              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                                 Block
                               </label>
                               <select
@@ -616,7 +616,7 @@ export default function NewsletterEditorPage() {
                                 onChange={(e) =>
                                   setEditAuthorBlock(e.target.value)
                                 }
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm"
                               >
                                 <option value="">—</option>
                                 <option value="1">Block 1</option>
@@ -626,7 +626,7 @@ export default function NewsletterEditorPage() {
                               </select>
                             </div>
                             <div>
-                              <label className="block text-xs font-medium text-gray-600 mb-1">
+                              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                                 Flat
                               </label>
                               <input
@@ -635,14 +635,14 @@ export default function NewsletterEditorPage() {
                                 onChange={(e) =>
                                   setEditAuthorFlat(e.target.value)
                                 }
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm"
                               />
                             </div>
                           </div>
                         )}
 
                         <div className="mb-3">
-                          <label className="block text-xs font-medium text-gray-600 mb-1">
+                          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                             Content
                           </label>
                           <RichTextEditor
@@ -662,7 +662,7 @@ export default function NewsletterEditorPage() {
                           </button>
                           <button
                             onClick={() => setEditingSectionId(null)}
-                            className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800"
+                            className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300"
                           >
                             Cancel
                           </button>
