@@ -69,7 +69,7 @@ export default function LeaderboardPage() {
         </div>
       ) : (
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <div className="grid grid-cols-[auto_1fr_auto_auto_auto_auto] gap-2 sm:gap-3 px-3 sm:px-4 py-3 bg-gray-50 dark:bg-gray-750 border-b border-gray-200 dark:border-gray-700 text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+          <div className="grid grid-cols-[auto_1fr_auto_auto_auto_auto] gap-2 sm:gap-3 px-3 sm:px-4 py-3 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700 text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
             <span>#</span>
             <span>Player</span>
             <span className="text-center">Score</span>
@@ -97,7 +97,7 @@ export default function LeaderboardPage() {
                       <span className="ml-1.5 text-xs text-primary-600 dark:text-primary-400">(You)</span>
                     )}
                   </p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-gray-400 dark:text-gray-500">
                     Block {entry.block}, {entry.flatNumber}
                   </p>
                 </div>
