@@ -36,10 +36,10 @@ interface ExpenseItemData {
 }
 
 const DIST_BADGE_COLORS: Record<string, string> = {
-  percentage: "bg-blue-100 text-blue-700",
-  block_specific: "bg-purple-100 text-purple-700",
-  custom: "bg-orange-100 text-orange-700",
-  income: "bg-green-100 text-green-700",
+  percentage: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+  block_specific: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
+  custom: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300",
+  income: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
 };
 
 export default function ExpenseCalculatorPage() {
@@ -525,7 +525,7 @@ export default function ExpenseCalculatorPage() {
   if (roleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-gray-500 dark:text-gray-400">Loading...</p>
       </div>
     );
   }
@@ -534,8 +534,8 @@ export default function ExpenseCalculatorPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">Access Denied</h1>
-          <p className="text-gray-500">You do not have permission to access this page.</p>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">Access Denied</h1>
+          <p className="text-gray-500 dark:text-gray-400">You do not have permission to access this page.</p>
         </div>
       </div>
     );
@@ -551,17 +551,17 @@ export default function ExpenseCalculatorPage() {
       </Link>
 
       <h1 className="text-2xl font-bold text-primary-800 mb-1">Expense Calculator</h1>
-      <p className="text-sm text-gray-500 mb-6">
+      <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
         Track monthly common expenses and calculate per-block contributions
       </p>
 
       {/* Block Info Banner */}
-      <div className="bg-gray-50 rounded-lg border border-gray-200 p-3 mb-6">
+      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 mb-6">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {BLOCK_PERCENTAGES.map((b) => (
             <div key={b.block} className="text-center">
-              <p className="text-xs font-semibold text-gray-600">{b.label}</p>
-              <p className="text-sm text-gray-800">{b.sqft.toLocaleString("en-IN")} sq ft</p>
+              <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">{b.label}</p>
+              <p className="text-sm text-gray-800 dark:text-gray-100">{b.sqft.toLocaleString("en-IN")} sq ft</p>
               <p className="text-xs text-primary-600 font-medium">{b.percentage.toFixed(2)}%</p>
             </div>
           ))}
@@ -574,7 +574,7 @@ export default function ExpenseCalculatorPage() {
           <select
             value={selectedMonthId || ""}
             onChange={(e) => setSelectedMonthId(e.target.value || null)}
-            className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-10 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="appearance-none bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 pr-10 text-sm font-medium text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           >
             <option value="">Select a month...</option>
             {months.map((m) => (
@@ -606,13 +606,13 @@ export default function ExpenseCalculatorPage() {
 
       {/* New Month Form */}
       {showNewMonth && (
-        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6 max-w-md">
-          <h3 className="text-sm font-semibold text-gray-800 mb-3">Create New Month</h3>
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 mb-6 max-w-md">
+          <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-3">Create New Month</h3>
           <div className="flex gap-2 mb-3">
             <select
               value={newMonth}
               onChange={(e) => setNewMonth(parseInt(e.target.value))}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             >
               {MONTH_NAMES.map((name, i) => (
                 <option key={i} value={i + 1}>{name}</option>
@@ -622,15 +622,15 @@ export default function ExpenseCalculatorPage() {
               type="number"
               value={newYear}
               onChange={(e) => setNewYear(parseInt(e.target.value))}
-              className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-24 px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
           </div>
           <div className="mb-3">
-            <label className="block text-xs font-medium text-gray-600 mb-1">Clone expenses from</label>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Clone expenses from</label>
             <select
               value={cloneFromId}
               onChange={(e) => setCloneFromId(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             >
               <option value="">Start empty</option>
               {months.map((m) => (
@@ -650,7 +650,7 @@ export default function ExpenseCalculatorPage() {
             </button>
             <button
               onClick={() => { setShowNewMonth(false); setCloneFromId(""); }}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
             >
               Cancel
             </button>
@@ -659,16 +659,16 @@ export default function ExpenseCalculatorPage() {
       )}
 
       {loading ? (
-        <p className="text-gray-500 text-center py-8">Loading...</p>
+        <p className="text-gray-500 dark:text-gray-400 text-center py-8">Loading...</p>
       ) : !selectedMonthId ? (
         <div className="text-center py-12">
-          <p className="text-gray-500">Select a month or create a new one to get started.</p>
+          <p className="text-gray-500 dark:text-gray-400">Select a month or create a new one to get started.</p>
         </div>
       ) : (
         <>
           {/* Action bar */}
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-800">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
               {getMonthLabel()}
             </h2>
             <div className="flex items-center gap-2">
@@ -676,7 +676,7 @@ export default function ExpenseCalculatorPage() {
                 <>
                   <button
                     onClick={exportPdf}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                     title="Export as PDF"
                   >
                     <FileDown size={16} />
@@ -684,7 +684,7 @@ export default function ExpenseCalculatorPage() {
                   </button>
                   <button
                     onClick={exportExcel}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                     title="Export as Excel"
                   >
                     <FileDown size={16} />
@@ -709,33 +709,33 @@ export default function ExpenseCalculatorPage() {
 
           {/* Add/Edit Form */}
           {showForm && (
-            <div className="bg-white rounded-lg border border-gray-200 p-5 mb-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 mb-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold text-gray-800">
+                <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100">
                   {editingItem ? "Edit Expense" : "Add Expense"}
                 </h3>
                 <button
                   onClick={() => { resetForm(); setShowForm(false); }}
-                  className="p-1 rounded hover:bg-gray-100 transition-colors"
+                  className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 >
-                  <X size={16} className="text-gray-500" />
+                  <X size={16} className="text-gray-500 dark:text-gray-400" />
                 </button>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
                     <input
                       type="text"
                       value={formDescription}
                       onChange={(e) => setFormDescription(e.target.value)}
                       placeholder="e.g., Security Services"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       {formDistType === "income" ? "Deduction Amount (₹)" : "Total Amount (₹)"}
                     </label>
                     <input
@@ -745,14 +745,14 @@ export default function ExpenseCalculatorPage() {
                       placeholder="0"
                       min="0"
                       step="1"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                   </div>
                 </div>
 
                 {/* Distribution Type */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Distribution Type</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Distribution Type</label>
                   <div className="flex flex-wrap gap-2">
                     {(Object.entries(DISTRIBUTION_LABELS) as [DistributionType, string][]).map(([key, label]) => (
                       <button
@@ -762,8 +762,8 @@ export default function ExpenseCalculatorPage() {
                         className={clsx(
                           "px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors",
                           formDistType === key
-                            ? "border-primary-500 bg-primary-50 text-primary-700"
-                            : "border-gray-300 text-gray-600 hover:bg-gray-50"
+                            ? "border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300"
+                            : "border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
                         )}
                       >
                         {label}
@@ -775,11 +775,11 @@ export default function ExpenseCalculatorPage() {
                 {/* Block-specific selector */}
                 {formDistType === "block_specific" && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Assign to Block</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Assign to Block</label>
                     <select
                       value={formTargetBlock}
                       onChange={(e) => setFormTargetBlock(e.target.value)}
-                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     >
                       {[1, 2, 3, 4].map((b) => (
                         <option key={b} value={b}>Block {b}</option>
@@ -791,18 +791,18 @@ export default function ExpenseCalculatorPage() {
                 {/* Custom split inputs — shown for both "custom" and "income" types */}
                 {(formDistType === "custom" || formDistType === "income") && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Per-Block Amounts (₹)
                     </label>
                     {formDistType === "income" && (
-                      <p className="text-xs text-gray-400 mb-2">
+                      <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">
                         Enter amount per block. Set to 0 for blocks that don&apos;t receive this income.
                       </p>
                     )}
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                       {(["block1", "block2", "block3", "block4"] as const).map((key, i) => (
                         <div key={key}>
-                          <label className="block text-xs text-gray-500 mb-1">Block {i + 1}</label>
+                          <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Block {i + 1}</label>
                           <input
                             type="number"
                             value={formCustom[key]}
@@ -810,7 +810,7 @@ export default function ExpenseCalculatorPage() {
                             placeholder="0"
                             min="0"
                             step="1"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                           />
                         </div>
                       ))}
@@ -820,13 +820,13 @@ export default function ExpenseCalculatorPage() {
 
                 {/* Live Preview */}
                 {previewAmount > 0 && (
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <p className="text-xs font-medium text-gray-500 mb-2">Preview — Per Block Split</p>
+                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
+                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Preview — Per Block Split</p>
                     <div className="grid grid-cols-4 gap-2 text-center">
                       {[preview.block1Amount, preview.block2Amount, preview.block3Amount, preview.block4Amount].map((amt, i) => (
                         <div key={i}>
-                          <p className="text-xs text-gray-500">Block {i + 1}</p>
-                          <p className={clsx("text-sm font-semibold", amt < 0 ? "text-green-700" : "text-gray-800")}>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Block {i + 1}</p>
+                          <p className={clsx("text-sm font-semibold", amt < 0 ? "text-green-700 dark:text-green-400" : "text-gray-800 dark:text-gray-100")}>
                             {formatCurrency(Math.abs(amt))}
                           </p>
                         </div>
@@ -850,7 +850,7 @@ export default function ExpenseCalculatorPage() {
                   <button
                     type="button"
                     onClick={() => { resetForm(); setShowForm(false); }}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                    className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
                     Cancel
                   </button>
@@ -861,17 +861,17 @@ export default function ExpenseCalculatorPage() {
 
           {/* Expense Items Table */}
           {loadingItems ? (
-            <p className="text-gray-500 text-center py-8">Loading expenses...</p>
+            <p className="text-gray-500 dark:text-gray-400 text-center py-8">Loading expenses...</p>
           ) : items.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
-              <p className="text-gray-500">No expenses added yet.</p>
-              <p className="text-sm text-gray-400 mt-1">Click &quot;Add Expense&quot; to get started.</p>
+            <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+              <p className="text-gray-500 dark:text-gray-400">No expenses added yet.</p>
+              <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Click &quot;Add Expense&quot; to get started.</p>
             </div>
           ) : (
             <div className="overflow-x-auto mb-8">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-gray-200 text-left text-gray-600">
+                  <tr className="border-b border-gray-200 dark:border-gray-700 text-left text-gray-600 dark:text-gray-300">
                     <th className="pb-3 pr-3 font-medium w-8">#</th>
                     <th className="pb-3 pr-3 font-medium">Description</th>
                     <th className="pb-3 pr-3 font-medium">Type</th>
@@ -890,44 +890,44 @@ export default function ExpenseCalculatorPage() {
                       <tr
                         key={item.id}
                         className={clsx(
-                          "border-b border-gray-100 hover:bg-gray-50",
-                          isIncome && "bg-green-50/50"
+                          "border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700",
+                          isIncome && "bg-green-50/50 dark:bg-green-900/20"
                         )}
                       >
-                        <td className="py-3 pr-3 text-gray-400">{index + 1}</td>
-                        <td className={clsx("py-3 pr-3 font-medium", isIncome ? "text-green-800 italic" : "text-gray-900")}>
+                        <td className="py-3 pr-3 text-gray-400 dark:text-gray-500">{index + 1}</td>
+                        <td className={clsx("py-3 pr-3 font-medium", isIncome ? "text-green-800 dark:text-green-400 italic" : "text-gray-900 dark:text-gray-100")}>
                           {item.description}
                         </td>
                         <td className="py-3 pr-3">
                           <span className={clsx(
                             "inline-block px-2 py-0.5 text-[10px] font-medium rounded-full",
-                            DIST_BADGE_COLORS[item.distributionType] || "bg-gray-100 text-gray-700"
+                            DIST_BADGE_COLORS[item.distributionType] || "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
                           )}>
                             {item.distributionType === "block_specific"
                               ? `B${item.targetBlock} Only`
                               : DISTRIBUTION_LABELS[item.distributionType as DistributionType] || item.distributionType}
                           </span>
                         </td>
-                        <td className={clsx("py-3 pr-3 text-right font-medium", isIncome ? "text-green-700" : "text-gray-800")}>
+                        <td className={clsx("py-3 pr-3 text-right font-medium", isIncome ? "text-green-700 dark:text-green-400" : "text-gray-800 dark:text-gray-100")}>
                           {isIncome ? "−" : ""}{formatCurrency(Math.abs(item.totalAmount))}
                         </td>
-                        <td className={clsx("py-3 pr-3 text-right", isIncome ? "text-green-700" : "text-gray-600")}>
+                        <td className={clsx("py-3 pr-3 text-right", isIncome ? "text-green-700 dark:text-green-400" : "text-gray-600 dark:text-gray-400")}>
                           {item.block1Amount !== 0 ? (isIncome ? "−" : "") + formatCurrency(Math.abs(item.block1Amount)) : "—"}
                         </td>
-                        <td className={clsx("py-3 pr-3 text-right", isIncome ? "text-green-700" : "text-gray-600")}>
+                        <td className={clsx("py-3 pr-3 text-right", isIncome ? "text-green-700 dark:text-green-400" : "text-gray-600 dark:text-gray-400")}>
                           {item.block2Amount !== 0 ? (isIncome ? "−" : "") + formatCurrency(Math.abs(item.block2Amount)) : "—"}
                         </td>
-                        <td className={clsx("py-3 pr-3 text-right", isIncome ? "text-green-700" : "text-gray-600")}>
+                        <td className={clsx("py-3 pr-3 text-right", isIncome ? "text-green-700 dark:text-green-400" : "text-gray-600 dark:text-gray-400")}>
                           {item.block3Amount !== 0 ? (isIncome ? "−" : "") + formatCurrency(Math.abs(item.block3Amount)) : "—"}
                         </td>
-                        <td className={clsx("py-3 pr-3 text-right", isIncome ? "text-green-700" : "text-gray-600")}>
+                        <td className={clsx("py-3 pr-3 text-right", isIncome ? "text-green-700 dark:text-green-400" : "text-gray-600 dark:text-gray-400")}>
                           {item.block4Amount !== 0 ? (isIncome ? "−" : "") + formatCurrency(Math.abs(item.block4Amount)) : "—"}
                         </td>
                         <td className="py-3">
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => openEdit(item)}
-                              className="p-1 rounded hover:bg-gray-100 transition-colors text-gray-500 hover:text-primary-600"
+                              className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-500 dark:text-gray-400 hover:text-primary-600"
                               title="Edit"
                             >
                               <Pencil size={14} />
@@ -935,7 +935,7 @@ export default function ExpenseCalculatorPage() {
                             <button
                               onClick={() => handleDeleteItem(item.id)}
                               disabled={deletingId === item.id}
-                              className="p-1 rounded hover:bg-gray-100 transition-colors text-gray-500 hover:text-red-600 disabled:opacity-50"
+                              className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-500 dark:text-gray-400 hover:text-red-600 disabled:opacity-50"
                               title="Delete"
                             >
                               <Trash2 size={14} />
@@ -946,15 +946,15 @@ export default function ExpenseCalculatorPage() {
                     );
                   })}
                   {/* Totals row */}
-                  <tr className="border-t-2 border-gray-300 font-semibold">
+                  <tr className="border-t-2 border-gray-300 dark:border-gray-600 font-semibold">
                     <td className="py-3 pr-3"></td>
-                    <td className="py-3 pr-3 text-gray-900">Total</td>
+                    <td className="py-3 pr-3 text-gray-900 dark:text-gray-100">Total</td>
                     <td className="py-3 pr-3"></td>
-                    <td className="py-3 pr-3 text-right text-gray-900">{formatCurrency(summary.total)}</td>
-                    <td className="py-3 pr-3 text-right text-gray-900">{formatCurrency(summary.block1)}</td>
-                    <td className="py-3 pr-3 text-right text-gray-900">{formatCurrency(summary.block2)}</td>
-                    <td className="py-3 pr-3 text-right text-gray-900">{formatCurrency(summary.block3)}</td>
-                    <td className="py-3 pr-3 text-right text-gray-900">{formatCurrency(summary.block4)}</td>
+                    <td className="py-3 pr-3 text-right text-gray-900 dark:text-gray-100">{formatCurrency(summary.total)}</td>
+                    <td className="py-3 pr-3 text-right text-gray-900 dark:text-gray-100">{formatCurrency(summary.block1)}</td>
+                    <td className="py-3 pr-3 text-right text-gray-900 dark:text-gray-100">{formatCurrency(summary.block2)}</td>
+                    <td className="py-3 pr-3 text-right text-gray-900 dark:text-gray-100">{formatCurrency(summary.block3)}</td>
+                    <td className="py-3 pr-3 text-right text-gray-900 dark:text-gray-100">{formatCurrency(summary.block4)}</td>
                     <td></td>
                   </tr>
                 </tbody>
@@ -965,7 +965,7 @@ export default function ExpenseCalculatorPage() {
           {/* Summary Cards */}
           {items.length > 0 && (
             <div>
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Per-Block Summary</h3>
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Per-Block Summary</h3>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {[
                   { label: "Block 1", amount: summary.block1 },
@@ -973,16 +973,16 @@ export default function ExpenseCalculatorPage() {
                   { label: "Block 3", amount: summary.block3 },
                   { label: "Block 4", amount: summary.block4 },
                 ].map((block) => (
-                  <div key={block.label} className="bg-white rounded-lg border border-gray-200 p-4 text-center">
-                    <p className="text-xs font-medium text-gray-500 mb-1">{block.label}</p>
+                  <div key={block.label} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 text-center">
+                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{block.label}</p>
                     <p className="text-xl font-bold text-primary-700">{formatCurrency(block.amount)}</p>
-                    <p className="text-[10px] text-gray-400 mt-1">
+                    <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">
                       {BLOCK_PERCENTAGES.find((b) => b.label === block.label)?.percentage.toFixed(2)}% contribution
                     </p>
                   </div>
                 ))}
               </div>
-              <div className="mt-4 bg-primary-50 rounded-lg border border-primary-200 p-4 text-center">
+              <div className="mt-4 bg-primary-50 dark:bg-primary-900/30 rounded-lg border border-primary-200 dark:border-primary-800 p-4 text-center">
                 <p className="text-xs font-medium text-primary-600 mb-1">Grand Total</p>
                 <p className="text-2xl font-bold text-primary-800">{formatCurrency(summary.total)}</p>
               </div>
