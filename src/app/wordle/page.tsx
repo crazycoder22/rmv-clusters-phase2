@@ -388,6 +388,8 @@ export default function WordlePage() {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey || e.altKey) return;
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
       handleKey(e.key);
     };
     window.addEventListener("keydown", handler);
