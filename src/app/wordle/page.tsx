@@ -126,10 +126,12 @@ function GameBoard({
   guesses,
   currentGuess,
   shakeRow,
+  submitting,
 }: {
   guesses: GuessResult[];
   currentGuess: string;
   shakeRow: number | null;
+  submitting: boolean;
 }) {
   const rows = [];
 
@@ -165,7 +167,9 @@ function GameBoard({
             <div
               key={j}
               className={`w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center text-xl sm:text-2xl font-bold rounded-lg border-2 uppercase transition-all ${
-                j < currentGuess.length
+                submitting
+                  ? "border-gray-400 dark:border-gray-500 animate-pulse"
+                  : j < currentGuess.length
                   ? "border-gray-500 dark:border-gray-400 text-gray-800 dark:text-gray-100"
                   : "border-gray-200 dark:border-gray-700"
               }`}
@@ -481,7 +485,7 @@ export default function WordlePage() {
           )}
 
           {/* Game board */}
-          <GameBoard guesses={guesses} currentGuess={currentGuess} shakeRow={shakeRow} />
+          <GameBoard guesses={guesses} currentGuess={currentGuess} shakeRow={shakeRow} submitting={submitting} />
 
           {/* Game over message */}
           {completed && (
