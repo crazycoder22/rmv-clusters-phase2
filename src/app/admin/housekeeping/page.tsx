@@ -34,6 +34,9 @@ interface FeedbackEntry {
   guestFlat: string | null;
 }
 
+// ── Shared input class ─────────────────────────────────────────────────────
+const inputClass = "border border-gray-300 dark:border-gray-600 rounded px-3 py-1.5 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500";
+
 // ── Sub-components ─────────────────────────────────────────────────────────
 
 function StaffTab() {
@@ -93,63 +96,81 @@ function StaffTab() {
         <input
           value={newName} onChange={(e) => setNewName(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && addStaff()}
-          placeholder="Staff name" className="border rounded px-3 py-1.5 text-sm flex-1"
+          placeholder="Staff name"
+          className={`${inputClass} flex-1`}
         />
-        <button onClick={addStaff} className="bg-blue-600 text-white text-sm px-4 py-1.5 rounded hover:bg-blue-700">Add</button>
+        <button
+          onClick={addStaff}
+          className="bg-blue-600 dark:bg-blue-500 text-white text-sm px-4 py-1.5 rounded hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+        >
+          Add
+        </button>
       </div>
 
       {/* List */}
-      <table className="w-full text-sm border rounded overflow-hidden">
-        <thead className="bg-gray-50 text-gray-600 text-xs uppercase">
-          <tr>
-            <th className="text-left px-4 py-2">Name</th>
-            <th className="text-left px-4 py-2">Status</th>
-            <th className="px-4 py-2" />
-          </tr>
-        </thead>
-        <tbody className="divide-y">
-          {staffList.map((s) => (
-            <tr key={s.id}>
-              <td className="px-4 py-2">
-                {editId === s.id ? (
-                  <input
-                    value={editName} onChange={(e) => setEditName(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && saveEdit(s.id)}
-                    className="border rounded px-2 py-1 text-sm w-full"
-                    autoFocus
-                  />
-                ) : (
-                  <span className={s.active ? "" : "text-gray-400 line-through"}>{s.name}</span>
-                )}
-              </td>
-              <td className="px-4 py-2">
-                <button
-                  onClick={() => toggleActive(s)}
-                  className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.active ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}
-                >
-                  {s.active ? "Active" : "Inactive"}
-                </button>
-              </td>
-              <td className="px-4 py-2 text-right space-x-2">
-                {editId === s.id ? (
-                  <>
-                    <button onClick={() => saveEdit(s.id)} className="text-blue-600 hover:underline text-xs">Save</button>
-                    <button onClick={() => setEditId(null)} className="text-gray-400 hover:underline text-xs">Cancel</button>
-                  </>
-                ) : (
-                  <>
-                    <button onClick={() => { setEditId(s.id); setEditName(s.name); }} className="text-blue-600 hover:underline text-xs">Edit</button>
-                    <button onClick={() => deleteStaff(s.id)} className="text-red-500 hover:underline text-xs">Delete</button>
-                  </>
-                )}
-              </td>
+      <div className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs uppercase">
+            <tr>
+              <th className="text-left px-4 py-2">Name</th>
+              <th className="text-left px-4 py-2">Status</th>
+              <th className="px-4 py-2" />
             </tr>
-          ))}
-          {staffList.length === 0 && (
-            <tr><td colSpan={3} className="px-4 py-4 text-center text-gray-400 text-sm">No staff added yet.</td></tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-gray-100 dark:divide-gray-700 bg-white dark:bg-gray-900">
+            {staffList.map((s) => (
+              <tr key={s.id}>
+                <td className="px-4 py-2">
+                  {editId === s.id ? (
+                    <input
+                      value={editName} onChange={(e) => setEditName(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && saveEdit(s.id)}
+                      className={inputClass}
+                      autoFocus
+                    />
+                  ) : (
+                    <span className={s.active ? "text-gray-800 dark:text-gray-200" : "text-gray-400 dark:text-gray-500 line-through"}>
+                      {s.name}
+                    </span>
+                  )}
+                </td>
+                <td className="px-4 py-2">
+                  <button
+                    onClick={() => toggleActive(s)}
+                    className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${
+                      s.active
+                        ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
+                        : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
+                    }`}
+                  >
+                    {s.active ? "Active" : "Inactive"}
+                  </button>
+                </td>
+                <td className="px-4 py-2 text-right space-x-3">
+                  {editId === s.id ? (
+                    <>
+                      <button onClick={() => saveEdit(s.id)} className="text-blue-600 dark:text-blue-400 hover:underline text-xs">Save</button>
+                      <button onClick={() => setEditId(null)} className="text-gray-400 dark:text-gray-500 hover:underline text-xs">Cancel</button>
+                    </>
+                  ) : (
+                    <>
+                      <button onClick={() => { setEditId(s.id); setEditName(s.name); }} className="text-blue-600 dark:text-blue-400 hover:underline text-xs">Edit</button>
+                      <button onClick={() => deleteStaff(s.id)} className="text-red-500 dark:text-red-400 hover:underline text-xs">Delete</button>
+                    </>
+                  )}
+                </td>
+              </tr>
+            ))}
+            {staffList.length === 0 && (
+              <tr>
+                <td colSpan={3} className="px-4 py-6 text-center text-gray-400 dark:text-gray-500 text-sm">
+                  No staff added yet.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -201,8 +222,11 @@ function AssignmentsTab() {
     <div className="space-y-5">
       {/* Month picker */}
       <div className="flex items-center gap-2">
-        <label className="text-sm text-gray-600">Month:</label>
-        <select value={month} onChange={(e) => setMonth(Number(e.target.value))} className="border rounded px-3 py-1.5 text-sm">
+        <label className="text-sm text-gray-600 dark:text-gray-400">Month:</label>
+        <select
+          value={month} onChange={(e) => setMonth(Number(e.target.value))}
+          className={inputClass}
+        >
           {MONTHS.map((m, i) => <option key={m} value={i + 1}>{m} {year}</option>)}
         </select>
       </div>
@@ -213,26 +237,30 @@ function AssignmentsTab() {
           const blockAssignments = assignments.filter((a) => a.block === block);
           const canAdd = blockAssignments.length < 2;
           return (
-            <div key={block} className="border rounded-lg p-4 space-y-3">
-              <h3 className="text-sm font-semibold text-gray-700">Block {block}</h3>
+            <div key={block} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3 bg-white dark:bg-gray-800">
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Block {block}</h3>
               <ul className="space-y-1">
                 {blockAssignments.map((a) => (
                   <li key={a.id} className="flex items-center justify-between text-sm">
-                    <span className="flex items-center gap-2">
+                    <span className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
                       <span className="w-2 h-2 rounded-full bg-green-400 inline-block" />
                       {a.staff.name}
                     </span>
-                    <button onClick={() => removeAssignment(a.id)} className="text-red-400 hover:text-red-600 text-xs">Remove</button>
+                    <button onClick={() => removeAssignment(a.id)} className="text-red-400 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 text-xs transition-colors">
+                      Remove
+                    </button>
                   </li>
                 ))}
-                {blockAssignments.length === 0 && <li className="text-xs text-gray-400">No staff assigned</li>}
+                {blockAssignments.length === 0 && (
+                  <li className="text-xs text-gray-400 dark:text-gray-500">No staff assigned</li>
+                )}
               </ul>
               {canAdd && (
                 <div className="flex gap-2">
                   <select
                     value={selectedStaff[block] ?? ""}
                     onChange={(e) => setSelectedStaff((prev) => ({ ...prev, [block]: e.target.value }))}
-                    className="border rounded px-2 py-1 text-sm flex-1"
+                    className={`${inputClass} flex-1`}
                   >
                     <option value="">Select staff…</option>
                     {allStaff
@@ -242,13 +270,15 @@ function AssignmentsTab() {
                   <button
                     onClick={() => assign(block)}
                     disabled={!selectedStaff[block]}
-                    className="bg-blue-600 text-white text-xs px-3 py-1 rounded hover:bg-blue-700 disabled:opacity-40"
+                    className="bg-blue-600 dark:bg-blue-500 text-white text-xs px-3 py-1 rounded hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-40 transition-colors"
                   >
                     Assign
                   </button>
                 </div>
               )}
-              {!canAdd && <p className="text-xs text-gray-400">2 staff assigned (max reached)</p>}
+              {!canAdd && (
+                <p className="text-xs text-gray-400 dark:text-gray-500">2 staff assigned (max reached)</p>
+              )}
             </div>
           );
         })}
@@ -288,47 +318,52 @@ function FeedbackTab() {
       {/* Filters */}
       <div className="flex flex-wrap gap-3 items-center">
         <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-600">Month:</label>
-          <select value={month} onChange={(e) => setMonth(Number(e.target.value))} className="border rounded px-3 py-1.5 text-sm">
+          <label className="text-sm text-gray-600 dark:text-gray-400">Month:</label>
+          <select value={month} onChange={(e) => setMonth(Number(e.target.value))} className={inputClass}>
             {MONTHS.map((m, i) => <option key={m} value={i + 1}>{m} {year}</option>)}
           </select>
         </div>
         <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-600">Block:</label>
-          <select value={blockFilter} onChange={(e) => setBlockFilter(e.target.value ? Number(e.target.value) : "")} className="border rounded px-3 py-1.5 text-sm">
+          <label className="text-sm text-gray-600 dark:text-gray-400">Block:</label>
+          <select value={blockFilter} onChange={(e) => setBlockFilter(e.target.value ? Number(e.target.value) : "")} className={inputClass}>
             <option value="">All</option>
             {BLOCKS.map((b) => <option key={b} value={b}>Block {b}</option>)}
           </select>
         </div>
         {avgRating && (
-          <span className="ml-auto text-sm text-gray-600">
-            Avg rating: <span className="font-semibold text-yellow-500">{avgRating} ★</span> ({feedbackList.length} reviews)
+          <span className="ml-auto text-sm text-gray-600 dark:text-gray-400">
+            Avg rating: <span className="font-semibold text-yellow-500">{avgRating} ★</span>
+            <span className="text-gray-400 dark:text-gray-500 ml-1">({feedbackList.length} reviews)</span>
           </span>
         )}
       </div>
 
       {loading ? (
-        <p className="text-sm text-gray-400">Loading…</p>
+        <p className="text-sm text-gray-400 dark:text-gray-500">Loading…</p>
       ) : feedbackList.length === 0 ? (
-        <p className="text-sm text-gray-400">No feedback for this period.</p>
+        <p className="text-sm text-gray-400 dark:text-gray-500">No feedback for this period.</p>
       ) : (
         <div className="space-y-3">
           {feedbackList.map((f) => {
             const name = f.resident?.name ?? f.guestName ?? "Anonymous";
             const flat = f.resident?.flatNumber ?? f.guestFlat ?? "";
             return (
-              <div key={f.id} className="bg-white border rounded-lg p-4">
+              <div key={f.id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-sm font-medium text-gray-800">
+                    <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
                       {name}{flat ? ` · Flat ${flat}` : ""} · Block {f.block}
                     </p>
-                    {f.comment && <p className="text-sm text-gray-600 mt-1">{f.comment}</p>}
-                    <p className="text-xs text-gray-400 mt-1">
+                    {f.comment && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{f.comment}</p>
+                    )}
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                       {new Date(f.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                     </p>
                   </div>
-                  <span className="text-yellow-400 text-sm shrink-0">{"★".repeat(f.rating)}{"☆".repeat(5 - f.rating)}</span>
+                  <span className="text-yellow-400 text-sm shrink-0">
+                    {"★".repeat(f.rating)}{"☆".repeat(5 - f.rating)}
+                  </span>
                 </div>
               </div>
             );
@@ -348,16 +383,18 @@ export default function AdminHousekeepingPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Housekeeping Management</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Housekeeping Management</h1>
 
       {/* Tabs */}
-      <div className="flex border-b mb-6">
+      <div className="flex border-b border-gray-200 dark:border-gray-700 mb-6">
         {(["staff", "assignments", "feedback"] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={`px-5 py-2 text-sm font-medium capitalize border-b-2 -mb-px transition-colors ${
-              tab === t ? "border-blue-600 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700"
+              tab === t
+                ? "border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400"
+                : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             }`}
           >
             {t}
