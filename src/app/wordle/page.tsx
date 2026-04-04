@@ -254,15 +254,8 @@ export default function WordlePage() {
     const storedId = localStorage.getItem("wordle_player_id");
     const storedName = localStorage.getItem("wordle_player_name");
 
-    if (storedId) {
-      setPlayerId(storedId);
-      setPlayerName(storedName || "");
-      setLoading(false);
-      return;
-    }
-
-    // Auto-register if user is logged in and registered
-    if (session?.user?.isRegistered && session.user.email) {
+    // Auto-register for logged-in users (upserts by email, always safe to call)
+    if (session?.user?.email) {
       fetch("/api/wordle/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -275,13 +268,28 @@ export default function WordlePage() {
             localStorage.setItem("wordle_player_name", data.name);
             setPlayerId(data.playerId);
             setPlayerName(data.name);
+          } else if (storedId) {
+            // Fallback to stored ID if auto-register fails
+            setPlayerId(storedId);
+            setPlayerName(storedName || "");
           }
         })
-        .catch(() => {})
+        .catch(() => {
+          if (storedId) {
+            setPlayerId(storedId);
+            setPlayerName(storedName || "");
+          }
+        })
         .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
+      return;
     }
+
+    // Not logged in — restore from localStorage or show registration form
+    if (storedId) {
+      setPlayerId(storedId);
+      setPlayerName(storedName || "");
+    }
+    setLoading(false);
   }, [session, sessionStatus]);
 
   // Fetch today's game state
@@ -343,6 +351,17 @@ export default function WordlePage() {
       const data = await res.json();
 
       if (!res.ok) {
+        // Stale player ID — clear and force re-registration
+        if (res.status === 404) {
+          localStorage.removeItem("wordle_player_id");
+          localStorage.removeItem("wordle_player_name");
+          setPlayerId(null);
+          setPlayerName("");
+          setGuesses([]);
+          setCurrentGuess("");
+          showMessage("Session expired. Please register again.");
+          return;
+        }
         showMessage(data.error || "Invalid guess");
         shake();
         return;

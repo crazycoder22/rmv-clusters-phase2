@@ -8,8 +8,8 @@ export async function POST(request: Request) {
   // If fromSession is true, auto-register using logged-in user's resident data
   if (body.fromSession) {
     const session = await auth();
-    if (!session?.user?.email || !session.user.isRegistered) {
-      return NextResponse.json({ error: "Not logged in or not registered" }, { status: 401 });
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: "Not logged in" }, { status: 401 });
     }
 
     const resident = await prisma.resident.findUnique({
