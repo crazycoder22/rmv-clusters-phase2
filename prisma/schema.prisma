@@ -74,6 +74,7 @@ model Resident {
   reviewDocuments          ReviewDocument[]
   reviewComments           ReviewComment[]
   resolvedReviewComments   ReviewComment[] @relation("ResolvedComments")
+  hkFeedbacks              HKFeedback[]
   surveysCreated           Survey[]        @relation("SurveysCreated")
   pollsCreated             Poll[]          @relation("PollsCreated")
   pollVotes                PollVote[]
@@ -587,6 +588,54 @@ model ChecklistEntry {
   @@index([itemId])
   @@index([date])
 }
+
+// ─── Housekeeping ─────────────────────────────────────────────────────────────
+
+model HKStaff {
+  id          String         @id @default(cuid())
+  name        String
+  active      Boolean        @default(true)
+  assignments HKAssignment[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model HKAssignment {
+  id        String   @id @default(cuid())
+  staffId   String
+  staff     HKStaff  @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  block     Int      // 1–4
+  month     Int      // 1–12
+  year      Int
+  createdAt DateTime @default(now())
+
+  @@unique([staffId, block, month, year])
+  @@index([block, month, year])
+}
+
+model HKFeedback {
+  id         String    @id @default(cuid())
+  block      Int
+  month      Int
+  year       Int
+  // Logged-in resident
+  residentId String?
+  resident   Resident? @relation(fields: [residentId], references: [id], onDelete: SetNull)
+  // Guest (non-logged-in)
+  guestName  String?
+  guestEmail String?
+  guestPhone String?
+  guestFlat  String?
+  rating     Int       // 1–5
+  comment    String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([block, month, year])
+  @@index([residentId])
+}
+
+// ─── End Housekeeping ─────────────────────────────────────────────────────────
 
 model SosAcceptance {
   id         String   @id @default(cuid())

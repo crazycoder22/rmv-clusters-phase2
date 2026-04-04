@@ -73,6 +73,7 @@ const navGroups: NavGroup[] = [
       { href: "/domestic-help", label: "Domestic Help" },
       { href: "/documents", label: "Documents" },
       { href: "/checklist", label: "Checklist" },
+      { href: "/housekeeping/feedback", label: "Housekeeping" },
     ],
   },
 ];
@@ -265,6 +266,11 @@ export default function Navbar() {
       href: "/admin/fantasy",
       label: "Fantasy Cricket",
       match: (p) => p.startsWith("/admin/fantasy"),
+    });
+    adminLinks.push({
+      href: "/admin/housekeeping",
+      label: "Housekeeping",
+      match: (p) => p.startsWith("/admin/housekeeping"),
     });
   }
 
