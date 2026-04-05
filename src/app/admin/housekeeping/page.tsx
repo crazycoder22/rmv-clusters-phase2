@@ -12,9 +12,23 @@ const MONTHS = [
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
+type StaffType = "HOUSEKEEPING" | "PLUMBER" | "ELECTRICIAN" | "HELPER";
+
+const STAFF_TYPES: { value: StaffType; label: string; color: string }[] = [
+  { value: "HOUSEKEEPING", label: "Housekeeping", color: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300" },
+  { value: "PLUMBER",      label: "Plumber",      color: "bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300" },
+  { value: "ELECTRICIAN",  label: "Electrician",  color: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300" },
+  { value: "HELPER",       label: "Helper",       color: "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300" },
+];
+
+function staffTypeMeta(type: StaffType) {
+  return STAFF_TYPES.find((t) => t.value === type) ?? STAFF_TYPES[0];
+}
+
 interface Staff {
   id: string;
   name: string;
+  type: StaffType;
   active: boolean;
 }
 
@@ -22,7 +36,7 @@ interface Assignment {
   id: string;
   block: number;
   staffId: string;
-  staff: Staff;
+  staff: Staff; // includes type
 }
 
 interface FeedbackEntry {
@@ -44,8 +58,10 @@ const inputClass = "border border-gray-300 dark:border-gray-600 rounded px-3 py-
 function StaffTab() {
   const [staffList, setStaffList] = useState<Staff[]>([]);
   const [newName, setNewName] = useState("");
+  const [newType, setNewType] = useState<StaffType>("HOUSEKEEPING");
   const [editId, setEditId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
+  const [editType, setEditType] = useState<StaffType>("HOUSEKEEPING");
 
   async function load() {
     const res = await fetch("/api/admin/housekeeping/staff");
@@ -59,9 +75,10 @@ function StaffTab() {
     await fetch("/api/admin/housekeeping/staff", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: newName }),
+      body: JSON.stringify({ name: newName, type: newType }),
     });
     setNewName("");
+    setNewType("HOUSEKEEPING");
     load();
   }
 
@@ -79,7 +96,7 @@ function StaffTab() {
     await fetch(`/api/admin/housekeeping/staff/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: editName }),
+      body: JSON.stringify({ name: editName, type: editType }),
     });
     setEditId(null);
     load();
@@ -94,13 +111,22 @@ function StaffTab() {
   return (
     <div className="space-y-5">
       {/* Add */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
         <input
           value={newName} onChange={(e) => setNewName(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && addStaff()}
           placeholder="Staff name"
-          className={`${inputClass} flex-1`}
+          className={`${inputClass} flex-1 min-w-40`}
         />
+        <select
+          value={newType}
+          onChange={(e) => setNewType(e.target.value as StaffType)}
+          className={inputClass}
+        >
+          {STAFF_TYPES.map((t) => (
+            <option key={t.value} value={t.value}>{t.label}</option>
+          ))}
+        </select>
         <button
           onClick={addStaff}
           className="bg-blue-600 dark:bg-blue-500 text-white text-sm px-4 py-1.5 rounded hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
@@ -115,57 +141,78 @@ function StaffTab() {
           <thead className="bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs uppercase">
             <tr>
               <th className="text-left px-4 py-2">Name</th>
+              <th className="text-left px-4 py-2">Type</th>
               <th className="text-left px-4 py-2">Status</th>
               <th className="px-4 py-2" />
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 dark:divide-gray-700 bg-white dark:bg-gray-900">
-            {staffList.map((s) => (
-              <tr key={s.id}>
-                <td className="px-4 py-2">
-                  {editId === s.id ? (
-                    <input
-                      value={editName} onChange={(e) => setEditName(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && saveEdit(s.id)}
-                      className={inputClass}
-                      autoFocus
-                    />
-                  ) : (
-                    <span className={s.active ? "text-gray-800 dark:text-gray-200" : "text-gray-400 dark:text-gray-500 line-through"}>
-                      {s.name}
-                    </span>
-                  )}
-                </td>
-                <td className="px-4 py-2">
-                  <button
-                    onClick={() => toggleActive(s)}
-                    className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${
-                      s.active
-                        ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
-                        : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
-                    }`}
-                  >
-                    {s.active ? "Active" : "Inactive"}
-                  </button>
-                </td>
-                <td className="px-4 py-2 text-right space-x-3">
-                  {editId === s.id ? (
-                    <>
-                      <button onClick={() => saveEdit(s.id)} className="text-blue-600 dark:text-blue-400 hover:underline text-xs">Save</button>
-                      <button onClick={() => setEditId(null)} className="text-gray-400 dark:text-gray-500 hover:underline text-xs">Cancel</button>
-                    </>
-                  ) : (
-                    <>
-                      <button onClick={() => { setEditId(s.id); setEditName(s.name); }} className="text-blue-600 dark:text-blue-400 hover:underline text-xs">Edit</button>
-                      <button onClick={() => deleteStaff(s.id)} className="text-red-500 dark:text-red-400 hover:underline text-xs">Delete</button>
-                    </>
-                  )}
-                </td>
-              </tr>
-            ))}
+            {staffList.map((s) => {
+              const meta = staffTypeMeta(s.type);
+              return (
+                <tr key={s.id}>
+                  <td className="px-4 py-2">
+                    {editId === s.id ? (
+                      <input
+                        value={editName} onChange={(e) => setEditName(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && saveEdit(s.id)}
+                        className={inputClass}
+                        autoFocus
+                      />
+                    ) : (
+                      <span className={s.active ? "text-gray-800 dark:text-gray-200" : "text-gray-400 dark:text-gray-500 line-through"}>
+                        {s.name}
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-2">
+                    {editId === s.id ? (
+                      <select
+                        value={editType}
+                        onChange={(e) => setEditType(e.target.value as StaffType)}
+                        className={inputClass}
+                      >
+                        {STAFF_TYPES.map((t) => (
+                          <option key={t.value} value={t.value}>{t.label}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${meta.color}`}>
+                        {meta.label}
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-2">
+                    <button
+                      onClick={() => toggleActive(s)}
+                      className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${
+                        s.active
+                          ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
+                          : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
+                      }`}
+                    >
+                      {s.active ? "Active" : "Inactive"}
+                    </button>
+                  </td>
+                  <td className="px-4 py-2 text-right space-x-3">
+                    {editId === s.id ? (
+                      <>
+                        <button onClick={() => saveEdit(s.id)} className="text-blue-600 dark:text-blue-400 hover:underline text-xs">Save</button>
+                        <button onClick={() => setEditId(null)} className="text-gray-400 dark:text-gray-500 hover:underline text-xs">Cancel</button>
+                      </>
+                    ) : (
+                      <>
+                        <button onClick={() => { setEditId(s.id); setEditName(s.name); setEditType(s.type); }} className="text-blue-600 dark:text-blue-400 hover:underline text-xs">Edit</button>
+                        <button onClick={() => deleteStaff(s.id)} className="text-red-500 dark:text-red-400 hover:underline text-xs">Delete</button>
+                      </>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
             {staffList.length === 0 && (
               <tr>
-                <td colSpan={3} className="px-4 py-6 text-center text-gray-400 dark:text-gray-500 text-sm">
+                <td colSpan={4} className="px-4 py-6 text-center text-gray-400 dark:text-gray-500 text-sm">
                   No staff added yet.
                 </td>
               </tr>
@@ -247,6 +294,9 @@ function AssignmentsTab() {
                     <span className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
                       <span className="w-2 h-2 rounded-full bg-green-400 inline-block" />
                       {a.staff.name}
+                      <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${staffTypeMeta(a.staff.type).color}`}>
+                        {staffTypeMeta(a.staff.type).label}
+                      </span>
                     </span>
                     <button onClick={() => removeAssignment(a.id)} className="text-red-400 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 text-xs transition-colors">
                       Remove

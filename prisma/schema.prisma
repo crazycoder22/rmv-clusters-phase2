@@ -591,9 +591,17 @@ model ChecklistEntry {
 
 // ─── Housekeeping ─────────────────────────────────────────────────────────────
 
+enum HKStaffType {
+  HOUSEKEEPING
+  PLUMBER
+  ELECTRICIAN
+  HELPER
+}
+
 model HKStaff {
   id          String         @id @default(cuid())
   name        String
+  type        HKStaffType    @default(HOUSEKEEPING)
   active      Boolean        @default(true)
   assignments HKAssignment[]
   createdAt   DateTime       @default(now())

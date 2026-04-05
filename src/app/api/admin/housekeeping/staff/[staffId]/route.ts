@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { canManageAnnouncements } from "@/lib/roles";
+import { HKStaffType } from "../../../../../../generated/prisma/client";
 
 async function requireAdmin() {
   const session = await auth();
@@ -19,10 +20,12 @@ export async function PATCH(
   if ("error" in check) return check.error;
 
   const { staffId } = await params;
-  const { name, active } = await req.json();
+  const { name, active, type } = await req.json();
   const data: Record<string, unknown> = {};
   if (name !== undefined) data.name = name.trim();
   if (active !== undefined) data.active = active;
+  const validTypes = Object.values(HKStaffType);
+  if (type !== undefined && validTypes.includes(type)) data.type = type as HKStaffType;
 
   const staff = await prisma.hKStaff.update({ where: { id: staffId }, data });
   return NextResponse.json({ staff });
