@@ -1013,8 +1013,9 @@ model WordlePlayer {
   flatNumber String
   email      String       @unique
   phone      String
-  games      WordleGame[]
-  createdAt  DateTime     @default(now())
+  games       WordleGame[]
+  sudokuGames SudokuGame[]
+  createdAt   DateTime     @default(now())
 }
 
 model WordleGame {
@@ -1061,3 +1062,25 @@ model ReviewComment {
   @@index([reviewDocumentId])
   @@index([parentId])
 }
+
+// ─── Sudoku Game ──────────────────────────────────────────────────────────────
+
+model SudokuGame {
+  id          String       @id @default(cuid())
+  playerId    String
+  player      WordlePlayer @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  date        String       // YYYY-MM-DD in IST
+  difficulty  String       // "easy" | "medium" | "hard"
+  puzzle      String       // JSON: number[81] with 0 for blanks
+  solution    String       // JSON: number[81] complete solution
+  currentGrid String       // JSON: number[81] player's live progress
+  completed   Boolean      @default(false)
+  timeSeconds Int?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@unique([playerId, date, difficulty])
+  @@index([date, difficulty])
+}
+
+// ─── End Sudoku Game ─────────────────────────────────────────────────────────

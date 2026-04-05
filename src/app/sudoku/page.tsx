@@ -1,0 +1,588 @@
+"use client";
+
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
+import { ArrowLeft, Trophy, Clock, Delete } from "lucide-react";
+import { formatTime, getPeerIndices, getErrorCells } from "@/lib/sudoku";
+import type { Difficulty } from "@/lib/sudoku";
+
+// ── Types ──────────────────────────────────────────────────────────────────
+
+interface LeaderboardEntry {
+  rank: number;
+  playerId: string;
+  name: string;
+  block: number;
+  flatNumber: string;
+  timeSeconds: number;
+}
+
+// ── Registration form (same as Wordle, uses WordlePlayer) ──────────────────
+
+function RegistrationForm({ onRegister }: { onRegister: (id: string, name: string) => void }) {
+  const [name, setName] = useState("");
+  const [block, setBlock] = useState("");
+  const [flatNumber, setFlatNumber] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const inputClass =
+    "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 outline-none";
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setSaving(true);
+    try {
+      const res = await fetch("/api/wordle/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, block: Number(block), flatNumber, email, phone }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || "Registration failed"); return; }
+      localStorage.setItem("sudoku_player_id", data.playerId);
+      localStorage.setItem("sudoku_player_name", data.name);
+      onRegister(data.playerId, data.name);
+    } catch {
+      setError("Something went wrong.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="max-w-md mx-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-1">Welcome to Sudoku!</h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Enter your details to start playing</p>
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Full Name" required className={inputClass} />
+          <div className="grid grid-cols-2 gap-3">
+            <input type="number" value={block} onChange={(e) => setBlock(e.target.value)} placeholder="Block" required min={1} className={inputClass} />
+            <input value={flatNumber} onChange={(e) => setFlatNumber(e.target.value)} placeholder="Flat Number" required className={inputClass} />
+          </div>
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" required className={inputClass} />
+          <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Phone" required className={inputClass} />
+          {error && <p className="text-sm text-red-500">{error}</p>}
+          <button type="submit" disabled={saving} className="w-full bg-primary-600 text-white py-2.5 rounded-lg font-medium hover:bg-primary-700 disabled:opacity-50 text-sm transition-colors">
+            {saving ? "Registering..." : "Start Playing"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ── Grid ───────────────────────────────────────────────────────────────────
+
+function getCellClass(
+  idx: number,
+  puzzle: number[],
+  grid: number[],
+  solution: number[],
+  selected: number | null,
+  peers: Set<number>,
+  errors: Set<number>,
+  completed: boolean,
+): string {
+  const row = Math.floor(idx / 9);
+  const col = idx % 9;
+  const isLocked = puzzle[idx] !== 0;
+
+  // Border classes for 3×3 box separation
+  let border = "border border-gray-300 dark:border-gray-600";
+  if (col % 3 === 0) border += " border-l-2 border-l-gray-700 dark:border-l-gray-300";
+  if (col === 8) border += " border-r-2 border-r-gray-700 dark:border-r-gray-300";
+  if (row % 3 === 0) border += " border-t-2 border-t-gray-700 dark:border-t-gray-300";
+  if (row === 8) border += " border-b-2 border-b-gray-700 dark:border-b-gray-300";
+
+  // Background color
+  let bg = "";
+  if (completed) {
+    bg = "bg-green-50 dark:bg-green-900/20";
+  } else if (idx === selected) {
+    bg = "bg-blue-500 dark:bg-blue-600 text-white";
+  } else if (errors.has(idx)) {
+    bg = "bg-red-100 dark:bg-red-900/30";
+  } else if (peers.has(idx)) {
+    bg = "bg-blue-50 dark:bg-blue-900/20";
+  } else if (isLocked) {
+    bg = "bg-gray-100 dark:bg-gray-700/60";
+  } else {
+    bg = "bg-white dark:bg-gray-800";
+  }
+
+  // Text color
+  let text = "";
+  if (idx === selected) {
+    text = "text-white";
+  } else if (errors.has(idx)) {
+    text = "text-red-600 dark:text-red-400";
+  } else if (isLocked) {
+    text = "font-bold text-gray-800 dark:text-gray-100";
+  } else if (grid[idx] !== 0) {
+    text = "font-medium text-blue-700 dark:text-blue-300";
+  } else {
+    text = "text-gray-800 dark:text-gray-100";
+  }
+
+  return `${border} ${bg} ${text} flex items-center justify-center text-base sm:text-lg cursor-pointer select-none transition-colors aspect-square`;
+}
+
+function SudokuGrid({
+  puzzle, grid, solution, selected, completed, onCellClick,
+}: {
+  puzzle: number[];
+  grid: number[];
+  solution: number[];
+  selected: number | null;
+  completed: boolean;
+  onCellClick: (idx: number) => void;
+}) {
+  const peers = selected !== null ? getPeerIndices(selected) : new Set<number>();
+  const errors = getErrorCells(grid, puzzle, solution);
+
+  return (
+    <div className="grid grid-cols-9 border-2 border-gray-700 dark:border-gray-300 w-full max-w-sm mx-auto">
+      {grid.map((val, idx) => (
+        <div
+          key={idx}
+          className={getCellClass(idx, puzzle, grid, solution, selected, peers, errors, completed)}
+          onClick={() => onCellClick(idx)}
+        >
+          {val !== 0 ? val : ""}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Number Pad ─────────────────────────────────────────────────────────────
+
+function NumberPad({ onNumber, onErase, disabled }: { onNumber: (n: number) => void; onErase: () => void; disabled: boolean }) {
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <div className="grid grid-cols-9 gap-1 w-full max-w-sm mx-auto">
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
+          <button
+            key={n}
+            onClick={() => onNumber(n)}
+            disabled={disabled}
+            className="aspect-square flex items-center justify-center text-base font-semibold rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 hover:bg-primary-50 dark:hover:bg-primary-900/30 hover:border-primary-400 disabled:opacity-40 transition-colors"
+          >
+            {n}
+          </button>
+        ))}
+      </div>
+      <button
+        onClick={onErase}
+        disabled={disabled}
+        className="flex items-center gap-1.5 px-4 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-300 hover:text-red-600 disabled:opacity-40 transition-colors"
+      >
+        <Delete size={15} />
+        Erase
+      </button>
+    </div>
+  );
+}
+
+// ── Leaderboard ────────────────────────────────────────────────────────────
+
+function LeaderboardView({ currentPlayerId, difficulty, setDifficulty }: {
+  currentPlayerId: string | null;
+  difficulty: Difficulty;
+  setDifficulty: (d: Difficulty) => void;
+}) {
+  const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    fetch(`/api/sudoku/leaderboard?difficulty=${difficulty}`)
+      .then((r) => r.ok ? r.json() : { leaderboard: [] })
+      .then((d) => setEntries(d.leaderboard ?? []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [difficulty]);
+
+  const diffBtnClass = (d: Difficulty) =>
+    `px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+      difficulty === d
+        ? "bg-primary-600 dark:bg-primary-500 text-white border-primary-600"
+        : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-600 hover:border-primary-400"
+    }`;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-2 justify-center">
+        {(["easy", "medium", "hard"] as Difficulty[]).map((d) => (
+          <button key={d} className={diffBtnClass(d)} onClick={() => setDifficulty(d)}>
+            {d.charAt(0).toUpperCase() + d.slice(1)}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <p className="text-center text-sm text-gray-400 dark:text-gray-500 py-8">Loading…</p>
+      ) : entries.length === 0 ? (
+        <div className="text-center py-10">
+          <Trophy size={40} className="mx-auto text-gray-300 dark:text-gray-600 mb-2" />
+          <p className="text-sm text-gray-500 dark:text-gray-400">No completions yet for {difficulty}!</p>
+        </div>
+      ) : (
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="grid grid-cols-[auto_1fr_auto] gap-3 px-4 py-2 bg-gray-50 dark:bg-gray-700 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">
+            <span>#</span>
+            <span>Player</span>
+            <span className="text-right">Time</span>
+          </div>
+          <div className="divide-y divide-gray-100 dark:divide-gray-700">
+            {entries.map((e) => (
+              <div
+                key={e.playerId}
+                className={`grid grid-cols-[auto_1fr_auto] gap-3 px-4 py-3 items-center ${e.playerId === currentPlayerId ? "bg-primary-50/50 dark:bg-primary-900/20" : ""}`}
+              >
+                <span className={`text-sm font-bold w-6 text-center ${e.rank === 1 ? "text-yellow-500" : e.rank === 2 ? "text-gray-400" : e.rank === 3 ? "text-amber-700" : "text-gray-400 dark:text-gray-500"}`}>
+                  {e.rank === 1 ? "🥇" : e.rank === 2 ? "🥈" : e.rank === 3 ? "🥉" : e.rank}
+                </span>
+                <div>
+                  <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                    {e.name}
+                    {e.playerId === currentPlayerId && <span className="ml-1.5 text-xs text-primary-600 dark:text-primary-400">(You)</span>}
+                  </p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500">Block {e.block}, {e.flatNumber}</p>
+                </div>
+                <span className="text-sm font-mono font-semibold text-primary-600 dark:text-primary-400">
+                  {formatTime(e.timeSeconds)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Main page ──────────────────────────────────────────────────────────────
+
+const DIFFICULTIES: { value: Difficulty; label: string; color: string }[] = [
+  { value: "easy",   label: "Easy",   color: "text-green-600 dark:text-green-400" },
+  { value: "medium", label: "Medium", color: "text-yellow-600 dark:text-yellow-400" },
+  { value: "hard",   label: "Hard",   color: "text-red-600 dark:text-red-400" },
+];
+
+export default function SudokuPage() {
+  const { data: session, status: sessionStatus } = useSession();
+  const [playerId, setPlayerId] = useState<string | null>(null);
+  const [playerName, setPlayerName] = useState("");
+  const [tab, setTab] = useState<"game" | "leaderboard">("game");
+  const [difficulty, setDifficulty] = useState<Difficulty>("medium");
+
+  const [puzzle, setPuzzle] = useState<number[]>(Array(81).fill(0));
+  const [solution, setSolution] = useState<number[]>(Array(81).fill(0));
+  const [grid, setGrid] = useState<number[]>(Array(81).fill(0));
+  const [selected, setSelected] = useState<number | null>(null);
+  const [completed, setCompleted] = useState(false);
+  const [savedTime, setSavedTime] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [gameLoading, setGameLoading] = useState(false);
+
+  // Timer
+  const [timeSeconds, setTimeSeconds] = useState(0);
+  const startTimeRef = useRef<number>(Date.now());
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Debounce save ref
+  const saveDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // ── Auto-register ────────────────────────────────────────────────────────
+
+  useEffect(() => {
+    if (sessionStatus === "loading") return;
+
+    if (session?.user?.email) {
+      fetch("/api/wordle/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fromSession: true }),
+      })
+        .then((r) => r.ok ? r.json() : null)
+        .then((data) => {
+          if (data) {
+            localStorage.setItem("sudoku_player_id", data.playerId);
+            localStorage.setItem("sudoku_player_name", data.name);
+            setPlayerId(data.playerId);
+            setPlayerName(data.name);
+          }
+        })
+        .catch(() => {
+          const storedId = localStorage.getItem("sudoku_player_id");
+          if (storedId) { setPlayerId(storedId); setPlayerName(localStorage.getItem("sudoku_player_name") ?? ""); }
+        })
+        .finally(() => setLoading(false));
+      return;
+    }
+
+    const storedId = localStorage.getItem("sudoku_player_id");
+    if (storedId) { setPlayerId(storedId); setPlayerName(localStorage.getItem("sudoku_player_name") ?? ""); }
+    setLoading(false);
+  }, [session, sessionStatus]);
+
+  // ── Load game ────────────────────────────────────────────────────────────
+
+  const fetchGame = useCallback(async (pid: string, diff: Difficulty) => {
+    setGameLoading(true);
+    setSelected(null);
+    try {
+      const res = await fetch(`/api/sudoku/game?playerId=${pid}&difficulty=${diff}`);
+      if (!res.ok) {
+        if (res.status === 404) {
+          localStorage.removeItem("sudoku_player_id");
+          localStorage.removeItem("sudoku_player_name");
+          setPlayerId(null);
+        }
+        return;
+      }
+      const data = await res.json();
+      setPuzzle(data.puzzle);
+      setSolution(data.solution ?? Array(81).fill(0));
+      setGrid(data.currentGrid);
+      setCompleted(data.completed);
+      setSavedTime(data.timeSeconds ?? null);
+    } finally {
+      setGameLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (playerId) fetchGame(playerId, difficulty);
+  }, [playerId, difficulty, fetchGame]);
+
+  // ── Timer ────────────────────────────────────────────────────────────────
+
+  useEffect(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (completed || !playerId || gameLoading) return;
+
+    startTimeRef.current = Date.now();
+    setTimeSeconds(0);
+
+    timerRef.current = setInterval(() => {
+      setTimeSeconds(Math.floor((Date.now() - startTimeRef.current) / 1000));
+    }, 1000);
+
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [completed, playerId, difficulty, gameLoading]);
+
+  // ── Save ─────────────────────────────────────────────────────────────────
+
+  const saveGame = useCallback(async (newGrid: number[], elapsed: number, immediate = false) => {
+    if (!playerId) return;
+
+    const doSave = async () => {
+      const res = await fetch("/api/sudoku/game", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ playerId, difficulty, currentGrid: newGrid, timeSeconds: elapsed }),
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.completed) {
+        if (timerRef.current) clearInterval(timerRef.current);
+        setSolution(data.solution);
+        setCompleted(true);
+        setSavedTime(elapsed);
+      }
+    };
+
+    if (immediate) {
+      if (saveDebounceRef.current) clearTimeout(saveDebounceRef.current);
+      doSave();
+    } else {
+      if (saveDebounceRef.current) clearTimeout(saveDebounceRef.current);
+      saveDebounceRef.current = setTimeout(doSave, 800);
+    }
+  }, [playerId, difficulty]);
+
+  // ── Input handling ───────────────────────────────────────────────────────
+
+  const handleCellClick = useCallback((idx: number) => {
+    if (completed) return;
+    setSelected(idx);
+  }, [completed]);
+
+  const handleNumber = useCallback((n: number) => {
+    if (selected === null || completed) return;
+    if (puzzle[selected] !== 0) return; // locked cell
+    const newGrid = [...grid];
+    newGrid[selected] = n;
+    setGrid(newGrid);
+
+    const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+    const isNowComplete = newGrid.every((v, i) => v !== 0 && v === solution[i]);
+    saveGame(newGrid, elapsed, isNowComplete);
+  }, [selected, completed, puzzle, grid, solution, saveGame]);
+
+  const handleErase = useCallback(() => {
+    if (selected === null || completed) return;
+    if (puzzle[selected] !== 0) return;
+    const newGrid = [...grid];
+    newGrid[selected] = 0;
+    setGrid(newGrid);
+    const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+    saveGame(newGrid, elapsed);
+  }, [selected, completed, puzzle, grid, saveGame]);
+
+  // Physical keyboard
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      if (/^[1-9]$/.test(e.key)) handleNumber(parseInt(e.key));
+      if (e.key === "Backspace" || e.key === "Delete") handleErase();
+      // Arrow key navigation
+      if (selected !== null) {
+        const row = Math.floor(selected / 9);
+        const col = selected % 9;
+        if (e.key === "ArrowUp" && row > 0) setSelected(selected - 9);
+        if (e.key === "ArrowDown" && row < 8) setSelected(selected + 9);
+        if (e.key === "ArrowLeft" && col > 0) setSelected(selected - 1);
+        if (e.key === "ArrowRight" && col < 8) setSelected(selected + 1);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [handleNumber, handleErase, selected]);
+
+  // ── Render ───────────────────────────────────────────────────────────────
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center"><p className="text-gray-500">Loading…</p></div>;
+  }
+
+  const diffBtnClass = (d: Difficulty) =>
+    `px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+      difficulty === d
+        ? "bg-primary-600 dark:bg-primary-500 text-white border-primary-600"
+        : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-600 hover:border-primary-400"
+    }`;
+
+  const tabBtnClass = (t: "game" | "leaderboard") =>
+    `flex-1 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+      tab === t
+        ? "border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400"
+        : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+    }`;
+
+  return (
+    <div className="max-w-lg mx-auto px-4 py-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <Link href="/" className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"><ArrowLeft size={20} /></Link>
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Sudoku</h1>
+        <button onClick={() => setTab("leaderboard")} className="text-primary-600 hover:text-primary-700 dark:text-primary-400" title="Leaderboard">
+          <Trophy size={20} />
+        </button>
+      </div>
+
+      {!playerId ? (
+        <RegistrationForm onRegister={(id, name) => { setPlayerId(id); setPlayerName(name); }} />
+      ) : (
+        <div className="space-y-4">
+          {/* Player info */}
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Playing as <span className="font-medium text-gray-700 dark:text-gray-300">{playerName}</span>
+            </p>
+            <button
+              onClick={() => {
+                localStorage.removeItem("sudoku_player_id");
+                localStorage.removeItem("sudoku_player_name");
+                setPlayerId(null); setPlayerName("");
+              }}
+              className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            >
+              Switch player
+            </button>
+          </div>
+
+          {/* Tabs */}
+          <div className="flex border-b border-gray-200 dark:border-gray-700">
+            <button className={tabBtnClass("game")} onClick={() => setTab("game")}>Game</button>
+            <button className={tabBtnClass("leaderboard")} onClick={() => setTab("leaderboard")}>Leaderboard</button>
+          </div>
+
+          {tab === "game" ? (
+            <div className="space-y-4">
+              {/* Difficulty */}
+              <div className="flex gap-2 justify-center">
+                {DIFFICULTIES.map(({ value, label }) => (
+                  <button key={value} className={diffBtnClass(value)} onClick={() => { setDifficulty(value); }}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              {gameLoading ? (
+                <div className="flex justify-center py-16">
+                  <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : (
+                <>
+                  {/* Timer */}
+                  {!completed && (
+                    <div className="flex items-center justify-center gap-1.5 text-gray-500 dark:text-gray-400">
+                      <Clock size={15} />
+                      <span className="font-mono text-sm">{formatTime(timeSeconds)}</span>
+                    </div>
+                  )}
+
+                  {/* Grid */}
+                  <SudokuGrid
+                    puzzle={puzzle}
+                    grid={grid}
+                    solution={solution}
+                    selected={selected}
+                    completed={completed}
+                    onCellClick={handleCellClick}
+                  />
+
+                  {/* Completed banner */}
+                  {completed ? (
+                    <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 text-center space-y-2">
+                      <p className="text-green-700 dark:text-green-300 font-semibold text-lg">🎉 Puzzle Complete!</p>
+                      <p className="text-green-600 dark:text-green-400 text-sm">
+                        {DIFFICULTIES.find(d => d.value === difficulty)?.label} · Time:{" "}
+                        <span className="font-mono font-bold">{formatTime(savedTime ?? 0)}</span>
+                      </p>
+                      <button
+                        onClick={() => setTab("leaderboard")}
+                        className="text-xs text-primary-600 dark:text-primary-400 hover:underline"
+                      >
+                        See Leaderboard →
+                      </button>
+                    </div>
+                  ) : (
+                    <NumberPad onNumber={handleNumber} onErase={handleErase} disabled={completed} />
+                  )}
+                </>
+              )}
+            </div>
+          ) : (
+            <LeaderboardView
+              currentPlayerId={playerId}
+              difficulty={difficulty}
+              setDifficulty={setDifficulty}
+            />
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
