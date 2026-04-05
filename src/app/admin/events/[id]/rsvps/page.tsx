@@ -87,6 +87,9 @@ interface UnifiedRsvp {
   createdAt: string;
 }
 
+const inputClass =
+  "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none";
+
 export default function AdminRsvpPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { isAdmin, isSuperAdmin, canManageAnnouncements, isLoading: roleLoading } = useRole();
@@ -464,7 +467,7 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
   if (roleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-gray-500 dark:text-gray-400">Loading...</p>
       </div>
     );
   }
@@ -473,8 +476,8 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">Access Denied</h1>
-          <p className="text-gray-500">You do not have permission to access this page.</p>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">Access Denied</h1>
+          <p className="text-gray-500 dark:text-gray-400">You do not have permission to access this page.</p>
         </div>
       </div>
     );
@@ -484,23 +487,23 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
     <div className="max-w-6xl mx-auto px-4 py-10">
       <Link
         href="/admin"
-        className="text-sm text-primary-600 hover:text-primary-700 font-medium mb-6 inline-block"
+        className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium mb-6 inline-block"
       >
         &larr; Back to Admin Dashboard
       </Link>
 
-      <h1 className="text-2xl font-bold text-primary-800 mb-1">
+      <h1 className="text-2xl font-bold text-primary-800 dark:text-primary-300 mb-1">
         RSVP Tracking
       </h1>
-      <p className="text-gray-500 mb-2">{eventTitle}</p>
-      <div className="flex items-center gap-3 text-sm text-gray-500 mb-6">
+      <p className="text-gray-500 dark:text-gray-400 mb-2">{eventTitle}</p>
+      <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400 mb-6">
         {mealType && (
-          <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700 capitalize">
+          <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 capitalize">
             {mealType}
           </span>
         )}
         {!hasFood && (
-          <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-700">
+          <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
             RSVP Only
           </span>
         )}
@@ -517,14 +520,14 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
 
       {/* Tab toggle */}
       {enableFeedback && (
-        <div className="flex gap-1 mb-6 border-b border-gray-200">
+        <div className="flex gap-1 mb-6 border-b border-gray-200 dark:border-gray-700">
           <button
             onClick={() => setActiveTab("rsvps")}
             className={clsx(
               "px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors",
               activeTab === "rsvps"
-                ? "border-primary-600 text-primary-700"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+                ? "border-primary-600 text-primary-700 dark:text-primary-400 dark:border-primary-400"
+                : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             )}
           >
             RSVPs
@@ -534,8 +537,8 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
             className={clsx(
               "px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors",
               activeTab === "feedback"
-                ? "border-primary-600 text-primary-700"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+                ? "border-primary-600 text-primary-700 dark:text-primary-400 dark:border-primary-400"
+                : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             )}
           >
             Feedback
@@ -547,27 +550,27 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
       {activeTab === "feedback" && enableFeedback && (
         <div>
           {loadingFeedback ? (
-            <p className="text-gray-500 text-center py-8">Loading feedback...</p>
+            <p className="text-gray-500 dark:text-gray-400 text-center py-8">Loading feedback...</p>
           ) : (
             <>
               {/* Feedback Summary */}
               {feedbackSummary && feedbackSummary.totalFeedbacks > 0 && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
-                  <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
-                    <p className="text-2xl font-bold text-primary-700">{feedbackSummary.totalFeedbacks}</p>
-                    <p className="text-xs text-gray-500 mt-1">Total Responses</p>
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 text-center">
+                    <p className="text-2xl font-bold text-primary-700 dark:text-primary-400">{feedbackSummary.totalFeedbacks}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Total Responses</p>
                   </div>
-                  <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 text-center">
                     <p className="text-2xl font-bold text-yellow-500">
                       {feedbackSummary.averageRating}
                       <span className="text-lg ml-1">
                         {feedbackStyle === "emoji" ? ["", "😞", "😕", "😐", "🙂", "😄"][Math.round(feedbackSummary.averageRating)] || "😐" : "★"}
                       </span>
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">Average Rating</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Average Rating</p>
                   </div>
-                  <div className="bg-white rounded-lg p-4 border border-gray-200 col-span-2 sm:col-span-1">
-                    <p className="text-xs font-semibold text-gray-600 mb-2">Distribution</p>
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 col-span-2 sm:col-span-1">
+                    <p className="text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2">Distribution</p>
                     {[5, 4, 3, 2, 1].map((star) => {
                       const count = feedbackSummary.ratingDistribution[star] || 0;
                       const pct = feedbackSummary.totalFeedbacks > 0
@@ -575,17 +578,17 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                         : 0;
                       return (
                         <div key={star} className="flex items-center gap-2 text-xs mb-1">
-                          <span className="w-3 text-gray-600">{star}</span>
+                          <span className="w-3 text-gray-600 dark:text-gray-400">{star}</span>
                           <span className="text-yellow-400">
                             {feedbackStyle === "emoji" ? ["", "😞", "😕", "😐", "🙂", "😄"][star] : "★"}
                           </span>
-                          <div className="flex-1 bg-gray-100 rounded-full h-2">
+                          <div className="flex-1 bg-gray-100 dark:bg-gray-700 rounded-full h-2">
                             <div
                               className="bg-yellow-400 h-2 rounded-full transition-all"
                               style={{ width: `${pct}%` }}
                             />
                           </div>
-                          <span className="w-6 text-right text-gray-500">{count}</span>
+                          <span className="w-6 text-right text-gray-500 dark:text-gray-400">{count}</span>
                         </div>
                       );
                     })}
@@ -595,12 +598,12 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
 
               {/* Feedback table */}
               {feedbacks.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">No feedback yet.</p>
+                <p className="text-gray-500 dark:text-gray-400 text-center py-8">No feedback yet.</p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-gray-200 text-left text-gray-600">
+                      <tr className="border-b border-gray-200 dark:border-gray-700 text-left text-gray-600 dark:text-gray-400">
                         <th className="pb-3 pr-4 font-medium">Name</th>
                         <th className="pb-3 pr-4 font-medium">Block / Flat</th>
                         <th className="pb-3 pr-4 font-medium">Rating</th>
@@ -610,11 +613,11 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                     </thead>
                     <tbody>
                       {feedbacks.map((fb) => (
-                        <tr key={fb.id} className="border-b border-gray-100 hover:bg-gray-50">
-                          <td className="py-3 pr-4 font-medium text-gray-900">
+                        <tr key={fb.id} className="border-b border-gray-100 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                          <td className="py-3 pr-4 font-medium text-gray-900 dark:text-gray-100">
                             {fb.resident?.name || "Anonymous"}
                           </td>
-                          <td className="py-3 pr-4 text-gray-600">
+                          <td className="py-3 pr-4 text-gray-600 dark:text-gray-400">
                             {fb.resident ? `B${fb.resident.block} - ${fb.resident.flatNumber}` : "\u2014"}
                           </td>
                           <td className="py-3 pr-4">
@@ -627,16 +630,16 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                                 <span className="text-yellow-400">
                                   {"★".repeat(fb.rating)}
                                 </span>
-                                <span className="text-gray-200">
+                                <span className="text-gray-200 dark:text-gray-600">
                                   {"★".repeat(5 - fb.rating)}
                                 </span>
                               </>
                             )}
                           </td>
-                          <td className="py-3 pr-4 text-gray-600 max-w-[300px]">
-                            {fb.comment || <span className="text-gray-400">&mdash;</span>}
+                          <td className="py-3 pr-4 text-gray-600 dark:text-gray-400 max-w-[300px]">
+                            {fb.comment || <span className="text-gray-400 dark:text-gray-500">&mdash;</span>}
                           </td>
-                          <td className="py-3 text-gray-500 text-xs">
+                          <td className="py-3 text-gray-500 dark:text-gray-400 text-xs">
                             {new Date(fb.createdAt).toLocaleDateString("en-IN", {
                               day: "numeric",
                               month: "short",
@@ -655,7 +658,7 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
       )}
 
       {activeTab === "rsvps" && loading ? (
-        <p className="text-gray-500 text-center py-8">Loading RSVPs...</p>
+        <p className="text-gray-500 dark:text-gray-400 text-center py-8">Loading RSVPs...</p>
       ) : activeTab === "rsvps" ? (
         <>
           {/* Summary cards */}
@@ -672,54 +675,54 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
             };
             return (
             <div className={`grid grid-cols-2 ${smColsClass[colCount] || "sm:grid-cols-4"} gap-4 mb-8`}>
-              <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
-                <p className="text-2xl font-bold text-primary-700">{summary.totalRsvps}</p>
-                <p className="text-xs text-gray-500 mt-1">Total RSVPs</p>
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 text-center">
+                <p className="text-2xl font-bold text-primary-700 dark:text-primary-400">{summary.totalRsvps}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Total RSVPs</p>
               </div>
-              <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
-                <p className="text-2xl font-bold text-blue-600">
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 text-center">
+                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                   {summary.attendedCount}
-                  <span className="text-gray-400 text-lg"> / {summary.totalRsvps}</span>
+                  <span className="text-gray-400 dark:text-gray-500 text-lg"> / {summary.totalRsvps}</span>
                 </p>
-                <p className="text-xs text-gray-500 mt-1">Attended</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Attended</p>
               </div>
               {summary.totalGoal > 0 && (
-                <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
-                  <p className="text-2xl font-bold text-purple-600">{summary.totalGoal.toLocaleString()}</p>
-                  <p className="text-xs text-gray-500 mt-1">Total Goal</p>
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 text-center">
+                  <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{summary.totalGoal.toLocaleString()}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Total Goal</p>
                 </div>
               )}
               {summary.totalSteps > 0 && (
-                <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
-                  <p className="text-2xl font-bold text-orange-600">{summary.totalSteps.toLocaleString()}</p>
-                  <p className="text-xs text-gray-500 mt-1">Total Steps</p>
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 text-center">
+                  <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">{summary.totalSteps.toLocaleString()}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Total Steps</p>
                 </div>
               )}
               {hasFood && (
                 <>
-                  <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
-                    <p className="text-2xl font-bold text-gray-800">{summary.totalPlates}</p>
-                    <p className="text-xs text-gray-500 mt-1">Total Plates</p>
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 text-center">
+                    <p className="text-2xl font-bold text-gray-800 dark:text-gray-100">{summary.totalPlates}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Total Plates</p>
                   </div>
-                  <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
-                    <p className="text-2xl font-bold text-green-700">{"\u20B9"}{summary.totalAmount.toFixed(2)}</p>
-                    <p className="text-xs text-gray-500 mt-1">Total Amount</p>
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 text-center">
+                    <p className="text-2xl font-bold text-green-700 dark:text-green-400">{"\u20B9"}{summary.totalAmount.toFixed(2)}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Total Amount</p>
                   </div>
                 </>
               )}
               {hasEntranceFee && !hasFood && (
-                <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
-                  <p className="text-2xl font-bold text-green-700">{"\u20B9"}{(entranceFee * summary.totalRsvps).toFixed(0)}</p>
-                  <p className="text-xs text-gray-500 mt-1">Total {entranceFeeLabel}</p>
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 text-center">
+                  <p className="text-2xl font-bold text-green-700 dark:text-green-400">{"\u20B9"}{(entranceFee * summary.totalRsvps).toFixed(0)}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Total {entranceFeeLabel}</p>
                 </div>
               )}
               {(hasFood || hasEntranceFee) && (
-                <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
-                  <p className="text-2xl font-bold text-green-600">
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 text-center">
+                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                     {summary.paidCount}
-                    <span className="text-gray-400 text-lg"> / {summary.totalRsvps}</span>
+                    <span className="text-gray-400 dark:text-gray-500 text-lg"> / {summary.totalRsvps}</span>
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">Paid</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Paid</p>
                 </div>
               )}
             </div>
@@ -728,13 +731,13 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
 
           {/* Per-item breakdown */}
           {summary && summary.itemTotals.length > 0 && (
-            <div className="bg-white rounded-lg border border-gray-200 p-4 mb-8">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Item Breakdown</h3>
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 mb-8">
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Item Breakdown</h3>
               <div className="space-y-2">
                 {summary.itemTotals.map((item) => (
                   <div key={item.name} className="flex justify-between text-sm">
-                    <span className="text-gray-600">{item.name}</span>
-                    <span className="text-gray-800">
+                    <span className="text-gray-600 dark:text-gray-400">{item.name}</span>
+                    <span className="text-gray-800 dark:text-gray-200">
                       {item.plates} plates &middot; {"\u20B9"}{item.amount.toFixed(2)}
                     </span>
                   </div>
@@ -745,7 +748,7 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
 
           {/* RSVPs table */}
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-800">All Responses</h2>
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">All Responses</h2>
             <div className="flex items-center gap-3">
               <Link
                 href={`/admin/events/${id}/steps`}
@@ -762,14 +765,14 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
               <button
                 onClick={exportCsv}
                 disabled={allRsvps.length === 0}
-                className="text-sm border border-gray-300 text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-50 transition-colors font-medium disabled:opacity-50"
+                className="text-sm border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-3 py-1.5 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors font-medium disabled:opacity-50"
               >
                 Export CSV
               </button>
               <button
                 onClick={fetchRsvps}
                 disabled={loading}
-                className="text-sm text-primary-600 hover:text-primary-700 disabled:opacity-50"
+                className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 disabled:opacity-50"
               >
                 Refresh
               </button>
@@ -777,12 +780,12 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
           </div>
 
           {allRsvps.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No RSVPs yet.</p>
+            <p className="text-gray-500 dark:text-gray-400 text-center py-8">No RSVPs yet.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-gray-200 text-left text-gray-600">
+                  <tr className="border-b border-gray-200 dark:border-gray-700 text-left text-gray-600 dark:text-gray-400">
                     <th className="pb-3 pr-4 font-medium">Name</th>
                     <th className="pb-3 pr-4 font-medium">Block / Flat</th>
                     {hasFood && <th className="pb-3 pr-4 font-medium">Items</th>}
@@ -804,27 +807,27 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                     return (
                       <tr
                         key={`${rsvp.isGuest ? "g" : "r"}-${rsvp.id}`}
-                        className="border-b border-gray-100 hover:bg-gray-50"
+                        className="border-b border-gray-100 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-800/50"
                       >
                         <td className="py-3 pr-4">
                           <div className="flex items-center gap-2">
-                            <p className="font-medium text-gray-900">{rsvp.name}</p>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">{rsvp.name}</p>
                             {rsvp.isGuest && (
-                              <span className="inline-block px-1.5 py-0.5 text-[10px] font-medium rounded bg-purple-100 text-purple-700">
+                              <span className="inline-block px-1.5 py-0.5 text-[10px] font-medium rounded bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">
                                 Guest
                               </span>
                             )}
                           </div>
-                          <p className="text-xs text-gray-400">{rsvp.email}</p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500">{rsvp.email}</p>
                           {rsvp.phone && (
-                            <p className="text-xs text-gray-400">{rsvp.phone}</p>
+                            <p className="text-xs text-gray-400 dark:text-gray-500">{rsvp.phone}</p>
                           )}
                         </td>
-                        <td className="py-3 pr-4 text-gray-600">
+                        <td className="py-3 pr-4 text-gray-600 dark:text-gray-400">
                           B{rsvp.block} - {rsvp.flatNumber}
                         </td>
                         {hasFood && (
-                          <td className="py-3 pr-4 text-gray-600">
+                          <td className="py-3 pr-4 text-gray-600 dark:text-gray-400">
                             {rsvp.items.map((item) => (
                               <div key={item.id} className="text-xs">
                                 {item.menuItem.name} &times; {item.plates}
@@ -833,12 +836,12 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                           </td>
                         )}
                         {hasFood && (
-                          <td className="py-3 pr-4 font-medium text-gray-800">
+                          <td className="py-3 pr-4 font-medium text-gray-800 dark:text-gray-200">
                             {"\u20B9"}{rsvpTotal.toFixed(2)}
                           </td>
                         )}
                         {hasEntranceFee && !hasFood && (
-                          <td className="py-3 pr-4 font-medium text-gray-800">
+                          <td className="py-3 pr-4 font-medium text-gray-800 dark:text-gray-200">
                             {"\u20B9"}{entranceFee.toFixed(0)}
                           </td>
                         )}
@@ -847,25 +850,25 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                             {rsvp.fieldResponses.length > 0 ? (
                               rsvp.fieldResponses.map((fr) => (
                                 <div key={fr.customFieldId} className="mb-0.5">
-                                  <span className="font-medium text-gray-500">{fr.customField.label}:</span>{" "}
-                                  <span className="text-gray-700">{fr.value}</span>
+                                  <span className="font-medium text-gray-500 dark:text-gray-400">{fr.customField.label}:</span>{" "}
+                                  <span className="text-gray-700 dark:text-gray-300">{fr.value}</span>
                                 </div>
                               ))
                             ) : (
-                              <span className="text-gray-400">&mdash;</span>
+                              <span className="text-gray-400 dark:text-gray-500">&mdash;</span>
                             )}
                           </td>
                         )}
-                        <td className="py-3 pr-4 text-gray-500 text-xs max-w-[120px] truncate">
+                        <td className="py-3 pr-4 text-gray-500 dark:text-gray-400 text-xs max-w-[120px] truncate">
                           {rsvp.notes || "\u2014"}
                         </td>
                         <td className="py-3 pr-4">
                           {rsvp.attended ? (
-                            <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700">
+                            <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">
                               Yes
                             </span>
                           ) : (
-                            <span className="text-gray-400 text-xs">&mdash;</span>
+                            <span className="text-gray-400 dark:text-gray-500 text-xs">&mdash;</span>
                           )}
                         </td>
                         {(hasFood || hasEntranceFee) && (
@@ -876,8 +879,8 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                               className={clsx(
                                 "inline-block px-2 py-0.5 text-xs font-medium rounded-full cursor-pointer transition-colors disabled:opacity-50",
                                 rsvp.paid
-                                  ? "bg-green-100 text-green-700 hover:bg-green-200"
-                                  : "bg-red-100 text-red-600 hover:bg-red-200"
+                                  ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900/50"
+                                  : "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50"
                               )}
                             >
                               {rsvp.paid ? "Paid" : "Unpaid"}
@@ -888,14 +891,14 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => openEdit(rsvp)}
-                              className="text-xs text-primary-600 hover:text-primary-700 transition-colors font-medium"
+                              className="text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors font-medium"
                             >
                               Edit
                             </button>
                             <button
                               onClick={() => deleteRsvp(rsvp)}
                               disabled={deletingId === rsvp.id}
-                              className="text-xs text-red-500 hover:text-red-700 disabled:opacity-50 transition-colors"
+                              className="text-xs text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 disabled:opacity-50 transition-colors"
                             >
                               {deletingId === rsvp.id ? "Deleting..." : "Delete"}
                             </button>
@@ -914,27 +917,27 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
       {/* Edit RSVP Modal */}
       {editingRsvp && (
         <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 dark:bg-black/60"
           onClick={() => !editSaving && setEditingRsvp(null)}
         >
           <div
-            className="bg-white w-full sm:max-w-lg sm:rounded-xl rounded-t-xl max-h-[85vh] overflow-y-auto shadow-xl"
+            className="bg-white dark:bg-gray-900 w-full sm:max-w-lg sm:rounded-xl rounded-t-xl max-h-[85vh] overflow-y-auto shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-5 py-4 flex items-center justify-between rounded-t-xl z-10">
+            <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-5 py-4 flex items-center justify-between rounded-t-xl z-10">
               <div>
-                <h2 className="text-lg font-bold text-gray-900">Edit RSVP</h2>
-                <p className="text-xs text-gray-500">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Edit RSVP</h2>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   {editingRsvp.isGuest ? "Guest" : "Resident"} &mdash; {editingRsvp.name}
                 </p>
               </div>
               <button
                 onClick={() => setEditingRsvp(null)}
                 disabled={editSaving}
-                className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
-                <X size={18} className="text-gray-500" />
+                <X size={18} className="text-gray-500 dark:text-gray-400" />
               </button>
             </div>
 
@@ -943,41 +946,41 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
               {editingRsvp.isGuest ? (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
                     <input
                       type="text"
                       value={editForm.name}
                       onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className={inputClass}
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
                       <input
                         type="email"
                         value={editForm.email}
                         onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        className={inputClass}
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone</label>
                       <input
                         type="text"
                         value={editForm.phone}
                         onChange={(e) => setEditForm((f) => ({ ...f, phone: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        className={inputClass}
                       />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Block</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Block</label>
                       <select
                         value={editForm.block}
                         onChange={(e) => setEditForm((f) => ({ ...f, block: Number(e.target.value) }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        className={inputClass}
                       >
                         {[1, 2, 3, 4].map((b) => (
                           <option key={b} value={b}>Block {b}</option>
@@ -985,38 +988,38 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Flat Number</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Flat Number</label>
                       <input
                         type="text"
                         value={editForm.flatNumber}
                         onChange={(e) => setEditForm((f) => ({ ...f, flatNumber: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        className={inputClass}
                       />
                     </div>
                   </div>
                 </>
               ) : (
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-sm text-gray-500">
-                    <span className="font-medium text-gray-700">{editingRsvp.name}</span>
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <span className="font-medium text-gray-700 dark:text-gray-200">{editingRsvp.name}</span>
                     {" "}&mdash;{" "}B{editingRsvp.block} - {editingRsvp.flatNumber}
                   </p>
-                  <p className="text-xs text-gray-400 mt-1">Profile details are managed by the resident</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Profile details are managed by the resident</p>
                 </div>
               )}
 
               {/* Food Items */}
               {hasFood && menuItems.length > 0 && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Food Items</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Food Items</label>
                   <div className="space-y-2">
                     {menuItems.map((mi) => {
                       const plates = editForm.items[mi.id] || 0;
                       return (
-                        <div key={mi.id} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2">
+                        <div key={mi.id} className="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded-lg px-3 py-2">
                           <div>
-                            <p className="text-sm font-medium text-gray-800">{mi.name}</p>
-                            <p className="text-xs text-gray-500">{"\u20B9"}{mi.pricePerPlate} per plate</p>
+                            <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{mi.name}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">{"\u20B9"}{mi.pricePerPlate} per plate</p>
                           </div>
                           <div className="flex items-center gap-2">
                             <button
@@ -1028,11 +1031,11 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                                 }))
                               }
                               disabled={plates === 0}
-                              className="p-1 rounded-md border border-gray-300 hover:bg-gray-200 disabled:opacity-30 transition-colors"
+                              className="p-1 rounded-md border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-30 transition-colors"
                             >
                               <Minus size={14} />
                             </button>
-                            <span className="w-8 text-center text-sm font-medium">{plates}</span>
+                            <span className="w-8 text-center text-sm font-medium text-gray-800 dark:text-gray-200">{plates}</span>
                             <button
                               type="button"
                               onClick={() =>
@@ -1041,7 +1044,7 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                                   items: { ...f.items, [mi.id]: plates + 1 },
                                 }))
                               }
-                              className="p-1 rounded-md border border-gray-300 hover:bg-gray-200 transition-colors"
+                              className="p-1 rounded-md border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                             >
                               <Plus size={14} />
                             </button>
@@ -1057,7 +1060,7 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                       );
                       const totalPl = Object.values(editForm.items).reduce((s, p) => s + p, 0);
                       return totalPl > 0 ? (
-                        <div className="flex justify-between text-sm font-semibold text-gray-800 pt-1 border-t border-gray-200">
+                        <div className="flex justify-between text-sm font-semibold text-gray-800 dark:text-gray-200 pt-1 border-t border-gray-200 dark:border-gray-700">
                           <span>Total ({totalPl} plate{totalPl !== 1 ? "s" : ""})</span>
                           <span>{"\u20B9"}{totalAmt.toFixed(2)}</span>
                         </div>
@@ -1070,7 +1073,7 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
               {/* Custom Fields */}
               {hasCustomFields && fullCustomFields.length > 0 && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Custom Fields</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Custom Fields</label>
                   <div className="space-y-3">
                     {fullCustomFields.map((cf) => {
                       const value = editForm.fieldResponses[cf.id] || "";
@@ -1083,7 +1086,7 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                         }
                         return (
                           <div key={cf.id}>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">{cf.label}</label>
+                            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">{cf.label}</label>
                             <select
                               value={value}
                               onChange={(e) =>
@@ -1092,7 +1095,7 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                                   fieldResponses: { ...f.fieldResponses, [cf.id]: e.target.value },
                                 }))
                               }
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                              className={inputClass}
                             >
                               <option value="">Select...</option>
                               {opts.map((opt) => (
@@ -1106,7 +1109,7 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                       }
                       return (
                         <div key={cf.id}>
-                          <label className="block text-xs font-medium text-gray-600 mb-1">{cf.label}</label>
+                          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">{cf.label}</label>
                           <input
                             type="text"
                             value={value}
@@ -1116,7 +1119,7 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
                                 fieldResponses: { ...f.fieldResponses, [cf.id]: e.target.value },
                               }))
                             }
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                            className={inputClass}
                           />
                         </div>
                       );
@@ -1127,30 +1130,30 @@ export default function AdminRsvpPage({ params }: { params: Promise<{ id: string
 
               {/* Notes */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes</label>
                 <textarea
                   value={editForm.notes}
                   onChange={(e) => setEditForm((f) => ({ ...f, notes: e.target.value }))}
                   rows={2}
                   placeholder="Dietary restrictions, special requests..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                  className={`${inputClass} resize-none`}
                 />
               </div>
             </div>
 
             {/* Modal Footer */}
-            <div className="sticky bottom-0 bg-white border-t border-gray-200 px-5 py-4 flex items-center justify-end gap-3">
+            <div className="sticky bottom-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 px-5 py-4 flex items-center justify-end gap-3">
               <button
                 onClick={() => setEditingRsvp(null)}
                 disabled={editSaving}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={saveEdit}
                 disabled={editSaving}
-                className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
+                className="px-4 py-2 text-sm font-medium text-white bg-primary-600 dark:bg-primary-500 rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors disabled:opacity-50"
               >
                 {editSaving ? "Saving..." : "Save Changes"}
               </button>
