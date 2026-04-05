@@ -9,7 +9,6 @@ import RsvpSummary from "@/components/events/RsvpSummary";
 import { formatDate } from "@/lib/utils";
 import type { EventConfigType, MenuItemType, CustomFieldType } from "@/types";
 
-// Generate or retrieve a unique device ID for feedback tracking
 function getDeviceId(): string {
   const key = "rmv-feedback-device-id";
   let deviceId = localStorage.getItem(key);
@@ -20,7 +19,6 @@ function getDeviceId(): string {
   return deviceId;
 }
 
-// Auto-link URLs in text
 function Linkify({ text }: { text: string }) {
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   const parts = text.split(urlRegex);
@@ -28,13 +26,8 @@ function Linkify({ text }: { text: string }) {
     <>
       {parts.map((part, i) =>
         urlRegex.test(part) ? (
-          <a
-            key={i}
-            href={part}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary-600 hover:text-primary-700 underline break-all"
-          >
+          <a key={i} href={part} target="_blank" rel="noopener noreferrer"
+            className="text-primary-600 dark:text-primary-400 hover:text-primary-700 underline break-all">
             {part}
           </a>
         ) : (
@@ -80,6 +73,10 @@ interface FlatOption {
   flatNumber: string;
 }
 
+// Shared input class for dark mode
+const inputClass =
+  "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none";
+
 export default function RsvpPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { data: session, status } = useSession();
@@ -95,7 +92,6 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // Guest form fields
   const [guestName, setGuestName] = useState("");
   const [guestEmail, setGuestEmail] = useState("");
   const [guestPhone, setGuestPhone] = useState("");
@@ -107,7 +103,6 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
   const [guestRsvpId, setGuestRsvpId] = useState<string | null>(null);
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
 
-  // Feedback state
   const [feedbackRating, setFeedbackRating] = useState(0);
   const [feedbackComment, setFeedbackComment] = useState("");
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
@@ -118,30 +113,17 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
   const isGuest = status === "unauthenticated";
   const isLoggedIn = status === "authenticated" && session?.user?.isRegistered;
 
-  const deadlinePassed = eventConfig
-    ? new Date() > new Date(eventConfig.rsvpDeadline)
-    : false;
-
-  const eventDatePassed = announcement
-    ? new Date() > new Date(announcement.date)
-    : false;
+  const deadlinePassed = eventConfig ? new Date() > new Date(eventConfig.rsvpDeadline) : false;
+  const eventDatePassed = announcement ? new Date() > new Date(announcement.date) : false;
+  void eventDatePassed;
 
   const feedbackEnabled = eventConfig?.enableFeedback;
-
-  const hasFood = eventConfig
-    ? eventConfig.menuItems && eventConfig.menuItems.length > 0
-    : false;
-
+  const hasFood = eventConfig ? eventConfig.menuItems && eventConfig.menuItems.length > 0 : false;
   const customFields: CustomFieldType[] = eventConfig?.customFields || [];
   const hasCustomFields = customFields.length > 0;
 
-  // Fetch flats when guest selects a block
   useEffect(() => {
-    if (!guestBlock) {
-      setFlats([]);
-      setGuestFlat("");
-      return;
-    }
+    if (!guestBlock) { setFlats([]); setGuestFlat(""); return; }
     setLoadingFlats(true);
     setGuestFlat("");
     fetch(`/api/flats?block=${guestBlock}`)
@@ -151,19 +133,12 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
       .finally(() => setLoadingFlats(false));
   }, [guestBlock]);
 
-  // Fetch event data
   useEffect(() => {
     async function fetchEvent() {
       try {
-        // Guest uses public endpoint, logged-in uses auth endpoint
-        const url = isGuest
-          ? `/api/events/${id}/rsvp/guest`
-          : `/api/events/${id}/rsvp`;
+        const url = isGuest ? `/api/events/${id}/rsvp/guest` : `/api/events/${id}/rsvp`;
         const res = await fetch(url);
-        if (!res.ok) {
-          setError("Event not found or RSVP not enabled");
-          return;
-        }
+        if (!res.ok) { setError("Event not found or RSVP not enabled"); return; }
         const data = await res.json();
         setAnnouncement(data.announcement);
         setEventConfig(data.eventConfig);
@@ -171,21 +146,16 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
         if (data.myRsvp) {
           setMyRsvp(data.myRsvp);
           const plateCounts: Record<string, number> = {};
-          for (const item of data.myRsvp.items) {
-            plateCounts[item.menuItemId] = item.plates;
-          }
+          for (const item of data.myRsvp.items) plateCounts[item.menuItemId] = item.plates;
           setPlates(plateCounts);
           setNotes(data.myRsvp.notes || "");
           if (data.myRsvp.fieldResponses) {
             const values: Record<string, string> = {};
-            for (const fr of data.myRsvp.fieldResponses) {
-              values[fr.customFieldId] = fr.value;
-            }
+            for (const fr of data.myRsvp.fieldResponses) values[fr.customFieldId] = fr.value;
             setFieldValues(values);
           }
         }
 
-        // Fetch existing feedback if feedback is enabled
         if (data.eventConfig?.enableFeedback) {
           try {
             const deviceId = getDeviceId();
@@ -198,9 +168,7 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
                 setFeedbackComment(fbData.myFeedback.comment || "");
               }
             }
-          } catch {
-            // Feedback fetch failure is non-critical
-          }
+          } catch { /* non-critical */ }
         }
       } catch {
         setError("Failed to load event");
@@ -210,37 +178,22 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
     }
 
     if (status === "loading") return;
-
-    if (isGuest || isLoggedIn) {
-      fetchEvent();
-    } else {
-      // Logged in but not registered
-      setLoading(false);
-    }
+    if (isGuest || isLoggedIn) fetchEvent();
+    else setLoading(false);
   }, [id, status, session, isGuest, isLoggedIn]);
 
   const updatePlates = (menuItemId: string, count: number) => {
     setPlates((prev) => ({ ...prev, [menuItemId]: Math.max(0, count) }));
   };
 
-  // Calculate total amount for display and payment decision
   const foodTotal = hasFood && eventConfig
-    ? eventConfig.menuItems.reduce(
-        (sum, item) => sum + (plates[item.id] || 0) * item.pricePerPlate,
-        0
-      )
+    ? eventConfig.menuItems.reduce((sum, item) => sum + (plates[item.id] || 0) * item.pricePerPlate, 0)
     : 0;
-
-  const entranceFee = eventConfig?.entranceFee && eventConfig.entranceFee > 0
-    ? eventConfig.entranceFee
-    : 0;
-
+  const entranceFee = eventConfig?.entranceFee && eventConfig.entranceFee > 0 ? eventConfig.entranceFee : 0;
   const totalAmount = foodTotal + entranceFee;
-
   const hasEntranceFee = entranceFee > 0;
   const needsPayment = eventConfig?.requirePayment && totalAmount > 0;
 
-  // Direct submit for free events, updates, and non-food events
   const submitDirectly = async (
     items: { menuItemId: string; plates: number }[],
     fieldResponsesPayload: { customFieldId: string; value: string }[]
@@ -250,22 +203,10 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
         const res = await fetch(`/api/events/${id}/rsvp/guest`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: guestName,
-            email: guestEmail,
-            phone: guestPhone,
-            block: Number(guestBlock),
-            flatNumber: guestFlat,
-            items,
-            notes,
-            fieldResponses: fieldResponsesPayload,
-          }),
+          body: JSON.stringify({ name: guestName, email: guestEmail, phone: guestPhone, block: Number(guestBlock), flatNumber: guestFlat, items, notes, fieldResponses: fieldResponsesPayload }),
         });
         const data = await res.json();
-        if (!res.ok) {
-          setError(data.error || "Something went wrong");
-          return;
-        }
+        if (!res.ok) { setError(data.error || "Something went wrong"); return; }
         setGuestRsvpId(data.guestRsvp.id);
         setGuestSubmitted(true);
         setSuccess("RSVP submitted successfully! Thank you.");
@@ -276,10 +217,7 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
           body: JSON.stringify({ items, notes, fieldResponses: fieldResponsesPayload }),
         });
         const data = await res.json();
-        if (!res.ok) {
-          setError(data.error || "Something went wrong");
-          return;
-        }
+        if (!res.ok) { setError(data.error || "Something went wrong"); return; }
         setMyRsvp(data.rsvp);
         setSuccess(myRsvp ? "RSVP updated successfully!" : "RSVP submitted successfully!");
       }
@@ -292,82 +230,43 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
-    setSubmitting(true);
+    setError(""); setSuccess(""); setSubmitting(true);
 
     const items = hasFood
-      ? eventConfig!.menuItems
-          .filter((item) => (plates[item.id] || 0) > 0)
-          .map((item) => ({ menuItemId: item.id, plates: plates[item.id] }))
+      ? eventConfig!.menuItems.filter((item) => (plates[item.id] || 0) > 0).map((item) => ({ menuItemId: item.id, plates: plates[item.id] }))
       : [];
 
-    if (hasFood && items.length === 0) {
-      setError("Select at least one plate");
-      setSubmitting(false);
-      return;
-    }
+    if (hasFood && items.length === 0) { setError("Select at least one plate"); setSubmitting(false); return; }
 
-    // Validate required custom fields
     for (const cf of customFields) {
       if (cf.required && (!fieldValues[cf.id]?.trim() || fieldValues[cf.id] === "__OTHER__")) {
-        setError(`"${cf.label}" is required`);
-        setSubmitting(false);
-        return;
+        setError(`"${cf.label}" is required`); setSubmitting(false); return;
       }
     }
 
     const fieldResponsesPayload = customFields.length > 0
-      ? customFields
-          .filter((cf) => fieldValues[cf.id]?.trim())
-          .map((cf) => ({
-            customFieldId: cf.id,
-            value: fieldValues[cf.id].trim(),
-          }))
+      ? customFields.filter((cf) => fieldValues[cf.id]?.trim()).map((cf) => ({ customFieldId: cf.id, value: fieldValues[cf.id].trim() }))
       : [];
 
-    // Guest validation
     if (isGuest) {
-      if (!guestName.trim() || !guestEmail.trim() || !guestPhone.trim()) {
-        setError("Name, email, and phone are required");
-        setSubmitting(false);
-        return;
-      }
-      if (!guestBlock || !guestFlat) {
-        setError("Please select your block and flat number");
-        setSubmitting(false);
-        return;
-      }
+      if (!guestName.trim() || !guestEmail.trim() || !guestPhone.trim()) { setError("Name, email, and phone are required"); setSubmitting(false); return; }
+      if (!guestBlock || !guestFlat) { setError("Please select your block and flat number"); setSubmitting(false); return; }
     }
 
-    // If this is an update, total is 0, or payment not required, submit directly
     if (myRsvp || totalAmount === 0 || !eventConfig?.requirePayment) {
-      await submitDirectly(items, fieldResponsesPayload);
-      return;
+      await submitDirectly(items, fieldResponsesPayload); return;
     }
 
-    // Payment flow via Razorpay
     try {
-      // Step 1: Create Razorpay order
       const orderRes = await fetch(`/api/events/${id}/payment/create-order`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ items, isGuest }),
       });
       const orderData = await orderRes.json();
+      if (!orderRes.ok) { setError(orderData.error || "Failed to create payment order"); setSubmitting(false); return; }
+      if (orderData.skipPayment) { await submitDirectly(items, fieldResponsesPayload); return; }
 
-      if (!orderRes.ok) {
-        setError(orderData.error || "Failed to create payment order");
-        setSubmitting(false);
-        return;
-      }
-
-      if (orderData.skipPayment) {
-        await submitDirectly(items, fieldResponsesPayload);
-        return;
-      }
-
-      // Step 2: Open Razorpay Checkout
       const options = {
         key: orderData.keyId,
         amount: orderData.amount,
@@ -376,7 +275,6 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
         description: `RSVP - ${announcement!.title}`,
         order_id: orderData.orderId,
         handler: async (response: RazorpayResponse) => {
-          // Step 3: Verify payment and create RSVP
           try {
             const verifyRes = await fetch(`/api/events/${id}/payment/verify`, {
               method: "POST",
@@ -385,97 +283,45 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
-                items,
-                notes,
-                fieldResponses: fieldResponsesPayload,
-                isGuest,
-                guestInfo: isGuest
-                  ? {
-                      name: guestName,
-                      email: guestEmail,
-                      phone: guestPhone,
-                      block: Number(guestBlock),
-                      flatNumber: guestFlat,
-                    }
-                  : undefined,
+                items, notes, fieldResponses: fieldResponsesPayload, isGuest,
+                guestInfo: isGuest ? { name: guestName, email: guestEmail, phone: guestPhone, block: Number(guestBlock), flatNumber: guestFlat } : undefined,
               }),
             });
             const verifyData = await verifyRes.json();
-
-            if (!verifyRes.ok) {
-              setError(verifyData.error || "Payment verification failed");
-              setSubmitting(false);
-              return;
-            }
-
-            if (isGuest) {
-              setGuestRsvpId(verifyData.guestRsvp.id);
-              setGuestSubmitted(true);
-            } else {
-              setMyRsvp(verifyData.rsvp);
-            }
+            if (!verifyRes.ok) { setError(verifyData.error || "Payment verification failed"); setSubmitting(false); return; }
+            if (isGuest) { setGuestRsvpId(verifyData.guestRsvp.id); setGuestSubmitted(true); }
+            else setMyRsvp(verifyData.rsvp);
             setSuccess("Payment successful! RSVP submitted.");
           } catch {
             setError("Payment verification failed. Please contact the organizer.");
-          } finally {
-            setSubmitting(false);
-          }
+          } finally { setSubmitting(false); }
         },
-        prefill: {
-          name: isGuest ? guestName : session?.user?.name || "",
-          email: isGuest ? guestEmail : session?.user?.email || "",
-          contact: isGuest ? guestPhone : "",
-        },
+        prefill: { name: isGuest ? guestName : session?.user?.name || "", email: isGuest ? guestEmail : session?.user?.email || "", contact: isGuest ? guestPhone : "" },
         theme: { color: "#1e40af" },
-        modal: {
-          ondismiss: () => {
-            setSubmitting(false);
-            setError("Payment cancelled. Your RSVP was not submitted.");
-          },
-        },
+        modal: { ondismiss: () => { setSubmitting(false); setError("Payment cancelled. Your RSVP was not submitted."); } },
       };
-
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch {
-      setError("Failed to initiate payment. Please try again.");
-      setSubmitting(false);
+      setError("Failed to initiate payment. Please try again."); setSubmitting(false);
     }
   };
 
   const handleCancel = async () => {
     if (!confirm("Are you sure you want to cancel your RSVP?")) return;
-    setCancelling(true);
-    setError("");
-
+    setCancelling(true); setError("");
     try {
       const res = await fetch(`/api/events/${id}/rsvp`, { method: "DELETE" });
-      if (!res.ok) {
-        const data = await res.json();
-        setError(data.error || "Failed to cancel");
-        return;
-      }
-      setMyRsvp(null);
-      setPlates({});
-      setNotes("");
-      setSuccess("RSVP cancelled successfully.");
-    } catch {
-      setError("Network error. Please try again.");
-    } finally {
-      setCancelling(false);
-    }
+      if (!res.ok) { const data = await res.json(); setError(data.error || "Failed to cancel"); return; }
+      setMyRsvp(null); setPlates({}); setNotes(""); setSuccess("RSVP cancelled successfully.");
+    } catch { setError("Network error. Please try again."); }
+    finally { setCancelling(false); }
   };
 
   const handleFeedbackSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (feedbackRating === 0) {
-      setFeedbackError("Please select a rating");
-      return;
-    }
-    setFeedbackSubmitting(true);
-    setFeedbackError("");
-    setFeedbackSuccess("");
-
+    if (feedbackRating === 0) { setFeedbackError("Please select a rating"); return; }
+    setFeedbackSubmitting(true); setFeedbackError(""); setFeedbackSuccess("");
     try {
       const deviceId = getDeviceId();
       const res = await fetch(`/api/events/${id}/feedback`, {
@@ -484,92 +330,70 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
         body: JSON.stringify({ rating: feedbackRating, comment: feedbackComment || null, deviceId }),
       });
       const data = await res.json();
-      if (!res.ok) {
-        setFeedbackError(data.error || "Failed to submit feedback");
-        return;
-      }
+      if (!res.ok) { setFeedbackError(data.error || "Failed to submit feedback"); return; }
       setExistingFeedback(data.feedback);
       setFeedbackSuccess(existingFeedback ? "Feedback updated!" : "Thank you for your feedback!");
-    } catch {
-      setFeedbackError("Network error. Please try again.");
-    } finally {
-      setFeedbackSubmitting(false);
-    }
+    } catch { setFeedbackError("Network error. Please try again."); }
+    finally { setFeedbackSubmitting(false); }
   };
 
-  // Loading state
+  // ── Loading state ──────────────────────────────────────────────────────────
+
   if (status === "loading" || loading) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-gray-500 dark:text-gray-400">Loading...</p>
       </div>
     );
   }
 
-  // Logged in but not registered
   if (status === "authenticated" && !session?.user?.isRegistered) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">Registration Required</h1>
-        <p className="text-gray-500 mb-4">Please register as a resident to RSVP.</p>
-        <Link href="/register" className="text-primary-600 hover:text-primary-700 font-medium">
-          Go to Registration
-        </Link>
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">Registration Required</h1>
+        <p className="text-gray-500 dark:text-gray-400 mb-4">Please register as a resident to RSVP.</p>
+        <Link href="/register" className="text-primary-600 dark:text-primary-400 hover:text-primary-700 font-medium">Go to Registration</Link>
       </div>
     );
   }
 
-  // Event not found
   if (!announcement || !eventConfig) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">Event Not Found</h1>
-        <p className="text-gray-500 mb-4">{error || "This event does not have RSVP enabled."}</p>
-        <Link href="/news" className="text-primary-600 hover:text-primary-700 font-medium">
-          Back to News
-        </Link>
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">Event Not Found</h1>
+        <p className="text-gray-500 dark:text-gray-400 mb-4">{error || "This event does not have RSVP enabled."}</p>
+        <Link href="/news" className="text-primary-600 dark:text-primary-400 hover:text-primary-700 font-medium">Back to News</Link>
       </div>
     );
   }
 
-  // Guest already submitted
   if (guestSubmitted) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-        <div className="rounded-lg bg-green-50 border border-green-200 p-8">
-          <h1 className="text-2xl font-bold text-green-800 mb-2">RSVP Submitted!</h1>
-          <p className="text-green-700 mb-4">
+        <div className="rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-8">
+          <h1 className="text-2xl font-bold text-green-800 dark:text-green-300 mb-2">RSVP Submitted!</h1>
+          <p className="text-green-700 dark:text-green-400 mb-4">
             Thank you, {guestName}! Your RSVP for &ldquo;{announcement.title}&rdquo; has been recorded.
           </p>
           {(hasFood || hasEntranceFee) && eventConfig?.requirePayment && (
-            <p className="text-sm text-green-600">
-              Your payment has been received.
-            </p>
+            <p className="text-sm text-green-600 dark:text-green-400">Your payment has been received.</p>
           )}
           {eventConfig?.confirmationMessage && (
-            <div className="mt-4 rounded-lg bg-blue-50 border border-blue-200 p-4 text-left">
-              <p className="text-sm text-blue-800 whitespace-pre-line">
+            <div className="mt-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4 text-left">
+              <p className="text-sm text-blue-800 dark:text-blue-300 whitespace-pre-line">
                 <Linkify text={eventConfig.confirmationMessage} />
               </p>
             </div>
           )}
           {guestRsvpId && (
             <div className="mt-6 flex flex-col items-center gap-3">
-              <Link
-                href={`/pass/g-${guestRsvpId}`}
-                className="inline-block px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors"
-              >
+              <Link href={`/pass/g-${guestRsvpId}`} className="inline-block px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors">
                 View Your Event Pass
               </Link>
-              <Link
-                href={`/events/${id}/dashboard`}
-                className="text-sm text-primary-600 hover:text-primary-700 font-medium"
-              >
+              <Link href={`/events/${id}/dashboard`} className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 font-medium">
                 View Participant Dashboard &rarr;
               </Link>
-              <p className="text-xs text-gray-500">
-                Save these links to access them anytime.
-              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Save these links to access them anytime.</p>
             </div>
           )}
         </div>
@@ -577,148 +401,105 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
     );
   }
 
+  // ── Main RSVP page ─────────────────────────────────────────────────────────
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-12">
-      {/* Back link */}
-      <Link
-        href="/news"
-        className="text-sm text-primary-600 hover:text-primary-700 font-medium mb-6 inline-block"
-      >
+      <Link href="/news" className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 font-medium mb-6 inline-block">
         &larr; Back to News
       </Link>
 
       {/* Event header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          {announcement.title}
-        </h1>
-        <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">{announcement.title}</h1>
+        <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
           <span>{formatDate(announcement.date)}</span>
           {eventConfig.mealType && (
-            <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700 capitalize">
+            <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 capitalize">
               {eventConfig.mealType}
             </span>
           )}
         </div>
-        <p className="text-gray-600 mt-3 text-sm">{announcement.summary}</p>
+        <p className="text-gray-600 dark:text-gray-400 mt-3 text-sm">{announcement.summary}</p>
       </div>
 
-      {/* Deadline info */}
+      {/* Deadline banner */}
       <div className={`rounded-lg p-3 mb-6 text-sm ${
         deadlinePassed
-          ? "bg-red-50 border border-red-200 text-red-700"
-          : "bg-blue-50 border border-blue-200 text-blue-700"
+          ? "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400"
+          : "bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400"
       }`}>
         {deadlinePassed
           ? "RSVP deadline has passed. You can no longer submit or modify your response."
           : `RSVP by: ${new Date(eventConfig.rsvpDeadline).toLocaleString("en-IN", { dateStyle: "long", timeStyle: "short" })}`}
       </div>
 
-      {/* Payment status for existing RSVP (logged-in users only) */}
+      {/* Payment status */}
       {(hasFood || hasEntranceFee) && myRsvp && (
         <div className={`rounded-lg p-3 mb-6 text-sm ${
           myRsvp.paid
-            ? "bg-green-50 border border-green-200 text-green-700"
-            : "bg-amber-50 border border-amber-200 text-amber-700"
+            ? "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400"
+            : "bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400"
         }`}>
-          {myRsvp.paid
-            ? "Payment received \u2014 you're all set!"
-            : "Payment pending \u2014 please pay the organizer."}
+          {myRsvp.paid ? "Payment received \u2014 you're all set!" : "Payment pending \u2014 please pay the organizer."}
         </div>
       )}
 
-      {/* View Event Pass & Dashboard links (logged-in users with existing RSVP) */}
+      {/* Event pass & dashboard links */}
       {myRsvp && (
         <div className="mb-6 flex flex-col gap-2">
-          <Link
-            href={`/pass/r-${myRsvp.id}`}
-            className="text-sm text-primary-600 hover:text-primary-700 font-medium"
-          >
-            View Event Pass &rarr;
-          </Link>
-          <Link
-            href={`/events/${id}/dashboard`}
-            className="text-sm text-primary-600 hover:text-primary-700 font-medium"
-          >
-            View Participant Dashboard &rarr;
-          </Link>
+          <Link href={`/pass/r-${myRsvp.id}`} className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 font-medium">View Event Pass &rarr;</Link>
+          <Link href={`/events/${id}/dashboard`} className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 font-medium">View Participant Dashboard &rarr;</Link>
         </div>
       )}
 
-      {/* Post-registration confirmation message */}
+      {/* Confirmation message */}
       {myRsvp && eventConfig?.confirmationMessage && (
-        <div className="mb-6 rounded-lg bg-blue-50 border border-blue-200 p-4">
-          <p className="text-sm text-blue-800 whitespace-pre-line">
+        <div className="mb-6 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4">
+          <p className="text-sm text-blue-800 dark:text-blue-300 whitespace-pre-line">
             <Linkify text={eventConfig.confirmationMessage} />
           </p>
         </div>
       )}
 
       {success && (
-        <div className="rounded-md bg-green-50 border border-green-200 p-3 mb-6">
-          <p className="text-sm text-green-800">{success}</p>
+        <div className="rounded-md bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-3 mb-6">
+          <p className="text-sm text-green-800 dark:text-green-300">{success}</p>
         </div>
       )}
 
       {/* RSVP Form */}
       <form onSubmit={handleSubmit}>
-        {/* Guest info fields (only for non-logged-in users) */}
+
+        {/* Guest info */}
         {isGuest && (
           <div className="mb-8">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">
-              Your Details
-            </h2>
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Your Details</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Full Name <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  required
-                  value={guestName}
-                  onChange={(e) => setGuestName(e.target.value)}
-                  placeholder="Enter your full name"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                />
+                <input type="text" required value={guestName} onChange={(e) => setGuestName(e.target.value)} placeholder="Enter your full name" className={inputClass} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Email <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="email"
-                  required
-                  value={guestEmail}
-                  onChange={(e) => setGuestEmail(e.target.value)}
-                  placeholder="Enter your email"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                />
+                <input type="email" required value={guestEmail} onChange={(e) => setGuestEmail(e.target.value)} placeholder="Enter your email" className={inputClass} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Phone Number <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="tel"
-                  required
-                  value={guestPhone}
-                  onChange={(e) => setGuestPhone(e.target.value)}
-                  placeholder="Enter your phone number"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                />
+                <input type="tel" required value={guestPhone} onChange={(e) => setGuestPhone(e.target.value)} placeholder="Enter your phone number" className={inputClass} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Block <span className="text-red-500">*</span>
                   </label>
-                  <select
-                    required
-                    value={guestBlock}
-                    onChange={(e) => setGuestBlock(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  >
+                  <select required value={guestBlock} onChange={(e) => setGuestBlock(e.target.value)} className={inputClass}>
                     <option value="">Select Block</option>
                     <option value="1">Block 1</option>
                     <option value="2">Block 2</option>
@@ -727,24 +508,13 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Flat Number <span className="text-red-500">*</span>
                   </label>
-                  <select
-                    required
-                    value={guestFlat}
-                    onChange={(e) => setGuestFlat(e.target.value)}
-                    disabled={!guestBlock || loadingFlats}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-100"
-                  >
-                    <option value="">
-                      {loadingFlats ? "Loading..." : !guestBlock ? "Select block first" : "Select Flat"}
-                    </option>
-                    {flats.map((flat) => (
-                      <option key={flat.id} value={flat.flatNumber}>
-                        {flat.flatNumber}
-                      </option>
-                    ))}
+                  <select required value={guestFlat} onChange={(e) => setGuestFlat(e.target.value)} disabled={!guestBlock || loadingFlats}
+                    className={`${inputClass} disabled:opacity-60`}>
+                    <option value="">{loadingFlats ? "Loading..." : !guestBlock ? "Select block first" : "Select Flat"}</option>
+                    {flats.map((flat) => <option key={flat.id} value={flat.flatNumber}>{flat.flatNumber}</option>)}
                   </select>
                 </div>
               </div>
@@ -752,159 +522,94 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
           </div>
         )}
 
-        {/* Menu selection (only for food events) */}
+        {/* Menu selection */}
         {hasFood ? (
           <>
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">
-              Menu — Select Plates
-            </h2>
-
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Menu — Select Plates</h2>
             <div className="space-y-3 mb-6">
               {eventConfig.menuItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between bg-white rounded-lg p-4 border border-gray-200"
-                >
+                <div key={item.id} className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
                   <div>
-                    <p className="font-medium text-gray-900">{item.name}</p>
-                    <p className="text-sm text-gray-500">{"\u20B9"}{item.pricePerPlate.toFixed(2)} per plate</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-100">{item.name}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">₹{item.pricePerPlate.toFixed(2)} per plate</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      disabled={deadlinePassed}
+                    <button type="button" disabled={deadlinePassed}
                       onClick={() => updatePlates(item.id, (plates[item.id] || 0) - 1)}
-                      className="w-8 h-8 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-40 flex items-center justify-center font-bold"
-                    >
+                      className="w-8 h-8 rounded-full border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-40 flex items-center justify-center font-bold transition-colors">
                       &minus;
                     </button>
-                    <span className="w-8 text-center font-semibold text-gray-900">
-                      {plates[item.id] || 0}
-                    </span>
-                    <button
-                      type="button"
-                      disabled={deadlinePassed}
+                    <span className="w-8 text-center font-semibold text-gray-900 dark:text-gray-100">{plates[item.id] || 0}</span>
+                    <button type="button" disabled={deadlinePassed}
                       onClick={() => updatePlates(item.id, (plates[item.id] || 0) + 1)}
-                      className="w-8 h-8 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-40 flex items-center justify-center font-bold"
-                    >
+                      className="w-8 h-8 rounded-full border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-40 flex items-center justify-center font-bold transition-colors">
                       +
                     </button>
                   </div>
                 </div>
               ))}
             </div>
-
-            {/* Order Summary */}
             <div className="mb-6">
-              <RsvpSummary
-                menuItems={eventConfig.menuItems}
-                plates={plates}
-                entranceFee={entranceFee}
-                entranceFeeLabel={eventConfig?.entranceFeeLabel || "Entrance Fee"}
-              />
+              <RsvpSummary menuItems={eventConfig.menuItems} plates={plates} entranceFee={entranceFee} entranceFeeLabel={eventConfig?.entranceFeeLabel || "Entrance Fee"} />
             </div>
           </>
         ) : hasEntranceFee ? (
           <div className="mb-6">
-            <RsvpSummary
-              menuItems={[]}
-              plates={{}}
-              entranceFee={entranceFee}
-              entranceFeeLabel={eventConfig?.entranceFeeLabel || "Entrance Fee"}
-            />
+            <RsvpSummary menuItems={[]} plates={{}} entranceFee={entranceFee} entranceFeeLabel={eventConfig?.entranceFeeLabel || "Entrance Fee"} />
           </div>
         ) : (
-          <div className="rounded-lg bg-blue-50 border border-blue-200 p-6 mb-6 text-center">
-            <p className="text-blue-800 font-medium">Confirm your attendance for this event</p>
-            <p className="text-sm text-blue-600 mt-1">No food ordering for this event — just RSVP to confirm.</p>
+          <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-6 mb-6 text-center">
+            <p className="text-blue-800 dark:text-blue-300 font-medium">Confirm your attendance for this event</p>
+            <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">No food ordering for this event — just RSVP to confirm.</p>
           </div>
         )}
 
-        {/* Payment QR Code — shown when entrance fee exists but Razorpay is off */}
+        {/* Payment QR Code */}
         {hasEntranceFee && !eventConfig?.requirePayment && (
-          <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4">
-            <p className="text-sm font-medium text-amber-800 mb-3 text-center">
+          <div className="mb-6 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 p-4">
+            <p className="text-sm font-medium text-amber-800 dark:text-amber-300 mb-3 text-center">
               Scan the QR code below to pay ₹{entranceFee.toFixed(0)} ({eventConfig?.entranceFeeLabel || "Entrance Fee"})
             </p>
             <div className="flex justify-center">
-              <Image
-                src="/images/SVB-QR.jpeg"
-                alt="Payment QR Code"
-                width={240}
-                height={240}
-                className="rounded-lg border border-amber-200"
-              />
+              <Image src="/images/SVB-QR.jpeg" alt="Payment QR Code" width={240} height={240} className="rounded-lg border border-amber-200 dark:border-amber-700" />
             </div>
-            <p className="text-xs text-amber-600 mt-2 text-center">
-              Pay via UPI by scanning this QR code
-            </p>
+            <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 text-center">Pay via UPI by scanning this QR code</p>
           </div>
         )}
 
         {/* Custom Fields */}
         {hasCustomFields && !deadlinePassed && (
           <div className="mb-6">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">
-              Additional Information
-            </h2>
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Additional Information</h2>
             <div className="space-y-4">
               {customFields.map((cf) => (
                 <div key={cf.id}>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {cf.label}
-                    {cf.required && <span className="text-red-500"> *</span>}
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    {cf.label}{cf.required && <span className="text-red-500"> *</span>}
                   </label>
                   {cf.fieldType === "text" ? (
-                    <input
-                      type="text"
-                      required={cf.required}
-                      value={fieldValues[cf.id] || ""}
-                      onChange={(e) =>
-                        setFieldValues((prev) => ({ ...prev, [cf.id]: e.target.value }))
-                      }
-                      placeholder={`Enter ${cf.label.toLowerCase()}`}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                    />
+                    <input type="text" required={cf.required} value={fieldValues[cf.id] || ""}
+                      onChange={(e) => setFieldValues((prev) => ({ ...prev, [cf.id]: e.target.value }))}
+                      placeholder={`Enter ${cf.label.toLowerCase()}`} className={inputClass} />
                   ) : (() => {
                     const parsedOptions: string[] = cf.options ? JSON.parse(cf.options) : [];
                     const allowOther = parsedOptions.includes("__OTHER__");
                     const displayOptions = parsedOptions.filter((o) => o !== "__OTHER__");
                     const currentValue = fieldValues[cf.id] || "";
                     const isCustomValue = allowOther && currentValue !== "" && currentValue !== "__OTHER__" && !displayOptions.includes(currentValue);
-
                     return (
                       <>
-                        <select
-                          required={cf.required}
-                          value={isCustomValue ? "__OTHER__" : currentValue}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setFieldValues((prev) => ({ ...prev, [cf.id]: val }));
-                          }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                        >
+                        <select required={cf.required} value={isCustomValue ? "__OTHER__" : currentValue}
+                          onChange={(e) => setFieldValues((prev) => ({ ...prev, [cf.id]: e.target.value }))}
+                          className={inputClass}>
                           <option value="">Select {cf.label.toLowerCase()}</option>
-                          {displayOptions.map((opt: string) => (
-                            <option key={opt} value={opt}>
-                              {opt}
-                            </option>
-                          ))}
+                          {displayOptions.map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
                           {allowOther && <option value="__OTHER__">Other</option>}
                         </select>
                         {(currentValue === "__OTHER__" || isCustomValue) && (
-                          <input
-                            type="text"
-                            required={cf.required}
-                            value={isCustomValue ? currentValue : ""}
-                            onChange={(e) =>
-                              setFieldValues((prev) => ({
-                                ...prev,
-                                [cf.id]: e.target.value || "__OTHER__",
-                              }))
-                            }
-                            placeholder={`Enter custom ${cf.label.toLowerCase()}`}
-                            className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                          />
+                          <input type="text" required={cf.required} value={isCustomValue ? currentValue : ""}
+                            onChange={(e) => setFieldValues((prev) => ({ ...prev, [cf.id]: e.target.value || "__OTHER__" }))}
+                            placeholder={`Enter custom ${cf.label.toLowerCase()}`} className={`${inputClass} mt-2`} />
                         )}
                       </>
                     );
@@ -918,50 +623,29 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
         {/* Notes */}
         {!deadlinePassed && (
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Notes (optional)
-            </label>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes (optional)</label>
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)}
               placeholder={hasFood ? "e.g., No spice, allergies..." : "Any notes or comments..."}
-              rows={2}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            />
+              rows={2} className={inputClass} />
           </div>
         )}
 
         {error && (
-          <div className="rounded-md bg-red-50 border border-red-200 p-3 mb-6">
-            <p className="text-sm text-red-800">{error}</p>
+          <div className="rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3 mb-6">
+            <p className="text-sm text-red-800 dark:text-red-300">{error}</p>
           </div>
         )}
 
         {/* Action buttons */}
         {!deadlinePassed && (
           <div className="flex gap-3">
-            <button
-              type="submit"
-              disabled={submitting}
-              className="flex-1 py-2 px-4 bg-primary-600 text-white font-medium rounded-md hover:bg-primary-700 disabled:opacity-50 transition-colors"
-            >
-              {submitting
-                ? "Processing..."
-                : myRsvp
-                  ? "Update RSVP"
-                  : needsPayment
-                    ? `Pay \u20B9${totalAmount.toFixed(0)} & Submit RSVP`
-                    : hasFood || hasEntranceFee
-                      ? "Submit RSVP"
-                      : "Confirm Attendance"}
+            <button type="submit" disabled={submitting}
+              className="flex-1 py-2 px-4 bg-primary-600 dark:bg-primary-500 text-white font-medium rounded-md hover:bg-primary-700 dark:hover:bg-primary-600 disabled:opacity-50 transition-colors">
+              {submitting ? "Processing..." : myRsvp ? "Update RSVP" : needsPayment ? `Pay ₹${totalAmount.toFixed(0)} & Submit RSVP` : hasFood || hasEntranceFee ? "Submit RSVP" : "Confirm Attendance"}
             </button>
             {!isGuest && myRsvp && (
-              <button
-                type="button"
-                onClick={handleCancel}
-                disabled={cancelling}
-                className="py-2 px-4 bg-red-50 text-red-700 font-medium rounded-md hover:bg-red-100 disabled:opacity-50 transition-colors border border-red-200"
-              >
+              <button type="button" onClick={handleCancel} disabled={cancelling}
+                className="py-2 px-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 font-medium rounded-md hover:bg-red-100 dark:hover:bg-red-900/40 disabled:opacity-50 transition-colors border border-red-200 dark:border-red-800">
                 {cancelling ? "Cancelling..." : "Cancel RSVP"}
               </button>
             )}
@@ -971,20 +655,15 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
 
       {/* Event Feedback */}
       {feedbackEnabled && (
-        <div className="mt-10 pt-8 border-t border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-800 mb-2">
-            Event Feedback
-          </h2>
-          <p className="text-sm text-gray-500 mb-4">
-            {existingFeedback
-              ? "You have already submitted feedback. You can update it below."
-              : "How was the event? Share your feedback."}
+        <div className="mt-10 pt-8 border-t border-gray-200 dark:border-gray-700">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">Event Feedback</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            {existingFeedback ? "You have already submitted feedback. You can update it below." : "How was the event? Share your feedback."}
           </p>
 
           <form onSubmit={handleFeedbackSubmit}>
-            {/* Rating */}
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Rating <span className="text-red-500">*</span>
               </label>
               {eventConfig.feedbackStyle === "emoji" ? (
@@ -996,17 +675,8 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
                     { value: 4, emoji: "🙂", label: "Good" },
                     { value: 5, emoji: "😄", label: "Great" },
                   ].map((item) => (
-                    <button
-                      key={item.value}
-                      type="button"
-                      onClick={() => setFeedbackRating(item.value)}
-                      title={item.label}
-                      className={`text-3xl p-1 rounded-lg transition-all ${
-                        feedbackRating === item.value
-                          ? "bg-primary-100 ring-2 ring-primary-400 scale-110"
-                          : "hover:bg-gray-100"
-                      }`}
-                    >
+                    <button key={item.value} type="button" onClick={() => setFeedbackRating(item.value)} title={item.label}
+                      className={`text-3xl p-1 rounded-lg transition-all ${feedbackRating === item.value ? "bg-primary-100 dark:bg-primary-900/40 ring-2 ring-primary-400 scale-110" : "hover:bg-gray-100 dark:hover:bg-gray-700"}`}>
                       {item.emoji}
                     </button>
                   ))}
@@ -1014,16 +684,8 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
               ) : (
                 <div className="flex gap-1">
                   {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      onClick={() => setFeedbackRating(star)}
-                      className={`text-3xl transition-colors ${
-                        star <= feedbackRating
-                          ? "text-yellow-400"
-                          : "text-gray-300 hover:text-yellow-200"
-                      }`}
-                    >
+                    <button key={star} type="button" onClick={() => setFeedbackRating(star)}
+                      className={`text-3xl transition-colors ${star <= feedbackRating ? "text-yellow-400" : "text-gray-300 dark:text-gray-600 hover:text-yellow-200"}`}>
                       ★
                     </button>
                   ))}
@@ -1031,41 +693,26 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
               )}
             </div>
 
-            {/* Comment */}
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Comments (optional)
-              </label>
-              <textarea
-                value={feedbackComment}
-                onChange={(e) => setFeedbackComment(e.target.value)}
-                placeholder="Share your thoughts about the event..."
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Comments (optional)</label>
+              <textarea value={feedbackComment} onChange={(e) => setFeedbackComment(e.target.value)}
+                placeholder="Share your thoughts about the event..." rows={3} className={inputClass} />
             </div>
 
             {feedbackError && (
-              <div className="rounded-md bg-red-50 border border-red-200 p-3 mb-4">
-                <p className="text-sm text-red-800">{feedbackError}</p>
+              <div className="rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3 mb-4">
+                <p className="text-sm text-red-800 dark:text-red-300">{feedbackError}</p>
               </div>
             )}
             {feedbackSuccess && (
-              <div className="rounded-md bg-green-50 border border-green-200 p-3 mb-4">
-                <p className="text-sm text-green-800">{feedbackSuccess}</p>
+              <div className="rounded-md bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-3 mb-4">
+                <p className="text-sm text-green-800 dark:text-green-300">{feedbackSuccess}</p>
               </div>
             )}
 
-            <button
-              type="submit"
-              disabled={feedbackSubmitting}
-              className="py-2 px-4 bg-primary-600 text-white font-medium rounded-md hover:bg-primary-700 disabled:opacity-50 transition-colors"
-            >
-              {feedbackSubmitting
-                ? "Submitting..."
-                : existingFeedback
-                  ? "Update Feedback"
-                  : "Submit Feedback"}
+            <button type="submit" disabled={feedbackSubmitting}
+              className="py-2 px-4 bg-primary-600 dark:bg-primary-500 text-white font-medium rounded-md hover:bg-primary-700 dark:hover:bg-primary-600 disabled:opacity-50 transition-colors">
+              {feedbackSubmitting ? "Submitting..." : existingFeedback ? "Update Feedback" : "Submit Feedback"}
             </button>
           </form>
         </div>
