@@ -74,7 +74,7 @@ export default function LeaderboardPage() {
             <span>Player</span>
             <span className="text-center">Score</span>
             <span className="text-center">Wins</span>
-            <span className="text-center hidden sm:block">Played</span>
+            <span className="text-center">Played</span>
             <span className="text-center">Avg</span>
           </div>
           <div className="divide-y divide-gray-100 dark:divide-gray-700">
@@ -111,8 +111,8 @@ export default function LeaderboardPage() {
                     {entry.totalWins}
                   </span>
                 </div>
-                <div className="text-center hidden sm:block">
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                <div className="text-center">
+                  <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
                     {entry.totalPlayed}
                   </span>
                 </div>
