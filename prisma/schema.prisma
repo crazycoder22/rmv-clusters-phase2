@@ -1020,8 +1020,9 @@ model WordlePlayer {
   flatNumber String
   email      String       @unique
   phone      String
-  games       WordleGame[]
-  sudokuGames SudokuGame[]
+  games          WordleGame[]
+  sudokuGames    SudokuGame[]
+  crosswordGames CrosswordGame[]
   createdAt   DateTime     @default(now())
 }
 
@@ -1091,6 +1092,27 @@ model SudokuGame {
 }
 
 // ─── End Sudoku Game ─────────────────────────────────────────────────────────
+
+// ─── Crossword Game ──────────────────────────────────────────────────────────
+
+model CrosswordGame {
+  id          String       @id @default(cuid())
+  playerId    String
+  player      WordlePlayer @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  date        String       // YYYY-MM-DD in IST
+  puzzle      String       // JSON: clues + cellNumbers + grid template
+  solution    String       // JSON: 5×5 solved grid
+  currentGrid String       // JSON: 5×5 player progress
+  completed   Boolean      @default(false)
+  timeSeconds Int?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@unique([playerId, date])
+  @@index([date])
+}
+
+// ─── End Crossword Game ──────────────────────────────────────────────────────
 
 // ─── Video Library ────────────────────────────────────────────────────────────
 

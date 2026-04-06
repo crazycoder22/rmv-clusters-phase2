@@ -34,7 +34,7 @@ function isGroup(item: NavItem): item is NavGroup {
   return "links" in item;
 }
 
-const publicPaths = ["/", "/contact", "/wordle", "/sudoku", "/videos", "/surveys"];
+const publicPaths = ["/", "/contact", "/wordle", "/sudoku", "/crossword", "/videos", "/surveys"];
 
 // Top-level links shown directly in the navbar
 const topLevelLinks: NavLink[] = [
@@ -43,6 +43,7 @@ const topLevelLinks: NavLink[] = [
   { href: "/fantasy", label: "Fantasy" },
   { href: "/wordle", label: "Wordle" },
   { href: "/sudoku", label: "Sudoku" },
+  { href: "/crossword", label: "Crossword" },
 ];
 
 // Grouped dropdown links
