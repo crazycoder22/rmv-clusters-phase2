@@ -3,8 +3,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { ArrowLeft, Trophy, Clock, Delete, Share2 } from "lucide-react";
+import { ArrowLeft, Trophy, Clock, Delete, Share2, Download } from "lucide-react";
 import { formatTime, getPeerIndices, getErrorCells } from "@/lib/sudoku";
+import { toPng } from "html-to-image";
 import type { Difficulty } from "@/lib/sudoku";
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -268,57 +269,84 @@ function LeaderboardView({ currentPlayerId, difficulty, setDifficulty }: {
   );
 }
 
-// ── Completion Banner with Share ─────────────────────────────────────────
+// ── Completion Banner with Screenshot Share ─────────────────────────────
 
 function CompletionBanner({
   difficulty,
   savedTime,
   playerName,
   onLeaderboard,
+  shareRef,
 }: {
   difficulty: Difficulty;
   savedTime: number | null;
   playerName: string;
   onLeaderboard: () => void;
+  shareRef: React.RefObject<HTMLDivElement | null>;
 }) {
-  const [shared, setShared] = useState(false);
+  const [sharing, setSharing] = useState(false);
 
   const diffLabel = difficulty === "easy" ? "Easy" : difficulty === "medium" ? "Medium" : "Hard";
-  const diffEmoji = difficulty === "easy" ? "🟢" : difficulty === "medium" ? "🟡" : "🔴";
   const timeStr = formatTime(savedTime ?? 0);
 
-  const handleShare = () => {
-    const text = [
-      `🧩 RMV Sudoku ${diffEmoji} ${diffLabel}`,
-      `⏱️ ${timeStr}`,
-      ``,
-      `Play today's puzzle at https://www.rmvclustersphase2.in/sudoku`,
-    ].join("\n");
+  const handleShare = async () => {
+    if (!shareRef.current || sharing) return;
+    setSharing(true);
 
-    if (navigator.share) {
-      navigator.share({ text }).catch(() => {
-        navigator.clipboard.writeText(text).then(() => setShared(true));
+    try {
+      // Show the branded header for screenshot
+      const header = shareRef.current.querySelector("[data-share-header]") as HTMLElement | null;
+      if (header) header.style.display = "block";
+
+      // Capture screenshot
+      const dataUrl = await toPng(shareRef.current, {
+        backgroundColor: "#ffffff",
+        pixelRatio: 2,
+        style: { padding: "16px" },
       });
-    } else {
-      navigator.clipboard.writeText(text).then(() => setShared(true));
-    }
 
-    if (!shared) setTimeout(() => setShared(false), 2000);
+      // Hide header again
+      if (header) header.style.display = "none";
+
+      // Convert to blob
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      const file = new File([blob], "sudoku-result.png", { type: "image/png" });
+
+      // Try Web Share API with file
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          text: `RMV Sudoku ${diffLabel} - ${timeStr}\nPlay at https://www.rmvclustersphase2.in/sudoku`,
+        });
+      } else {
+        // Fallback: download the image
+        const link = document.createElement("a");
+        link.href = dataUrl;
+        link.download = "sudoku-result.png";
+        link.click();
+      }
+    } catch {
+      // Silent fail
+    } finally {
+      setSharing(false);
+    }
   };
 
   return (
     <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 text-center space-y-3">
-      <p className="text-green-700 dark:text-green-300 font-semibold text-lg">🎉 Puzzle Complete!</p>
+      <p className="text-green-700 dark:text-green-300 font-semibold text-lg">Puzzle Complete!</p>
       <p className="text-green-600 dark:text-green-400 text-sm">
         {diffLabel} · Time: <span className="font-mono font-bold">{timeStr}</span>
       </p>
       <div className="flex items-center justify-center gap-3">
         <button
           onClick={handleShare}
-          className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors"
+          disabled={sharing}
+          className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50 transition-colors"
         >
           <Share2 size={15} />
-          {shared ? "Copied!" : "Share Result"}
+          {sharing ? "Capturing..." : "Share Screenshot"}
         </button>
         <button
           onClick={onLeaderboard}
@@ -362,6 +390,9 @@ export default function SudokuPage() {
 
   // Debounce save ref
   const saveDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Share screenshot ref
+  const shareRef = useRef<HTMLDivElement>(null);
 
   // ── Auto-register ────────────────────────────────────────────────────────
 
@@ -606,15 +637,25 @@ export default function SudokuPage() {
                     </div>
                   )}
 
-                  {/* Grid */}
-                  <SudokuGrid
-                    puzzle={puzzle}
-                    grid={grid}
-                    solution={solution}
-                    selected={selected}
-                    completed={completed}
-                    onCellClick={handleCellClick}
-                  />
+                  {/* Grid (wrapped for screenshot share) */}
+                  <div ref={shareRef}>
+                    {/* Branded header — hidden normally, shown during screenshot capture */}
+                    <div data-share-header="" style={{ display: "none" }} className="text-center pb-3">
+                      <p className="text-lg font-bold text-gray-800">RMV Sudoku</p>
+                      <p className="text-sm text-gray-500">
+                        {DIFFICULTIES.find(d => d.value === difficulty)?.label} · Time: {formatTime(savedTime ?? timeSeconds)}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-0.5">rmvclustersphase2.in/sudoku</p>
+                    </div>
+                    <SudokuGrid
+                      puzzle={puzzle}
+                      grid={grid}
+                      solution={solution}
+                      selected={selected}
+                      completed={completed}
+                      onCellClick={handleCellClick}
+                    />
+                  </div>
 
                   {/* Completed banner */}
                   {completed ? (
@@ -623,6 +664,7 @@ export default function SudokuPage() {
                       savedTime={savedTime}
                       playerName={playerName}
                       onLeaderboard={() => setTab("leaderboard")}
+                      shareRef={shareRef}
                     />
                   ) : (
                     <NumberPad onNumber={handleNumber} onErase={handleErase} disabled={completed} />
