@@ -140,7 +140,7 @@ export default function NotificationBell() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="relative p-2 rounded-md text-gray-600 hover:text-primary-700 hover:bg-primary-50 transition-colors"
+        className="relative p-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-primary-700 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-gray-700 transition-colors"
         aria-label="Notifications"
       >
         <Bell size={20} />
@@ -152,16 +152,16 @@ export default function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-1 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50 overflow-hidden">
+        <div className="absolute right-0 mt-1 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50 overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-800">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+            <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100">
               Notifications
             </h3>
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllRead}
-                className="flex items-center gap-1 text-xs text-primary-600 hover:text-primary-700 font-medium"
+                className="flex items-center gap-1 text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium"
               >
                 <CheckCheck size={14} />
                 Mark all read
@@ -172,11 +172,11 @@ export default function NotificationBell() {
           {/* Notification list */}
           <div className="max-h-80 overflow-y-auto">
             {loading && notifications.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-6">
+              <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-6">
                 Loading...
               </p>
             ) : notifications.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-6">
+              <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-6">
                 No notifications
               </p>
             ) : (
@@ -184,16 +184,16 @@ export default function NotificationBell() {
                 <button
                   key={n.id}
                   onClick={() => handleNotificationClick(n)}
-                  className={`w-full text-left px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition-colors ${
-                    !n.read ? "bg-blue-50/50 border-l-2 border-l-blue-400" : ""
+                  className={`w-full text-left px-4 py-3 border-b border-gray-50 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${
+                    !n.read ? "bg-blue-50/50 dark:bg-blue-900/20 border-l-2 border-l-blue-400 dark:border-l-blue-500" : ""
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <p
                       className={`text-sm leading-snug ${
                         !n.read
-                          ? "font-medium text-gray-900"
-                          : "text-gray-600"
+                          ? "font-medium text-gray-900 dark:text-gray-100"
+                          : "text-gray-600 dark:text-gray-400"
                       }`}
                     >
                       {n.announcement
@@ -225,7 +225,7 @@ export default function NotificationBell() {
                     >
                       {n.announcement?.category ?? (n.marketplaceListing ? "marketplace" : n.survey ? "survey" : n.poll ? "poll" : n.reviewDoc ? "review" : n.post ? "community" : n.task ? "task" : n.issue ? "issue" : "visitor")}
                     </span>
-                    <span className="text-[10px] text-gray-400">
+                    <span className="text-[10px] text-gray-400 dark:text-gray-500">
                       {timeAgo(n.createdAt)}
                     </span>
                   </div>
