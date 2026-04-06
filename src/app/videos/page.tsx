@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { X, Play, ArrowLeft, Link as LinkIcon, Check } from "lucide-react";
 import { extractYouTubeId, getYouTubeThumbnail, getYouTubeEmbedUrl } from "@/lib/youtube";
@@ -51,7 +51,7 @@ const CATEGORY_BG: Record<VideoCategory, string> = {
   ANNOUNCEMENTS: "bg-yellow-50 dark:bg-yellow-900/10 border-yellow-100 dark:border-yellow-800 hover:border-yellow-300 dark:hover:border-yellow-600",
 };
 
-export default function VideosPage() {
+function VideosContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
@@ -301,5 +301,20 @@ export default function VideosPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function VideosPage() {
+  return (
+    <Suspense fallback={
+      <div className="max-w-5xl mx-auto px-4 py-10">
+        <div className="h-10 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-4" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {[1,2,3,4].map((i) => <div key={i} className="h-48 bg-gray-100 dark:bg-gray-800 rounded-2xl animate-pulse" />)}
+        </div>
+      </div>
+    }>
+      <VideosContent />
+    </Suspense>
   );
 }
