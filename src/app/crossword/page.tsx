@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { ArrowLeft, Trophy, Clock, Delete, Share2 } from "lucide-react";
 import { formatTime } from "@/lib/crossword";
+import { useRole } from "@/hooks/useRole";
 import clsx from "clsx";
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -88,6 +89,7 @@ function RegistrationForm({ onRegister }: { onRegister: (id: string, name: strin
 
 export default function CrosswordPage() {
   // Player state
+  const { isSuperAdmin } = useRole();
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [playerName, setPlayerName] = useState<string | null>(null);
   const [registered, setRegistered] = useState(false);
@@ -370,9 +372,19 @@ export default function CrosswordPage() {
       ) : tab === "leaderboard" ? (
         /* ── Leaderboard ───────────────────────────────────────────── */
         <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700">
-          <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100 mb-3 flex items-center gap-2">
-            <Trophy size={18} className="text-yellow-500" /> Today&apos;s Leaderboard
-          </h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+              <Trophy size={18} className="text-yellow-500" /> Today&apos;s Leaderboard
+            </h2>
+            {isSuperAdmin() && (
+              <a
+                href="/api/crossword/leaderboard?format=csv&all=true"
+                className="text-xs text-primary-600 dark:text-primary-400 hover:underline"
+              >
+                Export CSV
+              </a>
+            )}
+          </div>
           {lbLoading ? (
             <p className="text-sm text-gray-400">Loading...</p>
           ) : leaderboard.length === 0 ? (

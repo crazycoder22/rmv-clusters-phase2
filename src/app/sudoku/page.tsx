@@ -3,9 +3,10 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { ArrowLeft, Trophy, Clock, Delete, Share2, Download } from "lucide-react";
+import { ArrowLeft, Trophy, Clock, Delete, Share2 } from "lucide-react";
 import { formatTime, getPeerIndices, getErrorCells } from "@/lib/sudoku";
 import { toPng } from "html-to-image";
+import { useRole } from "@/hooks/useRole";
 import type { Difficulty } from "@/lib/sudoku";
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -193,10 +194,11 @@ function NumberPad({ onNumber, onErase, disabled }: { onNumber: (n: number) => v
 
 // ── Leaderboard ────────────────────────────────────────────────────────────
 
-function LeaderboardView({ currentPlayerId, difficulty, setDifficulty }: {
+function LeaderboardView({ currentPlayerId, difficulty, setDifficulty, isAdmin }: {
   currentPlayerId: string | null;
   difficulty: Difficulty;
   setDifficulty: (d: Difficulty) => void;
+  isAdmin: boolean;
 }) {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(false);
@@ -236,10 +238,20 @@ function LeaderboardView({ currentPlayerId, difficulty, setDifficulty }: {
         </div>
       ) : (
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <div className="grid grid-cols-[auto_1fr_auto] gap-3 px-4 py-2 bg-gray-50 dark:bg-gray-700 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">
-            <span>#</span>
-            <span>Player</span>
-            <span className="text-right">Time</span>
+          <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700">
+            <div className="grid grid-cols-[auto_1fr_auto] gap-3 flex-1 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <span>#</span>
+              <span>Player</span>
+              <span className="text-right">Time</span>
+            </div>
+            {isAdmin && (
+              <a
+                href={`/api/sudoku/leaderboard?format=csv&all=true`}
+                className="text-[10px] text-primary-600 dark:text-primary-400 hover:underline ml-2 shrink-0"
+              >
+                CSV
+              </a>
+            )}
           </div>
           <div className="divide-y divide-gray-100 dark:divide-gray-700">
             {entries.map((e) => (
@@ -369,6 +381,7 @@ const DIFFICULTIES: { value: Difficulty; label: string; color: string }[] = [
 
 export default function SudokuPage() {
   const { data: session, status: sessionStatus } = useSession();
+  const { isSuperAdmin } = useRole();
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [playerName, setPlayerName] = useState("");
   const [tab, setTab] = useState<"game" | "leaderboard">("game");
@@ -677,6 +690,7 @@ export default function SudokuPage() {
               currentPlayerId={playerId}
               difficulty={difficulty}
               setDifficulty={setDifficulty}
+              isAdmin={isSuperAdmin()}
             />
           )}
         </div>

@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, Trophy, Medal, Loader2 } from "lucide-react";
+import { ArrowLeft, Trophy, Medal, Loader2, Download } from "lucide-react";
+import { useRole } from "@/hooks/useRole";
 
 interface LeaderboardEntry {
   id: string;
@@ -18,6 +19,7 @@ interface LeaderboardEntry {
 export default function LeaderboardPage() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const { isSuperAdmin } = useRole();
   const currentPlayerId = typeof window !== "undefined" ? localStorage.getItem("wordle_player_id") : null;
 
   useEffect(() => {
@@ -45,11 +47,20 @@ export default function LeaderboardPage() {
         <div className="w-5" />
       </div>
 
-      {/* Scoring info */}
-      <div className="mb-4 px-3 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-        <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-          Score per win: 1st guess = 6 pts, 2nd = 5, 3rd = 4, 4th = 3, 5th = 2, 6th = 1
+      {/* Scoring info + export */}
+      <div className="mb-4 px-3 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-between">
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          Score: 1st guess = 6 pts, 2nd = 5, ... 6th = 1
         </p>
+        {isSuperAdmin() && (
+          <a
+            href="/api/wordle/leaderboard?format=csv"
+            className="inline-flex items-center gap-1 text-xs text-primary-600 dark:text-primary-400 hover:underline shrink-0 ml-2"
+          >
+            <Download size={12} />
+            CSV
+          </a>
+        )}
       </div>
 
       {loading ? (

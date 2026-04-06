@@ -6,7 +6,10 @@ function attemptsToPoints(attempts: number): number {
   return Math.max(7 - attempts, 1);
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const format = searchParams.get("format");
+
   const players = await prisma.wordlePlayer.findMany({
     select: {
       id: true,
@@ -41,6 +44,20 @@ export async function GET() {
     })
     .filter((p) => p.totalPlayed > 0)
     .sort((a, b) => b.totalScore - a.totalScore || b.totalWins - a.totalWins || a.avgAttempts - b.avgAttempts);
+
+  if (format === "csv") {
+    const header = "Rank,Name,Block,Flat,Wins,Played,Score,Avg Attempts";
+    const rows = leaderboard.map((p, i) =>
+      `${i + 1},"${p.name}",${p.block},"${p.flatNumber}",${p.totalWins},${p.totalPlayed},${p.totalScore},${p.avgAttempts}`
+    );
+    const csv = [header, ...rows].join("\n");
+    return new Response(csv, {
+      headers: {
+        "Content-Type": "text/csv",
+        "Content-Disposition": `attachment; filename="wordle-leaderboard.csv"`,
+      },
+    });
+  }
 
   return NextResponse.json({ leaderboard });
 }
