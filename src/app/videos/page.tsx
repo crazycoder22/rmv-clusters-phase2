@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { X, Play, ArrowLeft } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { X, Play, ArrowLeft, Link as LinkIcon, Check } from "lucide-react";
 import { extractYouTubeId, getYouTubeThumbnail, getYouTubeEmbedUrl } from "@/lib/youtube";
 
 type VideoCategory = "LEARNING" | "TURNING_POINT" | "EVENTS" | "ANNOUNCEMENTS";
@@ -51,10 +52,13 @@ const CATEGORY_BG: Record<VideoCategory, string> = {
 };
 
 export default function VideosPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [loading, setLoading] = useState(true);
   const [activePlaylist, setActivePlaylist] = useState<Playlist | null>(null);
   const [selected, setSelected] = useState<Video | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const fetchPlaylists = useCallback(async () => {
     setLoading(true);
@@ -71,11 +75,40 @@ export default function VideosPage() {
 
   useEffect(() => { fetchPlaylists(); }, [fetchPlaylists]);
 
+  // Sync URL param → activePlaylist once playlists are loaded
+  useEffect(() => {
+    if (playlists.length === 0) return;
+    const pid = searchParams.get("p");
+    if (pid) {
+      const found = playlists.find((pl) => pl.id === pid);
+      if (found) setActivePlaylist(found);
+    } else {
+      setActivePlaylist(null);
+    }
+  }, [playlists, searchParams]);
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape") setSelected(null); };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, []);
+
+  const openPlaylist = (playlist: Playlist) => {
+    router.push(`/videos?p=${playlist.id}`);
+  };
+
+  const goBack = () => {
+    router.push("/videos");
+    setSelected(null);
+  };
+
+  const copyLink = async () => {
+    if (!activePlaylist) return;
+    const url = `${window.location.origin}/videos?p=${activePlaylist.id}`;
+    await navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const selectedVideoId = selected ? extractYouTubeId(selected.youtubeUrl) : null;
   const nonEmpty = playlists.filter((p) => p.videos.length > 0);
@@ -108,7 +141,7 @@ export default function VideosPage() {
                 return (
                   <button
                     key={playlist.id}
-                    onClick={() => setActivePlaylist(playlist)}
+                    onClick={() => openPlaylist(playlist)}
                     className={`text-left rounded-2xl border-2 p-4 transition-all hover:shadow-md hover:-translate-y-0.5 ${CATEGORY_BG[playlist.category]}`}
                   >
                     {/* 2×2 thumbnail grid */}
@@ -156,12 +189,21 @@ export default function VideosPage() {
       {/* ── PLAYLIST VIDEO GRID ──────────────────────────────────────────── */}
       {activePlaylist && (
         <>
-          <button
-            onClick={() => { setActivePlaylist(null); setSelected(null); }}
-            className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors mb-5"
-          >
-            <ArrowLeft size={16} /> Back to Library
-          </button>
+          <div className="flex items-center justify-between mb-5">
+            <button
+              onClick={goBack}
+              className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+            >
+              <ArrowLeft size={16} /> Back to Library
+            </button>
+            <button
+              onClick={copyLink}
+              className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            >
+              {copied ? <Check size={14} className="text-green-500" /> : <LinkIcon size={14} />}
+              {copied ? "Copied!" : "Copy Link"}
+            </button>
+          </div>
 
           <div className="flex items-baseline gap-3 mb-1">
             <span className={`inline-block px-2.5 py-0.5 text-xs font-semibold rounded-full ${CATEGORY_BADGE[activePlaylist.category]}`}>
