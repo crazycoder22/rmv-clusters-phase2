@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
-import { ArrowLeft, Trophy, Clock, Delete } from "lucide-react";
+import { ArrowLeft, Trophy, Clock, Delete, Share2 } from "lucide-react";
 import { formatTime } from "@/lib/crossword";
 import clsx from "clsx";
 
@@ -109,6 +109,9 @@ export default function CrosswordPage() {
   const [timeSeconds, setTimeSeconds] = useState(0);
   const [timerStarted, setTimerStarted] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Share
+  const [shared, setShared] = useState(false);
 
   // Tabs
   const [tab, setTab] = useState<"game" | "leaderboard">("game");
@@ -407,7 +410,31 @@ export default function CrosswordPage() {
               {formatTime(timeSeconds)}
             </span>
             {completed && (
-              <p className="text-sm text-green-600 dark:text-green-400 mt-1 font-medium">Puzzle Complete!</p>
+              <div className="flex items-center justify-center gap-3 mt-1">
+                <p className="text-sm text-green-600 dark:text-green-400 font-medium">Puzzle Complete!</p>
+                <button
+                  onClick={() => {
+                    const text = [
+                      `🔤 RMV Mini Crossword`,
+                      `⏱️ ${formatTime(timeSeconds)}`,
+                      ``,
+                      `Play today's puzzle at https://www.rmvclustersphase2.in/crossword`,
+                    ].join("\n");
+                    if (navigator.share) {
+                      navigator.share({ text }).catch(() => {
+                        navigator.clipboard.writeText(text).then(() => setShared(true));
+                      });
+                    } else {
+                      navigator.clipboard.writeText(text).then(() => setShared(true));
+                    }
+                    setTimeout(() => setShared(false), 2000);
+                  }}
+                  className="inline-flex items-center gap-1 px-3 py-1 bg-primary-600 text-white rounded-lg text-xs font-medium hover:bg-primary-700 transition-colors"
+                >
+                  <Share2 size={13} />
+                  {shared ? "Copied!" : "Share"}
+                </button>
+              </div>
             )}
           </div>
 

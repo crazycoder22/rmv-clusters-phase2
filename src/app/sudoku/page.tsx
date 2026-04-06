@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { ArrowLeft, Trophy, Clock, Delete } from "lucide-react";
+import { ArrowLeft, Trophy, Clock, Delete, Share2 } from "lucide-react";
 import { formatTime, getPeerIndices, getErrorCells } from "@/lib/sudoku";
 import type { Difficulty } from "@/lib/sudoku";
 
@@ -264,6 +264,69 @@ function LeaderboardView({ currentPlayerId, difficulty, setDifficulty }: {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ── Completion Banner with Share ─────────────────────────────────────────
+
+function CompletionBanner({
+  difficulty,
+  savedTime,
+  playerName,
+  onLeaderboard,
+}: {
+  difficulty: Difficulty;
+  savedTime: number | null;
+  playerName: string;
+  onLeaderboard: () => void;
+}) {
+  const [shared, setShared] = useState(false);
+
+  const diffLabel = difficulty === "easy" ? "Easy" : difficulty === "medium" ? "Medium" : "Hard";
+  const diffEmoji = difficulty === "easy" ? "🟢" : difficulty === "medium" ? "🟡" : "🔴";
+  const timeStr = formatTime(savedTime ?? 0);
+
+  const handleShare = () => {
+    const text = [
+      `🧩 RMV Sudoku ${diffEmoji} ${diffLabel}`,
+      `⏱️ ${timeStr}`,
+      ``,
+      `Play today's puzzle at https://www.rmvclustersphase2.in/sudoku`,
+    ].join("\n");
+
+    if (navigator.share) {
+      navigator.share({ text }).catch(() => {
+        navigator.clipboard.writeText(text).then(() => setShared(true));
+      });
+    } else {
+      navigator.clipboard.writeText(text).then(() => setShared(true));
+    }
+
+    if (!shared) setTimeout(() => setShared(false), 2000);
+  };
+
+  return (
+    <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 text-center space-y-3">
+      <p className="text-green-700 dark:text-green-300 font-semibold text-lg">🎉 Puzzle Complete!</p>
+      <p className="text-green-600 dark:text-green-400 text-sm">
+        {diffLabel} · Time: <span className="font-mono font-bold">{timeStr}</span>
+      </p>
+      <div className="flex items-center justify-center gap-3">
+        <button
+          onClick={handleShare}
+          className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors"
+        >
+          <Share2 size={15} />
+          {shared ? "Copied!" : "Share Result"}
+        </button>
+        <button
+          onClick={onLeaderboard}
+          className="text-xs text-primary-600 dark:text-primary-400 hover:underline"
+        >
+          See Leaderboard →
+        </button>
+      </div>
     </div>
   );
 }
@@ -555,19 +618,12 @@ export default function SudokuPage() {
 
                   {/* Completed banner */}
                   {completed ? (
-                    <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 text-center space-y-2">
-                      <p className="text-green-700 dark:text-green-300 font-semibold text-lg">🎉 Puzzle Complete!</p>
-                      <p className="text-green-600 dark:text-green-400 text-sm">
-                        {DIFFICULTIES.find(d => d.value === difficulty)?.label} · Time:{" "}
-                        <span className="font-mono font-bold">{formatTime(savedTime ?? 0)}</span>
-                      </p>
-                      <button
-                        onClick={() => setTab("leaderboard")}
-                        className="text-xs text-primary-600 dark:text-primary-400 hover:underline"
-                      >
-                        See Leaderboard →
-                      </button>
-                    </div>
+                    <CompletionBanner
+                      difficulty={difficulty}
+                      savedTime={savedTime}
+                      playerName={playerName}
+                      onLeaderboard={() => setTab("leaderboard")}
+                    />
                   ) : (
                     <NumberPad onNumber={handleNumber} onErase={handleErase} disabled={completed} />
                   )}
