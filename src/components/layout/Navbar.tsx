@@ -34,7 +34,7 @@ function isGroup(item: NavItem): item is NavGroup {
   return "links" in item;
 }
 
-const publicPaths = ["/", "/contact", "/wordle", "/sudoku", "/videos"];
+const publicPaths = ["/", "/contact", "/wordle", "/sudoku", "/videos", "/surveys"];
 
 // Top-level links shown directly in the navbar
 const topLevelLinks: NavLink[] = [

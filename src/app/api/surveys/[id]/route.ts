@@ -8,18 +8,16 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   const { id } = await params;
 
-  const resident = await prisma.resident.findUnique({
-    where: { email: session.user.email },
-    select: { id: true },
-  });
-  if (!resident) {
-    return NextResponse.json({ error: "Not registered" }, { status: 403 });
+  // Resolve resident if logged in
+  let residentId: string | null = null;
+  if (session?.user?.email) {
+    const resident = await prisma.resident.findUnique({
+      where: { email: session.user.email },
+      select: { id: true },
+    });
+    residentId = resident?.id ?? null;
   }
 
   const survey = await prisma.survey.findUnique({
@@ -35,9 +33,7 @@ export async function GET(
               _count: { select: { votes: true } },
               votes: {
                 include: {
-                  resident: {
-                    select: { name: true, block: true, flatNumber: true },
-                  },
+                  resident: { select: { name: true, block: true, flatNumber: true } },
                 },
               },
             },
@@ -53,26 +49,23 @@ export async function GET(
   }
 
   // Get current user's votes for all polls in this survey
-  const myVotes = await prisma.pollVote.findMany({
-    where: {
-      residentId: resident.id,
-      pollId: { in: survey.polls.map((p) => p.id) },
-    },
-    select: { pollId: true, pollOptionId: true },
-  });
-
   const myVotesByPoll: Record<string, string[]> = {};
-  for (const v of myVotes) {
-    if (!myVotesByPoll[v.pollId]) myVotesByPoll[v.pollId] = [];
-    myVotesByPoll[v.pollId].push(v.pollOptionId);
+  if (residentId) {
+    const myVotes = await prisma.pollVote.findMany({
+      where: {
+        residentId,
+        pollId: { in: survey.polls.map((p) => p.id) },
+      },
+      select: { pollId: true, pollOptionId: true },
+    });
+    for (const v of myVotes) {
+      if (!myVotesByPoll[v.pollId]) myVotesByPoll[v.pollId] = [];
+      myVotesByPoll[v.pollId].push(v.pollOptionId);
+    }
   }
 
-  // Format polls with results
   const questions = survey.polls.map((poll) => {
-    const totalOptionVotes = poll.options.reduce(
-      (sum, o) => sum + o._count.votes,
-      0
-    );
+    const totalOptionVotes = poll.options.reduce((sum, o) => sum + o._count.votes, 0);
     return {
       id: poll.id,
       title: poll.title,
@@ -88,13 +81,12 @@ export async function GET(
         voteCount: opt._count.votes,
         voters: survey.isAnonymous
           ? []
-          : opt.votes.map((v) => v.resident),
+          : opt.votes.map((v) => v.resident).filter(Boolean),
       })),
       myVotes: myVotesByPoll[poll.id] || [],
     };
   });
 
-  // Check if user has completed the survey (voted on all questions)
   const hasCompleted = survey.polls.every(
     (p) => (myVotesByPoll[p.id] || []).length > 0
   );
@@ -125,12 +117,10 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
-  if (!session?.user?.email) {
+  if (!session?.user?.email)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (!canManagePolls(session.user.roles)) {
+  if (!canManagePolls(session.user.roles))
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
 
   const { id } = await params;
   const body = await request.json();
@@ -138,25 +128,16 @@ export async function PATCH(
 
   const data: Record<string, unknown> = {};
   if (title !== undefined) data.title = title.trim();
-  if (description !== undefined)
-    data.description = description?.trim() || null;
+  if (description !== undefined) data.description = description?.trim() || null;
   if (deadline !== undefined) data.deadline = new Date(deadline);
   if (status !== undefined) {
     data.status = status;
-    // Also close all child polls
     if (status === "CLOSED") {
-      await prisma.poll.updateMany({
-        where: { surveyId: id },
-        data: { status: "CLOSED" },
-      });
+      await prisma.poll.updateMany({ where: { surveyId: id }, data: { status: "CLOSED" } });
     }
   }
 
-  const survey = await prisma.survey.update({
-    where: { id },
-    data,
-  });
-
+  const survey = await prisma.survey.update({ where: { id }, data });
   return NextResponse.json({ survey });
 }
 
@@ -165,15 +146,12 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
-  if (!session?.user?.email) {
+  if (!session?.user?.email)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (!canManagePolls(session.user.roles)) {
+  if (!canManagePolls(session.user.roles))
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
 
   const { id } = await params;
   await prisma.survey.delete({ where: { id } });
-
   return NextResponse.json({ success: true });
 }

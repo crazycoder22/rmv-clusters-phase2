@@ -901,13 +901,20 @@ model PollVote {
   poll         Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
   pollOptionId String
   pollOption   PollOption @relation(fields: [pollOptionId], references: [id], onDelete: Cascade)
-  residentId   String
-  resident     Resident   @relation(fields: [residentId], references: [id], onDelete: Cascade)
+  residentId   String?
+  resident     Resident?  @relation(fields: [residentId], references: [id], onDelete: Cascade)
+  // Guest fields (when submitted without login)
+  guestName    String?
+  guestEmail   String?
+  guestBlock   Int?
+  guestFlat    String?
+  guestPhone   String?
   createdAt    DateTime   @default(now())
 
   @@unique([pollId, pollOptionId, residentId])
   @@index([pollId])
   @@index([residentId])
+  @@index([guestEmail])
 }
 
 // ─── End Polls & Surveys ──────────────────────────────────────────────────
