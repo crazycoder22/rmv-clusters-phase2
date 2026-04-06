@@ -1094,16 +1094,30 @@ enum VideoCategory {
   ANNOUNCEMENTS
 }
 
-model Video {
+model VideoPlaylist {
   id          String        @id @default(cuid())
-  title       String
+  name        String        // e.g. "Turning Point", "MyGate Onboarding"
   description String?
-  youtubeUrl  String
   category    VideoCategory
-  featured    Boolean       @default(false)
   order       Int           @default(0)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
+  videos      Video[]
+}
+
+model Video {
+  id          String         @id @default(cuid())
+  title       String
+  description String?
+  youtubeUrl  String
+  playlistId  String
+  playlist    VideoPlaylist  @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  featured    Boolean        @default(false)
+  order       Int            @default(0)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([playlistId])
 }
 
 // ─── End Video Library ───────────────────────────────────────────────────────

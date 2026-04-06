@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { canManageAnnouncements } from "@/lib/roles";
 import { prisma } from "@/lib/prisma";
-import { extractYouTubeId } from "@/lib/youtube";
+import { VideoCategory } from "../../../../../generated/prisma/client";
 
 async function requireAdmin() {
   const session = await auth();
@@ -21,19 +21,21 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const body = await req.json();
   const data: Record<string, unknown> = {};
 
-  if (body.title !== undefined) data.title = body.title.trim();
+  if (body.name !== undefined) data.name = body.name.trim();
   if (body.description !== undefined) data.description = body.description?.trim() || null;
-  if (body.featured !== undefined) data.featured = Boolean(body.featured);
   if (body.order !== undefined) data.order = Number(body.order);
-  if (body.playlistId !== undefined) data.playlistId = body.playlistId;
-  if (body.youtubeUrl !== undefined) {
-    if (!extractYouTubeId(body.youtubeUrl))
-      return NextResponse.json({ error: "Invalid YouTube URL" }, { status: 400 });
-    data.youtubeUrl = body.youtubeUrl.trim();
+  if (body.category !== undefined) {
+    if (!Object.values(VideoCategory).includes(body.category))
+      return NextResponse.json({ error: "Invalid category" }, { status: 400 });
+    data.category = body.category as VideoCategory;
   }
 
-  const video = await prisma.video.update({ where: { id }, data });
-  return NextResponse.json({ video });
+  const playlist = await prisma.videoPlaylist.update({
+    where: { id },
+    data,
+    include: { videos: { orderBy: [{ order: "asc" }, { createdAt: "asc" }] } },
+  });
+  return NextResponse.json({ playlist });
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -41,6 +43,6 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   if ("error" in check) return check.error;
 
   const { id } = await params;
-  await prisma.video.delete({ where: { id } });
+  await prisma.videoPlaylist.delete({ where: { id } }); // cascades to videos
   return NextResponse.json({ ok: true });
 }
