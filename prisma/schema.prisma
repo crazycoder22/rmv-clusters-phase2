@@ -1084,3 +1084,26 @@ model SudokuGame {
 }
 
 // ─── End Sudoku Game ─────────────────────────────────────────────────────────
+
+// ─── Video Library ────────────────────────────────────────────────────────────
+
+enum VideoCategory {
+  LEARNING
+  TURNING_POINT
+  EVENTS
+  ANNOUNCEMENTS
+}
+
+model Video {
+  id          String        @id @default(cuid())
+  title       String
+  description String?
+  youtubeUrl  String
+  category    VideoCategory
+  featured    Boolean       @default(false)
+  order       Int           @default(0)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+// ─── End Video Library ───────────────────────────────────────────────────────

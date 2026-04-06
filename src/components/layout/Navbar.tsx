@@ -34,7 +34,7 @@ function isGroup(item: NavItem): item is NavGroup {
   return "links" in item;
 }
 
-const publicPaths = ["/", "/contact", "/wordle", "/sudoku"];
+const publicPaths = ["/", "/contact", "/wordle", "/sudoku", "/videos"];
 
 // Top-level links shown directly in the navbar
 const topLevelLinks: NavLink[] = [
@@ -55,6 +55,7 @@ const navGroups: NavGroup[] = [
       { href: "/faq", label: "FAQ" },
       { href: "/gallery", label: "Gallery" },
       { href: "/newsletters", label: "Newsletters" },
+      { href: "/videos", label: "Videos" },
       { href: "/contact", label: "Contact" },
     ],
   },
@@ -272,6 +273,11 @@ export default function Navbar() {
       href: "/admin/housekeeping",
       label: "Housekeeping",
       match: (p) => p.startsWith("/admin/housekeeping"),
+    });
+    adminLinks.push({
+      href: "/admin/videos",
+      label: "Video Library",
+      match: (p) => p.startsWith("/admin/videos"),
     });
   }
 
