@@ -215,13 +215,24 @@ export default function PollsPage() {
                       <span>by {survey.createdBy.name}</span>
                     </div>
                   </div>
-                  <ClipboardList
-                    size={20}
-                    className={clsx(
-                      "shrink-0 mt-1",
-                      isClosed ? "text-gray-300 dark:text-gray-600" : "text-indigo-400"
+                  <div className="flex flex-col items-end gap-2 shrink-0">
+                    <ClipboardList
+                      size={20}
+                      className={clsx(
+                        isClosed ? "text-gray-300 dark:text-gray-600" : "text-indigo-400"
+                      )}
+                    />
+                    {canManagePolls() && (
+                      <Link
+                        href={`/admin/surveys/${survey.id}/results`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 rounded-md hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors"
+                      >
+                        <BarChart3 size={12} />
+                        Results
+                      </Link>
                     )}
-                  />
+                  </div>
                 </div>
               </Link>
             );

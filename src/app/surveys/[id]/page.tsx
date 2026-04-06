@@ -4,7 +4,7 @@ import { useState, useEffect, use } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import {
-  ArrowLeft, Clock, CheckCircle2, ClipboardList,
+  ArrowLeft, Clock, CheckCircle2, ClipboardList, BarChart3,
   Trash2, XCircle, ChevronDown, ChevronUp,
 } from "lucide-react";
 import clsx from "clsx";
@@ -435,7 +435,12 @@ export default function SurveyPage({ params }: { params: Promise<{ id: string }>
 
           {/* Admin controls */}
           {canManagePolls() && (
-            <div className="mt-6 flex items-center gap-3">
+            <div className="mt-6 flex items-center gap-3 flex-wrap">
+              <Link href={`/admin/surveys/${id}/results`}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary-700 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors">
+                <BarChart3 size={15} />
+                View Results
+              </Link>
               {!isClosed && (
                 <button onClick={handleClose} disabled={closing}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors">
