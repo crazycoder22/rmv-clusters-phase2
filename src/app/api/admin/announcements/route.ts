@@ -43,7 +43,7 @@ export async function POST(request: Request) {
   if ("error" in check && check.error) return check.error;
 
   const body = await request.json();
-  const { title, date, category, priority, summary, body: announcementBody, author, link, linkText, published, eventConfig, sportsConfig } = body;
+  const { title, date, category, priority, summary, body: announcementBody, author, link, linkText, imageUrl, published, eventConfig, sportsConfig } = body;
 
   // Validate required fields
   if (!title || !summary || !announcementBody || !author) {
@@ -106,6 +106,7 @@ export async function POST(request: Request) {
         author,
         link: link || null,
         linkText: linkText || null,
+        imageUrl: imageUrl || null,
         published: published !== undefined ? published : true,
         ...(eventConfig && {
           eventConfig: {

@@ -105,12 +105,24 @@ export default function AnnouncementDetailPage() {
         </div>
 
         {/* Title */}
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">
           {announcement.title}
         </h1>
 
+        {/* Image */}
+        {announcement.imageUrl && (
+          <div className="mb-4 rounded-lg overflow-hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={announcement.imageUrl}
+              alt={announcement.title}
+              className="w-full max-h-80 object-cover rounded-lg"
+            />
+          </div>
+        )}
+
         {/* Summary */}
-        <p className="text-gray-700 text-base leading-relaxed mb-4">
+        <p className="text-gray-700 dark:text-gray-300 text-base leading-relaxed mb-4">
           {announcement.summary}
         </p>
 

@@ -120,6 +120,16 @@ export default function NewsFeed() {
                     {announcement.summary}
                   </p>
                 </Link>
+                {announcement.imageUrl && (
+                  <div className="mt-3 rounded-lg overflow-hidden">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={announcement.imageUrl}
+                      alt={announcement.title}
+                      className="w-full max-h-64 object-cover rounded-lg"
+                    />
+                  </div>
+                )}
                 <details className="mt-3">
                   <summary className="text-sm text-primary-600 hover:text-primary-700 cursor-pointer font-medium">
                     Read more

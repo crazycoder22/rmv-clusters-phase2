@@ -36,6 +36,7 @@ model Announcement {
   linkText    String?
   published   Boolean      @default(true)
   emoji       String?
+  imageUrl    String?
   eventConfig   EventConfig?
   sportsConfig  SportsConfig?
   notifications Notification[]

@@ -57,6 +57,7 @@ export async function PATCH(
   if (body.author !== undefined) updateData.author = body.author;
   if (body.link !== undefined) updateData.link = body.link || null;
   if (body.linkText !== undefined) updateData.linkText = body.linkText || null;
+  if (body.imageUrl !== undefined) updateData.imageUrl = body.imageUrl || null;
   if (body.published !== undefined) updateData.published = body.published;
 
   try {

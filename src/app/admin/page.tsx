@@ -44,6 +44,7 @@ const emptyNewsForm = {
   author: "",
   link: "",
   linkText: "",
+  imageUrl: "",
   published: true,
   enableRsvp: false,
   enableFoodOrdering: false,
@@ -435,6 +436,7 @@ export default function AdminPage() {
       author: announcement.author,
       link: announcement.link || "",
       linkText: announcement.linkText || "",
+      imageUrl: announcement.imageUrl || "",
       published: announcement.published ?? true,
       enableRsvp: !!ec,
       enableFoodOrdering: !!(ec?.menuItems && ec.menuItems.length > 0),
@@ -781,6 +783,56 @@ export default function AdminPage() {
                   placeholder="Full details shown when &quot;Read more&quot; is expanded"
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 />
+              </div>
+
+              {/* Image upload */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Image (optional)
+                </label>
+                {newsForm.imageUrl ? (
+                  <div className="space-y-2">
+                    <div className="relative rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={newsForm.imageUrl}
+                        alt="Announcement"
+                        className="w-full max-h-48 object-cover"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setNewsForm((prev) => ({ ...prev, imageUrl: "" }))}
+                      className="text-xs text-red-600 dark:text-red-400 hover:underline"
+                    >
+                      Remove image
+                    </button>
+                  </div>
+                ) : (
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      if (file.size > 5 * 1024 * 1024) {
+                        setNewsError("Image must be under 5MB");
+                        return;
+                      }
+                      try {
+                        const formData = new FormData();
+                        formData.append("file", file);
+                        const res = await fetch("/api/upload", { method: "POST", body: formData });
+                        if (!res.ok) throw new Error("Upload failed");
+                        const data = await res.json();
+                        setNewsForm((prev) => ({ ...prev, imageUrl: data.url }));
+                      } catch {
+                        setNewsError("Failed to upload image");
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md text-sm file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:bg-primary-50 file:text-primary-700 dark:file:bg-primary-900/30 dark:file:text-primary-400 file:cursor-pointer"
+                  />
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
