@@ -459,6 +459,8 @@ export default function SudokuPage() {
       setCompleted(data.completed);
       setSavedTime(data.timeSeconds ?? null);
       setSubmitError(false);
+      // Resume timer from saved time
+      savedTimeOffset.current = data.timeSeconds ?? 0;
     } finally {
       setGameLoading(false);
     }
@@ -468,25 +470,36 @@ export default function SudokuPage() {
     if (playerId) fetchGame(playerId, difficulty);
   }, [playerId, difficulty, fetchGame]);
 
-  // ── Timer ────────────────────────────────────────────────────────────────
+  // Track previously accumulated time from DB
+  const savedTimeOffset = useRef<number>(0);
+
+  // ── Timer — resumes from savedTimeOffset ─────────────────────────────────
 
   useEffect(() => {
     if (timerRef.current) clearInterval(timerRef.current);
     if (completed || !playerId || gameLoading) return;
 
     startTimeRef.current = Date.now();
-    setTimeSeconds(0);
+    // Show accumulated time immediately (offset loaded from DB)
+    setTimeSeconds(savedTimeOffset.current);
 
     timerRef.current = setInterval(() => {
-      setTimeSeconds(Math.floor((Date.now() - startTimeRef.current) / 1000));
+      const sessionSeconds = Math.floor((Date.now() - startTimeRef.current) / 1000);
+      setTimeSeconds(savedTimeOffset.current + sessionSeconds);
     }, 1000);
 
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [completed, playerId, difficulty, gameLoading]);
 
+  // Helper: get current total elapsed time
+  const getElapsed = useCallback(() => {
+    const sessionSeconds = Math.floor((Date.now() - startTimeRef.current) / 1000);
+    return savedTimeOffset.current + sessionSeconds;
+  }, []);
+
   // ── Save ─────────────────────────────────────────────────────────────────
 
-  // Auto-save progress (debounced, no validation)
+  // Auto-save progress + elapsed time (debounced)
   const saveProgress = useCallback(async (newGrid: number[]) => {
     if (!playerId || completed) return;
     if (saveDebounceRef.current) clearTimeout(saveDebounceRef.current);
@@ -494,15 +507,15 @@ export default function SudokuPage() {
       await fetch("/api/sudoku/game", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ playerId, difficulty, currentGrid: newGrid }),
+        body: JSON.stringify({ playerId, difficulty, currentGrid: newGrid, timeSeconds: getElapsed() }),
       });
     }, 800);
-  }, [playerId, difficulty, completed]);
+  }, [playerId, difficulty, completed, getElapsed]);
 
   // Submit for validation
   const handleSubmit = useCallback(async () => {
     if (!playerId || completed) return;
-    const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+    const elapsed = getElapsed();
     const res = await fetch("/api/sudoku/game", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -518,7 +531,7 @@ export default function SudokuPage() {
     } else {
       setSubmitError(true);
     }
-  }, [playerId, difficulty, grid, completed]);
+  }, [playerId, difficulty, grid, completed, getElapsed]);
 
   // Reset puzzle
   const handleReset = useCallback(async () => {
@@ -535,7 +548,8 @@ export default function SudokuPage() {
     setSavedTime(null);
     setSubmitError(false);
     setSelected(null);
-    // Reset timer
+    // Reset timer to 0
+    savedTimeOffset.current = 0;
     startTimeRef.current = Date.now();
     setTimeSeconds(0);
   }, [playerId, difficulty]);

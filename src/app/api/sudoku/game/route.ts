@@ -126,10 +126,13 @@ export async function POST(request: Request) {
     });
   }
 
-  // ── Default: save progress (auto-save, no validation) ──
+  // ── Default: save progress + elapsed time (auto-save, no validation) ──
   await prisma.sudokuGame.update({
     where: { id: game.id },
-    data: { currentGrid: JSON.stringify(grid) },
+    data: {
+      currentGrid: JSON.stringify(grid),
+      ...(timeSeconds !== undefined && timeSeconds !== null ? { timeSeconds } : {}),
+    },
   });
 
   return NextResponse.json({ completed: false });
