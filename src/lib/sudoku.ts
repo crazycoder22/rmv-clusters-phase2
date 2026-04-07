@@ -96,6 +96,25 @@ export interface SudokuPuzzle {
   solution: number[]; // 81 numbers, fully filled
 }
 
+/**
+ * Count solutions for a puzzle (stops at 2 to keep it fast).
+ * Returns 0, 1, or 2.
+ */
+function countSolutions(board: number[], limit = 2): number {
+  const empty = board.indexOf(0);
+  if (empty === -1) return 1;
+  let count = 0;
+  for (let d = 1; d <= 9; d++) {
+    if (isValid(board, empty, d)) {
+      board[empty] = d;
+      count += countSolutions(board, limit - count);
+      board[empty] = 0;
+      if (count >= limit) return count;
+    }
+  }
+  return count;
+}
+
 export function generateDailyPuzzle(date: string, difficulty: Difficulty): SudokuPuzzle {
   const seed = hashString(`${date}-${difficulty}`);
   const rng = mulberry32(seed);
@@ -103,11 +122,25 @@ export function generateDailyPuzzle(date: string, difficulty: Difficulty): Sudok
   const solution = generateSolution(rng);
   const puzzle = [...solution];
 
-  // Remove cells in seeded-random order
+  // Remove cells in seeded-random order, but only if the puzzle
+  // still has a unique solution after removal. This guarantees
+  // every valid fill matches the stored solution.
   const indices = shuffle(Array.from({ length: 81 }, (_, i) => i), rng);
-  const toRemove = CELLS_REMOVED[difficulty];
-  for (let i = 0; i < toRemove; i++) {
-    puzzle[indices[i]] = 0;
+  const target = CELLS_REMOVED[difficulty];
+  let removed = 0;
+
+  for (const idx of indices) {
+    if (removed >= target) break;
+
+    const saved = puzzle[idx];
+    puzzle[idx] = 0;
+
+    // Check uniqueness — if more than one solution, put it back
+    if (countSolutions([...puzzle]) !== 1) {
+      puzzle[idx] = saved;
+    } else {
+      removed++;
+    }
   }
 
   return { puzzle, solution };

@@ -531,9 +531,11 @@ export default function SudokuPage() {
     setGrid(newGrid);
 
     const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
-    const isNowComplete = newGrid.every((v, i) => v !== 0 && v === solution[i]);
-    saveGame(newGrid, elapsed, isNowComplete);
-  }, [selected, completed, puzzle, grid, solution, saveGame]);
+    // When all cells are filled, save immediately so the server can check completion.
+    // (Client doesn't have the solution until the game is complete, so we can't check here.)
+    const allFilled = newGrid.every((v) => v !== 0);
+    saveGame(newGrid, elapsed, allFilled);
+  }, [selected, completed, puzzle, grid, saveGame]);
 
   const handleErase = useCallback(() => {
     if (selected === null || completed) return;
