@@ -85,7 +85,6 @@ function getCellClass(
   idx: number,
   puzzle: number[],
   grid: number[],
-  solution: number[],
   selected: number | null,
   peers: Set<number>,
   errors: Set<number>,
@@ -136,24 +135,23 @@ function getCellClass(
 }
 
 function SudokuGrid({
-  puzzle, grid, solution, selected, completed, onCellClick,
+  puzzle, grid, selected, completed, onCellClick,
 }: {
   puzzle: number[];
   grid: number[];
-  solution: number[];
   selected: number | null;
   completed: boolean;
   onCellClick: (idx: number) => void;
 }) {
   const peers = selected !== null ? getPeerIndices(selected) : new Set<number>();
-  const errors = getErrorCells(grid, puzzle, solution);
+  const errors = getErrorCells(grid, puzzle);
 
   return (
     <div className="grid grid-cols-9 border-2 border-gray-700 dark:border-gray-300 w-full max-w-sm mx-auto">
       {grid.map((val, idx) => (
         <div
           key={idx}
-          className={getCellClass(idx, puzzle, grid, solution, selected, peers, errors, completed)}
+          className={getCellClass(idx, puzzle, grid, selected, peers, errors, completed)}
           onClick={() => onCellClick(idx)}
         >
           {val !== 0 ? val : ""}
@@ -388,11 +386,11 @@ export default function SudokuPage() {
   const [difficulty, setDifficulty] = useState<Difficulty>("medium");
 
   const [puzzle, setPuzzle] = useState<number[]>(Array(81).fill(0));
-  const [solution, setSolution] = useState<number[]>(Array(81).fill(0));
   const [grid, setGrid] = useState<number[]>(Array(81).fill(0));
   const [selected, setSelected] = useState<number | null>(null);
   const [completed, setCompleted] = useState(false);
   const [savedTime, setSavedTime] = useState<number | null>(null);
+  const [submitError, setSubmitError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [gameLoading, setGameLoading] = useState(false);
 
@@ -457,10 +455,10 @@ export default function SudokuPage() {
       }
       const data = await res.json();
       setPuzzle(data.puzzle);
-      setSolution(data.solution ?? Array(81).fill(0));
       setGrid(data.currentGrid);
       setCompleted(data.completed);
       setSavedTime(data.timeSeconds ?? null);
+      setSubmitError(false);
     } finally {
       setGameLoading(false);
     }
@@ -488,32 +486,58 @@ export default function SudokuPage() {
 
   // ── Save ─────────────────────────────────────────────────────────────────
 
-  const saveGame = useCallback(async (newGrid: number[], elapsed: number, immediate = false) => {
-    if (!playerId) return;
-
-    const doSave = async () => {
-      const res = await fetch("/api/sudoku/game", {
+  // Auto-save progress (debounced, no validation)
+  const saveProgress = useCallback(async (newGrid: number[]) => {
+    if (!playerId || completed) return;
+    if (saveDebounceRef.current) clearTimeout(saveDebounceRef.current);
+    saveDebounceRef.current = setTimeout(async () => {
+      await fetch("/api/sudoku/game", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ playerId, difficulty, currentGrid: newGrid, timeSeconds: elapsed }),
+        body: JSON.stringify({ playerId, difficulty, currentGrid: newGrid }),
       });
-      if (!res.ok) return;
-      const data = await res.json();
-      if (data.completed) {
-        if (timerRef.current) clearInterval(timerRef.current);
-        setSolution(data.solution);
-        setCompleted(true);
-        setSavedTime(elapsed);
-      }
-    };
+    }, 800);
+  }, [playerId, difficulty, completed]);
 
-    if (immediate) {
-      if (saveDebounceRef.current) clearTimeout(saveDebounceRef.current);
-      doSave();
+  // Submit for validation
+  const handleSubmit = useCallback(async () => {
+    if (!playerId || completed) return;
+    const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+    const res = await fetch("/api/sudoku/game", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ playerId, difficulty, currentGrid: grid, timeSeconds: elapsed, action: "submit" }),
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.completed) {
+      if (timerRef.current) clearInterval(timerRef.current);
+      setCompleted(true);
+      setSavedTime(elapsed);
+      setSubmitError(false);
     } else {
-      if (saveDebounceRef.current) clearTimeout(saveDebounceRef.current);
-      saveDebounceRef.current = setTimeout(doSave, 800);
+      setSubmitError(true);
     }
+  }, [playerId, difficulty, grid, completed]);
+
+  // Reset puzzle
+  const handleReset = useCallback(async () => {
+    if (!playerId) return;
+    const res = await fetch("/api/sudoku/game", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ playerId, difficulty, action: "reset" }),
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    setGrid(data.currentGrid);
+    setCompleted(false);
+    setSavedTime(null);
+    setSubmitError(false);
+    setSelected(null);
+    // Reset timer
+    startTimeRef.current = Date.now();
+    setTimeSeconds(0);
   }, [playerId, difficulty]);
 
   // ── Input handling ───────────────────────────────────────────────────────
@@ -529,13 +553,9 @@ export default function SudokuPage() {
     const newGrid = [...grid];
     newGrid[selected] = n;
     setGrid(newGrid);
-
-    const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
-    // When all cells are filled, save immediately so the server can check completion.
-    // (Client doesn't have the solution until the game is complete, so we can't check here.)
-    const allFilled = newGrid.every((v) => v !== 0);
-    saveGame(newGrid, elapsed, allFilled);
-  }, [selected, completed, puzzle, grid, saveGame]);
+    setSubmitError(false);
+    saveProgress(newGrid);
+  }, [selected, completed, puzzle, grid, saveProgress]);
 
   const handleErase = useCallback(() => {
     if (selected === null || completed) return;
@@ -543,9 +563,9 @@ export default function SudokuPage() {
     const newGrid = [...grid];
     newGrid[selected] = 0;
     setGrid(newGrid);
-    const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
-    saveGame(newGrid, elapsed);
-  }, [selected, completed, puzzle, grid, saveGame]);
+    setSubmitError(false);
+    saveProgress(newGrid);
+  }, [selected, completed, puzzle, grid, saveProgress]);
 
   // Physical keyboard
   useEffect(() => {
@@ -665,7 +685,6 @@ export default function SudokuPage() {
                     <SudokuGrid
                       puzzle={puzzle}
                       grid={grid}
-                      solution={solution}
                       selected={selected}
                       completed={completed}
                       onCellClick={handleCellClick}
@@ -682,7 +701,36 @@ export default function SudokuPage() {
                       shareRef={shareRef}
                     />
                   ) : (
-                    <NumberPad onNumber={handleNumber} onErase={handleErase} disabled={completed} />
+                    <>
+                      <NumberPad onNumber={handleNumber} onErase={handleErase} disabled={completed} />
+
+                      {/* Submit + Reset */}
+                      <div className="flex items-center justify-center gap-3 mt-2">
+                        <button
+                          onClick={handleSubmit}
+                          disabled={grid.some((v) => v === 0)}
+                          className="px-5 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        >
+                          Submit
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm("Reset puzzle? All your progress will be cleared and the timer will restart.")) {
+                              handleReset();
+                            }
+                          }}
+                          className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                        >
+                          Reset
+                        </button>
+                      </div>
+
+                      {submitError && (
+                        <p className="text-center text-sm text-red-600 dark:text-red-400 mt-2">
+                          Not quite right — some cells have errors. Check rows, columns, and boxes for duplicates.
+                        </p>
+                      )}
+                    </>
                   )}
                 </>
               )}

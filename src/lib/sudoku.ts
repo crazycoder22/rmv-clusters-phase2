@@ -164,18 +164,76 @@ export function getPeerIndices(idx: number): Set<number> {
   return peers;
 }
 
-/** Returns set of cell indices where the player's value differs from solution */
-export function getErrorCells(grid: number[], puzzle: number[], solution: number[]): Set<number> {
+/** Returns set of cell indices that violate Sudoku rules (duplicates in row/col/box) */
+export function getErrorCells(grid: number[], puzzle: number[]): Set<number> {
   const errors = new Set<number>();
   for (let i = 0; i < 81; i++) {
-    if (puzzle[i] === 0 && grid[i] !== 0 && grid[i] !== solution[i]) {
-      errors.add(i);
+    if (grid[i] === 0) continue;
+    const row = Math.floor(i / 9);
+    const col = i % 9;
+    const boxRow = Math.floor(row / 3) * 3;
+    const boxCol = Math.floor(col / 3) * 3;
+
+    for (let j = 0; j < 9; j++) {
+      // Row duplicate
+      const ri = row * 9 + j;
+      if (ri !== i && grid[ri] === grid[i]) { errors.add(i); errors.add(ri); }
+      // Column duplicate
+      const ci = j * 9 + col;
+      if (ci !== i && grid[ci] === grid[i]) { errors.add(i); errors.add(ci); }
+      // Box duplicate
+      const bi = (boxRow + Math.floor(j / 3)) * 9 + (boxCol + (j % 3));
+      if (bi !== i && grid[bi] === grid[i]) { errors.add(i); errors.add(bi); }
     }
   }
-  return errors;
+  // Only highlight user-entered cells (not locked puzzle cells)
+  const userErrors = new Set<number>();
+  for (const idx of errors) {
+    if (puzzle[idx] === 0) userErrors.add(idx);
+  }
+  return userErrors;
 }
 
-/** Returns true when every cell is correctly filled */
+/** Check if a filled grid is a valid complete Sudoku (all cells filled, no rule violations) */
+export function isValidSudoku(grid: number[]): boolean {
+  // All cells must be filled
+  if (grid.some((v) => v === 0)) return false;
+
+  // Check rows
+  for (let r = 0; r < 9; r++) {
+    const seen = new Set<number>();
+    for (let c = 0; c < 9; c++) {
+      const v = grid[r * 9 + c];
+      if (seen.has(v)) return false;
+      seen.add(v);
+    }
+  }
+  // Check columns
+  for (let c = 0; c < 9; c++) {
+    const seen = new Set<number>();
+    for (let r = 0; r < 9; r++) {
+      const v = grid[r * 9 + c];
+      if (seen.has(v)) return false;
+      seen.add(v);
+    }
+  }
+  // Check 3×3 boxes
+  for (let br = 0; br < 3; br++) {
+    for (let bc = 0; bc < 3; bc++) {
+      const seen = new Set<number>();
+      for (let r = br * 3; r < br * 3 + 3; r++) {
+        for (let c = bc * 3; c < bc * 3 + 3; c++) {
+          const v = grid[r * 9 + c];
+          if (seen.has(v)) return false;
+          seen.add(v);
+        }
+      }
+    }
+  }
+  return true;
+}
+
+/** Returns true when every cell is correctly filled (legacy — prefers isValidSudoku) */
 export function isGridComplete(grid: number[], solution: number[]): boolean {
   return grid.every((v, i) => v !== 0 && v === solution[i]);
 }
