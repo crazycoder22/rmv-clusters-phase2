@@ -5,19 +5,21 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft,
-  Newspaper,
   Download,
   Loader2,
   FileText,
+  BookOpen,
+  List,
 } from "lucide-react";
 import RichTextViewer from "@/components/editor/RichTextViewer";
+import NewspaperFlipbook from "@/components/newsletter/NewspaperFlipbook";
 import type { NewsletterData, NewsletterSectionType } from "@/types";
 
 const SECTION_EMOJI: Record<NewsletterSectionType, string> = {
-  news: "📰",
-  article: "✍️",
-  ad: "📢",
-  events: "📅",
+  news: "\ud83d\udcf0",
+  article: "\u270d\ufe0f",
+  ad: "\ud83d\udce2",
+  events: "\ud83d\udcc5",
 };
 
 export default function NewsletterViewPage() {
@@ -25,7 +27,8 @@ export default function NewsletterViewPage() {
   const [newsletter, setNewsletter] = useState<NewsletterData | null>(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
-  const contentRef = useRef<HTMLDivElement>(null);
+  const [viewMode, setViewMode] = useState<"newspaper" | "scroll">("newspaper");
+  const printRef = useRef<HTMLDivElement>(null);
 
   const fetchNewsletter = useCallback(async () => {
     const res = await fetch(`/api/newsletters/${id}`);
@@ -41,17 +44,17 @@ export default function NewsletterViewPage() {
   }, [fetchNewsletter]);
 
   async function handleDownloadPdf() {
-    if (!contentRef.current || !newsletter) return;
+    if (!printRef.current || !newsletter) return;
     setDownloading(true);
 
     try {
       const { toPng } = await import("html-to-image");
       const { default: jsPDF } = await import("jspdf");
 
-      const dataUrl = await toPng(contentRef.current, {
+      const dataUrl = await toPng(printRef.current, {
         quality: 0.95,
         pixelRatio: 2,
-        backgroundColor: "#ffffff",
+        backgroundColor: "#FDF5E6",
       });
 
       const img = new Image();
@@ -62,13 +65,11 @@ export default function NewsletterViewPage() {
 
       const pxWidth = img.width;
       const pxHeight = img.height;
-
-      // A4 portrait in mm
       const pdfWidth = 210;
       const pdfHeight = (pxHeight * pdfWidth) / pxWidth;
 
       const pdf = new jsPDF({
-        orientation: pdfHeight > 297 ? "portrait" : "portrait",
+        orientation: "portrait",
         unit: "mm",
         format: [pdfWidth, Math.max(pdfHeight, 297)],
       });
@@ -79,7 +80,6 @@ export default function NewsletterViewPage() {
       pdf.save(filename);
     } catch (err) {
       console.error("PDF generation failed:", err);
-      // Fallback: browser print
       window.print();
     }
 
@@ -110,116 +110,167 @@ export default function NewsletterViewPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="min-h-screen bg-stone-100 dark:bg-stone-900">
+      <div className="max-w-5xl mx-auto px-4 py-6">
         {/* Header actions */}
-        <div className="flex items-center justify-between mb-6 print:hidden">
+        <div className="flex items-center justify-between mb-4 print:hidden">
           <Link
             href="/newsletters"
-            className="flex items-center gap-2 text-sm text-gray-600 hover:text-primary-600 transition-colors"
+            className="flex items-center gap-2 text-sm text-stone-600 dark:text-stone-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
           >
             <ArrowLeft size={16} />
-            All Newsletters
+            All Issues
           </Link>
-          <button
-            onClick={handleDownloadPdf}
-            disabled={downloading}
-            className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50 transition-colors"
-          >
-            <Download size={16} />
-            {downloading ? "Generating..." : "Download PDF"}
-          </button>
+          <div className="flex items-center gap-2">
+            {/* View mode toggle */}
+            <div className="flex items-center bg-stone-200 dark:bg-stone-800 rounded-lg p-0.5">
+              <button
+                onClick={() => setViewMode("newspaper")}
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                  viewMode === "newspaper"
+                    ? "bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-sm"
+                    : "text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300"
+                }`}
+              >
+                <BookOpen size={14} />
+                Newspaper
+              </button>
+              <button
+                onClick={() => setViewMode("scroll")}
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                  viewMode === "scroll"
+                    ? "bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-sm"
+                    : "text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300"
+                }`}
+              >
+                <List size={14} />
+                Scroll
+              </button>
+            </div>
+            <button
+              onClick={handleDownloadPdf}
+              disabled={downloading}
+              className="flex items-center gap-2 px-4 py-2 bg-stone-800 dark:bg-stone-700 text-white rounded-lg text-sm font-medium hover:bg-stone-900 dark:hover:bg-stone-600 disabled:opacity-50 transition-colors"
+            >
+              <Download size={16} />
+              {downloading ? "Generating..." : "PDF"}
+            </button>
+          </div>
         </div>
 
-        {/* Newsletter Content */}
-        <div
-          ref={contentRef}
-          className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden"
-        >
-          {/* Title Header */}
-          <div className="bg-gradient-to-r from-primary-700 to-primary-900 text-white px-8 py-8">
-            <div className="flex items-center gap-3 mb-2">
-              <Newspaper size={28} />
-              <span className="text-primary-200 text-sm font-medium uppercase tracking-wider">
-                Newsletter
-              </span>
+        {/* Newspaper Flipbook View */}
+        {viewMode === "newspaper" && (
+          <NewspaperFlipbook newsletter={newsletter} />
+        )}
+
+        {/* Classic Scroll View */}
+        {viewMode === "scroll" && (
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+            {/* Title Header */}
+            <div className="newspaper-page px-8 py-6 border-b border-stone-300 dark:border-stone-600">
+              <div className="newspaper-masthead">
+                <h1 className="newspaper-masthead-title text-2xl">
+                  OneRMV Newsletter
+                </h1>
+                <div className="newspaper-masthead-meta">
+                  <span>
+                    {newsletter.publishedAt
+                      ? new Date(newsletter.publishedAt).toLocaleDateString("en-IN", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })
+                      : ""}
+                  </span>
+                  {newsletter.edition && <span>{newsletter.edition}</span>}
+                </div>
+              </div>
             </div>
-            <h1 className="text-3xl font-bold">{newsletter.title}</h1>
-            <div className="flex items-center gap-4 mt-2 text-primary-200 text-sm">
-              {newsletter.edition && <span>{newsletter.edition}</span>}
-              {newsletter.publishedAt && (
-                <span>
-                  Published{" "}
-                  {new Date(newsletter.publishedAt).toLocaleDateString("en-IN", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  })}
-                </span>
-              )}
+
+            {/* Cover / Editor's Note */}
+            {newsletter.coverHtml && (
+              <div className="px-8 py-6 border-b border-gray-200 dark:border-gray-700 bg-primary-50/30 dark:bg-primary-900/10">
+                <RichTextViewer html={newsletter.coverHtml} />
+              </div>
+            )}
+
+            {/* Sections */}
+            <div className="divide-y divide-gray-200 dark:divide-gray-700">
+              {newsletter.sections.map((section) => (
+                <div key={section.id} className="px-8 py-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-lg">
+                      {SECTION_EMOJI[section.type as NewsletterSectionType]}
+                    </span>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                      {section.title}
+                    </h2>
+                  </div>
+                  {section.authorName && (
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 italic">
+                      by {section.authorName}
+                      {section.authorBlock
+                        ? ` — Block ${section.authorBlock}${
+                            section.authorFlat ? `, ${section.authorFlat}` : ""
+                          }`
+                        : ""}
+                    </p>
+                  )}
+                  <RichTextViewer html={section.contentHtml} />
+                </div>
+              ))}
+            </div>
+
+            {/* Footer */}
+            <div className="px-8 py-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 text-center text-xs text-gray-400 dark:text-gray-500">
+              OneRMV Newsletter &middot;{" "}
+              {newsletter.edition || newsletter.title}
             </div>
           </div>
+        )}
 
-          {/* Cover / Editor's Note */}
-          {newsletter.coverHtml && (
-            <div className="px-8 py-6 border-b border-gray-200 bg-primary-50/30">
-              <RichTextViewer html={newsletter.coverHtml} />
+        {/* Hidden print layout for PDF generation */}
+        <div ref={printRef} className="fixed left-[-9999px] top-0 w-[800px]" aria-hidden="true">
+          <div className="newspaper-page p-8">
+            <div className="newspaper-masthead mb-4">
+              <h1 className="newspaper-masthead-title text-3xl">OneRMV Newsletter</h1>
+              <div className="newspaper-masthead-meta">
+                <span>
+                  {newsletter.publishedAt
+                    ? new Date(newsletter.publishedAt).toLocaleDateString("en-IN", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })
+                    : ""}
+                </span>
+                {newsletter.edition && <span>{newsletter.edition}</span>}
+              </div>
             </div>
-          )}
-
-          {/* Table of Contents */}
-          {newsletter.sections.length > 2 && (
-            <div className="px-8 py-5 border-b border-gray-200">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                In This Issue
-              </h3>
-              <ul className="space-y-1">
-                {newsletter.sections.map((section, idx) => (
-                  <li key={section.id}>
-                    <a
-                      href={`#section-${idx}`}
-                      className="text-sm text-primary-600 hover:text-primary-700 hover:underline"
-                    >
-                      {SECTION_EMOJI[section.type as NewsletterSectionType]}{" "}
-                      {section.title}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Sections */}
-          <div className="divide-y divide-gray-200">
-            {newsletter.sections.map((section, idx) => (
-              <div key={section.id} id={`section-${idx}`} className="px-8 py-6">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-lg">
-                    {SECTION_EMOJI[section.type as NewsletterSectionType]}
-                  </span>
-                  <h2 className="text-xl font-bold text-gray-900">
-                    {section.title}
-                  </h2>
-                </div>
+            {newsletter.coverHtml && (
+              <div className="mb-4 text-sm italic">
+                <RichTextViewer html={newsletter.coverHtml} />
+              </div>
+            )}
+            {newsletter.sections.map((section) => (
+              <div key={section.id} className="mb-6">
+                <hr className="newspaper-divider" />
+                <h2 className="newspaper-headline newspaper-headline-md mb-1">
+                  {section.title}
+                </h2>
                 {section.authorName && (
-                  <p className="text-sm text-gray-500 mb-3 italic">
-                    by {section.authorName}
-                    {section.authorBlock
-                      ? ` — Block ${section.authorBlock}${
-                          section.authorFlat ? `, ${section.authorFlat}` : ""
-                        }`
-                      : ""}
+                  <p className="newspaper-byline mb-2">
+                    By {section.authorName}
                   </p>
                 )}
-                <RichTextViewer html={section.contentHtml} />
+                <div className="newspaper-body-columns">
+                  <RichTextViewer html={section.contentHtml} />
+                </div>
               </div>
             ))}
-          </div>
-
-          {/* Footer */}
-          <div className="px-8 py-4 bg-gray-50 border-t border-gray-200 text-center text-xs text-gray-400">
-            RMV Clusters Newsletter &middot;{" "}
-            {newsletter.edition || newsletter.title}
+            <div className="text-center text-xs text-stone-400 mt-8 pt-4 border-t border-stone-300">
+              OneRMV Newsletter &middot; {newsletter.edition || newsletter.title}
+            </div>
           </div>
         </div>
       </div>

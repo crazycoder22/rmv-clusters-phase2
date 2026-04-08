@@ -16,8 +16,11 @@ import {
   Globe,
   Loader2,
   Newspaper,
+  BookOpen,
+  X,
 } from "lucide-react";
 import RichTextEditor from "@/components/editor/RichTextEditor";
+import NewspaperFlipbook from "@/components/newsletter/NewspaperFlipbook";
 import type { NewsletterSectionData, NewsletterSectionType } from "@/types";
 
 interface NewsletterFull {
@@ -29,6 +32,7 @@ interface NewsletterFull {
   publishedAt: string | null;
   sections: NewsletterSectionData[];
   createdAt: string;
+  updatedAt: string;
 }
 
 const SECTION_TYPES: { value: NewsletterSectionType; label: string; emoji: string }[] = [
@@ -64,6 +68,9 @@ export default function NewsletterEditorPage() {
   const [editAuthorName, setEditAuthorName] = useState("");
   const [editAuthorBlock, setEditAuthorBlock] = useState("");
   const [editAuthorFlat, setEditAuthorFlat] = useState("");
+
+  // Preview
+  const [showPreview, setShowPreview] = useState(false);
 
   // Pull events
   const [showPullEvents, setShowPullEvents] = useState(false);
@@ -270,6 +277,13 @@ export default function NewsletterEditorPage() {
             </span>
           </div>
           <div className="flex gap-2">
+            <button
+              onClick={() => setShowPreview(true)}
+              className="flex items-center gap-1 px-3 py-2 text-sm bg-amber-50 border border-amber-300 text-amber-800 rounded-lg hover:bg-amber-100 dark:bg-amber-900/20 dark:border-amber-700 dark:text-amber-300 dark:hover:bg-amber-900/30 transition-colors"
+            >
+              <BookOpen size={16} />
+              Preview
+            </button>
             {newsletter.status === "published" && (
               <Link
                 href={`/newsletters/${newsletter.id}`}
@@ -676,6 +690,40 @@ export default function NewsletterEditorPage() {
           )}
         </div>
       </div>
+
+      {/* Newspaper Preview Modal */}
+      {showPreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="relative w-full max-w-5xl max-h-[95vh] overflow-y-auto bg-stone-100 dark:bg-stone-900 rounded-xl shadow-2xl">
+            {/* Modal header */}
+            <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 bg-stone-100/95 dark:bg-stone-900/95 backdrop-blur border-b border-stone-300 dark:border-stone-700 rounded-t-xl">
+              <h3
+                className="text-sm font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300"
+                style={{ fontFamily: "var(--font-newspaper-display), 'Playfair Display', Georgia, serif" }}
+              >
+                Newspaper Preview
+              </h3>
+              <button
+                onClick={() => setShowPreview(false)}
+                className="p-1.5 text-stone-500 hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200 hover:bg-stone-200 dark:hover:bg-stone-800 rounded-lg transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            {/* Flipbook */}
+            <div className="p-4">
+              <NewspaperFlipbook
+                newsletter={{
+                  ...newsletter,
+                  status: newsletter.status as "draft" | "published",
+                  updatedAt: newsletter.updatedAt || newsletter.createdAt,
+                  coverHtml: coverHtml || newsletter.coverHtml,
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

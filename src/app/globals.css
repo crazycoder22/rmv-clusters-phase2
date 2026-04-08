@@ -152,3 +152,402 @@ html {
     page-break-inside: avoid;
   }
 }
+
+/* ============================================
+   Newspaper Flipbook Styles
+   ============================================ */
+
+/* Paper texture & base page */
+.newspaper-page {
+  background-color: #FDF5E6;
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(0,0,0,0.02) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(0,0,0,0.015) 0%, transparent 50%);
+  font-family: var(--font-newspaper-body), Georgia, 'Times New Roman', serif;
+  color: #1a1a1a;
+  padding: 1.5rem;
+  overflow: hidden;
+  position: relative;
+  box-sizing: border-box;
+  height: 100%;
+}
+
+.dark .newspaper-page {
+  background-color: #1c1917;
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(255,255,255,0.02) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(255,255,255,0.015) 0%, transparent 50%);
+  color: #e7e5e4;
+}
+
+/* Masthead */
+.newspaper-masthead {
+  font-family: var(--font-newspaper-display), 'Playfair Display', Georgia, serif;
+  text-align: center;
+  padding: 0.75rem 0 0.5rem;
+  border-top: 4px double #1a1a1a;
+  border-bottom: 2px solid #1a1a1a;
+  margin-bottom: 1rem;
+}
+
+.dark .newspaper-masthead {
+  border-top-color: #a8a29e;
+  border-bottom-color: #a8a29e;
+}
+
+.newspaper-masthead-title {
+  font-family: var(--font-newspaper-display), 'Playfair Display', Georgia, serif;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.newspaper-masthead-sub {
+  font-family: var(--font-newspaper-body), Georgia, serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #57534e;
+  margin-top: 0.25rem;
+}
+
+.dark .newspaper-masthead-sub {
+  color: #a8a29e;
+}
+
+.newspaper-masthead-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.65rem;
+  color: #78716c;
+  margin-top: 0.35rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid #d6d3d1;
+}
+
+.dark .newspaper-masthead-meta {
+  color: #a8a29e;
+  border-top-color: #44403c;
+}
+
+/* Headlines */
+.newspaper-headline {
+  font-family: var(--font-newspaper-display), 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  line-height: 1.15;
+  color: #1a1a1a;
+  margin: 0 0 0.35rem;
+}
+
+.dark .newspaper-headline {
+  color: #fafaf9;
+}
+
+.newspaper-headline-lg {
+  font-size: 1.6rem;
+}
+
+.newspaper-headline-md {
+  font-size: 1.15rem;
+}
+
+.newspaper-headline-sm {
+  font-size: 0.95rem;
+}
+
+/* Byline */
+.newspaper-byline {
+  font-family: var(--font-newspaper-body), Georgia, serif;
+  font-variant: small-caps;
+  font-size: 0.75rem;
+  color: #78716c;
+  margin-bottom: 0.5rem;
+}
+
+.dark .newspaper-byline {
+  color: #a8a29e;
+}
+
+/* Multi-column article body */
+.newspaper-body-columns {
+  column-count: 2;
+  column-gap: 1.25rem;
+  column-rule: 1px solid #d6d3d1;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  text-align: justify;
+}
+
+.dark .newspaper-body-columns {
+  column-rule-color: #44403c;
+}
+
+@media (max-width: 500px) {
+  .newspaper-body-columns {
+    column-count: 1;
+  }
+}
+
+/* Drop cap */
+.newspaper-dropcap::first-letter {
+  float: left;
+  font-family: var(--font-newspaper-display), 'Playfair Display', Georgia, serif;
+  font-size: 3.2em;
+  line-height: 0.8;
+  padding-right: 0.08em;
+  padding-top: 0.05em;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.dark .newspaper-dropcap::first-letter {
+  color: #fafaf9;
+}
+
+/* Decorative divider */
+.newspaper-divider {
+  border: none;
+  border-top: 1px solid #a8a29e;
+  margin: 0.75rem 0;
+  position: relative;
+}
+
+.newspaper-divider::after {
+  content: '\2756';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #FDF5E6;
+  padding: 0 0.5rem;
+  color: #78716c;
+  font-size: 0.7rem;
+}
+
+.dark .newspaper-divider {
+  border-top-color: #57534e;
+}
+
+.dark .newspaper-divider::after {
+  background: #1c1917;
+  color: #a8a29e;
+}
+
+/* Page number */
+.newspaper-page-number {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-newspaper-body), Georgia, serif;
+  font-size: 0.65rem;
+  color: #a8a29e;
+}
+
+/* Section label */
+.newspaper-section-label {
+  font-family: var(--font-newspaper-body), Georgia, serif;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: #78716c;
+  border-bottom: 1px solid #d6d3d1;
+  padding-bottom: 0.15rem;
+  margin-bottom: 0.5rem;
+}
+
+.dark .newspaper-section-label {
+  color: #a8a29e;
+  border-bottom-color: #44403c;
+}
+
+/* Excerpt text */
+.newspaper-excerpt {
+  font-family: var(--font-newspaper-body), Georgia, serif;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: #44403c;
+}
+
+.dark .newspaper-excerpt {
+  color: #d6d3d1;
+}
+
+/* Ad box */
+.newspaper-ad-box {
+  border: 2px solid #1a1a1a;
+  padding: 1rem;
+  position: relative;
+  margin: 0.5rem 0;
+}
+
+.dark .newspaper-ad-box {
+  border-color: #a8a29e;
+}
+
+.newspaper-ad-label {
+  font-family: var(--font-newspaper-body), Georgia, serif;
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: #78716c;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+/* Front page grid */
+.newspaper-front-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 500px) {
+  .newspaper-front-grid {
+    grid-template-columns: 5fr 3fr;
+    gap: 1.25rem;
+  }
+}
+
+.newspaper-front-sidebar {
+  border-left: none;
+  padding-left: 0;
+  padding-top: 0.75rem;
+  border-top: 1px solid #d6d3d1;
+}
+
+@media (min-width: 500px) {
+  .newspaper-front-sidebar {
+    border-left: 1px solid #d6d3d1;
+    padding-left: 1rem;
+    border-top: none;
+    padding-top: 0;
+  }
+}
+
+.dark .newspaper-front-sidebar {
+  border-left-color: #44403c;
+  border-top-color: #44403c;
+}
+
+/* Flipbook container */
+.newspaper-flipbook-container {
+  perspective: 2500px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Flipbook navigation */
+.newspaper-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.06);
+  color: #57534e;
+  border: 1px solid #d6d3d1;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.newspaper-nav-btn:hover {
+  background: rgba(0,0,0,0.12);
+  color: #1a1a1a;
+}
+
+.dark .newspaper-nav-btn {
+  background: rgba(255,255,255,0.06);
+  color: #a8a29e;
+  border-color: #44403c;
+}
+
+.dark .newspaper-nav-btn:hover {
+  background: rgba(255,255,255,0.12);
+  color: #fafaf9;
+}
+
+/* Newspaper content overrides inside pages */
+.newspaper-page .newsletter-content p {
+  margin-bottom: 0.4rem;
+  line-height: 1.55;
+  font-size: 0.8rem;
+  color: inherit;
+}
+
+.newspaper-page .newsletter-content h2 {
+  font-family: var(--font-newspaper-display), 'Playfair Display', Georgia, serif;
+  font-size: 1.1rem;
+  color: inherit;
+  margin-top: 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.newspaper-page .newsletter-content h3 {
+  font-family: var(--font-newspaper-display), 'Playfair Display', Georgia, serif;
+  font-size: 0.95rem;
+  color: inherit;
+  margin-top: 0.5rem;
+}
+
+.newspaper-page .newsletter-content img {
+  max-width: 100%;
+  border-radius: 0;
+  margin: 0.5rem 0;
+}
+
+.newspaper-page .newsletter-content ul,
+.newspaper-page .newsletter-content ol {
+  font-size: 0.8rem;
+  margin-bottom: 0.5rem;
+}
+
+.newspaper-page .newsletter-content blockquote {
+  border-left: 2px solid #78716c;
+  font-size: 0.8rem;
+}
+
+/* Newspaper archive card */
+.newspaper-archive-card {
+  background-color: #FDF5E6;
+  border: 1px solid #d6d3d1;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.newspaper-archive-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+}
+
+.dark .newspaper-archive-card {
+  background-color: #1c1917;
+  border-color: #44403c;
+}
+
+.dark .newspaper-archive-card:hover {
+  box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+}
+
+/* Print styles for newspaper */
+@media print {
+  .newspaper-page {
+    background: white !important;
+    color: black !important;
+    page-break-inside: avoid;
+    border: none;
+    padding: 1rem;
+  }
+  .newspaper-body-columns {
+    column-count: 2;
+    column-rule-color: #999;
+  }
+  .newspaper-nav-btn,
+  .newspaper-flipbook-nav {
+    display: none !important;
+  }
+}
