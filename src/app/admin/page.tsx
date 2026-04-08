@@ -64,7 +64,7 @@ const emptyNewsForm = {
   sportItems: [] as SportItemFormEntry[],
 };
 
-type TabId = "approvals" | "add" | "manage" | "news";
+type TabId = "approvals" | "add" | "manage" | "news" | "popups";
 
 export default function AdminPage() {
   const { isAdmin, isSuperAdmin, isLoading, canManageAnnouncements, canManageResidents } = useRole();
@@ -101,6 +101,60 @@ export default function AdminPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDeleteAnn, setConfirmDeleteAnn] = useState<Announcement | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+
+  // Popups state
+  interface SitePopup { id: string; title: string; message: string; active: boolean; startsAt: string; expiresAt: string | null; createdAt: string; }
+  const [popups, setPopups] = useState<SitePopup[]>([]);
+  const [loadingPopups, setLoadingPopups] = useState(false);
+  const [popupForm, setPopupForm] = useState({ title: "", message: "", active: true, startsAt: "", expiresAt: "" });
+  const [editingPopupId, setEditingPopupId] = useState<string | null>(null);
+  const [popupSaving, setPopupSaving] = useState(false);
+
+  const fetchPopups = useCallback(async () => {
+    setLoadingPopups(true);
+    try {
+      const res = await fetch("/api/admin/popups");
+      if (res.ok) { const data = await res.json(); setPopups(data.popups); }
+    } catch { /* */ } finally { setLoadingPopups(false); }
+  }, []);
+
+  useEffect(() => { if (activeTab === "popups") fetchPopups(); }, [activeTab, fetchPopups]);
+
+  const handlePopupSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPopupSaving(true);
+    try {
+      const url = editingPopupId ? `/api/admin/popups/${editingPopupId}` : "/api/admin/popups";
+      const method = editingPopupId ? "PATCH" : "POST";
+      const res = await fetch(url, {
+        method, headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: popupForm.title, message: popupForm.message, active: popupForm.active,
+          startsAt: popupForm.startsAt || undefined,
+          expiresAt: popupForm.expiresAt || undefined,
+        }),
+      });
+      if (res.ok) {
+        setPopupForm({ title: "", message: "", active: true, startsAt: "", expiresAt: "" });
+        setEditingPopupId(null);
+        fetchPopups();
+      }
+    } catch { /* */ } finally { setPopupSaving(false); }
+  };
+
+  const deletePopup = async (id: string) => {
+    if (!confirm("Delete this popup?")) return;
+    await fetch(`/api/admin/popups/${id}`, { method: "DELETE" });
+    fetchPopups();
+  };
+
+  const togglePopup = async (id: string, active: boolean) => {
+    await fetch(`/api/admin/popups/${id}`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ active }),
+    });
+    fetchPopups();
+  };
 
   const fetchResidents = useCallback(async () => {
     setLoadingResidents(true);
@@ -530,6 +584,7 @@ export default function AdminPage() {
     { id: "news", label: `Manage News (${announcements.length})`, visible: () => canManageAnnouncements() },
     { id: "add", label: "Add Resident", visible: () => canManageResidents() },
     { id: "manage", label: `Manage Roles (${residents.length})`, visible: () => isSuperAdmin() },
+    { id: "popups", label: "Popups", visible: () => canManageAnnouncements() },
   ];
 
   return (
@@ -1498,6 +1553,126 @@ export default function AdminPage() {
       )}
 
       {/* Tab: Manage Roles (SuperAdmin only) */}
+      {/* ── Popups Tab ─────────────────────────────────────────────── */}
+      {activeTab === "popups" && canManageAnnouncements() && (
+        <div className="space-y-6">
+          {/* Create/Edit form */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+            <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100 mb-4">
+              {editingPopupId ? "Edit Popup" : "Create Popup"}
+            </h3>
+            <form onSubmit={handlePopupSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title</label>
+                <input
+                  value={popupForm.title} onChange={(e) => setPopupForm((p) => ({ ...p, title: e.target.value }))}
+                  required placeholder="Popup title"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Message <span className="text-xs text-gray-400">(supports **bold**, _italic_, - bullets, URLs)</span>
+                </label>
+                <textarea
+                  value={popupForm.message} onChange={(e) => setPopupForm((p) => ({ ...p, message: e.target.value }))}
+                  required rows={4} placeholder="Popup message content..."
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Starts At</label>
+                  <input
+                    type="datetime-local"
+                    value={popupForm.startsAt} onChange={(e) => setPopupForm((p) => ({ ...p, startsAt: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-primary-500 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Expires At <span className="text-xs text-gray-400">(optional)</span></label>
+                  <input
+                    type="datetime-local"
+                    value={popupForm.expiresAt} onChange={(e) => setPopupForm((p) => ({ ...p, expiresAt: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-primary-500 text-sm"
+                  />
+                </div>
+              </div>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox" checked={popupForm.active}
+                  onChange={(e) => setPopupForm((p) => ({ ...p, active: e.target.checked }))}
+                  className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span className="text-sm text-gray-700 dark:text-gray-300">Active</span>
+              </label>
+              <div className="flex gap-2">
+                <button type="submit" disabled={popupSaving}
+                  className="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50 transition-colors">
+                  {popupSaving ? "Saving..." : editingPopupId ? "Update Popup" : "Create Popup"}
+                </button>
+                {editingPopupId && (
+                  <button type="button" onClick={() => { setEditingPopupId(null); setPopupForm({ title: "", message: "", active: true, startsAt: "", expiresAt: "" }); }}
+                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                    Cancel
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
+
+          {/* Popup list */}
+          {loadingPopups ? (
+            <p className="text-sm text-gray-400 dark:text-gray-500">Loading...</p>
+          ) : popups.length === 0 ? (
+            <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-8">No popups created yet</p>
+          ) : (
+            <div className="space-y-3">
+              {popups.map((p) => (
+                <div key={p.id} className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-semibold text-gray-800 dark:text-gray-100 text-sm">{p.title}</h4>
+                        <span className={`inline-block px-2 py-0.5 text-[10px] font-medium rounded-full ${p.active ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400" : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"}`}>
+                          {p.active ? "Active" : "Inactive"}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mb-1">{p.message}</p>
+                      <p className="text-[10px] text-gray-400 dark:text-gray-500">
+                        Starts: {new Date(p.startsAt).toLocaleString()}
+                        {p.expiresAt && ` · Expires: ${new Date(p.expiresAt).toLocaleString()}`}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button onClick={() => togglePopup(p.id, !p.active)}
+                        className={`px-2 py-1 text-xs rounded-md transition-colors ${p.active ? "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600" : "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30"}`}>
+                        {p.active ? "Deactivate" : "Activate"}
+                      </button>
+                      <button onClick={() => {
+                        setEditingPopupId(p.id);
+                        setPopupForm({
+                          title: p.title, message: p.message, active: p.active,
+                          startsAt: p.startsAt ? new Date(p.startsAt).toISOString().slice(0, 16) : "",
+                          expiresAt: p.expiresAt ? new Date(p.expiresAt).toISOString().slice(0, 16) : "",
+                        });
+                      }}
+                        className="px-2 py-1 text-xs text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-md transition-colors">
+                        Edit
+                      </button>
+                      <button onClick={() => deletePopup(p.id)}
+                        className="px-2 py-1 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors">
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {activeTab === "manage" && isSuperAdmin() && (
         <div>
           <div className="flex items-center justify-between mb-4">

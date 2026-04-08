@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import NoticeBanner from "@/components/layout/NoticeBanner";
+import PopupManager from "@/components/popups/PopupManager";
 import SessionProvider from "@/components/auth/SessionProvider";
 import siteData from "@/data/site.json";
 import type { NoticeBanner as NoticeBannerType } from "@/types";
@@ -75,6 +76,7 @@ export default function RootLayout({
               banner={siteData.noticeBanner as NoticeBannerType}
             />
           )}
+          <PopupManager />
           <Navbar />
           <main className="min-h-screen">{children}</main>
           <Footer />

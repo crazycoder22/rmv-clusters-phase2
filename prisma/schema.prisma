@@ -1215,3 +1215,18 @@ model TambolaPrize {
 }
 
 // ─── End Tambola Game ────────────────────────────────────────────────────────
+
+// ─── Site Popups ─────────────────────────────────────────────────────────────
+
+model SitePopup {
+  id        String    @id @default(cuid())
+  title     String
+  message   String
+  active    Boolean   @default(true)
+  startsAt  DateTime  @default(now())
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+// ─── End Site Popups ─────────────────────────────────────────────────────────
