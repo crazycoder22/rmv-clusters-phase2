@@ -598,7 +598,7 @@ export default function AdminPage() {
 
       {/* Tabs */}
       <div className="border-b border-gray-200 dark:border-gray-700 mb-8">
-        <nav className="flex space-x-8">
+        <nav className="flex space-x-4 sm:space-x-8 overflow-x-auto">
           {tabs
             .filter((tab) => tab.visible())
             .map((tab) => (
