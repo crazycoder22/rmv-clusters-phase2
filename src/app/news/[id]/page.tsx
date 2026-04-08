@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import Badge from "@/components/ui/Badge";
+import RichText from "@/components/ui/RichText";
 import { formatDate, getPriorityBorder } from "@/lib/utils";
 import type { Announcement } from "@/types";
 
@@ -122,14 +123,10 @@ export default function AnnouncementDetailPage() {
         )}
 
         {/* Summary */}
-        <p className="text-gray-700 dark:text-gray-300 text-base leading-relaxed mb-4">
-          {announcement.summary}
-        </p>
+        <RichText text={announcement.summary} className="text-gray-700 dark:text-gray-300 text-base mb-4" />
 
         {/* Full body */}
-        <div className="text-gray-600 text-base leading-relaxed whitespace-pre-line">
-          {announcement.body}
-        </div>
+        <RichText text={announcement.body} className="text-gray-600 dark:text-gray-400 text-base" />
 
         {/* RSVP section for events */}
         {ec && (

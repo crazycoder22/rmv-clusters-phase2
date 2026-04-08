@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import clsx from "clsx";
 import Badge from "@/components/ui/Badge";
+import RichText from "@/components/ui/RichText";
 import { formatDate, getPriorityBorder } from "@/lib/utils";
 import type { Announcement } from "@/types";
 
@@ -116,9 +117,7 @@ export default function NewsFeed() {
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2 group-hover:text-primary-700 transition-colors">
                     {announcement.title}
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-                    {announcement.summary}
-                  </p>
+                  <RichText text={announcement.summary} className="text-gray-600 dark:text-gray-400 text-sm" />
                 </Link>
                 {announcement.imageUrl && (
                   <div className="mt-3 rounded-lg overflow-hidden">
@@ -134,9 +133,7 @@ export default function NewsFeed() {
                   <summary className="text-sm text-primary-600 hover:text-primary-700 cursor-pointer font-medium">
                     Read more
                   </summary>
-                  <p className="mt-2 text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-                    {announcement.body}
-                  </p>
+                  <RichText text={announcement.body} className="mt-2 text-gray-600 dark:text-gray-400 text-sm" />
 
                   {/* RSVP button for events */}
                   {ec && (
