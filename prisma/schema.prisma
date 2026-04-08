@@ -84,6 +84,7 @@ model Resident {
   marketplaceListings      MarketplaceListing[]               @relation("MarketplaceListings")
   marketplaceWishlist      MarketplaceWishlist[]               @relation("MarketplaceWishlist")
   marketplaceCategorySubs  MarketplaceCategorySubscription[]   @relation("MarketplaceCategorySubscriptions")
+  tambolaSessions          TambolaSession[]
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 }
@@ -1024,6 +1025,8 @@ model WordlePlayer {
   games          WordleGame[]
   sudokuGames    SudokuGame[]
   crosswordGames CrosswordGame[]
+  tambolaTickets TambolaTicket[]
+  tambolaPrizes  TambolaPrize[]
   createdAt   DateTime     @default(now())
 }
 
@@ -1151,3 +1154,64 @@ model Video {
 }
 
 // ─── End Video Library ───────────────────────────────────────────────────────
+
+// ─── Tambola Game ────────────────────────────────────────────────────────────
+
+enum TambolaSessionStatus {
+  WAITING
+  ACTIVE
+  COMPLETED
+}
+
+enum TambolaPrizeType {
+  EARLY_FIVE
+  TOP_LINE
+  MIDDLE_LINE
+  BOTTOM_LINE
+  FULL_HOUSE
+}
+
+model TambolaSession {
+  id           String               @id @default(cuid())
+  code         String               @unique
+  title        String
+  status       TambolaSessionStatus @default(WAITING)
+  drawnNumbers String               @default("[]") // JSON array of drawn numbers
+  createdById  String
+  createdBy    Resident             @relation(fields: [createdById], references: [id])
+  tickets      TambolaTicket[]
+  prizes       TambolaPrize[]
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  @@index([status])
+}
+
+model TambolaTicket {
+  id            String         @id @default(cuid())
+  sessionId     String
+  session       TambolaSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  playerId      String
+  player        WordlePlayer   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  ticket        String         // JSON: number[][] (3×9 grid, 0 for blank)
+  markedNumbers String         @default("[]") // JSON array of marked numbers
+  createdAt     DateTime       @default(now())
+
+  @@unique([sessionId, playerId])
+  @@index([sessionId])
+}
+
+model TambolaPrize {
+  id        String           @id @default(cuid())
+  sessionId String
+  session   TambolaSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  prizeType TambolaPrizeType
+  playerId  String
+  player    WordlePlayer     @relation(fields: [playerId], references: [id])
+  claimedAt DateTime         @default(now())
+
+  @@unique([sessionId, prizeType])
+  @@index([sessionId])
+}
+
+// ─── End Tambola Game ────────────────────────────────────────────────────────

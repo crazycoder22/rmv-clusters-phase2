@@ -34,7 +34,7 @@ function isGroup(item: NavItem): item is NavGroup {
   return "links" in item;
 }
 
-const publicPaths = ["/", "/contact", "/wordle", "/sudoku", "/crossword", "/videos", "/surveys"];
+const publicPaths = ["/", "/contact", "/wordle", "/sudoku", "/crossword", "/tambola", "/videos", "/surveys"];
 
 // Top-level links shown directly in the navbar
 const topLevelLinks: NavLink[] = [
@@ -44,6 +44,7 @@ const topLevelLinks: NavLink[] = [
   { href: "/wordle", label: "Wordle" },
   { href: "/sudoku", label: "Sudoku" },
   { href: "/crossword", label: "Crossword" },
+  { href: "/tambola", label: "Tambola" },
 ];
 
 // Grouped dropdown links
@@ -279,6 +280,11 @@ export default function Navbar() {
       href: "/admin/videos",
       label: "Video Library",
       match: (p) => p.startsWith("/admin/videos"),
+    });
+    adminLinks.push({
+      href: "/admin/tambola",
+      label: "Tambola",
+      match: (p) => p.startsWith("/admin/tambola"),
     });
   }
 
