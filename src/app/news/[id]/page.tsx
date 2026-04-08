@@ -40,7 +40,7 @@ export default function AnnouncementDetailPage() {
   if (loading) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-12">
-        <p className="text-center text-gray-500">Loading announcement...</p>
+        <p className="text-center text-gray-500 dark:text-gray-400">Loading announcement...</p>
       </div>
     );
   }
@@ -48,15 +48,15 @@ export default function AnnouncementDetailPage() {
   if (notFound || !announcement) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
           Announcement Not Found
         </h1>
-        <p className="text-gray-600 mb-6">
+        <p className="text-gray-600 dark:text-gray-400 mb-6">
           This announcement may have been removed or is no longer available.
         </p>
         <Link
           href="/news"
-          className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 font-medium"
+          className="inline-flex items-center gap-2 text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium"
         >
           <ArrowLeft size={16} />
           Back to News
@@ -79,7 +79,7 @@ export default function AnnouncementDetailPage() {
       {/* Back button */}
       <button
         onClick={() => router.back()}
-        className="inline-flex items-center gap-2 text-gray-500 hover:text-primary-700 font-medium mb-6 transition-colors"
+        className="inline-flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-primary-700 dark:hover:text-primary-400 font-medium mb-6 transition-colors"
       >
         <ArrowLeft size={16} />
         Back
@@ -87,20 +87,20 @@ export default function AnnouncementDetailPage() {
 
       {/* Article */}
       <article
-        className={`bg-white rounded-lg p-6 sm:p-8 shadow-sm border border-gray-100 ${getPriorityBorder(announcement.priority)}`}
+        className={`bg-white dark:bg-gray-800 rounded-lg p-6 sm:p-8 shadow-sm border border-gray-100 dark:border-gray-700 ${getPriorityBorder(announcement.priority)}`}
       >
         {/* Meta row */}
         <div className="flex flex-wrap items-center gap-2 mb-4">
           <Badge variant={announcement.category}>{announcement.category}</Badge>
           {ec && (
-            <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700 capitalize">
+            <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 capitalize">
               {ec.mealType}
             </span>
           )}
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-gray-500 dark:text-gray-400">
             {formatDate(announcement.date)}
           </span>
-          <span className="text-sm text-gray-400">
+          <span className="text-sm text-gray-400 dark:text-gray-500">
             &middot; {announcement.author}
           </span>
         </div>
@@ -130,13 +130,13 @@ export default function AnnouncementDetailPage() {
 
         {/* RSVP section for events */}
         {ec && (
-          <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-100">
-            <h2 className="text-sm font-semibold text-green-800 mb-2">
+          <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-100 dark:border-green-800">
+            <h2 className="text-sm font-semibold text-green-800 dark:text-green-300 mb-2">
               Event RSVP
             </h2>
             <div className="flex flex-wrap items-center gap-3">
               {deadlinePassed ? (
-                <span className="text-sm text-gray-500 italic">
+                <span className="text-sm text-gray-500 dark:text-gray-400 italic">
                   RSVP deadline has passed
                 </span>
               ) : (
@@ -147,7 +147,7 @@ export default function AnnouncementDetailPage() {
                   >
                     RSVP for this Event
                   </Link>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
                     Deadline:{" "}
                     {new Date(ec.rsvpDeadline).toLocaleDateString("en-IN", {
                       day: "numeric",
@@ -160,12 +160,12 @@ export default function AnnouncementDetailPage() {
             </div>
             {ec.menuItems.length > 0 && (
               <div className="mt-3">
-                <p className="text-xs font-medium text-green-700 mb-1">Menu:</p>
+                <p className="text-xs font-medium text-green-700 dark:text-green-400 mb-1">Menu:</p>
                 <div className="flex flex-wrap gap-2">
                   {ec.menuItems.map((item) => (
                     <span
                       key={item.id}
-                      className="inline-block px-2 py-1 text-xs bg-white rounded border border-green-200 text-green-800"
+                      className="inline-block px-2 py-1 text-xs bg-white dark:bg-gray-800 rounded border border-green-200 dark:border-green-700 text-green-800 dark:text-green-300"
                     >
                       {item.name} — ₹{item.pricePerPlate}
                     </span>
@@ -178,13 +178,13 @@ export default function AnnouncementDetailPage() {
 
         {/* Sports registration section */}
         {sc && (
-          <div className="mt-6 p-4 bg-orange-50 rounded-lg border border-orange-100">
-            <h2 className="text-sm font-semibold text-orange-800 mb-2">
+          <div className="mt-6 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-100 dark:border-orange-800">
+            <h2 className="text-sm font-semibold text-orange-800 dark:text-orange-300 mb-2">
               Sports Registration
             </h2>
             <div className="flex flex-wrap items-center gap-3">
               {sportsDeadlinePassed ? (
-                <span className="text-sm text-gray-500 italic">
+                <span className="text-sm text-gray-500 dark:text-gray-400 italic">
                   Registration deadline has passed
                 </span>
               ) : (
@@ -195,7 +195,7 @@ export default function AnnouncementDetailPage() {
                   >
                     Register for Sports
                   </Link>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
                     Deadline:{" "}
                     {new Date(sc.registrationDeadline).toLocaleDateString(
                       "en-IN",
@@ -207,14 +207,14 @@ export default function AnnouncementDetailPage() {
             </div>
             {sc.sportItems.length > 0 && (
               <div className="mt-3">
-                <p className="text-xs font-medium text-orange-700 mb-1">
+                <p className="text-xs font-medium text-orange-700 dark:text-orange-400 mb-1">
                   Sports:
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {sc.sportItems.map((item) => (
                     <span
                       key={item.id}
-                      className="inline-block px-2 py-1 text-xs bg-white rounded border border-orange-200 text-orange-800"
+                      className="inline-block px-2 py-1 text-xs bg-white dark:bg-gray-800 rounded border border-orange-200 dark:border-orange-700 text-orange-800 dark:text-orange-300"
                     >
                       {item.name}
                     </span>
