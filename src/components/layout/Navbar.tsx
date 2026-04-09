@@ -23,6 +23,7 @@ import {
   canManageMeetings,
   canManageReviewDocs,
   canManagePolls,
+  canManageAds,
   isSuperAdmin,
 } from "@/lib/roles";
 
@@ -212,6 +213,13 @@ export default function Navbar() {
       href: "/admin/newsletters",
       label: "Newsletters",
       match: (p) => p.startsWith("/admin/newsletters"),
+    });
+  }
+  if (canManageAds(roles)) {
+    adminLinks.push({
+      href: "/admin/ads",
+      label: "Banner Ads",
+      match: (p) => p.startsWith("/admin/ads"),
     });
   }
   if (canManageVisitors(roles)) {

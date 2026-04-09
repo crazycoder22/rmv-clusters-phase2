@@ -13,6 +13,7 @@ import {
   Package,
   Bell,
 } from "lucide-react";
+import AdBanner from "@/components/ads/AdBanner";
 import clsx from "clsx";
 import {
   MARKETPLACE_CATEGORIES,
@@ -150,6 +151,8 @@ export default function MarketplacePage() {
           Notifications
         </Link>
       </div>
+
+      <AdBanner page="marketplace" placement="top" />
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-4">

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import CreatePost from "@/components/community/CreatePost";
 import FeedPost from "@/components/community/FeedPost";
+import AdBanner from "@/components/ads/AdBanner";
 
 interface PostData {
   id: string;
@@ -121,6 +122,8 @@ export default function CommunityPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Community</h1>
+
+      <AdBanner page="community" placement="top" />
 
       <CreatePost onPostCreated={handlePostCreated} />
 

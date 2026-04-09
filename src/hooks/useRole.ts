@@ -23,6 +23,7 @@ import {
   canManagePolls as canManagePollsFn,
   canManageMeetings as canManageMeetingsFn,
   canManageReviewDocs as canManageReviewDocsFn,
+  canManageAds as canManageAdsFn,
 } from "@/lib/roles";
 
 export function useRole() {
@@ -55,5 +56,6 @@ export function useRole() {
     canManagePolls: useCallback(() => canManagePollsFn(roles), [roles]),
     canManageMeetings: useCallback(() => canManageMeetingsFn(roles), [roles]),
     canManageReviewDocs: useCallback(() => canManageReviewDocsFn(roles), [roles]),
+    canManageAds: useCallback(() => canManageAdsFn(roles), [roles]),
   };
 }

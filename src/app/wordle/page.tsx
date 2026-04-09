@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Trophy, ArrowLeft, Share2 } from "lucide-react";
+import AdBanner from "@/components/ads/AdBanner";
 
 type LetterResult = "correct" | "present" | "absent";
 
@@ -546,6 +547,8 @@ export default function WordlePage() {
           )}
         </div>
       )}
+
+      <AdBanner page="wordle" placement="bottom" />
     </div>
   );
 }

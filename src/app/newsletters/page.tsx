@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { FileText, Loader2, PenLine } from "lucide-react";
+import AdBanner from "@/components/ads/AdBanner";
 
 interface PublishedNewsletter {
   id: string;
@@ -76,6 +77,8 @@ export default function NewslettersPage() {
             )}
           </div>
         </div>
+
+        <AdBanner page="newsletters" placement="top" />
 
         {/* Newsletter archive cards */}
         {newsletters.length === 0 ? (

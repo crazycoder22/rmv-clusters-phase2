@@ -1230,3 +1230,26 @@ model SitePopup {
 }
 
 // ─── End Site Popups ─────────────────────────────────────────────────────────
+
+// ─── Banner Ads ─────────────────────────────────────────────────────────────
+
+model Ad {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  imageUrl    String
+  linkUrl     String
+  placement   String   // "top" | "bottom"
+  pages       String[] // e.g. ["news","marketplace","wordle"]
+  startDate   String   // YYYY-MM-DD in IST
+  endDate     String   // YYYY-MM-DD in IST
+  active      Boolean  @default(true)
+  impressions Int      @default(0)
+  clicks      Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([active, startDate, endDate])
+}
+
+// ─── End Banner Ads ─────────────────────────────────────────────────────────

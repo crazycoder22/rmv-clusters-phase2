@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { ArrowLeft, Trophy, Clock, Delete, Share2 } from "lucide-react";
+import AdBanner from "@/components/ads/AdBanner";
 import { formatTime, getPeerIndices, getErrorCells } from "@/lib/sudoku";
 import { toPng } from "html-to-image";
 import { useRole } from "@/hooks/useRole";
@@ -878,6 +879,8 @@ export default function SudokuPage() {
           )}
         </div>
       )}
+
+      <AdBanner page="sudoku" placement="bottom" />
     </div>
   );
 }

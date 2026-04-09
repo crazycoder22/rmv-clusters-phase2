@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { toPng } from "html-to-image";
 import { ChevronLeft, ChevronRight, Download, X } from "lucide-react";
+import AdBanner from "@/components/ads/AdBanner";
 
 interface CalendarEntry {
   id: string;
@@ -167,6 +168,8 @@ export default function CalendarPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
+      <AdBanner page="events" placement="top" />
+
       {/* Controls (not included in export) */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">

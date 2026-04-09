@@ -178,6 +178,13 @@ export function canManageMeetings(
   return isAdmin(roles);
 }
 
+/** Check if user can manage banner ads (ADMIN, SUPERADMIN) */
+export function canManageAds(
+  roles: UserRole[] | string[] | null | undefined
+): boolean {
+  return isAdmin(roles);
+}
+
 /** Get display name for a role */
 export function getRoleDisplayName(role: UserRole | string): string {
   const names: Record<string, string> = {

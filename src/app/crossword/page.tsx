@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { ArrowLeft, Trophy, Clock, Delete, Share2 } from "lucide-react";
+import AdBanner from "@/components/ads/AdBanner";
 import { formatTime } from "@/lib/crossword";
 import { useRole } from "@/hooks/useRole";
 import clsx from "clsx";
@@ -579,6 +580,8 @@ export default function CrosswordPage() {
           )}
         </>
       )}
+
+      <AdBanner page="crossword" placement="bottom" />
     </div>
   );
 }

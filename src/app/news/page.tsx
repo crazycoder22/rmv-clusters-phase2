@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import SectionHeading from "@/components/ui/SectionHeading";
 import NewsFeed from "@/components/news/NewsFeed";
+import AdBanner from "@/components/ads/AdBanner";
 
 export const metadata: Metadata = {
   title: "News & Announcements",
@@ -16,6 +17,7 @@ export default function NewsPage() {
           title="News & Announcements"
           subtitle="Stay updated with the latest community news and important notices"
         />
+        <AdBanner page="news" placement="top" />
         <div className="mt-12">
           <NewsFeed />
         </div>
