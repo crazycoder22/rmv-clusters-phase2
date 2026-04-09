@@ -754,6 +754,8 @@ export default function SudokuPage() {
         </button>
       </div>
 
+      <AdBanner page="sudoku" placement="top" />
+
       {!playerId ? (
         <RegistrationForm onRegister={(id, name) => { setPlayerId(id); setPlayerName(name); }} />
       ) : (

@@ -463,6 +463,8 @@ export default function WordlePage() {
         </Link>
       </div>
 
+      <AdBanner page="wordle" placement="top" />
+
       {!playerId ? (
         <RegistrationForm
           onRegister={(id, name) => {

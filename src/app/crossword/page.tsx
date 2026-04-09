@@ -368,6 +368,8 @@ export default function CrosswordPage() {
         </div>
       </div>
 
+      <AdBanner page="crossword" placement="top" />
+
       {!registered ? (
         <RegistrationForm onRegister={(id, name) => { setPlayerId(id); setPlayerName(name); setRegistered(true); }} />
       ) : tab === "leaderboard" ? (
