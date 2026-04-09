@@ -165,9 +165,7 @@ export function getTodayIST(): string {
 
 /** Get today's answer word */
 // Manual overrides for specific dates (date → word). Remove entries after they pass.
-const WORD_OVERRIDES: Record<string, string> = {
-  "2026-04-09": "trust",
-};
+const WORD_OVERRIDES: Record<string, string> = {};
 
 export function getDailyWord(date?: string): string {
   const target = date ? new Date(date + "T00:00:00+05:30") : new Date();
