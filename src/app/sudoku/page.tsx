@@ -20,6 +20,19 @@ interface LeaderboardEntry {
   timeSeconds: number;
 }
 
+interface WeeklyLeaderboardEntry {
+  rank: number;
+  playerId: string;
+  name: string;
+  block: number;
+  flatNumber: string;
+  totalPoints: number;
+  totalTime: number;
+  daysPlayed: number;
+}
+
+type LeaderboardScope = "daily" | "weekly";
+
 // ── Registration form (same as Wordle, uses WordlePlayer) ──────────────────
 
 function RegistrationForm({ onRegister }: { onRegister: (id: string, name: string) => void }) {
@@ -198,17 +211,34 @@ function LeaderboardView({ currentPlayerId, difficulty, setDifficulty, isAdmin }
   setDifficulty: (d: Difficulty) => void;
   isAdmin: boolean;
 }) {
-  const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
+  const [scope, setScope] = useState<LeaderboardScope>("daily");
+  const [dailyEntries, setDailyEntries] = useState<LeaderboardEntry[]>([]);
+  const [weeklyEntries, setWeeklyEntries] = useState<WeeklyLeaderboardEntry[]>([]);
+  const [weekLabel, setWeekLabel] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     setLoading(true);
-    fetch(`/api/sudoku/leaderboard?difficulty=${difficulty}`)
-      .then((r) => r.ok ? r.json() : { leaderboard: [] })
-      .then((d) => setEntries(d.leaderboard ?? []))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, [difficulty]);
+    if (scope === "weekly") {
+      fetch(`/api/sudoku/leaderboard?scope=weekly&difficulty=${difficulty}`)
+        .then((r) => r.ok ? r.json() : { leaderboard: [], weekStart: "", weekEnd: "" })
+        .then((d) => {
+          setWeeklyEntries(d.leaderboard ?? []);
+          if (d.weekStart && d.weekEnd) {
+            const fmt = (s: string) => new Date(s + "T00:00:00+05:30").toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+            setWeekLabel(`${fmt(d.weekStart)} – ${fmt(d.weekEnd)}`);
+          }
+        })
+        .catch(() => {})
+        .finally(() => setLoading(false));
+    } else {
+      fetch(`/api/sudoku/leaderboard?difficulty=${difficulty}`)
+        .then((r) => r.ok ? r.json() : { leaderboard: [] })
+        .then((d) => setDailyEntries(d.leaderboard ?? []))
+        .catch(() => {})
+        .finally(() => setLoading(false));
+    }
+  }, [difficulty, scope]);
 
   const diffBtnClass = (d: Difficulty) =>
     `px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
@@ -217,8 +247,43 @@ function LeaderboardView({ currentPlayerId, difficulty, setDifficulty, isAdmin }
         : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-600 hover:border-primary-400"
     }`;
 
+  const scopeBtnClass = (s: LeaderboardScope) =>
+    `px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+      scope === s
+        ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm"
+        : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+    }`;
+
+  const isEmpty = scope === "daily" ? dailyEntries.length === 0 : weeklyEntries.length === 0;
+
+  const rankBadge = (rank: number) => {
+    const color = rank === 1 ? "text-yellow-500" : rank === 2 ? "text-gray-400" : rank === 3 ? "text-amber-700" : "text-gray-400 dark:text-gray-500";
+    const label = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : String(rank);
+    return <span className={`text-sm font-bold w-6 text-center ${color}`}>{label}</span>;
+  };
+
   return (
     <div className="space-y-4">
+      {/* Scope toggle: Daily / Weekly */}
+      <div className="flex justify-center">
+        <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-0.5">
+          <button className={scopeBtnClass("daily")} onClick={() => setScope("daily")}>
+            Today
+          </button>
+          <button className={scopeBtnClass("weekly")} onClick={() => setScope("weekly")}>
+            Weekly Challenge
+          </button>
+        </div>
+      </div>
+
+      {/* Week label */}
+      {scope === "weekly" && weekLabel && (
+        <p className="text-center text-xs text-gray-500 dark:text-gray-400 -mt-2">
+          {weekLabel}
+        </p>
+      )}
+
+      {/* Difficulty filter */}
       <div className="flex gap-2 justify-center">
         {(["easy", "medium", "hard"] as Difficulty[]).map((d) => (
           <button key={d} className={diffBtnClass(d)} onClick={() => setDifficulty(d)}>
@@ -229,12 +294,15 @@ function LeaderboardView({ currentPlayerId, difficulty, setDifficulty, isAdmin }
 
       {loading ? (
         <p className="text-center text-sm text-gray-400 dark:text-gray-500 py-8">Loading…</p>
-      ) : entries.length === 0 ? (
+      ) : isEmpty ? (
         <div className="text-center py-10">
           <Trophy size={40} className="mx-auto text-gray-300 dark:text-gray-600 mb-2" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">No completions yet for {difficulty}!</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {scope === "weekly" ? `No completions this week for ${difficulty}!` : `No completions yet for ${difficulty}!`}
+          </p>
         </div>
-      ) : (
+      ) : scope === "daily" ? (
+        /* ── Daily leaderboard ── */
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
           <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700">
             <div className="grid grid-cols-[auto_1fr_auto] gap-3 flex-1 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -244,7 +312,7 @@ function LeaderboardView({ currentPlayerId, difficulty, setDifficulty, isAdmin }
             </div>
             {isAdmin && (
               <a
-                href={`/api/sudoku/leaderboard?format=csv&all=true`}
+                href="/api/sudoku/leaderboard?format=csv&all=true"
                 className="text-[10px] text-primary-600 dark:text-primary-400 hover:underline ml-2 shrink-0"
               >
                 CSV
@@ -252,14 +320,12 @@ function LeaderboardView({ currentPlayerId, difficulty, setDifficulty, isAdmin }
             )}
           </div>
           <div className="divide-y divide-gray-100 dark:divide-gray-700">
-            {entries.map((e) => (
+            {dailyEntries.map((e) => (
               <div
                 key={e.playerId}
                 className={`grid grid-cols-[auto_1fr_auto] gap-3 px-4 py-3 items-center ${e.playerId === currentPlayerId ? "bg-primary-50/50 dark:bg-primary-900/20" : ""}`}
               >
-                <span className={`text-sm font-bold w-6 text-center ${e.rank === 1 ? "text-yellow-500" : e.rank === 2 ? "text-gray-400" : e.rank === 3 ? "text-amber-700" : "text-gray-400 dark:text-gray-500"}`}>
-                  {e.rank === 1 ? "🥇" : e.rank === 2 ? "🥈" : e.rank === 3 ? "🥉" : e.rank}
-                </span>
+                {rankBadge(e.rank)}
                 <div>
                   <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
                     {e.name}
@@ -272,6 +338,59 @@ function LeaderboardView({ currentPlayerId, difficulty, setDifficulty, isAdmin }
                 </span>
               </div>
             ))}
+          </div>
+        </div>
+      ) : (
+        /* ── Weekly leaderboard ── */
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700">
+            <div className="grid grid-cols-[auto_1fr_auto_auto] gap-3 flex-1 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <span>#</span>
+              <span>Player</span>
+              <span className="text-right">Days</span>
+              <span className="text-right">Points</span>
+            </div>
+            {isAdmin && (
+              <a
+                href={`/api/sudoku/leaderboard?scope=weekly&format=csv&difficulty=${difficulty}`}
+                className="text-[10px] text-primary-600 dark:text-primary-400 hover:underline ml-2 shrink-0"
+              >
+                CSV
+              </a>
+            )}
+          </div>
+          <div className="divide-y divide-gray-100 dark:divide-gray-700">
+            {weeklyEntries.map((e) => (
+              <div
+                key={e.playerId}
+                className={`grid grid-cols-[auto_1fr_auto_auto] gap-3 px-4 py-3 items-center ${e.playerId === currentPlayerId ? "bg-primary-50/50 dark:bg-primary-900/20" : ""}`}
+              >
+                {rankBadge(e.rank)}
+                <div>
+                  <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                    {e.name}
+                    {e.playerId === currentPlayerId && <span className="ml-1.5 text-xs text-primary-600 dark:text-primary-400">(You)</span>}
+                  </p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500">
+                    Block {e.block}, {e.flatNumber}
+                    <span className="mx-1">·</span>
+                    <span className="font-mono">{formatTime(e.totalTime)}</span> total
+                  </p>
+                </div>
+                <span className="text-xs text-gray-500 dark:text-gray-400 tabular-nums text-right">
+                  {e.daysPlayed}/7
+                </span>
+                <span className="text-sm font-bold text-amber-600 dark:text-amber-400 tabular-nums text-right min-w-[2.5rem]">
+                  {e.totalPoints} pts
+                </span>
+              </div>
+            ))}
+          </div>
+          {/* Points legend */}
+          <div className="px-4 py-2 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-700">
+            <p className="text-[10px] text-gray-400 dark:text-gray-500 text-center">
+              Daily points: 1st=10 · 2nd=8 · 3rd=6 · 4th=5 · 5th=4 · 6th=3 · 7th=2 · 8th+=1
+            </p>
           </div>
         </div>
       )}

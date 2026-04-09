@@ -244,3 +244,110 @@ export function formatTime(seconds: number): string {
   const s = (seconds % 60).toString().padStart(2, "0");
   return `${m}:${s}`;
 }
+
+// ── Weekly Challenge Utilities ────────────────────────────────────────────
+
+/** Get the Monday and Sunday bounding the week containing `date` (IST) */
+export function getWeekBounds(date?: string): { monday: string; sunday: string } {
+  const dateStr = date ?? getTodayIST();
+  const d = new Date(dateStr + "T00:00:00+05:30");
+  // JS getDay(): 0=Sun, 1=Mon ... 6=Sat
+  const day = d.getDay();
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+  const monday = new Date(d);
+  monday.setDate(d.getDate() + diffToMonday);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+
+  return {
+    monday: monday.toISOString().split("T")[0],
+    sunday: sunday.toISOString().split("T")[0],
+  };
+}
+
+/** Points awarded by daily rank position */
+const RANK_POINTS = [10, 8, 6, 5, 4, 3, 2];
+
+interface GameForScoring {
+  playerId: string;
+  date: string;
+  timeSeconds: number;
+  player: { name: string; block: number; flatNumber: string };
+}
+
+export interface WeeklyLeaderboardEntry {
+  rank: number;
+  playerId: string;
+  name: string;
+  block: number;
+  flatNumber: string;
+  totalPoints: number;
+  totalTime: number;
+  daysPlayed: number;
+}
+
+/** Calculate weekly leaderboard from an array of completed games in a week */
+export function calculateWeeklyPoints(games: GameForScoring[]): WeeklyLeaderboardEntry[] {
+  // Group games by date
+  const byDate = new Map<string, GameForScoring[]>();
+  for (const g of games) {
+    const list = byDate.get(g.date) ?? [];
+    list.push(g);
+    byDate.set(g.date, list);
+  }
+
+  // For each date, rank by time and assign points
+  const playerStats = new Map<string, {
+    name: string;
+    block: number;
+    flatNumber: string;
+    totalPoints: number;
+    totalTime: number;
+    daysPlayed: Set<string>;
+  }>();
+
+  for (const [date, dayGames] of byDate) {
+    // Sort by fastest time
+    dayGames.sort((a, b) => a.timeSeconds - b.timeSeconds);
+
+    for (let i = 0; i < dayGames.length; i++) {
+      const g = dayGames[i];
+      const points = i < RANK_POINTS.length ? RANK_POINTS[i] : 1;
+
+      let stats = playerStats.get(g.playerId);
+      if (!stats) {
+        stats = {
+          name: g.player.name,
+          block: g.player.block,
+          flatNumber: g.player.flatNumber,
+          totalPoints: 0,
+          totalTime: 0,
+          daysPlayed: new Set(),
+        };
+        playerStats.set(g.playerId, stats);
+      }
+      stats.totalPoints += points;
+      stats.totalTime += g.timeSeconds;
+      stats.daysPlayed.add(date);
+    }
+  }
+
+  // Sort: most points first, then lowest total time as tiebreaker
+  const entries = Array.from(playerStats.entries())
+    .map(([playerId, stats]) => ({
+      rank: 0,
+      playerId,
+      name: stats.name,
+      block: stats.block,
+      flatNumber: stats.flatNumber,
+      totalPoints: stats.totalPoints,
+      totalTime: stats.totalTime,
+      daysPlayed: stats.daysPlayed.size,
+    }))
+    .sort((a, b) => b.totalPoints - a.totalPoints || a.totalTime - b.totalTime);
+
+  // Assign ranks
+  entries.forEach((e, i) => { e.rank = i + 1; });
+
+  return entries;
+}

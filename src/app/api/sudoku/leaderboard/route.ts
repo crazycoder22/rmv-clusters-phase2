@@ -1,16 +1,68 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getTodayIST } from "@/lib/sudoku";
-import { formatTime } from "@/lib/sudoku";
+import { getTodayIST, getWeekBounds, calculateWeeklyPoints, formatTime } from "@/lib/sudoku";
 
-// GET /api/sudoku/leaderboard?difficulty=medium&date=2026-04-05&format=csv
+// GET /api/sudoku/leaderboard?difficulty=medium&date=2026-04-05&scope=weekly&format=csv
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const difficulty = searchParams.get("difficulty") ?? "medium";
   const date = searchParams.get("date") ?? getTodayIST();
   const format = searchParams.get("format");
   const all = searchParams.get("all") === "true";
+  const scope = searchParams.get("scope") ?? "daily";
 
+  // ── Weekly leaderboard ──────────────────────────────────────────────────
+  if (scope === "weekly") {
+    const { monday, sunday } = getWeekBounds(date);
+
+    const games = await prisma.sudokuGame.findMany({
+      where: {
+        completed: true,
+        timeSeconds: { not: null },
+        difficulty,
+        date: { gte: monday, lte: sunday },
+      },
+      select: {
+        playerId: true,
+        timeSeconds: true,
+        date: true,
+        player: { select: { name: true, block: true, flatNumber: true } },
+      },
+      orderBy: { timeSeconds: "asc" },
+    });
+
+    const leaderboard = calculateWeeklyPoints(
+      games.map((g) => ({
+        playerId: g.playerId,
+        date: g.date,
+        timeSeconds: g.timeSeconds!,
+        player: g.player,
+      }))
+    );
+
+    if (format === "csv") {
+      const header = "Rank,Name,Block,Flat,Points,Days Played,Total Time,Total Seconds";
+      const rows = leaderboard.map((e) =>
+        `${e.rank},"${e.name}",${e.block},"${e.flatNumber}",${e.totalPoints},${e.daysPlayed},${formatTime(e.totalTime)},${e.totalTime}`
+      );
+      const csv = [header, ...rows].join("\n");
+      return new Response(csv, {
+        headers: {
+          "Content-Type": "text/csv",
+          "Content-Disposition": `attachment; filename="sudoku-weekly-${monday}-${difficulty}.csv"`,
+        },
+      });
+    }
+
+    return NextResponse.json({
+      leaderboard,
+      weekStart: monday,
+      weekEnd: sunday,
+      difficulty,
+    });
+  }
+
+  // ── Daily leaderboard (existing behavior) ───────────────────────────────
   const games = await prisma.sudokuGame.findMany({
     where: {
       completed: true,
