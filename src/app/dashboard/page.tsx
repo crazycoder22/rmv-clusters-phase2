@@ -248,15 +248,17 @@ export default function DashboardPage() {
                 {searchResults.map((r, i) => (
                   <tr
                     key={`${r.block}-${r.flatNumber}-${i}`}
-                    className="border-b border-gray-50"
+                    className="border-b border-gray-50 dark:border-gray-700"
                   >
                     <td className="py-2.5 pr-4 font-medium text-gray-900 dark:text-gray-100">
                       {r.name}
                     </td>
-                    <td className="py-2.5 pr-4 text-gray-600">
+                    <td className="py-2.5 pr-4 text-gray-600 dark:text-gray-300">
                       Block {r.block}
                     </td>
-                    <td className="py-2.5 text-gray-600">{r.flatNumber}</td>
+                    <td className="py-2.5 text-gray-600 dark:text-gray-300">
+                      {r.flatNumber}
+                    </td>
                   </tr>
                 ))}
               </tbody>
