@@ -1253,3 +1253,36 @@ model Ad {
 }
 
 // ─── End Banner Ads ─────────────────────────────────────────────────────────
+
+// ─── MyGate Visit Log ───────────────────────────────────────────────────────
+// Historical audit log of visitor entries scraped from MyGate dashboard.
+// Separate from the `Visitor` model (which handles live pre-approval workflow).
+// Populated via `scripts/import-mygate-visitors.ts`; dedup key is `mygateId`.
+
+model VisitLog {
+  id             String    @id @default(cuid())
+  mygateId       String    @unique             // MyGate transaction ID, dedup key
+  visitDate      String                        // YYYY-MM-DD in IST
+  visitorName    String
+  visitorType    String                        // sub-type e.g. "Delivery Executive"
+  fromSource     String?                       // "Swiggy", "Zomato", etc.
+  block          Int?                          // null for COMMON AREA / masked
+  flatNumber     String?                       // null for COMMON AREA / masked
+  flatRaw        String                        // original raw "Flat" cell
+  inTime         DateTime?
+  outTime        DateTime?
+  approvedBy     String?                       // plain string, no FK
+  allowedByGuard String?
+  gate           String?
+  status         String?                       // "In" or "Out" at scrape time
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([visitDate])
+  @@index([block, flatNumber])
+  @@index([fromSource])
+  @@index([allowedByGuard])
+  @@index([visitDate, block, flatNumber])
+}
+
+// ─── End MyGate Visit Log ───────────────────────────────────────────────────

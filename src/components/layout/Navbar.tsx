@@ -69,6 +69,7 @@ const navGroups: NavGroup[] = [
       { href: "/issues", label: "Issues" },
       { href: "/polls", label: "Polls" },
       { href: "/review-docs", label: "Reviews" },
+      { href: "/visits", label: "Visits" },
     ],
   },
   {
