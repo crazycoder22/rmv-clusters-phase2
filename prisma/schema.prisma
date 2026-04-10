@@ -1271,18 +1271,20 @@ model VisitLog {
   flatRaw        String                        // original raw "Flat" cell
   inTime         DateTime?
   outTime        DateTime?
-  approvedBy     String?                       // plain string, no FK
-  allowedByGuard String?
-  gate           String?
-  status         String?                       // "In" or "Out" at scrape time
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  approvedBy         String?                   // plain string, no FK
+  allowedByGuard     String?
+  approvedByResident Boolean   @default(false)  // true when approvedBy differs from the guard (i.e. a real resident approval, not a guard walk-through)
+  gate               String?
+  status             String?                    // "In" or "Out" at scrape time
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   @@index([visitDate])
   @@index([block, flatNumber])
   @@index([fromSource])
   @@index([allowedByGuard])
   @@index([visitDate, block, flatNumber])
+  @@index([visitDate, approvedByResident])
 }
 
 // ─── End MyGate Visit Log ───────────────────────────────────────────────────

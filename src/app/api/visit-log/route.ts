@@ -31,6 +31,7 @@ export async function GET(request: Request) {
     const date = searchParams.get("date") || istTodayYmd();
     const fromSource = searchParams.get("fromSource") || undefined;
     const guard = searchParams.get("guard") || undefined;
+    const approvedByResidentParam = searchParams.get("approvedByResident");
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10) || 1);
     const limit = Math.min(200, Math.max(1, parseInt(searchParams.get("limit") || "50", 10) || 50));
 
@@ -41,8 +42,11 @@ export async function GET(request: Request) {
       flatNumber?: string;
       fromSource?: { equals: string; mode: "insensitive" };
       allowedByGuard?: { equals: string; mode: "insensitive" };
+      approvedByResident?: boolean;
     } = {};
     if (date) where.visitDate = date;
+    if (approvedByResidentParam === "true") where.approvedByResident = true;
+    else if (approvedByResidentParam === "false") where.approvedByResident = false;
 
     if (adminView) {
       const blockParam = searchParams.get("block");

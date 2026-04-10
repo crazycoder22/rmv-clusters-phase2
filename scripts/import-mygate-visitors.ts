@@ -47,7 +47,19 @@ interface NormalizedRow {
   outTime: Date | null;
   approvedBy: string | null;
   allowedByGuard: string | null;
+  approvedByResident: boolean;
   visitDate: string;
+}
+
+/** True when approvedBy is a non-empty string that does NOT match the guard
+ * (case-insensitive, trimmed). These are real resident approvals, not guard
+ * walk-throughs. */
+function isApprovedByResident(approvedBy: string | null, allowedByGuard: string | null): boolean {
+  if (!approvedBy) return false;
+  const a = approvedBy.trim().toLowerCase();
+  if (a.length === 0) return false;
+  const g = (allowedByGuard ?? "").trim().toLowerCase();
+  return a !== g;
 }
 
 // ─── CSV Parser (quoted-field aware) ──────────────────────────────────────
@@ -155,6 +167,8 @@ async function main() {
     const visitorType = parseType(row.Type);
     const visitDate = toIstDateString(inTime);
 
+    const approvedBy = nullIfEmpty(row["Approved By"]);
+    const allowedByGuard = nullIfEmpty(row["Allowed By Guard"]);
     byId.set(mygateId, {
       mygateId,
       visitorName: (row.Name || "").trim(),
@@ -165,8 +179,9 @@ async function main() {
       flatRaw,
       inTime,
       outTime,
-      approvedBy: nullIfEmpty(row["Approved By"]),
-      allowedByGuard: nullIfEmpty(row["Allowed By Guard"]),
+      approvedBy,
+      allowedByGuard,
+      approvedByResident: isApprovedByResident(approvedBy, allowedByGuard),
       visitDate,
     });
   }
@@ -194,6 +209,7 @@ async function main() {
       outTime: true,
       approvedBy: true,
       allowedByGuard: true,
+      approvedByResident: true,
     },
   });
   const existingById = new Map(existing.map((e) => [e.mygateId, e]));
@@ -226,6 +242,7 @@ async function main() {
               outTime: row.outTime,
               approvedBy: row.approvedBy,
               allowedByGuard: row.allowedByGuard,
+              approvedByResident: row.approvedByResident,
             },
           });
         }
@@ -246,6 +263,7 @@ async function main() {
       if ((current.outTime?.getTime() ?? null) !== (row.outTime?.getTime() ?? null)) diff.outTime = row.outTime;
       if ((current.approvedBy ?? null) !== row.approvedBy) diff.approvedBy = row.approvedBy;
       if ((current.allowedByGuard ?? null) !== row.allowedByGuard) diff.allowedByGuard = row.allowedByGuard;
+      if (current.approvedByResident !== row.approvedByResident) diff.approvedByResident = row.approvedByResident;
 
       if (Object.keys(diff).length === 0) {
         stats.unchanged++;

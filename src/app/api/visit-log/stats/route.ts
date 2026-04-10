@@ -25,13 +25,20 @@ export async function GET() {
       todayCount,
       last7Count,
       last30Count,
+      todayResidentApproved,
+      last7ResidentApproved,
+      last30ResidentApproved,
       topSources,
       topFlats,
       topGuards,
+      topApprovers,
     ] = await Promise.all([
       prisma.visitLog.count({ where: { visitDate: today } }),
       prisma.visitLog.count({ where: { visitDate: { gte: d7 } } }),
       prisma.visitLog.count({ where: { visitDate: { gte: d30 } } }),
+      prisma.visitLog.count({ where: { visitDate: today, approvedByResident: true } }),
+      prisma.visitLog.count({ where: { visitDate: { gte: d7 }, approvedByResident: true } }),
+      prisma.visitLog.count({ where: { visitDate: { gte: d30 }, approvedByResident: true } }),
       prisma.visitLog.groupBy({
         by: ["fromSource"],
         _count: { _all: true },
@@ -53,6 +60,13 @@ export async function GET() {
         orderBy: { _count: { allowedByGuard: "desc" } },
         take: 3,
       }),
+      prisma.visitLog.groupBy({
+        by: ["approvedBy"],
+        _count: { _all: true },
+        where: { visitDate: { gte: d30 }, approvedByResident: true, approvedBy: { not: null } },
+        orderBy: { _count: { approvedBy: "desc" } },
+        take: 5,
+      }),
     ]);
 
     return NextResponse.json({
@@ -60,9 +74,13 @@ export async function GET() {
       todayCount,
       last7Count,
       last30Count,
+      todayResidentApproved,
+      last7ResidentApproved,
+      last30ResidentApproved,
       topSources: topSources.map((r) => ({ source: r.fromSource, count: r._count._all })),
       topFlats: topFlats.map((r) => ({ block: r.block, flatNumber: r.flatNumber, count: r._count._all })),
       topGuards: topGuards.map((r) => ({ guard: r.allowedByGuard, count: r._count._all })),
+      topApprovers: topApprovers.map((r) => ({ name: r.approvedBy, count: r._count._all })),
     });
   } catch (err) {
     console.error("GET /api/visit-log/stats failed:", err);

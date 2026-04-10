@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
+  UserCheck,
 } from "lucide-react";
 
 interface VisitLogItem {
@@ -27,15 +28,20 @@ interface VisitLogItem {
   outTime: string | null;
   approvedBy: string | null;
   allowedByGuard: string | null;
+  approvedByResident: boolean;
 }
 
 interface StatsData {
   todayCount: number;
   last7Count: number;
   last30Count: number;
+  todayResidentApproved: number;
+  last7ResidentApproved: number;
+  last30ResidentApproved: number;
   topSources: { source: string | null; count: number }[];
   topFlats: { block: number | null; flatNumber: string | null; count: number }[];
   topGuards: { guard: string | null; count: number }[];
+  topApprovers: { name: string | null; count: number }[];
 }
 
 function istTodayYmd(): string {
@@ -64,6 +70,7 @@ export default function VisitLogTable({ adminView }: { adminView: boolean }) {
   const [guard, setGuard] = useState("");
   const [block, setBlock] = useState("");
   const [flatNumber, setFlatNumber] = useState("");
+  const [residentApprovedOnly, setResidentApprovedOnly] = useState(false);
 
   const [items, setItems] = useState<VisitLogItem[]>([]);
   const [total, setTotal] = useState(0);
@@ -81,6 +88,7 @@ export default function VisitLogTable({ adminView }: { adminView: boolean }) {
     if (guard) params.set("guard", guard);
     if (adminView && block) params.set("block", block);
     if (adminView && flatNumber) params.set("flatNumber", flatNumber);
+    if (residentApprovedOnly) params.set("approvedByResident", "true");
     params.set("page", String(page));
     params.set("limit", String(LIMIT));
     try {
@@ -93,12 +101,12 @@ export default function VisitLogTable({ adminView }: { adminView: boolean }) {
     } finally {
       setLoading(false);
     }
-  }, [date, fromSource, guard, block, flatNumber, page, adminView]);
+  }, [date, fromSource, guard, block, flatNumber, residentApprovedOnly, page, adminView]);
 
   useEffect(() => { fetchList(); }, [fetchList]);
 
   // Reset to page 1 when filters change
-  useEffect(() => { setPage(1); }, [date, fromSource, guard, block, flatNumber]);
+  useEffect(() => { setPage(1); }, [date, fromSource, guard, block, flatNumber, residentApprovedOnly]);
 
   // Admin stats — one-time fetch
   useEffect(() => {
@@ -115,24 +123,46 @@ export default function VisitLogTable({ adminView }: { adminView: boolean }) {
     <div className="space-y-6">
       {/* Admin stats */}
       {adminView && stats && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <StatCard icon={<Calendar size={18} />} label="Today" value={stats.todayCount} />
-          <StatCard icon={<TrendingUp size={18} />} label="Last 7 days" value={stats.last7Count} />
-          <StatCard icon={<Users size={18} />} label="Last 30 days" value={stats.last30Count} />
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           <StatCard
-            icon={<Package size={18} />}
-            label="Top Source (30d)"
-            value={stats.topSources[0]?.source || "—"}
-            isString
+            icon={<Calendar size={18} />}
+            label="Today"
+            value={stats.todayCount}
+            sublabel={
+              stats.todayCount > 0
+                ? `${stats.todayResidentApproved} resident-approved (${((stats.todayResidentApproved / stats.todayCount) * 100).toFixed(0)}%)`
+                : undefined
+            }
+          />
+          <StatCard
+            icon={<TrendingUp size={18} />}
+            label="Last 7 days"
+            value={stats.last7Count}
+            sublabel={
+              stats.last7Count > 0
+                ? `${stats.last7ResidentApproved} resident-approved (${((stats.last7ResidentApproved / stats.last7Count) * 100).toFixed(0)}%)`
+                : undefined
+            }
+          />
+          <StatCard
+            icon={<Users size={18} />}
+            label="Last 30 days"
+            value={stats.last30Count}
+            sublabel={
+              stats.last30Count > 0
+                ? `${stats.last30ResidentApproved} resident-approved (${((stats.last30ResidentApproved / stats.last30Count) * 100).toFixed(0)}%)`
+                : undefined
+            }
           />
         </div>
       )}
 
       {adminView && stats && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <TopList icon={<Package size={16} />} title="Top 3 Sources (30d)" items={stats.topSources.map((s) => ({ label: s.source || "—", count: s.count }))} />
           <TopList icon={<Building2 size={16} />} title="Top 3 Flats (30d)" items={stats.topFlats.map((f) => ({ label: `B${f.block}-${f.flatNumber}`, count: f.count }))} />
           <TopList icon={<ShieldCheck size={16} />} title="Top 3 Guards (30d)" items={stats.topGuards.map((g) => ({ label: g.guard || "—", count: g.count }))} />
+          <TopList icon={<UserCheck size={16} />} title="Top 5 Approvers (30d)" items={stats.topApprovers.map((a) => ({ label: a.name || "—", count: a.count }))} />
         </div>
       )}
 
@@ -198,11 +228,29 @@ export default function VisitLogTable({ adminView }: { adminView: boolean }) {
               setGuard("");
               setBlock("");
               setFlatNumber("");
+              setResidentApprovedOnly(false);
             }}
             className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
           >
             Reset
           </button>
+        </div>
+
+        {/* Secondary filters row */}
+        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+          <label className="flex items-center gap-2 cursor-pointer select-none text-sm text-gray-700 dark:text-gray-300">
+            <input
+              type="checkbox"
+              checked={residentApprovedOnly}
+              onChange={(e) => setResidentApprovedOnly(e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
+            />
+            <UserCheck size={14} className="text-primary-600 dark:text-primary-400" />
+            Resident-approved only
+            <span className="text-xs text-gray-400 dark:text-gray-500">
+              (hides entries where the guard approved without a resident)
+            </span>
+          </label>
         </div>
       </div>
 
@@ -258,7 +306,18 @@ export default function VisitLogTable({ adminView }: { adminView: boolean }) {
                       {item.block ? `B${item.block}-${item.flatNumber}` : item.flatRaw}
                     </td>
                   )}
-                  <td className="px-4 py-2.5 text-gray-600 dark:text-gray-300">{item.approvedBy || "—"}</td>
+                  <td className="px-4 py-2.5 text-gray-600 dark:text-gray-300">
+                    <div className="flex items-center gap-1.5">
+                      <span>{item.approvedBy || "—"}</span>
+                      {item.approvedByResident && (
+                        <UserCheck
+                          size={12}
+                          className="text-primary-600 dark:text-primary-400 flex-shrink-0"
+                          aria-label="Resident approved"
+                        />
+                      )}
+                    </div>
+                  </td>
                   <td className="px-4 py-2.5 text-gray-500 dark:text-gray-400 text-xs">{item.allowedByGuard || "—"}</td>
                 </tr>
               ))
@@ -337,11 +396,13 @@ function StatCard({
   icon,
   label,
   value,
+  sublabel,
   isString,
 }: {
   icon: React.ReactNode;
   label: string;
   value: number | string;
+  sublabel?: string;
   isString?: boolean;
 }) {
   return (
@@ -353,6 +414,9 @@ function StatCard({
       <div className={`font-semibold text-gray-900 dark:text-gray-100 ${isString ? "text-sm truncate" : "text-2xl tabular-nums"}`}>
         {value}
       </div>
+      {sublabel && (
+        <div className="text-xs text-primary-600 dark:text-primary-400 mt-0.5">{sublabel}</div>
+      )}
     </div>
   );
 }
