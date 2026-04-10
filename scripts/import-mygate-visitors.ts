@@ -2,10 +2,14 @@
  * Import MyGate visitor entries into the RMV database (VisitLog table).
  *
  * Usage:
- *   npx tsx scripts/import-mygate-visitors.ts --dry-run   # preview only
- *   npx tsx scripts/import-mygate-visitors.ts             # write to DB
+ *   npx tsx scripts/import-mygate-visitors.ts --dry-run          # preview only
+ *   npx tsx scripts/import-mygate-visitors.ts                    # write to DB
+ *   npx tsx scripts/import-mygate-visitors.ts --file <path>      # custom path
  *
- * Reads ~/Downloads/rmv-visitors-apr10.csv (or rename per weekly scrape).
+ * Reads ~/Downloads/rmv-visitors.csv by default (stable filename the daily
+ * scraping task overwrites). For ad-hoc runs against an older snapshot, pass
+ * `--file /path/to/rmv-visitors-apr10.csv`.
+ *
  * - Dedup key: `MyGate ID` column → VisitLog.mygateId (unique)
  * - Re-running is idempotent (upsert by mygateId)
  * - Handles edge flat values: "COMMON AREA *", "View" (masked Guest)
@@ -18,7 +22,15 @@ import { join } from "path";
 import { prisma } from "../src/lib/prisma";
 import { parseMyGateIstDateTime, toIstDateString } from "../src/lib/dates-ist";
 
-const CSV_PATH = join(homedir(), "Downloads", "rmv-visitors-apr10.csv");
+function resolveCsvPath(): string {
+  const fileIdx = process.argv.indexOf("--file");
+  if (fileIdx >= 0 && process.argv[fileIdx + 1]) {
+    return process.argv[fileIdx + 1];
+  }
+  return join(homedir(), "Downloads", "rmv-visitors.csv");
+}
+
+const CSV_PATH = resolveCsvPath();
 const DRY_RUN = process.argv.includes("--dry-run");
 
 // ─── Types ────────────────────────────────────────────────────────────────
