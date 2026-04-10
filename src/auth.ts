@@ -13,18 +13,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     strategy: "jwt",
   },
   callbacks: {
-    async jwt({ token, profile, trigger }) {
+    async jwt({ token, profile }) {
       if (profile) {
         token.name = profile.name;
         token.email = profile.email;
         token.picture = profile.picture;
       }
 
-      // Check registration status on sign-in, session update, or when not yet registered
-      if (
-        token.email &&
-        (trigger === "signIn" || trigger === "update" || !token.isRegistered || !token.isApproved)
-      ) {
+      // Always refresh registration/approval/roles from the DB when we have an
+      // email on the token. The previous version cached these in the JWT and
+      // only re-checked under narrow conditions, which meant changes in the DB
+      // (email updates from MyGate import, manual un-approval, deletion) were
+      // invisible to the running session until the user signed out.
+      if (token.email) {
         const resident = await prisma.resident.findUnique({
           where: { email: token.email },
           select: { id: true, isApproved: true, roles: { select: { name: true } } },
