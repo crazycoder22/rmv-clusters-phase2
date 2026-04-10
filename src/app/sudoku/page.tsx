@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { ArrowLeft, Trophy, Clock, Delete, Share2 } from "lucide-react";
+import { ArrowLeft, Trophy, Clock, Delete, Share2, Pause, Play } from "lucide-react";
 import AdBanner from "@/components/ads/AdBanner";
 import { formatTime, getPeerIndices, getErrorCells } from "@/lib/sudoku";
 import { toPng } from "html-to-image";
@@ -519,6 +519,9 @@ export default function SudokuPage() {
   const startTimeRef = useRef<number>(Date.now());
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Freeze / pause
+  const [isFrozen, setIsFrozen] = useState(false);
+
   // Debounce save ref
   const saveDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -593,11 +596,11 @@ export default function SudokuPage() {
   // Track previously accumulated time from DB
   const savedTimeOffset = useRef<number>(0);
 
-  // ── Timer — resumes from savedTimeOffset ─────────────────────────────────
+  // ── Timer — resumes from savedTimeOffset, pauses when frozen ─────────────
 
   useEffect(() => {
     if (timerRef.current) clearInterval(timerRef.current);
-    if (completed || !playerId || gameLoading) return;
+    if (completed || !playerId || gameLoading || isFrozen) return;
 
     startTimeRef.current = Date.now();
     // Show accumulated time immediately (offset loaded from DB)
@@ -609,7 +612,7 @@ export default function SudokuPage() {
     }, 1000);
 
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [completed, playerId, difficulty, gameLoading]);
+  }, [completed, playerId, difficulty, gameLoading, isFrozen]);
 
   // Helper: get current total elapsed time
   const getElapsed = useCallback(() => {
@@ -668,11 +671,35 @@ export default function SudokuPage() {
     setSavedTime(null);
     setSubmitError(false);
     setSelected(null);
+    setIsFrozen(false);
     // Reset timer to 0
     savedTimeOffset.current = 0;
     startTimeRef.current = Date.now();
     setTimeSeconds(0);
   }, [playerId, difficulty]);
+
+  // Freeze pauses the timer and blurs the grid so the user can step away.
+  // Unfreeze resumes from the frozen elapsed time. Persists to DB on freeze
+  // so closing the browser while frozen doesn't discard the pause.
+  const handleFreezeToggle = useCallback(async () => {
+    if (!playerId || completed) return;
+    if (!isFrozen) {
+      // Commit current elapsed into savedTimeOffset so the next resume
+      // starts from here
+      const elapsed = getElapsed();
+      savedTimeOffset.current = elapsed;
+      setTimeSeconds(elapsed);
+      setIsFrozen(true);
+      // Persist the frozen time to DB (fire-and-forget)
+      fetch("/api/sudoku/game", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ playerId, difficulty, currentGrid: grid, timeSeconds: elapsed }),
+      }).catch(() => {});
+    } else {
+      setIsFrozen(false);
+    }
+  }, [playerId, completed, isFrozen, getElapsed, grid, difficulty]);
 
   // ── Input handling ───────────────────────────────────────────────────────
 
@@ -818,13 +845,15 @@ export default function SudokuPage() {
                       </p>
                       <p className="text-xs text-gray-400 mt-0.5">rmvclustersphase2.in/sudoku</p>
                     </div>
-                    <SudokuGrid
-                      puzzle={puzzle}
-                      grid={grid}
-                      selected={selected}
-                      completed={completed}
-                      onCellClick={handleCellClick}
-                    />
+                    <div className={isFrozen ? "blur-md select-none pointer-events-none transition-all" : "transition-all"}>
+                      <SudokuGrid
+                        puzzle={puzzle}
+                        grid={grid}
+                        selected={selected}
+                        completed={completed}
+                        onCellClick={handleCellClick}
+                      />
+                    </div>
                   </div>
 
                   {/* Completed banner */}
@@ -838,16 +867,22 @@ export default function SudokuPage() {
                     />
                   ) : (
                     <>
-                      <NumberPad onNumber={handleNumber} onErase={handleErase} disabled={completed} />
+                      <NumberPad onNumber={handleNumber} onErase={handleErase} disabled={completed || isFrozen} />
 
-                      {/* Submit + Reset */}
+                      {/* Submit + Freeze + Reset */}
                       <div className="flex items-center justify-center gap-3 mt-2">
                         <button
                           onClick={handleSubmit}
-                          disabled={grid.some((v) => v === 0)}
+                          disabled={grid.some((v) => v === 0) || isFrozen}
                           className="px-5 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                         >
                           Submit
+                        </button>
+                        <button
+                          onClick={handleFreezeToggle}
+                          className="px-4 py-2 flex items-center gap-1.5 border border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg text-sm font-medium hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+                        >
+                          {isFrozen ? <><Play size={14} /> Unfreeze</> : <><Pause size={14} /> Freeze</>}
                         </button>
                         <button
                           onClick={() => {
@@ -855,7 +890,8 @@ export default function SudokuPage() {
                               handleReset();
                             }
                           }}
-                          className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                          disabled={isFrozen}
+                          className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                         >
                           Reset
                         </button>
