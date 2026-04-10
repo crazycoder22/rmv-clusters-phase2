@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { isSuperAdmin, canManageResidents } from "@/lib/roles";
+import { isValidResidentType } from "@/lib/resident-types";
 
 async function requireSuperAdmin() {
   const session = await auth();
@@ -96,7 +97,7 @@ export async function POST(request: Request) {
     );
   }
 
-  if (!["OWNER", "TENANT"].includes(residentType)) {
+  if (!isValidResidentType(residentType)) {
     return NextResponse.json(
       { error: "Invalid resident type" },
       { status: 400 }

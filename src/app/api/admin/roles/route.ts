@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { isSuperAdmin } from "@/lib/roles";
+import { isValidResidentType } from "@/lib/resident-types";
 
 export async function PATCH(request: Request) {
   const session = await auth();
@@ -29,7 +30,7 @@ export async function PATCH(request: Request) {
 
   // Handle residentType-only update
   if (residentId && residentType && !newRoles) {
-    if (!["OWNER", "TENANT"].includes(residentType)) {
+    if (!isValidResidentType(residentType)) {
       return NextResponse.json({ error: "Invalid resident type" }, { status: 400 });
     }
     const updated = await prisma.resident.update({

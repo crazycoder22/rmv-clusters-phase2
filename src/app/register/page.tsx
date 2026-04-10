@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { RESIDENT_TYPES, RESIDENT_TYPE_LABELS } from "@/lib/resident-types";
 
 interface FlatOption {
   id: string;
@@ -212,8 +213,11 @@ export default function RegisterPage() {
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-800 dark:text-gray-100"
           >
             <option value="">Select Type</option>
-            <option value="OWNER">Owner</option>
-            <option value="TENANT">Tenant</option>
+            {RESIDENT_TYPES.map((t) => (
+              <option key={t} value={t}>
+                {RESIDENT_TYPE_LABELS[t]}
+              </option>
+            ))}
           </select>
         </div>
 

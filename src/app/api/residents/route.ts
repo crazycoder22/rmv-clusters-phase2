@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { isValidResidentType } from "@/lib/resident-types";
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -49,7 +50,7 @@ export async function POST(request: Request) {
     );
   }
 
-  if (!["OWNER", "TENANT"].includes(residentType)) {
+  if (!isValidResidentType(residentType)) {
     return NextResponse.json(
       { error: "Invalid resident type" },
       { status: 400 }

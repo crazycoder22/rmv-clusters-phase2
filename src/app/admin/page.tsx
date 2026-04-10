@@ -8,7 +8,23 @@ import MenuItemBuilder from "@/components/admin/MenuItemBuilder";
 import SportItemBuilder from "@/components/admin/SportItemBuilder";
 import CustomFieldBuilder from "@/components/admin/CustomFieldBuilder";
 import { ASSIGNABLE_ROLES, getRoleDisplayName, getRoleBadgeColor } from "@/lib/roles";
+import {
+  RESIDENT_TYPES,
+  RESIDENT_TYPE_LABELS,
+  RESIDENT_TYPE_BADGE_CLASSES,
+  type ResidentType,
+} from "@/lib/resident-types";
 import type { Announcement, MenuItemFormEntry, SportItemFormEntry, CustomFieldFormEntry } from "@/types";
+
+const FALLBACK_BADGE_CLASS = "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300";
+function residentTypeBadgeClass(type: string): string {
+  return (
+    RESIDENT_TYPE_BADGE_CLASSES[type as ResidentType] ?? FALLBACK_BADGE_CLASS
+  );
+}
+function residentTypeLabel(type: string): string {
+  return RESIDENT_TYPE_LABELS[type as ResidentType] ?? type;
+}
 
 interface ResidentWithRole {
   id: string;
@@ -675,12 +691,10 @@ export default function AdminPage() {
                         <span
                           className={clsx(
                             "inline-block px-2 py-0.5 text-xs font-medium rounded-full",
-                            r.residentType === "OWNER"
-                              ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
-                              : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+                            residentTypeBadgeClass(r.residentType)
                           )}
                         >
-                          {r.residentType}
+                          {residentTypeLabel(r.residentType)}
                         </span>
                       </td>
                       <td className="py-3 pr-4 text-gray-500 dark:text-gray-400 text-xs">
@@ -1510,8 +1524,11 @@ export default function AdminPage() {
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 >
                   <option value="">Select</option>
-                  <option value="OWNER">Owner</option>
-                  <option value="TENANT">Tenant</option>
+                  {RESIDENT_TYPES.map((t) => (
+                    <option key={t} value={t}>
+                      {RESIDENT_TYPE_LABELS[t]}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -1753,13 +1770,14 @@ export default function AdminPage() {
                           }}
                           className={clsx(
                             "text-xs font-medium rounded-full px-2 py-0.5 border-0 cursor-pointer focus:ring-2 focus:ring-primary-500",
-                            r.residentType === "OWNER"
-                              ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
-                              : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+                            residentTypeBadgeClass(r.residentType)
                           )}
                         >
-                          <option value="OWNER">Owner</option>
-                          <option value="TENANT">Tenant</option>
+                          {RESIDENT_TYPES.map((t) => (
+                            <option key={t} value={t}>
+                              {RESIDENT_TYPE_LABELS[t]}
+                            </option>
+                          ))}
                         </select>
                       </td>
                       <td className="py-3 pr-4">

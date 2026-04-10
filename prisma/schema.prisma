@@ -51,7 +51,7 @@ model Resident {
   phone        String
   block        Int      // 1, 2, 3, or 4
   flatNumber   String   // e.g., "101", "G2"
-  residentType String   // "OWNER" or "TENANT"
+  residentType String   // "OWNER" | "OWNER_FAMILY" | "TENANT" | "TENANT_FAMILY" | "MULTI_TENANT"
   isApproved   Boolean  @default(false)
   isSosWarrior Boolean  @default(false)
   googleImage  String?
