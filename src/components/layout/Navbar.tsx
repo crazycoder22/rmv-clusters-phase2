@@ -24,6 +24,7 @@ import {
   canManageReviewDocs,
   canManagePolls,
   canManageAds,
+  isAdmin,
   isSuperAdmin,
 } from "@/lib/roles";
 
@@ -225,6 +226,13 @@ export default function Navbar() {
   }
   if (canManageVisitors(roles)) {
     adminLinks.push({ href: "/visitors", label: "Visitors", match: "/visitors" });
+  }
+  if (isAdmin(roles)) {
+    adminLinks.push({
+      href: "/admin/visits",
+      label: "Visit Log",
+      match: (p) => p.startsWith("/admin/visits"),
+    });
   }
   if (canAccessTasks(roles)) {
     adminLinks.push({ href: "/tasks", label: "Tasks", match: "/tasks" });

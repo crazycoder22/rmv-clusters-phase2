@@ -6,9 +6,19 @@ import { istTodayYmd } from "@/lib/dates-ist";
 
 export const dynamic = "force-dynamic";
 
-// GET /api/visit-log?date=&block=&flatNumber=&fromSource=&guard=&page=&limit=
-// - Residents: forced to their own block+flatNumber (ignores any block/flatNumber params)
-// - Admins: honors all filter params
+// GET /api/visit-log
+//
+// Query params:
+//   scope              "mine" (default) → always scoped to caller's own flat,
+//                                          even for admins (the /visits page)
+//                      "all"             → all entries, admin role required
+//                                          (the /admin/visits page)
+//   date               YYYY-MM-DD, default today (IST)
+//   fromSource         case-insensitive exact match
+//   guard              case-insensitive exact match
+//   approvedByResident "true" / "false"
+//   block, flatNumber  only honored when scope=all
+//   page, limit        pagination (limit clamped 1..200)
 export async function GET(request: Request) {
   try {
     const session = await auth();
@@ -25,9 +35,15 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const adminView = isAdmin(session.user.roles);
-
     const { searchParams } = new URL(request.url);
+    const scope = searchParams.get("scope") === "all" ? "all" : "mine";
+    const adminView = scope === "all";
+
+    // Admin scope requires admin role
+    if (adminView && !isAdmin(session.user.roles)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const date = searchParams.get("date") || istTodayYmd();
     const fromSource = searchParams.get("fromSource") || undefined;
     const guard = searchParams.get("guard") || undefined;
@@ -35,7 +51,6 @@ export async function GET(request: Request) {
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10) || 1);
     const limit = Math.min(200, Math.max(1, parseInt(searchParams.get("limit") || "50", 10) || 50));
 
-    // Build where clause — non-admins are forced to their own flat
     const where: {
       visitDate?: string;
       block?: number;
@@ -57,7 +72,7 @@ export async function GET(request: Request) {
       }
       if (flatNumberParam) where.flatNumber = flatNumberParam;
     } else {
-      // Non-admin: force to resident's own flat (ignore any block/flatNumber query params)
+      // Owner view: always force caller's own flat, regardless of their role.
       where.block = resident.block;
       where.flatNumber = resident.flatNumber;
     }
@@ -75,7 +90,7 @@ export async function GET(request: Request) {
       prisma.visitLog.count({ where }),
     ]);
 
-    return NextResponse.json({ items, total, page, limit, adminView });
+    return NextResponse.json({ items, total, page, limit, scope });
   } catch (err) {
     console.error("GET /api/visit-log failed:", err);
     return NextResponse.json({ error: "Failed to fetch visit log" }, { status: 500 });

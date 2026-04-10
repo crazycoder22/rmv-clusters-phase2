@@ -83,6 +83,7 @@ export default function VisitLogTable({ adminView }: { adminView: boolean }) {
   const fetchList = useCallback(async () => {
     setLoading(true);
     const params = new URLSearchParams();
+    params.set("scope", adminView ? "all" : "mine");
     if (date) params.set("date", date);
     if (fromSource) params.set("fromSource", fromSource);
     if (guard) params.set("guard", guard);
