@@ -43,13 +43,17 @@ interface StatsData {
   topGuards: { guard: string | null; count: number }[];
 }
 
-function istTodayYmd(): string {
+function istYesterdayYmd(): string {
+  // Default the date filter to yesterday (IST). Today's data is still partial
+  // at scrape time, so yesterday is the most-recently-complete day.
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() - 1);
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Kolkata",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  }).format(new Date());
+  }).format(d);
 }
 
 function formatTime(iso: string | null): string {
@@ -64,7 +68,7 @@ function formatTime(iso: string | null): string {
 }
 
 export default function VisitLogTable({ adminView }: { adminView: boolean }) {
-  const [date, setDate] = useState<string>(istTodayYmd());
+  const [date, setDate] = useState<string>(istYesterdayYmd());
   const [fromSource, setFromSource] = useState("");
   const [guard, setGuard] = useState("");
   const [block, setBlock] = useState("");
@@ -247,7 +251,7 @@ export default function VisitLogTable({ adminView }: { adminView: boolean }) {
           </Field>
           <button
             onClick={() => {
-              setDate(istTodayYmd());
+              setDate(istYesterdayYmd());
               setFromSource("");
               setGuard("");
               setBlock("");
