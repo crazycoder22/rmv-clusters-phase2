@@ -38,10 +38,9 @@ interface StatsData {
   todayResidentApproved: number;
   last7ResidentApproved: number;
   last30ResidentApproved: number;
+  byBlock: { block: number; total: number; residentApproved: number }[];
   topSources: { source: string | null; count: number }[];
-  topFlats: { block: number | null; flatNumber: string | null; count: number }[];
   topGuards: { guard: string | null; count: number }[];
-  topApprovers: { name: string | null; count: number }[];
 }
 
 function istTodayYmd(): string {
@@ -158,12 +157,36 @@ export default function VisitLogTable({ adminView }: { adminView: boolean }) {
         </div>
       )}
 
+      {/* Per-block breakdown (last 30d) */}
       {adminView && stats && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div>
+          <div className="flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">
+            <Building2 size={14} />
+            By block (last 30 days)
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {stats.byBlock.map((b) => (
+              <StatCard
+                key={b.block}
+                icon={<Building2 size={18} />}
+                label={`Block ${b.block}`}
+                value={b.total}
+                sublabel={
+                  b.total > 0
+                    ? `${b.residentApproved} resident-approved (${((b.residentApproved / b.total) * 100).toFixed(0)}%)`
+                    : "no visits"
+                }
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Top lists (last 30d) */}
+      {adminView && stats && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <TopList icon={<Package size={16} />} title="Top 3 Sources (30d)" items={stats.topSources.map((s) => ({ label: s.source || "—", count: s.count }))} />
-          <TopList icon={<Building2 size={16} />} title="Top 3 Flats (30d)" items={stats.topFlats.map((f) => ({ label: `B${f.block}-${f.flatNumber}`, count: f.count }))} />
           <TopList icon={<ShieldCheck size={16} />} title="Top 3 Guards (30d)" items={stats.topGuards.map((g) => ({ label: g.guard || "—", count: g.count }))} />
-          <TopList icon={<UserCheck size={16} />} title="Top 5 Approvers (30d)" items={stats.topApprovers.map((a) => ({ label: a.name || "—", count: a.count }))} />
         </div>
       )}
 

@@ -28,10 +28,10 @@ export async function GET() {
       todayResidentApproved,
       last7ResidentApproved,
       last30ResidentApproved,
+      blockTotals,
+      blockResidentApproved,
       topSources,
-      topFlats,
       topGuards,
-      topApprovers,
     ] = await Promise.all([
       prisma.visitLog.count({ where: { visitDate: today } }),
       prisma.visitLog.count({ where: { visitDate: { gte: d7 } } }),
@@ -39,18 +39,27 @@ export async function GET() {
       prisma.visitLog.count({ where: { visitDate: today, approvedByResident: true } }),
       prisma.visitLog.count({ where: { visitDate: { gte: d7 }, approvedByResident: true } }),
       prisma.visitLog.count({ where: { visitDate: { gte: d30 }, approvedByResident: true } }),
+      // Per-block totals (last 30d). block=null rows (COMMON AREA, masked) are excluded.
+      prisma.visitLog.groupBy({
+        by: ["block"],
+        _count: { _all: true },
+        where: { visitDate: { gte: d30 }, block: { not: null } },
+      }),
+      // Per-block resident-approved counts (last 30d)
+      prisma.visitLog.groupBy({
+        by: ["block"],
+        _count: { _all: true },
+        where: {
+          visitDate: { gte: d30 },
+          block: { not: null },
+          approvedByResident: true,
+        },
+      }),
       prisma.visitLog.groupBy({
         by: ["fromSource"],
         _count: { _all: true },
         where: { visitDate: { gte: d30 }, fromSource: { not: null } },
         orderBy: { _count: { fromSource: "desc" } },
-        take: 3,
-      }),
-      prisma.visitLog.groupBy({
-        by: ["block", "flatNumber"],
-        _count: { _all: true },
-        where: { visitDate: { gte: d30 }, block: { not: null }, flatNumber: { not: null } },
-        orderBy: { _count: { block: "desc" } },
         take: 3,
       }),
       prisma.visitLog.groupBy({
@@ -60,14 +69,22 @@ export async function GET() {
         orderBy: { _count: { allowedByGuard: "desc" } },
         take: 3,
       }),
-      prisma.visitLog.groupBy({
-        by: ["approvedBy"],
-        _count: { _all: true },
-        where: { visitDate: { gte: d30 }, approvedByResident: true, approvedBy: { not: null } },
-        orderBy: { _count: { approvedBy: "desc" } },
-        take: 5,
-      }),
     ]);
+
+    // Merge per-block totals + resident-approved counts into one array (block 1..4)
+    const residentByBlock = new Map<number, number>();
+    for (const row of blockResidentApproved) {
+      if (row.block != null) residentByBlock.set(row.block, row._count._all);
+    }
+    const totalsByBlock = new Map<number, number>();
+    for (const row of blockTotals) {
+      if (row.block != null) totalsByBlock.set(row.block, row._count._all);
+    }
+    const byBlock = [1, 2, 3, 4].map((block) => ({
+      block,
+      total: totalsByBlock.get(block) ?? 0,
+      residentApproved: residentByBlock.get(block) ?? 0,
+    }));
 
     return NextResponse.json({
       windowDays: 30,
@@ -77,10 +94,9 @@ export async function GET() {
       todayResidentApproved,
       last7ResidentApproved,
       last30ResidentApproved,
+      byBlock,
       topSources: topSources.map((r) => ({ source: r.fromSource, count: r._count._all })),
-      topFlats: topFlats.map((r) => ({ block: r.block, flatNumber: r.flatNumber, count: r._count._all })),
       topGuards: topGuards.map((r) => ({ guard: r.allowedByGuard, count: r._count._all })),
-      topApprovers: topApprovers.map((r) => ({ name: r.approvedBy, count: r._count._all })),
     });
   } catch (err) {
     console.error("GET /api/visit-log/stats failed:", err);
