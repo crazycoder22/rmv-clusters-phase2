@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import { useRole } from "@/hooks/useRole";
 import { ChevronLeft, ChevronRight, Check, X, Loader2 } from "lucide-react";
 import clsx from "clsx";
@@ -30,7 +30,19 @@ function getMonthKey(date: Date): string {
 }
 
 export default function ChecklistPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+
+  // Send unauthenticated users to Google sign-in and bring them back here.
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      signIn("google", {
+        callbackUrl:
+          typeof window !== "undefined"
+            ? window.location.pathname + window.location.search
+            : "/checklist",
+      });
+    }
+  }, [status]);
   const { canFillChecklist, isLoading: roleLoading } = useRole();
 
   const [currentMonth, setCurrentMonth] = useState(() => {
@@ -105,7 +117,7 @@ export default function ChecklistPage() {
   if (!session) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-12 text-center text-gray-500 dark:text-gray-400">
-        Please sign in to view the facility checklist.
+        Redirecting to sign in…
       </div>
     );
   }

@@ -1,13 +1,25 @@
 "use client";
 
-import { useState } from "react";
-import { useSession } from "next-auth/react";
+import { useState, useEffect } from "react";
+import { useSession, signIn } from "next-auth/react";
 import Link from "next/link";
 import { ArrowLeft, PenLine, Send, CheckCircle } from "lucide-react";
 import RichTextEditor from "@/components/editor/RichTextEditor";
 
 export default function SubmitArticlePage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+
+  // If the user is not signed in, send them through Google OAuth and back.
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      signIn("google", {
+        callbackUrl:
+          typeof window !== "undefined"
+            ? window.location.pathname + window.location.search
+            : "/newsletters/submit",
+      });
+    }
+  }, [status]);
   const [title, setTitle] = useState("");
   const [contentHtml, setContentHtml] = useState("");
   const [submitting, setSubmitting] = useState(false);

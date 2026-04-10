@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -111,8 +111,17 @@ export default function DashboardPage() {
 
   // Auth guard
   useEffect(() => {
-    if (status !== "loading" && (!session?.user || !session.user.isRegistered)) {
-      router.replace("/");
+    if (status === "unauthenticated") {
+      signIn("google", {
+        callbackUrl:
+          typeof window !== "undefined"
+            ? window.location.pathname + window.location.search
+            : "/dashboard",
+      });
+      return;
+    }
+    if (status === "authenticated" && !session?.user?.isRegistered) {
+      router.replace("/register");
     }
   }, [status, session, router]);
 

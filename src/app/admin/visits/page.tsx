@@ -1,6 +1,6 @@
-import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { requireAuth } from "@/lib/require-auth";
 import { isAdmin } from "@/lib/roles";
 import VisitLogTable from "@/components/visits/VisitLogTable";
 
@@ -10,9 +10,7 @@ export const metadata = {
 };
 
 export default async function AdminVisitsPage() {
-  const session = await auth();
-  if (!session?.user?.email) redirect("/");
-  if (!session.user.isApproved) redirect("/pending-approval");
+  const session = await requireAuth();
   if (!isAdmin(session.user.roles)) redirect("/visits");
 
   return (
