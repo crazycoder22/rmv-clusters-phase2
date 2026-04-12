@@ -44,7 +44,8 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const date = searchParams.get("date") || istTodayYmd();
+    const dateFrom = searchParams.get("dateFrom") || searchParams.get("date") || istTodayYmd();
+    const dateTo = searchParams.get("dateTo") || dateFrom;
     const fromSource = searchParams.get("fromSource") || undefined;
     const guard = searchParams.get("guard") || undefined;
     const approvedByResidentParam = searchParams.get("approvedByResident");
@@ -52,14 +53,14 @@ export async function GET(request: Request) {
     const limit = Math.min(200, Math.max(1, parseInt(searchParams.get("limit") || "50", 10) || 50));
 
     const where: {
-      visitDate?: string;
+      visitDate?: string | { gte?: string; lte?: string };
       block?: number;
       flatNumber?: string;
       fromSource?: { equals: string; mode: "insensitive" };
       allowedByGuard?: { equals: string; mode: "insensitive" };
       approvedByResident?: boolean;
     } = {};
-    if (date) where.visitDate = date;
+    where.visitDate = dateFrom === dateTo ? dateFrom : { gte: dateFrom, lte: dateTo };
     if (approvedByResidentParam === "true") where.approvedByResident = true;
     else if (approvedByResidentParam === "false") where.approvedByResident = false;
 

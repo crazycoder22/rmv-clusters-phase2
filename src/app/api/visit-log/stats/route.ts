@@ -2,12 +2,15 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { isAdmin } from "@/lib/roles";
-import { istTodayYmd, istYmdDaysAgo } from "@/lib/dates-ist";
+import { istTodayYmd } from "@/lib/dates-ist";
 
 export const dynamic = "force-dynamic";
 
 // GET /api/visit-log/stats — admin-only summary
-export async function GET() {
+// Query params:
+//   dateFrom  YYYY-MM-DD (default: today IST)
+//   dateTo    YYYY-MM-DD (default: dateFrom)
+export async function GET(request: Request) {
   try {
     const session = await auth();
     if (!session?.user?.email) {
@@ -17,55 +20,48 @@ export async function GET() {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const today = istTodayYmd();
-    const d7 = istYmdDaysAgo(6); // last 7 days inclusive of today
-    const d30 = istYmdDaysAgo(29); // last 30 days inclusive
+    const { searchParams } = new URL(request.url);
+    const dateFrom = searchParams.get("dateFrom") || istTodayYmd();
+    const dateTo = searchParams.get("dateTo") || dateFrom;
+
+    const dateWhere =
+      dateFrom === dateTo
+        ? { visitDate: dateFrom }
+        : { visitDate: { gte: dateFrom, lte: dateTo } };
 
     const [
-      todayCount,
-      last7Count,
-      last30Count,
-      todayResidentApproved,
-      last7ResidentApproved,
-      last30ResidentApproved,
+      rangeCount,
+      rangeResidentApproved,
       blockTotals,
       blockResidentApproved,
       topSources,
       topGuards,
     ] = await Promise.all([
-      prisma.visitLog.count({ where: { visitDate: today } }),
-      prisma.visitLog.count({ where: { visitDate: { gte: d7 } } }),
-      prisma.visitLog.count({ where: { visitDate: { gte: d30 } } }),
-      prisma.visitLog.count({ where: { visitDate: today, approvedByResident: true } }),
-      prisma.visitLog.count({ where: { visitDate: { gte: d7 }, approvedByResident: true } }),
-      prisma.visitLog.count({ where: { visitDate: { gte: d30 }, approvedByResident: true } }),
-      // Per-block totals (last 30d). block=null rows (COMMON AREA, masked) are excluded.
+      prisma.visitLog.count({ where: dateWhere }),
+      prisma.visitLog.count({ where: { ...dateWhere, approvedByResident: true } }),
+      // Per-block totals. block=null rows (COMMON AREA, masked) are excluded.
       prisma.visitLog.groupBy({
         by: ["block"],
         _count: { _all: true },
-        where: { visitDate: { gte: d30 }, block: { not: null } },
+        where: { ...dateWhere, block: { not: null } },
       }),
-      // Per-block resident-approved counts (last 30d)
+      // Per-block resident-approved counts
       prisma.visitLog.groupBy({
         by: ["block"],
         _count: { _all: true },
-        where: {
-          visitDate: { gte: d30 },
-          block: { not: null },
-          approvedByResident: true,
-        },
+        where: { ...dateWhere, block: { not: null }, approvedByResident: true },
       }),
       prisma.visitLog.groupBy({
         by: ["fromSource"],
         _count: { _all: true },
-        where: { visitDate: { gte: d30 }, fromSource: { not: null } },
+        where: { ...dateWhere, fromSource: { not: null } },
         orderBy: { _count: { fromSource: "desc" } },
         take: 3,
       }),
       prisma.visitLog.groupBy({
         by: ["allowedByGuard"],
         _count: { _all: true },
-        where: { visitDate: { gte: d30 }, allowedByGuard: { not: null } },
+        where: { ...dateWhere, allowedByGuard: { not: null } },
         orderBy: { _count: { allowedByGuard: "desc" } },
         take: 3,
       }),
@@ -87,13 +83,10 @@ export async function GET() {
     }));
 
     return NextResponse.json({
-      windowDays: 30,
-      todayCount,
-      last7Count,
-      last30Count,
-      todayResidentApproved,
-      last7ResidentApproved,
-      last30ResidentApproved,
+      dateFrom,
+      dateTo,
+      rangeCount,
+      rangeResidentApproved,
       byBlock,
       topSources: topSources.map((r) => ({ source: r.fromSource, count: r._count._all })),
       topGuards: topGuards.map((r) => ({ guard: r.allowedByGuard, count: r._count._all })),

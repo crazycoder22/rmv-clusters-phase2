@@ -3,8 +3,6 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   Calendar,
-  Users,
-  TrendingUp,
   Building2,
   ShieldCheck,
   Package,
@@ -32,12 +30,8 @@ interface VisitLogItem {
 }
 
 interface StatsData {
-  todayCount: number;
-  last7Count: number;
-  last30Count: number;
-  todayResidentApproved: number;
-  last7ResidentApproved: number;
-  last30ResidentApproved: number;
+  rangeCount: number;
+  rangeResidentApproved: number;
   byBlock: { block: number; total: number; residentApproved: number }[];
   topSources: { source: string | null; count: number }[];
   topGuards: { guard: string | null; count: number }[];
@@ -68,7 +62,8 @@ function formatTime(iso: string | null): string {
 }
 
 export default function VisitLogTable({ adminView }: { adminView: boolean }) {
-  const [date, setDate] = useState<string>(istYesterdayYmd());
+  const [dateFrom, setDateFrom] = useState<string>(istYesterdayYmd());
+  const [dateTo, setDateTo] = useState<string>(istYesterdayYmd());
   const [fromSource, setFromSource] = useState("");
   const [guard, setGuard] = useState("");
   const [block, setBlock] = useState("");
@@ -87,7 +82,8 @@ export default function VisitLogTable({ adminView }: { adminView: boolean }) {
     setLoading(true);
     const params = new URLSearchParams();
     params.set("scope", adminView ? "all" : "mine");
-    if (date) params.set("date", date);
+    if (dateFrom) params.set("dateFrom", dateFrom);
+    if (dateTo) params.set("dateTo", dateTo);
     if (fromSource) params.set("fromSource", fromSource);
     if (guard) params.set("guard", guard);
     if (adminView && block) params.set("block", block);
@@ -105,21 +101,24 @@ export default function VisitLogTable({ adminView }: { adminView: boolean }) {
     } finally {
       setLoading(false);
     }
-  }, [date, fromSource, guard, block, flatNumber, residentApprovedOnly, page, adminView]);
+  }, [dateFrom, dateTo, fromSource, guard, block, flatNumber, residentApprovedOnly, page, adminView]);
 
   useEffect(() => { fetchList(); }, [fetchList]);
 
   // Reset to page 1 when filters change
-  useEffect(() => { setPage(1); }, [date, fromSource, guard, block, flatNumber, residentApprovedOnly]);
+  useEffect(() => { setPage(1); }, [dateFrom, dateTo, fromSource, guard, block, flatNumber, residentApprovedOnly]);
 
-  // Admin stats — one-time fetch
+  // Admin stats — re-fetch when date range changes
   useEffect(() => {
     if (!adminView) return;
-    fetch("/api/visit-log/stats")
+    const params = new URLSearchParams();
+    if (dateFrom) params.set("dateFrom", dateFrom);
+    if (dateTo) params.set("dateTo", dateTo);
+    fetch(`/api/visit-log/stats?${params.toString()}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => setStats(d))
       .catch(() => {});
-  }, [adminView]);
+  }, [adminView, dateFrom, dateTo]);
 
   const totalPages = Math.max(1, Math.ceil(total / LIMIT));
 
@@ -130,31 +129,11 @@ export default function VisitLogTable({ adminView }: { adminView: boolean }) {
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           <StatCard
             icon={<Calendar size={18} />}
-            label="Today"
-            value={stats.todayCount}
+            label={dateFrom === dateTo ? dateFrom : `${dateFrom} – ${dateTo}`}
+            value={stats.rangeCount}
             sublabel={
-              stats.todayCount > 0
-                ? `${stats.todayResidentApproved} resident-approved (${((stats.todayResidentApproved / stats.todayCount) * 100).toFixed(0)}%)`
-                : undefined
-            }
-          />
-          <StatCard
-            icon={<TrendingUp size={18} />}
-            label="Last 7 days"
-            value={stats.last7Count}
-            sublabel={
-              stats.last7Count > 0
-                ? `${stats.last7ResidentApproved} resident-approved (${((stats.last7ResidentApproved / stats.last7Count) * 100).toFixed(0)}%)`
-                : undefined
-            }
-          />
-          <StatCard
-            icon={<Users size={18} />}
-            label="Last 30 days"
-            value={stats.last30Count}
-            sublabel={
-              stats.last30Count > 0
-                ? `${stats.last30ResidentApproved} resident-approved (${((stats.last30ResidentApproved / stats.last30Count) * 100).toFixed(0)}%)`
+              stats.rangeCount > 0
+                ? `${stats.rangeResidentApproved} resident-approved (${((stats.rangeResidentApproved / stats.rangeCount) * 100).toFixed(0)}%)`
                 : undefined
             }
           />
@@ -166,7 +145,7 @@ export default function VisitLogTable({ adminView }: { adminView: boolean }) {
         <div>
           <div className="flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">
             <Building2 size={14} />
-            By block (last 30 days)
+            By block
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {stats.byBlock.map((b) => (
@@ -189,19 +168,29 @@ export default function VisitLogTable({ adminView }: { adminView: boolean }) {
       {/* Top lists (last 30d) */}
       {adminView && stats && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <TopList icon={<Package size={16} />} title="Top 3 Sources (30d)" items={stats.topSources.map((s) => ({ label: s.source || "—", count: s.count }))} />
-          <TopList icon={<ShieldCheck size={16} />} title="Top 3 Guards (30d)" items={stats.topGuards.map((g) => ({ label: g.guard || "—", count: g.count }))} />
+          <TopList icon={<Package size={16} />} title="Top 3 Sources" items={stats.topSources.map((s) => ({ label: s.source || "—", count: s.count }))} />
+          <TopList icon={<ShieldCheck size={16} />} title="Top 3 Guards" items={stats.topGuards.map((g) => ({ label: g.guard || "—", count: g.count }))} />
         </div>
       )}
 
       {/* Filter bar */}
       <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
         <div className="flex flex-wrap gap-3 items-end">
-          <Field label="Date">
+          <Field label="From">
             <input
               type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
+              value={dateFrom}
+              max={dateTo || undefined}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+            />
+          </Field>
+          <Field label="To">
+            <input
+              type="date"
+              value={dateTo}
+              min={dateFrom || undefined}
+              onChange={(e) => setDateTo(e.target.value)}
               className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             />
           </Field>
@@ -231,7 +220,7 @@ export default function VisitLogTable({ adminView }: { adminView: boolean }) {
               </Field>
             </>
           )}
-          <Field label="From">
+          <Field label="Source">
             <input
               type="text"
               value={fromSource}
@@ -251,7 +240,9 @@ export default function VisitLogTable({ adminView }: { adminView: boolean }) {
           </Field>
           <button
             onClick={() => {
-              setDate(istYesterdayYmd());
+              const yesterday = istYesterdayYmd();
+              setDateFrom(yesterday);
+              setDateTo(yesterday);
               setFromSource("");
               setGuard("");
               setBlock("");
