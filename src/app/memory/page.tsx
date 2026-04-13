@@ -256,9 +256,10 @@ function LeaderboardView({
       ) : scope === "daily" ? (
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
           <div className="px-4 py-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700">
-            <div className="grid grid-cols-[auto_1fr_auto_auto] gap-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <div className="grid grid-cols-[auto_1fr_auto_auto_auto] gap-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               <span>#</span>
               <span>Player</span>
+              <span className="text-right">Score</span>
               <span className="text-right">Moves</span>
               <span className="text-right">Time</span>
             </div>
@@ -268,7 +269,7 @@ function LeaderboardView({
               <div
                 key={e.playerId}
                 className={clsx(
-                  "grid grid-cols-[auto_1fr_auto_auto] gap-3 px-4 py-3 items-center",
+                  "grid grid-cols-[auto_1fr_auto_auto_auto] gap-3 px-4 py-3 items-center",
                   e.playerId === currentPlayerId && "bg-primary-50/50 dark:bg-primary-900/20"
                 )}
               >
@@ -284,6 +285,9 @@ function LeaderboardView({
                     Block {e.block}{e.flatNumber ? `, ${e.flatNumber}` : ""}
                   </p>
                 </div>
+                <span className="text-sm font-mono font-bold text-green-600 dark:text-green-400 text-right">
+                  {e.score}
+                </span>
                 <span className="text-sm font-mono font-semibold text-gray-700 dark:text-gray-300 text-right">
                   {e.moves}
                 </span>
@@ -325,8 +329,8 @@ function LeaderboardView({
                     Block {e.block}{e.flatNumber ? `, ${e.flatNumber}` : ""}
                   </p>
                 </div>
-                <span className="text-sm font-mono font-semibold text-primary-600 dark:text-primary-400 text-right">
-                  {e.totalPoints}
+                <span className="text-sm font-mono font-bold text-green-600 dark:text-green-400 text-right">
+                  {e.totalScore ?? e.totalPoints}
                 </span>
                 <span className="text-sm font-mono text-gray-500 dark:text-gray-400 text-right">
                   {e.daysPlayed}

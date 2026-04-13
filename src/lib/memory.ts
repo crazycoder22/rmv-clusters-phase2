@@ -60,6 +60,23 @@ export function getDailyCards(date: string, difficulty: Difficulty): string[] {
   return shuffle(cards, rng);
 }
 
+/**
+ * Calculate a score based on moves and time.
+ * Score = base points for completing - move penalty - time penalty
+ * Base: 1000 (easy), 1500 (medium), 2000 (hard)
+ * Move penalty: (moves - optimal) * 20, where optimal = number of pairs
+ * Time penalty: 2 points per second
+ * Minimum score: 50
+ */
+export function calculateScore(moves: number, timeSeconds: number, difficulty: string): number {
+  const config = GRID_CONFIG[difficulty as Difficulty] ?? GRID_CONFIG.medium;
+  const base = difficulty === "easy" ? 1000 : difficulty === "hard" ? 2000 : 1500;
+  const optimalMoves = config.pairs;
+  const movePenalty = Math.max(0, moves - optimalMoves) * 20;
+  const timePenalty = timeSeconds * 2;
+  return Math.max(50, base - movePenalty - timePenalty);
+}
+
 /** Get today's date in IST */
 export function getTodayIST(): string {
   const now = new Date();

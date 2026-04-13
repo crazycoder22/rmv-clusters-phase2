@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getTodayIST } from "@/lib/memory";
+import { getTodayIST, calculateScore } from "@/lib/memory";
 
 export const dynamic = "force-dynamic";
 
@@ -14,28 +14,30 @@ export async function GET(request: Request) {
     const today = getTodayIST();
     const games = await prisma.memoryGame.findMany({
       where: { date: today, difficulty, completed: true },
-      orderBy: [{ moves: "asc" }, { timeSeconds: "asc" }],
-      take: 20,
+      take: 50,
       include: {
         player: { select: { id: true, name: true, block: true, flatNumber: true } },
       },
     });
 
-    return NextResponse.json({
-      leaderboard: games.map((g, i) => ({
-        rank: i + 1,
+    const leaderboard = games
+      .map((g) => ({
         playerId: g.player.id,
         name: g.player.name,
         block: g.player.block,
         flatNumber: g.player.flatNumber,
         moves: g.moves,
         timeSeconds: g.timeSeconds,
-      })),
-    });
+        score: calculateScore(g.moves, g.timeSeconds ?? 0, difficulty),
+      }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 20)
+      .map((p, i) => ({ rank: i + 1, ...p }));
+
+    return NextResponse.json({ leaderboard });
   }
 
-  // Weekly: aggregate by player — fewest total moves, then fastest total time
-  // Get games from last 7 days
+  // Weekly: aggregate by player
   const now = new Date();
   const istOffset = 5.5 * 60 * 60 * 1000;
   const ist = new Date(now.getTime() + istOffset + now.getTimezoneOffset() * 60 * 1000);
@@ -63,15 +65,18 @@ export async function GET(request: Request) {
       flatNumber: string;
       totalMoves: number;
       totalTime: number;
+      totalScore: number;
       daysPlayed: number;
     }
   >();
 
   for (const g of games) {
+    const score = calculateScore(g.moves, g.timeSeconds ?? 0, difficulty);
     const existing = playerMap.get(g.playerId);
     if (existing) {
       existing.totalMoves += g.moves;
       existing.totalTime += g.timeSeconds ?? 0;
+      existing.totalScore += score;
       existing.daysPlayed++;
     } else {
       playerMap.set(g.playerId, {
@@ -81,13 +86,14 @@ export async function GET(request: Request) {
         flatNumber: g.player.flatNumber,
         totalMoves: g.moves,
         totalTime: g.timeSeconds ?? 0,
+        totalScore: score,
         daysPlayed: 1,
       });
     }
   }
 
   const leaderboard = Array.from(playerMap.values())
-    .sort((a, b) => b.daysPlayed - a.daysPlayed || a.totalMoves - b.totalMoves || a.totalTime - b.totalTime)
+    .sort((a, b) => b.totalScore - a.totalScore || b.daysPlayed - a.daysPlayed)
     .slice(0, 20)
     .map((p, i) => ({ rank: i + 1, ...p }));
 
