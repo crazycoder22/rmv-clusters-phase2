@@ -506,29 +506,28 @@ function ResidentApprovalChart({ data }: { data: TrendPoint[] }) {
 
           {/* SVG line chart */}
           <svg
-            viewBox={`0 0 ${data.length * 30} ${chartHeight}`}
+            viewBox="0 0 100 100"
             className="absolute inset-0 w-full h-full overflow-visible"
             preserveAspectRatio="none"
           >
             {/* Area fill */}
             <path
               d={
-                `M 0 ${chartHeight} ` +
+                `M 0 100 ` +
                 data.map((d, i) => {
-                  const x = (i / (data.length - 1)) * 100;
+                  const x = data.length > 1 ? (i / (data.length - 1)) * 100 : 50;
                   const y = 100 - d.pct;
                   return `L ${x} ${y}`;
                 }).join(" ") +
-                ` L 100 ${chartHeight} Z`
+                ` L 100 100 Z`
               }
               fill="url(#approvalGradient)"
               vectorEffect="non-scaling-stroke"
-              style={{ transform: "scaleX(1)" }}
             />
             {/* Line */}
             <path
               d={data.map((d, i) => {
-                const x = (i / (data.length - 1)) * 100;
+                const x = data.length > 1 ? (i / (data.length - 1)) * 100 : 50;
                 const y = 100 - d.pct;
                 return `${i === 0 ? "M" : "L"} ${x} ${y}`;
               }).join(" ")}
