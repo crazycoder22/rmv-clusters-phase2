@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Loader2,
   UserCheck,
+  TrendingUp,
 } from "lucide-react";
 
 interface VisitLogItem {
@@ -35,6 +36,13 @@ interface StatsData {
   byBlock: { block: number; total: number; residentApproved: number }[];
   topSources: { source: string | null; count: number }[];
   topGuards: { guard: string | null; count: number }[];
+}
+
+interface TrendPoint {
+  date: string;
+  total: number;
+  approved: number;
+  pct: number;
 }
 
 function istYesterdayYmd(): string {
@@ -75,6 +83,7 @@ export default function VisitLogTable({ adminView }: { adminView: boolean }) {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState<StatsData | null>(null);
+  const [trend, setTrend] = useState<TrendPoint[]>([]);
 
   const LIMIT = 50;
 
@@ -119,6 +128,15 @@ export default function VisitLogTable({ adminView }: { adminView: boolean }) {
       .then((d) => setStats(d))
       .catch(() => {});
   }, [adminView, dateFrom, dateTo]);
+
+  // Trend data — fetch once on mount for admin
+  useEffect(() => {
+    if (!adminView) return;
+    fetch("/api/visit-log/trend?days=30")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d?.trend) setTrend(d.trend); })
+      .catch(() => {});
+  }, [adminView]);
 
   const totalPages = Math.max(1, Math.ceil(total / LIMIT));
 
@@ -171,6 +189,11 @@ export default function VisitLogTable({ adminView }: { adminView: boolean }) {
           <TopList icon={<Package size={16} />} title="Top 3 Sources" items={stats.topSources.map((s) => ({ label: s.source || "—", count: s.count }))} />
           <TopList icon={<ShieldCheck size={16} />} title="Top 3 Guards" items={stats.topGuards.map((g) => ({ label: g.guard || "—", count: g.count }))} />
         </div>
+      )}
+
+      {/* Resident approval trend chart */}
+      {adminView && trend.length > 1 && (
+        <ResidentApprovalChart data={trend} />
       )}
 
       {/* Filter bar */}
@@ -436,6 +459,146 @@ function StatCard({
       {sublabel && (
         <div className="text-xs text-primary-600 dark:text-primary-400 mt-0.5">{sublabel}</div>
       )}
+    </div>
+  );
+}
+
+function ResidentApprovalChart({ data }: { data: TrendPoint[] }) {
+  const maxPct = 100;
+  const chartHeight = 200;
+
+  function formatDateLabel(dateStr: string) {
+    const [, m, d] = dateStr.split("-");
+    return `${parseInt(d)}/${parseInt(m)}`;
+  }
+
+  // Show every Nth label to avoid overlap
+  const labelInterval = data.length > 15 ? Math.ceil(data.length / 10) : 1;
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+      <div className="flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-400 mb-4 uppercase tracking-wider">
+        <TrendingUp size={14} />
+        Resident Approval Trend (Last {data.length} days)
+      </div>
+
+      {/* Y-axis labels + chart area */}
+      <div className="flex gap-2">
+        {/* Y-axis */}
+        <div className="flex flex-col justify-between text-xs text-gray-400 dark:text-gray-500 tabular-nums w-8 text-right" style={{ height: chartHeight }}>
+          <span>100%</span>
+          <span>75%</span>
+          <span>50%</span>
+          <span>25%</span>
+          <span>0%</span>
+        </div>
+
+        {/* Chart */}
+        <div className="flex-1 relative" style={{ height: chartHeight }}>
+          {/* Grid lines */}
+          {[0, 25, 50, 75, 100].map((pct) => (
+            <div
+              key={pct}
+              className="absolute w-full border-t border-gray-100 dark:border-gray-700"
+              style={{ bottom: `${pct}%` }}
+            />
+          ))}
+
+          {/* SVG line chart */}
+          <svg
+            viewBox={`0 0 ${data.length * 30} ${chartHeight}`}
+            className="absolute inset-0 w-full h-full overflow-visible"
+            preserveAspectRatio="none"
+          >
+            {/* Area fill */}
+            <path
+              d={
+                `M 0 ${chartHeight} ` +
+                data.map((d, i) => {
+                  const x = (i / (data.length - 1)) * 100;
+                  const y = 100 - d.pct;
+                  return `L ${x} ${y}`;
+                }).join(" ") +
+                ` L 100 ${chartHeight} Z`
+              }
+              fill="url(#approvalGradient)"
+              vectorEffect="non-scaling-stroke"
+              style={{ transform: "scaleX(1)" }}
+            />
+            {/* Line */}
+            <path
+              d={data.map((d, i) => {
+                const x = (i / (data.length - 1)) * 100;
+                const y = 100 - d.pct;
+                return `${i === 0 ? "M" : "L"} ${x} ${y}`;
+              }).join(" ")}
+              fill="none"
+              stroke="#16a34a"
+              strokeWidth="2"
+              vectorEffect="non-scaling-stroke"
+            />
+            <defs>
+              <linearGradient id="approvalGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#16a34a" stopOpacity="0.2" />
+                <stop offset="100%" stopColor="#16a34a" stopOpacity="0.02" />
+              </linearGradient>
+            </defs>
+          </svg>
+
+          {/* Bars + tooltips */}
+          <div className="absolute inset-0 flex items-end">
+            {data.map((d, i) => (
+              <div
+                key={d.date}
+                className="flex-1 relative group"
+                style={{ height: "100%" }}
+              >
+                {/* Hover bar */}
+                <div
+                  className="absolute bottom-0 left-[10%] right-[10%] bg-primary-500/20 dark:bg-primary-400/20 rounded-t opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{ height: `${d.pct}%` }}
+                />
+                {/* Tooltip */}
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-10">
+                  <div className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded px-2 py-1 whitespace-nowrap shadow-lg">
+                    <div className="font-medium">{formatDateLabel(d.date)}</div>
+                    <div>{d.pct}% ({d.approved}/{d.total})</div>
+                  </div>
+                </div>
+                {/* Dot */}
+                <div
+                  className="absolute left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-green-600 dark:bg-green-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{ bottom: `${d.pct}%`, marginBottom: -4 }}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* X-axis labels */}
+      <div className="flex ml-10 mt-1">
+        {data.map((d, i) => (
+          <div key={d.date} className="flex-1 text-center">
+            {i % labelInterval === 0 ? (
+              <span className="text-[10px] text-gray-400 dark:text-gray-500 tabular-nums">
+                {formatDateLabel(d.date)}
+              </span>
+            ) : null}
+          </div>
+        ))}
+      </div>
+
+      {/* Legend */}
+      <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400">
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-0.5 bg-green-600 dark:bg-green-400 rounded" />
+          % visitors approved by residents
+        </div>
+        <div className="ml-auto tabular-nums">
+          Avg: {data.length > 0 ? Math.round(data.reduce((s, d) => s + d.pct, 0) / data.length) : 0}%
+        </div>
+      </div>
     </div>
   );
 }

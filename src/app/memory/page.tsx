@@ -27,6 +27,7 @@ interface LeaderboardEntry {
   flatNumber: string;
   moves: number;
   timeSeconds: number;
+  score: number;
 }
 
 interface WeeklyLeaderboardEntry {
