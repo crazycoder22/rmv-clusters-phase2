@@ -48,6 +48,7 @@ const topLevelLinks: NavLink[] = [
   { href: "/crossword", label: "Crossword" },
   { href: "/tambola", label: "Tambola" },
   { href: "/quiz", label: "Quiz" },
+  { href: "/memory", label: "Memory" },
 ];
 
 // Grouped dropdown links

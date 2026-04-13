@@ -1030,6 +1030,7 @@ model WordlePlayer {
   tambolaTickets TambolaTicket[]
   tambolaPrizes  TambolaPrize[]
   quizPlayers    QuizPlayer[]
+  memoryGames    MemoryGame[]
   createdAt   DateTime     @default(now())
 }
 
@@ -1120,6 +1121,26 @@ model CrosswordGame {
 }
 
 // ─── End Crossword Game ──────────────────────────────────────────────────────
+
+// ─── Memory Game ────────────────────────────────────────────────────────────
+
+model MemoryGame {
+  id          String       @id @default(cuid())
+  playerId    String
+  player      WordlePlayer @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  date        String       // YYYY-MM-DD in IST
+  difficulty  String       // "easy" (4x3=6 pairs) | "medium" (4x4=8 pairs) | "hard" (5x4=10 pairs)
+  moves       Int          @default(0)
+  completed   Boolean      @default(false)
+  timeSeconds Int?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@unique([playerId, date, difficulty])
+  @@index([date, difficulty])
+}
+
+// ─── End Memory Game ────────────────────────────────────────────────────────
 
 // ─── Video Library ────────────────────────────────────────────────────────────
 
