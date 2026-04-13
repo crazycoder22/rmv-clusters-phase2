@@ -47,6 +47,7 @@ const topLevelLinks: NavLink[] = [
   { href: "/sudoku", label: "Sudoku" },
   { href: "/crossword", label: "Crossword" },
   { href: "/tambola", label: "Tambola" },
+  { href: "/quiz", label: "Quiz" },
 ];
 
 // Grouped dropdown links
@@ -287,6 +288,11 @@ export default function Navbar() {
       href: "/admin/fantasy",
       label: "Fantasy Cricket",
       match: (p) => p.startsWith("/admin/fantasy"),
+    });
+    adminLinks.push({
+      href: "/admin/quiz",
+      label: "Quiz",
+      match: (p) => p.startsWith("/admin/quiz"),
     });
     adminLinks.push({
       href: "/admin/housekeeping",

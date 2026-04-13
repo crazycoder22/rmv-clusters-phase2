@@ -85,6 +85,8 @@ model Resident {
   marketplaceWishlist      MarketplaceWishlist[]               @relation("MarketplaceWishlist")
   marketplaceCategorySubs  MarketplaceCategorySubscription[]   @relation("MarketplaceCategorySubscriptions")
   tambolaSessions          TambolaSession[]
+  quizzes                  Quiz[]
+  quizSessionsCreated      QuizSession[]    @relation("QuizSessionsCreated")
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 }
@@ -1027,6 +1029,7 @@ model WordlePlayer {
   crosswordGames CrosswordGame[]
   tambolaTickets TambolaTicket[]
   tambolaPrizes  TambolaPrize[]
+  quizPlayers    QuizPlayer[]
   createdAt   DateTime     @default(now())
 }
 
@@ -1288,3 +1291,86 @@ model VisitLog {
 }
 
 // ─── End MyGate Visit Log ───────────────────────────────────────────────────
+
+// ─── Quiz Game (Kahoot-style) ───────────────────────────────────────────────
+
+enum QuizSessionStatus {
+  WAITING
+  ACTIVE
+  SHOWING_RESULTS
+  COMPLETED
+}
+
+model Quiz {
+  id          String         @id @default(cuid())
+  title       String
+  description String?
+  createdById String
+  createdBy   Resident       @relation(fields: [createdById], references: [id])
+  questions   QuizQuestion[]
+  sessions    QuizSession[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model QuizQuestion {
+  id            String       @id @default(cuid())
+  quizId        String
+  quiz          Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  questionText  String
+  options       String       // JSON: string[4]
+  correctIndex  Int          // 0-3
+  timeLimitSecs Int          @default(20)
+  sortOrder     Int          @default(0)
+  answers       QuizAnswer[]
+
+  @@index([quizId])
+}
+
+model QuizSession {
+  id                 String            @id @default(cuid())
+  code               String            @unique
+  quizId             String
+  quiz               Quiz              @relation(fields: [quizId], references: [id])
+  status             QuizSessionStatus @default(WAITING)
+  currentQuestionIdx Int               @default(-1)
+  questionStartedAt  DateTime?
+  createdById        String
+  createdBy          Resident          @relation("QuizSessionsCreated", fields: [createdById], references: [id])
+  players            QuizPlayer[]
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  @@index([status])
+}
+
+model QuizPlayer {
+  id        String       @id @default(cuid())
+  sessionId String
+  session   QuizSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  playerId  String
+  player    WordlePlayer @relation(fields: [playerId], references: [id])
+  score     Int          @default(0)
+  answers   QuizAnswer[]
+  createdAt DateTime     @default(now())
+
+  @@unique([sessionId, playerId])
+  @@index([sessionId])
+}
+
+model QuizAnswer {
+  id           String       @id @default(cuid())
+  quizPlayerId String
+  quizPlayer   QuizPlayer   @relation(fields: [quizPlayerId], references: [id], onDelete: Cascade)
+  questionId   String
+  question     QuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answerIndex  Int
+  isCorrect    Boolean
+  responseMs   Int
+  points       Int          @default(0)
+  createdAt    DateTime     @default(now())
+
+  @@unique([quizPlayerId, questionId])
+}
+
+// ─── End Quiz Game ──────────────────────────────────────────────────────────
