@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, use } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import Link from "next/link";
 import { ArrowLeft, Users, Check, Loader2, Trophy, PartyPopper } from "lucide-react";
 import clsx from "clsx";
@@ -36,124 +36,6 @@ const PRIZE_CONFIG = [
   { type: "BOTTOM_LINE", label: "Bottom Line", emoji: "\uD83D\uDD35", color: "text-blue-500" },
   { type: "FULL_HOUSE", label: "Full House", emoji: "\uD83C\uDFC6", color: "text-amber-500" },
 ];
-
-// ── Input class (shared) ──────────────────────────────────────────────────────
-
-const inputClass =
-  "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 outline-none";
-
-// ── Registration form ─────────────────────────────────────────────────────────
-
-function RegistrationForm({
-  onRegister,
-}: {
-  onRegister: (playerId: string, name: string) => void;
-}) {
-  const [name, setName] = useState("");
-  const [block, setBlock] = useState("");
-  const [flatNumber, setFlatNumber] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [error, setError] = useState("");
-  const [saving, setSaving] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setSaving(true);
-    try {
-      const res = await fetch("/api/wordle/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          block: Number(block),
-          flatNumber,
-          email,
-          phone,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Registration failed");
-        return;
-      }
-      localStorage.setItem("tambola_player_id", data.playerId);
-      localStorage.setItem("tambola_player_name", data.name);
-      onRegister(data.playerId, data.name);
-    } catch {
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <div className="max-w-md mx-auto">
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-1">
-          Welcome to Tambola!
-        </h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-          Enter your details to join the game
-        </p>
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Full Name"
-            required
-            className={inputClass}
-          />
-          <div className="grid grid-cols-2 gap-3">
-            <input
-              type="number"
-              value={block}
-              onChange={(e) => setBlock(e.target.value)}
-              placeholder="Block Number"
-              required
-              min={1}
-              className={inputClass}
-            />
-            <input
-              type="text"
-              value={flatNumber}
-              onChange={(e) => setFlatNumber(e.target.value)}
-              placeholder="Flat Number"
-              required
-              className={inputClass}
-            />
-          </div>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email"
-            required
-            className={inputClass}
-          />
-          <input
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="Phone Number"
-            required
-            className={inputClass}
-          />
-          {error && <p className="text-sm text-red-500">{error}</p>}
-          <button
-            type="submit"
-            disabled={saving}
-            className="w-full bg-primary-600 text-white py-2.5 rounded-lg font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 text-sm"
-          >
-            {saving ? "Registering..." : "Join Game"}
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-}
 
 // ── Prize Status Bar ──────────────────────────────────────────────────────────
 
@@ -510,50 +392,28 @@ export default function TambolaGamePage({
 
   useEffect(() => {
     if (sessionStatus === "loading") return;
+    if (!session?.user?.email) return; // Will be redirected to sign-in
 
     // Auto-register for logged-in users
-    if (session?.user?.email) {
-      fetch("/api/wordle/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fromSession: true }),
+    fetch("/api/wordle/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fromSession: true }),
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data) {
+          localStorage.setItem("tambola_player_id", data.playerId);
+          localStorage.setItem("tambola_player_name", data.name);
+          setPlayerId(data.playerId);
+          setPlayerName(data.name);
+        }
       })
-        .then((r) => (r.ok ? r.json() : null))
-        .then((data) => {
-          if (data) {
-            localStorage.setItem("tambola_player_id", data.playerId);
-            localStorage.setItem("tambola_player_name", data.name);
-            setPlayerId(data.playerId);
-            setPlayerName(data.name);
-          } else {
-            restoreFromStorage();
-          }
-        })
-        .catch(() => restoreFromStorage())
-        .finally(() => setLoading(false));
-      return;
-    }
-
-    restoreFromStorage();
-    setLoading(false);
+      .catch(() => {
+        // silent
+      })
+      .finally(() => setLoading(false));
   }, [session, sessionStatus]);
-
-  const restoreFromStorage = () => {
-    // Check tambola, then wordle, then sudoku keys
-    const keys = ["tambola", "wordle", "sudoku"];
-    for (const prefix of keys) {
-      const id = localStorage.getItem(`${prefix}_player_id`);
-      const name = localStorage.getItem(`${prefix}_player_name`);
-      if (id) {
-        // Ensure tambola keys are set
-        localStorage.setItem("tambola_player_id", id);
-        if (name) localStorage.setItem("tambola_player_name", name);
-        setPlayerId(id);
-        setPlayerName(name || "");
-        return;
-      }
-    }
-  };
 
   // ── Auto-join game ──────────────────────────────────────────────────────────
 
@@ -679,7 +539,8 @@ export default function TambolaGamePage({
 
   // ── Render ──────────────────────────────────────────────────────────────────
 
-  if (loading) {
+  // Auth guard: show spinner while session loads
+  if (sessionStatus === "loading" || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 size={24} className="animate-spin text-gray-400" />
@@ -687,28 +548,22 @@ export default function TambolaGamePage({
     );
   }
 
-  // Not registered
+  // Auth guard: redirect unauthenticated users to sign-in
+  if (!session) {
+    signIn("google", { callbackUrl: window.location.pathname });
+    return null;
+  }
+
+  // Auto-registration in progress
   if (!playerId) {
     return (
-      <div className="max-w-lg mx-auto px-4 py-6">
-        <div className="flex items-center justify-between mb-6">
-          <Link
-            href="/tambola"
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-          >
-            <ArrowLeft size={20} />
-          </Link>
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
-            Tambola
-          </h1>
-          <div className="w-5" />
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center space-y-3">
+          <Loader2 size={32} className="animate-spin text-primary-500 mx-auto" />
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Setting up your player profile...
+          </p>
         </div>
-        <RegistrationForm
-          onRegister={(id, name) => {
-            setPlayerId(id);
-            setPlayerName(name);
-          }}
-        />
       </div>
     );
   }
@@ -872,26 +727,13 @@ export default function TambolaGamePage({
       </div>
 
       {/* Player info footer */}
-      <div className="mt-4 flex items-center justify-between">
+      <div className="mt-4">
         <p className="text-xs text-gray-400 dark:text-gray-500">
           Playing as{" "}
           <span className="font-medium text-gray-500 dark:text-gray-400">
             {playerName}
           </span>
         </p>
-        <button
-          onClick={() => {
-            localStorage.removeItem("tambola_player_id");
-            localStorage.removeItem("tambola_player_name");
-            setPlayerId(null);
-            setPlayerName("");
-            setJoined(false);
-            setSessionData(null);
-          }}
-          className="text-[10px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-        >
-          Switch player
-        </button>
       </div>
     </div>
   );

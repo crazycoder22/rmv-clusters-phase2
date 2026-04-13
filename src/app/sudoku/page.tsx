@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import Link from "next/link";
 import { ArrowLeft, Trophy, Clock, Delete, Share2, Pause, Play } from "lucide-react";
 import AdBanner from "@/components/ads/AdBanner";
@@ -33,65 +33,6 @@ interface WeeklyLeaderboardEntry {
 }
 
 type LeaderboardScope = "daily" | "weekly";
-
-// ── Registration form (same as Wordle, uses WordlePlayer) ──────────────────
-
-function RegistrationForm({ onRegister }: { onRegister: (id: string, name: string) => void }) {
-  const [name, setName] = useState("");
-  const [block, setBlock] = useState("");
-  const [flatNumber, setFlatNumber] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [error, setError] = useState("");
-  const [saving, setSaving] = useState(false);
-
-  const inputClass =
-    "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 outline-none";
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setSaving(true);
-    try {
-      const res = await fetch("/api/wordle/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, block: Number(block), flatNumber, email, phone }),
-      });
-      const data = await res.json();
-      if (!res.ok) { setError(data.error || "Registration failed"); return; }
-      localStorage.setItem("sudoku_player_id", data.playerId);
-      localStorage.setItem("sudoku_player_name", data.name);
-      onRegister(data.playerId, data.name);
-    } catch {
-      setError("Something went wrong.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <div className="max-w-md mx-auto">
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-1">Welcome to Sudoku!</h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Enter your details to start playing</p>
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Full Name" required className={inputClass} />
-          <div className="grid grid-cols-2 gap-3">
-            <input type="number" value={block} onChange={(e) => setBlock(e.target.value)} placeholder="Block" required min={1} className={inputClass} />
-            <input value={flatNumber} onChange={(e) => setFlatNumber(e.target.value)} placeholder="Flat Number" required className={inputClass} />
-          </div>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" required className={inputClass} />
-          <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Phone" required className={inputClass} />
-          {error && <p className="text-sm text-red-500">{error}</p>}
-          <button type="submit" disabled={saving} className="w-full bg-primary-600 text-white py-2.5 rounded-lg font-medium hover:bg-primary-700 disabled:opacity-50 text-sm transition-colors">
-            {saving ? "Registering..." : "Start Playing"}
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-}
 
 // ── Grid ───────────────────────────────────────────────────────────────────
 
@@ -528,37 +469,38 @@ export default function SudokuPage() {
   // Share screenshot ref
   const shareRef = useRef<HTMLDivElement>(null);
 
+  // ── Redirect unauthenticated users ───────────────────────────────────────
+
+  useEffect(() => {
+    if (sessionStatus !== "loading" && !session) {
+      signIn("google", { callbackUrl: "/sudoku" });
+    }
+  }, [session, sessionStatus]);
+
   // ── Auto-register ────────────────────────────────────────────────────────
 
   useEffect(() => {
-    if (sessionStatus === "loading") return;
+    if (sessionStatus === "loading" || !session?.user?.email) return;
 
-    if (session?.user?.email) {
-      fetch("/api/wordle/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fromSession: true }),
+    fetch("/api/wordle/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fromSession: true }),
+    })
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (data) {
+          localStorage.setItem("sudoku_player_id", data.playerId);
+          localStorage.setItem("sudoku_player_name", data.name);
+          setPlayerId(data.playerId);
+          setPlayerName(data.name);
+        }
       })
-        .then((r) => r.ok ? r.json() : null)
-        .then((data) => {
-          if (data) {
-            localStorage.setItem("sudoku_player_id", data.playerId);
-            localStorage.setItem("sudoku_player_name", data.name);
-            setPlayerId(data.playerId);
-            setPlayerName(data.name);
-          }
-        })
-        .catch(() => {
-          const storedId = localStorage.getItem("sudoku_player_id");
-          if (storedId) { setPlayerId(storedId); setPlayerName(localStorage.getItem("sudoku_player_name") ?? ""); }
-        })
-        .finally(() => setLoading(false));
-      return;
-    }
-
-    const storedId = localStorage.getItem("sudoku_player_id");
-    if (storedId) { setPlayerId(storedId); setPlayerName(localStorage.getItem("sudoku_player_name") ?? ""); }
-    setLoading(false);
+      .catch(() => {
+        const storedId = localStorage.getItem("sudoku_player_id");
+        if (storedId) { setPlayerId(storedId); setPlayerName(localStorage.getItem("sudoku_player_name") ?? ""); }
+      })
+      .finally(() => setLoading(false));
   }, [session, sessionStatus]);
 
   // ── Load game ────────────────────────────────────────────────────────────
@@ -752,8 +694,12 @@ export default function SudokuPage() {
 
   // ── Render ───────────────────────────────────────────────────────────────
 
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center"><p className="text-gray-500">Loading…</p></div>;
+  if (sessionStatus === "loading" || !session || loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
   }
 
   const diffBtnClass = (d: Difficulty) =>
@@ -784,7 +730,9 @@ export default function SudokuPage() {
       <AdBanner page="sudoku" placement="top" />
 
       {!playerId ? (
-        <RegistrationForm onRegister={(id, name) => { setPlayerId(id); setPlayerName(name); }} />
+        <div className="flex justify-center py-16">
+          <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+        </div>
       ) : (
         <div className="space-y-4">
           {/* Player info */}
@@ -792,16 +740,6 @@ export default function SudokuPage() {
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Playing as <span className="font-medium text-gray-700 dark:text-gray-300">{playerName}</span>
             </p>
-            <button
-              onClick={() => {
-                localStorage.removeItem("sudoku_player_id");
-                localStorage.removeItem("sudoku_player_name");
-                setPlayerId(null); setPlayerName("");
-              }}
-              className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-            >
-              Switch player
-            </button>
           </div>
 
           {/* Tabs */}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import Link from "next/link";
 import { Trophy, ArrowLeft, Share2 } from "lucide-react";
 import AdBanner from "@/components/ads/AdBanner";
@@ -21,107 +21,6 @@ const KEYBOARD_ROWS = [
 
 const MAX_ATTEMPTS = 6;
 const WORD_LENGTH = 5;
-
-function RegistrationForm({ onRegister }: { onRegister: (playerId: string, name: string) => void }) {
-  const [name, setName] = useState("");
-  const [block, setBlock] = useState("");
-  const [flatNumber, setFlatNumber] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [error, setError] = useState("");
-  const [saving, setSaving] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setSaving(true);
-    try {
-      const res = await fetch("/api/wordle/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, block: Number(block), flatNumber, email, phone }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Registration failed");
-        return;
-      }
-      localStorage.setItem("wordle_player_id", data.playerId);
-      localStorage.setItem("wordle_player_name", data.name);
-      onRegister(data.playerId, data.name);
-    } catch {
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <div className="max-w-md mx-auto">
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-1">
-          Welcome to Wordle!
-        </h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-          Enter your details to start playing
-        </p>
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Full Name"
-            required
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-primary-500"
-          />
-          <div className="grid grid-cols-2 gap-3">
-            <input
-              type="number"
-              value={block}
-              onChange={(e) => setBlock(e.target.value)}
-              placeholder="Block Number"
-              required
-              min={1}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-primary-500"
-            />
-            <input
-              type="text"
-              value={flatNumber}
-              onChange={(e) => setFlatNumber(e.target.value)}
-              placeholder="Flat Number"
-              required
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-primary-500"
-            />
-          </div>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email"
-            required
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-primary-500"
-          />
-          <input
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="Phone Number"
-            required
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-primary-500"
-          />
-          {error && <p className="text-sm text-red-500">{error}</p>}
-          <button
-            type="submit"
-            disabled={saving}
-            className="w-full bg-primary-600 text-white py-2.5 rounded-lg font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 text-sm"
-          >
-            {saving ? "Registering..." : "Start Playing"}
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-}
 
 function GameBoard({
   guesses,
@@ -248,49 +147,45 @@ export default function WordlePage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  // Auto-register logged-in users or restore from localStorage
+  // Redirect unauthenticated users to sign-in
   useEffect(() => {
-    if (sessionStatus === "loading") return;
+    if (sessionStatus !== "loading" && !session) {
+      signIn("google", { callbackUrl: "/wordle" });
+    }
+  }, [session, sessionStatus]);
+
+  // Auto-register signed-in users
+  useEffect(() => {
+    if (sessionStatus === "loading" || !session?.user?.email) return;
 
     const storedId = localStorage.getItem("wordle_player_id");
     const storedName = localStorage.getItem("wordle_player_name");
 
-    // Auto-register for logged-in users (upserts by email, always safe to call)
-    if (session?.user?.email) {
-      fetch("/api/wordle/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fromSession: true }),
+    fetch("/api/wordle/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fromSession: true }),
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data) {
+          localStorage.setItem("wordle_player_id", data.playerId);
+          localStorage.setItem("wordle_player_name", data.name);
+          setPlayerId(data.playerId);
+          setPlayerName(data.name);
+        } else if (storedId) {
+          // Fallback to stored ID if auto-register fails
+          setPlayerId(storedId);
+          setPlayerName(storedName || "");
+        }
       })
-        .then((res) => (res.ok ? res.json() : null))
-        .then((data) => {
-          if (data) {
-            localStorage.setItem("wordle_player_id", data.playerId);
-            localStorage.setItem("wordle_player_name", data.name);
-            setPlayerId(data.playerId);
-            setPlayerName(data.name);
-          } else if (storedId) {
-            // Fallback to stored ID if auto-register fails
-            setPlayerId(storedId);
-            setPlayerName(storedName || "");
-          }
-        })
-        .catch(() => {
-          if (storedId) {
-            setPlayerId(storedId);
-            setPlayerName(storedName || "");
-          }
-        })
-        .finally(() => setLoading(false));
-      return;
-    }
-
-    // Not logged in — restore from localStorage or show registration form
-    if (storedId) {
-      setPlayerId(storedId);
-      setPlayerName(storedName || "");
-    }
-    setLoading(false);
+      .catch(() => {
+        if (storedId) {
+          setPlayerId(storedId);
+          setPlayerName(storedName || "");
+        }
+      })
+      .finally(() => setLoading(false));
   }, [session, sessionStatus]);
 
   // Fetch today's game state
@@ -438,10 +333,10 @@ export default function WordlePage() {
     }
   };
 
-  if (loading) {
+  if (sessionStatus === "loading" || !session || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Loading...</p>
+        <div className="animate-pulse text-gray-500">Loading...</div>
       </div>
     );
   }
@@ -466,12 +361,9 @@ export default function WordlePage() {
       <AdBanner page="wordle" placement="top" />
 
       {!playerId ? (
-        <RegistrationForm
-          onRegister={(id, name) => {
-            setPlayerId(id);
-            setPlayerName(name);
-          }}
-        />
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-pulse text-gray-500">Setting up your game...</div>
+        </div>
       ) : (
         <div className="space-y-6">
           {/* Player info */}
@@ -479,22 +371,6 @@ export default function WordlePage() {
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Playing as <span className="font-medium text-gray-700 dark:text-gray-300">{playerName}</span>
             </p>
-            <button
-              onClick={() => {
-                localStorage.removeItem("wordle_player_id");
-                localStorage.removeItem("wordle_player_name");
-                setPlayerId(null);
-                setPlayerName("");
-                setGuesses([]);
-                setCurrentGuess("");
-                setWon(false);
-                setCompleted(false);
-                setAnswer(null);
-              }}
-              className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-            >
-              Switch player
-            </button>
           </div>
 
           {/* Message toast */}

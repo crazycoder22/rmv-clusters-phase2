@@ -6,6 +6,7 @@ import { ArrowLeft, Trophy, Clock, Delete, Share2 } from "lucide-react";
 import AdBanner from "@/components/ads/AdBanner";
 import { formatTime } from "@/lib/crossword";
 import { useRole } from "@/hooks/useRole";
+import { useSession, signIn } from "next-auth/react";
 import clsx from "clsx";
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -27,68 +28,11 @@ interface LeaderboardEntry {
   timeSeconds: number;
 }
 
-// ── Registration form ──────────────────────────────────────────────────────
-
-function RegistrationForm({ onRegister }: { onRegister: (id: string, name: string) => void }) {
-  const [name, setName] = useState("");
-  const [block, setBlock] = useState("");
-  const [flatNumber, setFlatNumber] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [error, setError] = useState("");
-  const [saving, setSaving] = useState(false);
-
-  const inputClass =
-    "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 outline-none";
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setSaving(true);
-    try {
-      const res = await fetch("/api/wordle/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, block: Number(block), flatNumber, email, phone }),
-      });
-      const data = await res.json();
-      if (!res.ok) { setError(data.error || "Registration failed"); return; }
-      localStorage.setItem("crossword_player_id", data.playerId);
-      localStorage.setItem("crossword_player_name", data.name);
-      onRegister(data.playerId, data.name);
-    } catch {
-      setError("Something went wrong.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <div className="max-w-md mx-auto">
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-1">Mini Crossword</h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Enter your details to start playing</p>
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Full Name" required className={inputClass} />
-          <div className="grid grid-cols-2 gap-3">
-            <input type="number" value={block} onChange={(e) => setBlock(e.target.value)} placeholder="Block" required min={1} className={inputClass} />
-            <input value={flatNumber} onChange={(e) => setFlatNumber(e.target.value)} placeholder="Flat Number" required className={inputClass} />
-          </div>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" required className={inputClass} />
-          <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Phone" required className={inputClass} />
-          {error && <p className="text-sm text-red-500">{error}</p>}
-          <button type="submit" disabled={saving} className="w-full bg-primary-600 text-white py-2.5 rounded-lg font-medium hover:bg-primary-700 disabled:opacity-50 text-sm transition-colors">
-            {saving ? "Registering..." : "Start Playing"}
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-}
-
 // ── Main Component ────────────────────────────────────────────────────────
 
 export default function CrosswordPage() {
+  const { data: session, status: sessionStatus } = useSession();
+
   // Player state
   const { isSuperAdmin } = useRole();
   const [playerId, setPlayerId] = useState<string | null>(null);
@@ -124,29 +68,27 @@ export default function CrosswordPage() {
   // Save debounce
   const saveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // ── Auto-register from localStorage ──────────────────────────────────
+  // ── Auto-register from session ───────────────────────────────────────
   useEffect(() => {
-    const id = localStorage.getItem("crossword_player_id");
-    const name = localStorage.getItem("crossword_player_name");
-    if (id && name) {
-      setPlayerId(id);
-      setPlayerName(name);
-      setRegistered(true);
-    } else {
-      // Try from wordle/sudoku
-      const wId = localStorage.getItem("wordle_player_id") || localStorage.getItem("sudoku_player_id");
-      const wName = localStorage.getItem("wordle_player_name") || localStorage.getItem("sudoku_player_name");
-      if (wId && wName) {
-        localStorage.setItem("crossword_player_id", wId);
-        localStorage.setItem("crossword_player_name", wName);
-        setPlayerId(wId);
-        setPlayerName(wName);
-        setRegistered(true);
-      } else {
-        setLoading(false);
-      }
-    }
-  }, []);
+    if (sessionStatus !== "authenticated" || !session?.user?.email) return;
+    fetch("/api/wordle/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fromSession: true }),
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data) {
+          localStorage.setItem("crossword_player_id", data.playerId);
+          localStorage.setItem("crossword_player_name", data.name);
+          setPlayerId(data.playerId);
+          setPlayerName(data.name);
+          setRegistered(true);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [session, sessionStatus]);
 
   // ── Fetch game ───────────────────────────────────────────────────────
   const fetchGame = useCallback(async (pid: string) => {
@@ -345,6 +287,19 @@ export default function CrosswordPage() {
       .finally(() => setLbLoading(false));
   }, [tab]);
 
+  // ── Auth gate ────────────────────────────────────────────────────────
+  if (sessionStatus === "loading") {
+    return (
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6">
+        <div className="text-center py-20 text-gray-400 dark:text-gray-500">Loading...</div>
+      </div>
+    );
+  }
+  if (!session) {
+    signIn("google", { callbackUrl: "/crossword" });
+    return null;
+  }
+
   // ── Render ───────────────────────────────────────────────────────────
 
   const acrossClues = clues.filter((c) => c.direction === "across");
@@ -370,8 +325,8 @@ export default function CrosswordPage() {
 
       <AdBanner page="crossword" placement="top" />
 
-      {!registered ? (
-        <RegistrationForm onRegister={(id, name) => { setPlayerId(id); setPlayerName(name); setRegistered(true); }} />
+      {!playerId ? (
+        <div className="text-center py-20 text-gray-400 dark:text-gray-500">Loading...</div>
       ) : tab === "leaderboard" ? (
         /* ── Leaderboard ───────────────────────────────────────────── */
         <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700">
