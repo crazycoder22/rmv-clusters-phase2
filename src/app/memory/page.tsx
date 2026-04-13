@@ -37,6 +37,7 @@ interface WeeklyLeaderboardEntry {
   block: number;
   flatNumber: string;
   totalPoints: number;
+  totalScore: number;
   totalTime: number;
   daysPlayed: number;
 }
