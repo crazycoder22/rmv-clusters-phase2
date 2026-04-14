@@ -42,17 +42,23 @@ const publicPaths = ["/", "/contact", "/videos", "/surveys"];
 const topLevelLinks: NavLink[] = [
   { href: "/news", label: "News" },
   { href: "/calendar", label: "Calendar" },
-  { href: "/fantasy", label: "Fantasy" },
-  { href: "/wordle", label: "Wordle" },
-  { href: "/sudoku", label: "Sudoku" },
-  { href: "/crossword", label: "Crossword" },
-  { href: "/tambola", label: "Tambola" },
-  { href: "/quiz", label: "Quiz" },
-  { href: "/memory", label: "Memory" },
 ];
 
 // Grouped dropdown links
 const navGroups: NavGroup[] = [
+  {
+    label: "Games",
+    links: [
+      { href: "/wordle", label: "Wordle" },
+      { href: "/sudoku", label: "Sudoku" },
+      { href: "/crossword", label: "Crossword" },
+      { href: "/memory", label: "Memory" },
+      { href: "/memory/multi", label: "Memory Multi-player" },
+      { href: "/quiz", label: "Quiz" },
+      { href: "/tambola", label: "Tambola" },
+      { href: "/fantasy", label: "Fantasy Cricket" },
+    ],
+  },
   {
     label: "Info",
     links: [
@@ -91,12 +97,6 @@ const navGroups: NavGroup[] = [
 const navItems: NavItem[] = [
   ...topLevelLinks,
   ...navGroups,
-];
-
-// All link hrefs for filtering by auth
-const allLinkHrefs = [
-  ...topLevelLinks.map((l) => l.href),
-  ...navGroups.flatMap((g) => g.links.map((l) => l.href)),
 ];
 
 function NavDropdown({
