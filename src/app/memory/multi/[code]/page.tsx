@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession, signIn } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -137,9 +137,6 @@ export default function MemoryMultiGamePage() {
   const [copied, setCopied] = useState(false);
   const [flipping, setFlipping] = useState(false);
 
-  const resolveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lastResolvedRef = useRef<string>("");
-
   // Auth gate
   useEffect(() => {
     if (authStatus !== "loading" && !authSession) {
@@ -202,24 +199,25 @@ export default function MemoryMultiGamePage() {
     return () => clearInterval(id);
   }, [playerId, fetchState]);
 
-  // Auto-resolve when two cards are revealed — only the current-turn player triggers this
+  // Auto-resolve when two cards are revealed — only the current-turn player triggers this.
+  // Depend ONLY on the narrow fields that matter so polling doesn't re-run this effect
+  // every 1.5s (which would clear the pending 1.4s timer and prevent resolve).
+  const flipA = state?.flipA ?? null;
+  const flipB = state?.flipB ?? null;
+  const statusVal = state?.status;
+  const currentTurnIdx = state?.currentTurn ?? -1;
+  const currentTurnPlayerId =
+    statusVal === "ACTIVE" && state
+      ? state.players[currentTurnIdx]?.playerId ?? null
+      : null;
+
   useEffect(() => {
-    if (!state || !playerId) return;
-    if (state.status !== "ACTIVE") return;
-    if (state.flipA === null || state.flipB === null) return;
+    if (!playerId) return;
+    if (statusVal !== "ACTIVE") return;
+    if (flipA === null || flipB === null) return;
+    if (currentTurnPlayerId !== playerId) return;
 
-    const me = state.players.find((p) => p.playerId === playerId);
-    if (!me) return;
-    const currentPlayer = state.players[state.currentTurn];
-    if (!currentPlayer || currentPlayer.playerId !== playerId) return;
-
-    // Dedupe resolves for this flip pair
-    const key = `${state.flipA}-${state.flipB}`;
-    if (lastResolvedRef.current === key) return;
-    lastResolvedRef.current = key;
-
-    if (resolveTimerRef.current) clearTimeout(resolveTimerRef.current);
-    resolveTimerRef.current = setTimeout(() => {
+    const timer = setTimeout(() => {
       fetch(`/api/memory/multi/sessions/${code}/resolve`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -229,17 +227,8 @@ export default function MemoryMultiGamePage() {
         .catch(() => {});
     }, REVEAL_DURATION);
 
-    return () => {
-      if (resolveTimerRef.current) clearTimeout(resolveTimerRef.current);
-    };
-  }, [state, playerId, code, fetchState]);
-
-  // Clear dedupe key once flips are reset
-  useEffect(() => {
-    if (state && state.flipA === null && state.flipB === null) {
-      lastResolvedRef.current = "";
-    }
-  }, [state]);
+    return () => clearTimeout(timer);
+  }, [flipA, flipB, statusVal, currentTurnPlayerId, playerId, code, fetchState]);
 
   const handleStart = async () => {
     if (!playerId || !code) return;
