@@ -1031,6 +1031,8 @@ model WordlePlayer {
   tambolaPrizes  TambolaPrize[]
   quizPlayers    QuizPlayer[]
   memoryGames    MemoryGame[]
+  memoryMultiCreated MemoryMultiSession[] @relation("MemoryMultiCreated")
+  memoryMultiPlayers MemoryMultiPlayer[]  @relation("MemoryMultiPlayers")
   createdAt   DateTime     @default(now())
 }
 
@@ -1138,6 +1140,50 @@ model MemoryGame {
 
   @@unique([playerId, date, difficulty])
   @@index([date, difficulty])
+}
+
+// ─── Multi-player Memory Game ──────────────────────────────────────────────
+
+enum MemoryMultiStatus {
+  WAITING
+  ACTIVE
+  COMPLETED
+}
+
+model MemoryMultiSession {
+  id             String              @id @default(cuid())
+  code           String              @unique
+  difficulty     String              // "easy" | "medium" | "hard"
+  cards          String              // JSON array of emoji strings (fixed layout)
+  matched        String              @default("[]") // JSON array of matched card indices
+  flipA          Int?                // index of first flipped card in current turn
+  flipB          Int?                // index of second flipped card (awaiting resolve)
+  currentTurn    Int                 @default(0) // index into players ordered by joinOrder
+  status         MemoryMultiStatus   @default(WAITING)
+  createdById    String
+  createdBy      WordlePlayer        @relation("MemoryMultiCreated", fields: [createdById], references: [id])
+  players        MemoryMultiPlayer[]
+  startedAt      DateTime?
+  endedAt        DateTime?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model MemoryMultiPlayer {
+  id         String             @id @default(cuid())
+  sessionId  String
+  session    MemoryMultiSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  playerId   String
+  player     WordlePlayer       @relation("MemoryMultiPlayers", fields: [playerId], references: [id])
+  joinOrder  Int
+  matches    Int                @default(0)
+  createdAt  DateTime           @default(now())
+
+  @@unique([sessionId, playerId])
+  @@index([sessionId])
 }
 
 // ─── End Memory Game ────────────────────────────────────────────────────────

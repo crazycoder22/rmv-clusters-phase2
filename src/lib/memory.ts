@@ -60,6 +60,19 @@ export function getDailyCards(date: string, difficulty: Difficulty): string[] {
   return shuffle(cards, rng);
 }
 
+/** Generate a random card layout for a multi-player session (seeded by code) */
+export function getRandomCards(code: string, difficulty: Difficulty): string[] {
+  const { pairs } = GRID_CONFIG[difficulty];
+  const seed = hashString(`memory-multi-${code}-${difficulty}`);
+  const rng = mulberry32(seed);
+
+  const shuffledEmojis = shuffle(EMOJI_SETS, rng);
+  const selected = shuffledEmojis.slice(0, pairs);
+
+  const cards = [...selected, ...selected];
+  return shuffle(cards, rng);
+}
+
 /**
  * Calculate a score based on moves and time.
  * Score = base points for completing - move penalty - time penalty

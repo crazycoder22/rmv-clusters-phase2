@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSession, signIn } from "next-auth/react";
 import Link from "next/link";
-import { ArrowLeft, Trophy, Share2, RotateCcw, Star, Clock, Layers } from "lucide-react";
+import { ArrowLeft, Trophy, Share2, RotateCcw, Star, Clock, Layers, Users } from "lucide-react";
 import clsx from "clsx";
 import AdBanner from "@/components/ads/AdBanner";
 
@@ -644,18 +644,27 @@ export default function MemoryPage() {
             <ArrowLeft size={20} />
           </Link>
           <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Memory Match</h1>
-          <button
-            onClick={() => setActiveTab(activeTab === "leaderboard" ? "game" : "leaderboard")}
-            className={clsx(
-              "transition-colors",
-              activeTab === "leaderboard"
-                ? "text-primary-600 dark:text-primary-400"
-                : "text-gray-400 hover:text-primary-600 dark:hover:text-primary-400"
-            )}
-            title="Leaderboard"
-          >
-            <Trophy size={20} />
-          </button>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/memory/multi"
+              className="text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+              title="Multi-player"
+            >
+              <Users size={20} />
+            </Link>
+            <button
+              onClick={() => setActiveTab(activeTab === "leaderboard" ? "game" : "leaderboard")}
+              className={clsx(
+                "transition-colors",
+                activeTab === "leaderboard"
+                  ? "text-primary-600 dark:text-primary-400"
+                  : "text-gray-400 hover:text-primary-600 dark:hover:text-primary-400"
+              )}
+              title="Leaderboard"
+            >
+              <Trophy size={20} />
+            </button>
+          </div>
         </div>
 
         <AdBanner page="memory" placement="top" />
