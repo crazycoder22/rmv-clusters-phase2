@@ -1033,6 +1033,7 @@ model WordlePlayer {
   memoryGames    MemoryGame[]
   memoryMultiCreated MemoryMultiSession[] @relation("MemoryMultiCreated")
   memoryMultiPlayers MemoryMultiPlayer[]  @relation("MemoryMultiPlayers")
+  game2048Runs   Game2048Run[]
   createdAt   DateTime     @default(now())
 }
 
@@ -1187,6 +1188,26 @@ model MemoryMultiPlayer {
 }
 
 // ─── End Memory Game ────────────────────────────────────────────────────────
+
+// ─── 2048 ──────────────────────────────────────────────────────────────────
+
+model Game2048Run {
+  id          String       @id @default(cuid())
+  playerId    String
+  player      WordlePlayer @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  score       Int
+  highestTile Int          // 2, 4, 8, ..., 2048, 4096, ...
+  moves       Int
+  duration    Int          // seconds
+  won         Boolean      @default(false) // reached 2048
+  createdAt   DateTime     @default(now())
+
+  @@index([playerId])
+  @@index([score])
+  @@index([createdAt])
+}
+
+// ─── End 2048 ──────────────────────────────────────────────────────────────
 
 // ─── Video Library ────────────────────────────────────────────────────────────
 

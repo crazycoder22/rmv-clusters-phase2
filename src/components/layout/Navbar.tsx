@@ -54,6 +54,7 @@ const navGroups: NavGroup[] = [
       { href: "/crossword", label: "Crossword" },
       { href: "/memory", label: "Memory" },
       { href: "/memory/multi", label: "Memory Multi-player" },
+      { href: "/2048", label: "2048" },
       { href: "/quiz", label: "Quiz" },
       { href: "/tambola", label: "Tambola" },
       { href: "/fantasy", label: "Fantasy Cricket" },
