@@ -35,9 +35,10 @@ type LeaderboardScope = "alltime" | "weekly";
 
 // ── Tile styling ───────────────────────────────────────────────────────────
 
-// Classic 2048 palette, adapted for dark mode.
+// Classic 2048 palette, adapted for dark mode. The empty-cell color must be
+// visibly different from the board background so the 4x4 grid stays legible.
 const TILE_STYLES: Record<number, { bg: string; text: string; darkBg?: string }> = {
-  0:    { bg: "bg-gray-200 dark:bg-gray-700", text: "" },
+  0:    { bg: "bg-[#cdc1b4] dark:bg-gray-800", text: "" },
   2:    { bg: "bg-[#eee4da]", text: "text-[#776e65]" },
   4:    { bg: "bg-[#ede0c8]", text: "text-[#776e65]" },
   8:    { bg: "bg-[#f2b179]", text: "text-white" },
