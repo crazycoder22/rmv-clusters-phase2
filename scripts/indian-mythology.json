@@ -1,0 +1,252 @@
+[
+  {
+    "question": "Who wrote the epic Mahabharata?",
+    "options": ["Valmiki", "Vyasa", "Tulsidas", "Kalidasa"],
+    "correct": 1
+  },
+  {
+    "question": "Who wrote down the Mahabharata as Vyasa dictated it?",
+    "options": ["Hanuman", "Narada", "Ganesha", "Saraswati"],
+    "correct": 2
+  },
+  {
+    "question": "How many days did the battle of Kurukshetra last?",
+    "options": ["14 days", "18 days", "21 days", "12 days"],
+    "correct": 1
+  },
+  {
+    "question": "Who was the teacher (guru) of both the Kauravas and the Pandavas?",
+    "options": ["Bhishma", "Kripacharya", "Dronacharya", "Parashurama"],
+    "correct": 2
+  },
+  {
+    "question": "What was the name of Arjuna's divine bow?",
+    "options": ["Sharanga", "Pinaka", "Gandiva", "Vijaya"],
+    "correct": 2
+  },
+  {
+    "question": "How many Kaurava brothers were there?",
+    "options": ["99", "100", "101", "108"],
+    "correct": 1
+  },
+  {
+    "question": "Who was the eldest of the Pandavas?",
+    "options": ["Arjuna", "Bhima", "Yudhishthira", "Nakula"],
+    "correct": 2
+  },
+  {
+    "question": "What was the name of Karna's divine armor and earrings?",
+    "options": ["Vajra and Kundala", "Kavacha and Kundala", "Sudarshan and Kavacha", "Kavacha and Makara"],
+    "correct": 1
+  },
+  {
+    "question": "Who was the first commander-in-chief of the Kaurava army?",
+    "options": ["Dronacharya", "Karna", "Bhishma", "Shalya"],
+    "correct": 2
+  },
+  {
+    "question": "What was the name of Lord Krishna's conch shell?",
+    "options": ["Devadatta", "Anantavijaya", "Panchajanya", "Paundra"],
+    "correct": 2
+  },
+  {
+    "question": "Who killed Abhimanyu in the Chakravyuh?",
+    "options": ["Drona alone", "Karna alone", "Seven warriors together", "Duryodhana alone"],
+    "correct": 2
+  },
+  {
+    "question": "What game led to the exile of the Pandavas?",
+    "options": ["Archery contest", "Chariot race", "Game of dice", "Wrestling match"],
+    "correct": 2
+  },
+  {
+    "question": "How many years were the Pandavas exiled to the forest?",
+    "options": ["10 years", "12 years", "13 years", "14 years"],
+    "correct": 1
+  },
+  {
+    "question": "Who revealed the Bhagavad Gita to Arjuna on the battlefield?",
+    "options": ["Vyasa", "Bhishma", "Lord Krishna", "Dronacharya"],
+    "correct": 2
+  },
+  {
+    "question": "What was the name of Duryodhana's mace?",
+    "options": ["Vajra", "Kaumodaki", "He had no named mace", "Saunanda"],
+    "correct": 2
+  },
+  {
+    "question": "Who wrote the Ramayana?",
+    "options": ["Vyasa", "Kalidasa", "Valmiki", "Tulsidas"],
+    "correct": 2
+  },
+  {
+    "question": "What was Valmiki's name before he became a sage?",
+    "options": ["Vishwamitra", "Ratnakar", "Angira", "Bharadwaj"],
+    "correct": 1
+  },
+  {
+    "question": "Who was Sita's father?",
+    "options": ["Dasharatha", "Janaka", "Vishwamitra", "Vasishtha"],
+    "correct": 1
+  },
+  {
+    "question": "What did Lord Rama break to win Sita's hand in the Swayamvar?",
+    "options": ["A diamond", "Shiva's bow (Pinaka)", "A sword", "Indra's thunderbolt"],
+    "correct": 1
+  },
+  {
+    "question": "How many heads did Ravana have?",
+    "options": ["5", "7", "10", "12"],
+    "correct": 2
+  },
+  {
+    "question": "What was the name of Ravana's kingdom?",
+    "options": ["Ayodhya", "Lanka", "Kishkindha", "Mithila"],
+    "correct": 1
+  },
+  {
+    "question": "Who built the bridge (Ram Setu) to Lanka?",
+    "options": ["Hanuman", "Sugriva", "Nala and Neela", "Jambavan"],
+    "correct": 2
+  },
+  {
+    "question": "How many years was Lord Rama exiled to the forest?",
+    "options": ["12 years", "13 years", "14 years", "18 years"],
+    "correct": 2
+  },
+  {
+    "question": "Who gave Lord Rama the Pushpaka Vimana (flying chariot)?",
+    "options": ["Hanuman", "Vibhishana", "Sugriva", "Jatayu"],
+    "correct": 1
+  },
+  {
+    "question": "Who was the vulture king who fought Ravana to save Sita?",
+    "options": ["Garuda", "Jatayu", "Sampati", "Jambavan"],
+    "correct": 1
+  },
+  {
+    "question": "What mountain did Hanuman carry to bring the Sanjeevani herb?",
+    "options": ["Mount Meru", "Dronagiri", "Himalayas", "Vindhya"],
+    "correct": 1
+  },
+  {
+    "question": "Who was Ravana's brother who joined Lord Rama's side?",
+    "options": ["Kumbhakarna", "Vibhishana", "Indrajit", "Maricha"],
+    "correct": 1
+  },
+  {
+    "question": "What was the name of Ravana's son who defeated Indra?",
+    "options": ["Atikaya", "Meghanada (Indrajit)", "Akshayakumara", "Prahasta"],
+    "correct": 1
+  },
+  {
+    "question": "In which Yuga does the Ramayana take place?",
+    "options": ["Satya Yuga", "Treta Yuga", "Dwapara Yuga", "Kali Yuga"],
+    "correct": 1
+  },
+  {
+    "question": "In which Yuga does the Mahabharata take place?",
+    "options": ["Satya Yuga", "Treta Yuga", "Dwapara Yuga", "Kali Yuga"],
+    "correct": 2
+  },
+  {
+    "question": "Who is the Hindu god of creation?",
+    "options": ["Vishnu", "Shiva", "Brahma", "Indra"],
+    "correct": 2
+  },
+  {
+    "question": "What is Vishnu's role in the Trimurti?",
+    "options": ["Creator", "Preserver", "Destroyer", "Teacher"],
+    "correct": 1
+  },
+  {
+    "question": "How many avatars of Vishnu are there traditionally?",
+    "options": ["7", "9", "10", "12"],
+    "correct": 2
+  },
+  {
+    "question": "Which avatar of Vishnu appears as a fish?",
+    "options": ["Kurma", "Matsya", "Varaha", "Narasimha"],
+    "correct": 1
+  },
+  {
+    "question": "Which avatar of Vishnu is half-man, half-lion?",
+    "options": ["Varaha", "Vamana", "Narasimha", "Parashurama"],
+    "correct": 2
+  },
+  {
+    "question": "Who is the Hindu goddess of wealth and prosperity?",
+    "options": ["Saraswati", "Parvati", "Durga", "Lakshmi"],
+    "correct": 3
+  },
+  {
+    "question": "Who is the Hindu goddess of knowledge and arts?",
+    "options": ["Lakshmi", "Saraswati", "Kali", "Durga"],
+    "correct": 1
+  },
+  {
+    "question": "What is the name of Shiva's trident?",
+    "options": ["Sudarshan", "Vajra", "Trishul", "Pinaka"],
+    "correct": 2
+  },
+  {
+    "question": "What is the name of Lord Vishnu's discus weapon?",
+    "options": ["Trishul", "Vajra", "Sudarshan Chakra", "Pashupatastra"],
+    "correct": 2
+  },
+  {
+    "question": "Who is the king of the Devas (gods)?",
+    "options": ["Agni", "Vayu", "Indra", "Varuna"],
+    "correct": 2
+  },
+  {
+    "question": "What is the vehicle (vahana) of Lord Ganesha?",
+    "options": ["Peacock", "Mouse", "Bull", "Swan"],
+    "correct": 1
+  },
+  {
+    "question": "What is the vehicle (vahana) of Lord Shiva?",
+    "options": ["Garuda", "Mouse", "Nandi (bull)", "Lion"],
+    "correct": 2
+  },
+  {
+    "question": "What is the vehicle (vahana) of Lord Vishnu?",
+    "options": ["Garuda", "Airavata", "Nandi", "Hamsa"],
+    "correct": 0
+  },
+  {
+    "question": "Who churned the ocean (Samudra Manthan) — Devas and who?",
+    "options": ["Rakshasas", "Asuras", "Gandharvas", "Yakshas"],
+    "correct": 1
+  },
+  {
+    "question": "What emerged from the Samudra Manthan that could grant immortality?",
+    "options": ["Kaustubha gem", "Amrita (nectar)", "Parijata tree", "Kalpavriksha"],
+    "correct": 1
+  },
+  {
+    "question": "How many major Puranas (Mahapuranas) are there?",
+    "options": ["12", "16", "18", "21"],
+    "correct": 2
+  },
+  {
+    "question": "Who is the god of fire in Hindu mythology?",
+    "options": ["Vayu", "Surya", "Agni", "Indra"],
+    "correct": 2
+  },
+  {
+    "question": "Who is the god of death and justice in Hindu mythology?",
+    "options": ["Shani", "Yama", "Kubera", "Varuna"],
+    "correct": 1
+  },
+  {
+    "question": "What is the name of Indra's elephant?",
+    "options": ["Pushpaka", "Uchaishravas", "Airavata", "Kamadhenu"],
+    "correct": 2
+  },
+  {
+    "question": "Which demon king was granted a boon that he could not be killed by man or animal?",
+    "options": ["Ravana", "Hiranyakashipu", "Mahishasura", "Bhasmasura"],
+    "correct": 1
+  }
+]
