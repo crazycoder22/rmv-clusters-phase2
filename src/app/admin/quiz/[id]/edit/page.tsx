@@ -98,15 +98,29 @@ export default function AdminQuizEditPage({
     fetch(`/api/quiz/quizzes/${id}`)
       .then((r) => r.json())
       .then((data) => {
-        setQuiz(data);
-        setTitle(data.title ?? "");
-        setDescription(data.description ?? "");
+        // API returns { quiz: { id, title, questions: [...] } }
+        const q = data.quiz ?? data;
+        setQuiz(q);
+        setTitle(q.title ?? "");
+        setDescription(q.description ?? "");
+        const rawQuestions = q.questions ?? [];
         setQuestions(
-          (data.questions ?? []).length > 0
-            ? data.questions.map((q: Question, i: number) => ({
-                ...q,
-                sortOrder: q.sortOrder ?? i + 1,
-              }))
+          rawQuestions.length > 0
+            ? rawQuestions.map(
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (dbQ: any, i: number) => ({
+                  id: dbQ.id,
+                  // Map Prisma field names → UI field names
+                  text: dbQ.questionText ?? dbQ.text ?? "",
+                  options:
+                    typeof dbQ.options === "string"
+                      ? JSON.parse(dbQ.options)
+                      : dbQ.options ?? ["", "", "", ""],
+                  correctOption: dbQ.correctIndex ?? dbQ.correctOption ?? 0,
+                  timeLimit: dbQ.timeLimitSecs ?? dbQ.timeLimit ?? 20,
+                  sortOrder: dbQ.sortOrder ?? i + 1,
+                })
+              )
             : [emptyQuestion(1)]
         );
       })
@@ -172,11 +186,11 @@ export default function AdminQuizEditPage({
           title: title.trim(),
           description: description.trim(),
           questions: questions.map((q) => ({
-            id: q.id,
-            text: q.text.trim(),
+            // Map UI field names → Prisma field names for the API
+            questionText: q.text.trim(),
             options: q.options.map((o) => o.trim()),
-            correctOption: q.correctOption,
-            timeLimit: q.timeLimit,
+            correctIndex: q.correctOption,
+            timeLimitSecs: q.timeLimit,
             sortOrder: q.sortOrder,
           })),
         }),

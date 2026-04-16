@@ -1,0 +1,302 @@
+[
+  {
+    "dialogue": "Kitne aadmi the?",
+    "options": ["Sholay", "Deewar", "Don", "Zanjeer"],
+    "correct": 0,
+    "year": 1975
+  },
+  {
+    "dialogue": "Mere paas maa hai.",
+    "options": ["Agneepath", "Deewar", "Trishul", "Laawaris"],
+    "correct": 1,
+    "year": 1975
+  },
+  {
+    "dialogue": "Mogambo khush hua!",
+    "options": ["Shahenshah", "Mr. India", "Tridev", "Karma"],
+    "correct": 1,
+    "year": 1987
+  },
+  {
+    "dialogue": "Pushpa, I hate tears.",
+    "options": ["Silsila", "Amar Prem", "Anand", "Abhimaan"],
+    "correct": 1,
+    "year": 1972
+  },
+  {
+    "dialogue": "Babumoshai, zindagi badi honi chahiye, lambi nahi.",
+    "options": ["Anand", "Mili", "Safar", "Namak Haraam"],
+    "correct": 0,
+    "year": 1971
+  },
+  {
+    "dialogue": "Don ko pakadna mushkil hi nahi, namumkin hai.",
+    "options": ["Agneepath", "Zanjeer", "Don", "Trishul"],
+    "correct": 2,
+    "year": 1978
+  },
+  {
+    "dialogue": "Hum jahan khade hote hain, line wahi se shuru hoti hai.",
+    "options": ["Agneepath", "Shahenshah", "Kaalia", "Muqaddar Ka Sikandar"],
+    "correct": 2,
+    "year": 1981
+  },
+  {
+    "dialogue": "Rishte mein toh hum tumhare baap lagte hain, naam hai Shahenshah!",
+    "options": ["Shahenshah", "Agneepath", "Coolie", "Hum"],
+    "correct": 0,
+    "year": 1988
+  },
+  {
+    "dialogue": "Dosti ka ek usool hai madam — no sorry, no thank you.",
+    "options": ["Qayamat Se Qayamat Tak", "Maine Pyar Kiya", "Dil", "Saajan"],
+    "correct": 1,
+    "year": 1989
+  },
+  {
+    "dialogue": "Bade bade deshon mein aisi chhoti chhoti baatein hoti rehti hain, Senorita.",
+    "options": ["Kuch Kuch Hota Hai", "Dilwale Dulhania Le Jayenge", "Mohabbatein", "Dil To Pagal Hai"],
+    "correct": 1,
+    "year": 1995
+  },
+  {
+    "dialogue": "Ja Simran ja, jee le apni zindagi.",
+    "options": ["Dilwale Dulhania Le Jayenge", "Veer-Zaara", "Rab Ne Bana Di Jodi", "Mohabbatein"],
+    "correct": 0,
+    "year": 1995
+  },
+  {
+    "dialogue": "Haar ke jeetne wale ko Baazigar kehte hain.",
+    "options": ["Don", "Baazigar", "Darr", "Anjaam"],
+    "correct": 1,
+    "year": 1993
+  },
+  {
+    "dialogue": "Mere Karan Arjun aayenge.",
+    "options": ["Karan Arjun", "Kuch Kuch Hota Hai", "Kabhi Khushi Kabhie Gham", "Om Shanti Om"],
+    "correct": 0,
+    "year": 1995
+  },
+  {
+    "dialogue": "Crime Master Gogo naam hai mera, aankhen nikal ke gotiyan khelta hun main.",
+    "options": ["Welcome", "Andaz Apna Apna", "Hera Pheri", "No Entry"],
+    "correct": 1,
+    "year": 1994
+  },
+  {
+    "dialogue": "Tareekh pe tareekh, tareekh pe tareekh milti gayi my lord, par insaaf nahi mila!",
+    "options": ["Damini", "Baazigar", "Mohra", "Ghayal"],
+    "correct": 0,
+    "year": 1993
+  },
+  {
+    "dialogue": "Teja main hoon, mark idhar hai.",
+    "options": ["Hera Pheri", "Andaz Apna Apna", "Welcome", "Golmaal"],
+    "correct": 1,
+    "year": 1994
+  },
+  {
+    "dialogue": "Rahul, naam toh suna hi hoga.",
+    "options": ["Kuch Kuch Hota Hai", "Dil To Pagal Hai", "Raees", "Om Shanti Om"],
+    "correct": 2,
+    "year": 2017
+  },
+  {
+    "dialogue": "Yeh dhai kilo ka haath jab kisi pe padta hai na, toh aadmi uthta nahi, uth jaata hai.",
+    "options": ["Wanted", "Dabangg", "Damini", "Singham"],
+    "correct": 2,
+    "year": 1993
+  },
+  {
+    "dialogue": "Kaun kambakht bardaasht karne ko peeta hai.",
+    "options": ["Sahib Bibi Aur Ghulam", "Devdas", "Lootera", "Guru"],
+    "correct": 1,
+    "year": 2002
+  },
+  {
+    "dialogue": "Utha le re baba, utha le. Mereko nahi re, isko utha le.",
+    "options": ["Welcome", "Hera Pheri", "Golmaal", "Dhol"],
+    "correct": 1,
+    "year": 2000
+  },
+  {
+    "dialogue": "Ye Baburao ka style hai.",
+    "options": ["Phir Hera Pheri", "Hera Pheri", "Welcome", "Golmaal"],
+    "correct": 1,
+    "year": 2000
+  },
+  {
+    "dialogue": "Sattar minute, sattar minute hai tumhare paas.",
+    "options": ["Lagaan", "Chak De! India", "Dangal", "Sultan"],
+    "correct": 1,
+    "year": 2007
+  },
+  {
+    "dialogue": "All izz well.",
+    "options": ["PK", "3 Idiots", "Munna Bhai M.B.B.S.", "Lage Raho Munna Bhai"],
+    "correct": 1,
+    "year": 2009
+  },
+  {
+    "dialogue": "Jaadu ki jhappi.",
+    "options": ["3 Idiots", "Munna Bhai M.B.B.S.", "PK", "Lage Raho Munna Bhai"],
+    "correct": 1,
+    "year": 2003
+  },
+  {
+    "dialogue": "Main apni favourite hoon!",
+    "options": ["Queen", "Jab We Met", "Cocktail", "Tanu Weds Manu"],
+    "correct": 1,
+    "year": 2007
+  },
+  {
+    "dialogue": "Picture abhi baaki hai mere dost.",
+    "options": ["Don 2", "Om Shanti Om", "Ra.One", "Happy New Year"],
+    "correct": 1,
+    "year": 2007
+  },
+  {
+    "dialogue": "Ek baar jo maine commitment kar di, uske baad toh main khud ki bhi nahi sunta.",
+    "options": ["Dabangg", "Wanted", "Bodyguard", "Kick"],
+    "correct": 1,
+    "year": 2009
+  },
+  {
+    "dialogue": "Tumse na ho paayega.",
+    "options": ["Raanjhanaa", "Gangs of Wasseypur", "Dedh Ishqiya", "Udaan"],
+    "correct": 1,
+    "year": 2012
+  },
+  {
+    "dialogue": "Baap ka, dada ka, bhai ka, sabka badla lega re tera Faizal.",
+    "options": ["Agneepath", "Gangs of Wasseypur", "Vaastav", "Shootout at Lokhandwala"],
+    "correct": 1,
+    "year": 2012
+  },
+  {
+    "dialogue": "How's the josh?",
+    "options": ["War", "URI: The Surgical Strike", "Shershaah", "Raazi"],
+    "correct": 1,
+    "year": 2019
+  },
+  {
+    "dialogue": "Mhari chhoriyaan chhoro se kam hai ke?",
+    "options": ["Sultan", "Dangal", "Chak De! India", "Mary Kom"],
+    "correct": 1,
+    "year": 2016
+  },
+  {
+    "dialogue": "Apna time aayega.",
+    "options": ["Zindagi Na Milegi Dobara", "Gully Boy", "Dil Dhadakne Do", "Rock On!!"],
+    "correct": 1,
+    "year": 2019
+  },
+  {
+    "dialogue": "Kabhi kabhi lagta hai apun hi Bhagwan hai.",
+    "options": ["Sanju", "Sacred Games", "PK", "Agneepath"],
+    "correct": 0,
+    "year": 2018
+  },
+  {
+    "dialogue": "Keh diya na, bas keh diya.",
+    "options": ["Dilwale Dulhania Le Jayenge", "Kuch Kuch Hota Hai", "Hum Dil De Chuke Sanam", "Kabhi Khushi Kabhie Gham"],
+    "correct": 0,
+    "year": 1995
+  },
+  {
+    "dialogue": "Thappad se darr nahi lagta sahab, pyaar se lagta hai.",
+    "options": ["Wanted", "Dabangg", "Rowdy Rathore", "Singham"],
+    "correct": 1,
+    "year": 2010
+  },
+  {
+    "dialogue": "Tension lene ka nahi, sirf dene ka.",
+    "options": ["Munna Bhai M.B.B.S.", "Golmaal", "Welcome", "Hera Pheri"],
+    "correct": 0,
+    "year": 2003
+  },
+  {
+    "dialogue": "Log baatein bahut karenge, logon ka kaam hai kehna. Chhodo bekar ki baaton mein kahin beet na jaaye raina.",
+    "options": ["Amar Akbar Anthony", "Bandini", "Namak Halaal", "Amar Prem"],
+    "correct": 2,
+    "year": 1982
+  },
+  {
+    "dialogue": "Agar tum mujhse pyar karti ho toh palat ke dekho... palat!",
+    "options": ["Kuch Kuch Hota Hai", "Dilwale Dulhania Le Jayenge", "Dil To Pagal Hai", "Kal Ho Naa Ho"],
+    "correct": 1,
+    "year": 1995
+  },
+  {
+    "dialogue": "Kehte hain agar kisi cheez ko dil se chaaho toh poori kaynaat use tumse milane ki koshish mein lag jaati hai.",
+    "options": ["Kal Ho Naa Ho", "Om Shanti Om", "Jab Tak Hai Jaan", "Chennai Express"],
+    "correct": 1,
+    "year": 2007
+  },
+  {
+    "dialogue": "Yeh Spartacus ki tarah mar jayega, lekin gulaami nahi karega.",
+    "options": ["Rang De Basanti", "Lagaan", "Swades", "Yuva"],
+    "correct": 0,
+    "year": 2006
+  },
+  {
+    "dialogue": "Zindagi mein kuch banna ho, kuch haasil karna ho, kuch jeetna ho toh hamesha dil ki suno.",
+    "options": ["Zindagi Na Milegi Dobara", "Dil Chahta Hai", "3 Idiots", "Yeh Jawaani Hai Deewani"],
+    "correct": 1,
+    "year": 2001
+  },
+  {
+    "dialogue": "Aal izz well nahi bolta toh darr lagta hai, bol diya toh aadmi ko lagta hai all is well.",
+    "options": ["PK", "3 Idiots", "Munna Bhai M.B.B.S.", "Taare Zameen Par"],
+    "correct": 1,
+    "year": 2009
+  },
+  {
+    "dialogue": "Koi tumhare saath khada hoke marne ko tayyar ho, isse dosti kehte hain.",
+    "options": ["Dil Chahta Hai", "Zindagi Na Milegi Dobara", "Rang De Basanti", "Sholay"],
+    "correct": 3,
+    "year": 1975
+  },
+  {
+    "dialogue": "Pushpa, jhukega nahi!",
+    "options": ["KGF: Chapter 2", "Pushpa: The Rise", "RRR", "Singham Returns"],
+    "correct": 1,
+    "year": 2021
+  },
+  {
+    "dialogue": "Main aaj bhi phenke hue paise nahi uthata.",
+    "options": ["Deewar", "Agneepath", "Kaalia", "Hum"],
+    "correct": 1,
+    "year": 1990
+  },
+  {
+    "dialogue": "I can talk English, I can walk English, I can laugh English, because English is a very funny language.",
+    "options": ["Chupke Chupke", "Namak Halaal", "Golmaal", "Padosan"],
+    "correct": 1,
+    "year": 1982
+  },
+  {
+    "dialogue": "Tera kya hoga Kaaliya?",
+    "options": ["Don", "Sholay", "Mr. Natwarlal", "Deewar"],
+    "correct": 1,
+    "year": 1975
+  },
+  {
+    "dialogue": "Basanti, in kutton ke saamne mat naachna.",
+    "options": ["Deewar", "Amar Akbar Anthony", "Sholay", "Don"],
+    "correct": 2,
+    "year": 1975
+  },
+  {
+    "dialogue": "Mujhe aaj bhi woh electric ka bill jama karna hai.",
+    "options": ["OMG: Oh My God!", "PK", "Lage Raho Munna Bhai", "Jolly LLB"],
+    "correct": 2,
+    "year": 2006
+  },
+  {
+    "dialogue": "Itna sannata kyun hai bhai?",
+    "options": ["Andaz Apna Apna", "Sholay", "Phir Hera Pheri", "Welcome"],
+    "correct": 1,
+    "year": 1975
+  }
+]
