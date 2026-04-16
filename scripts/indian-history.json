@@ -1,0 +1,252 @@
+[
+  {
+    "question": "Who founded the Maurya Empire?",
+    "options": ["Ashoka", "Bindusara", "Chandragupta Maurya", "Samudragupta"],
+    "correct": 2
+  },
+  {
+    "question": "Which battle did Ashoka fight that made him embrace Buddhism?",
+    "options": ["Battle of Hydaspes", "Kalinga War", "Battle of Panipat", "Battle of Talikota"],
+    "correct": 1
+  },
+  {
+    "question": "Who was the mentor and chief advisor of Chandragupta Maurya?",
+    "options": ["Vishnu Gupta", "Chanakya (Kautilya)", "Megasthenes", "Bindusara"],
+    "correct": 1
+  },
+  {
+    "question": "Which book was written by Chanakya on statecraft and economics?",
+    "options": ["Indica", "Arthashastra", "Manusmriti", "Rajtarangini"],
+    "correct": 1
+  },
+  {
+    "question": "The Gupta period is known as the 'Golden Age' of India. Who was its greatest ruler?",
+    "options": ["Chandragupta I", "Samudragupta", "Kumaragupta", "Skandagupta"],
+    "correct": 1
+  },
+  {
+    "question": "The concept of zero was developed during which dynasty's rule?",
+    "options": ["Maurya", "Chola", "Gupta", "Mughal"],
+    "correct": 2
+  },
+  {
+    "question": "Aryabhata, the famous mathematician and astronomer, lived during which empire?",
+    "options": ["Maurya Empire", "Gupta Empire", "Mughal Empire", "Vijayanagara Empire"],
+    "correct": 1
+  },
+  {
+    "question": "Who built the famous Nalanda University?",
+    "options": ["Ashoka", "Kumaragupta I", "Harsha", "Chandragupta II"],
+    "correct": 1
+  },
+  {
+    "question": "Which Chola king is known for his naval conquests in Southeast Asia?",
+    "options": ["Raja Raja Chola I", "Rajendra Chola I", "Kulottunga I", "Karikala"],
+    "correct": 1
+  },
+  {
+    "question": "The Brihadeeswarar Temple in Thanjavur was built by which ruler?",
+    "options": ["Rajendra Chola I", "Raja Raja Chola I", "Krishnadevaraya", "Pulakeshin II"],
+    "correct": 1
+  },
+  {
+    "question": "Who defeated Prithviraj Chauhan in the Second Battle of Tarain (1192)?",
+    "options": ["Babur", "Muhammad Ghori", "Mahmud of Ghazni", "Timur"],
+    "correct": 1
+  },
+  {
+    "question": "Mahmud of Ghazni attacked India how many times?",
+    "options": ["10", "14", "17", "21"],
+    "correct": 2
+  },
+  {
+    "question": "Who established the Delhi Sultanate?",
+    "options": ["Muhammad Ghori", "Qutb-ud-din Aibak", "Iltutmish", "Alauddin Khalji"],
+    "correct": 1
+  },
+  {
+    "question": "The Qutub Minar was started by Qutb-ud-din Aibak and completed by whom?",
+    "options": ["Alauddin Khalji", "Razia Sultan", "Iltutmish", "Balban"],
+    "correct": 2
+  },
+  {
+    "question": "Who was the first and only woman ruler of the Delhi Sultanate?",
+    "options": ["Nur Jahan", "Razia Sultan", "Chand Bibi", "Rani Durgavati"],
+    "correct": 1
+  },
+  {
+    "question": "Who won the First Battle of Panipat (1526) and founded the Mughal Empire?",
+    "options": ["Humayun", "Akbar", "Babur", "Shah Jahan"],
+    "correct": 2
+  },
+  {
+    "question": "Which Mughal emperor introduced the Din-i-Ilahi religion?",
+    "options": ["Babur", "Humayun", "Akbar", "Aurangzeb"],
+    "correct": 2
+  },
+  {
+    "question": "Who built the Taj Mahal?",
+    "options": ["Akbar", "Jahangir", "Shah Jahan", "Aurangzeb"],
+    "correct": 2
+  },
+  {
+    "question": "The Taj Mahal was built in memory of whom?",
+    "options": ["Nur Jahan", "Mumtaz Mahal", "Jodha Bai", "Ruqaiya Sultan Begum"],
+    "correct": 1
+  },
+  {
+    "question": "Which Mughal emperor was known as 'Alamgir'?",
+    "options": ["Akbar", "Shah Jahan", "Aurangzeb", "Jahangir"],
+    "correct": 2
+  },
+  {
+    "question": "Who was the court musician of Akbar known as 'Tansen'?",
+    "options": ["Abul Fazl", "Birbal", "Mian Tansen", "Todar Mal"],
+    "correct": 2
+  },
+  {
+    "question": "The Navratnas (Nine Gems) were advisors in whose court?",
+    "options": ["Shah Jahan", "Vikramaditya / Chandragupta II", "Ashoka", "Babur"],
+    "correct": 1
+  },
+  {
+    "question": "Who founded the Maratha Empire?",
+    "options": ["Bajirao I", "Shivaji Maharaj", "Sambhaji", "Balaji Vishwanath"],
+    "correct": 1
+  },
+  {
+    "question": "Shivaji was crowned Chhatrapati at which fort?",
+    "options": ["Sinhagad", "Raigad", "Pratapgad", "Torna"],
+    "correct": 1
+  },
+  {
+    "question": "The Third Battle of Panipat (1761) was fought between the Marathas and whom?",
+    "options": ["British East India Company", "Mughals", "Ahmad Shah Abdali", "Tipu Sultan"],
+    "correct": 2
+  },
+  {
+    "question": "The Battle of Plassey (1757) was fought between the British and whom?",
+    "options": ["Hyder Ali", "Siraj ud-Daulah", "Tipu Sultan", "Mir Jafar"],
+    "correct": 1
+  },
+  {
+    "question": "Who was known as the 'Tiger of Mysore'?",
+    "options": ["Hyder Ali", "Tipu Sultan", "Shivaji", "Bajirao I"],
+    "correct": 1
+  },
+  {
+    "question": "The Revolt of 1857 is also known as?",
+    "options": ["Salt Satyagraha", "First War of Indian Independence", "Quit India Movement", "Swadeshi Movement"],
+    "correct": 1
+  },
+  {
+    "question": "Who was the last Mughal emperor, deposed by the British after 1857?",
+    "options": ["Akbar II", "Bahadur Shah Zafar", "Shah Alam II", "Muhammad Shah"],
+    "correct": 1
+  },
+  {
+    "question": "The Jallianwala Bagh massacre took place in which year?",
+    "options": ["1917", "1919", "1920", "1921"],
+    "correct": 1
+  },
+  {
+    "question": "Who ordered the firing at Jallianwala Bagh?",
+    "options": ["Lord Curzon", "Lord Irwin", "General Dyer", "Lord Mountbatten"],
+    "correct": 2
+  },
+  {
+    "question": "The Dandi March (Salt March) took place in which year?",
+    "options": ["1928", "1930", "1932", "1935"],
+    "correct": 1
+  },
+  {
+    "question": "How far did Gandhi walk during the Dandi March?",
+    "options": ["141 km", "241 km", "385 km", "400 km"],
+    "correct": 2
+  },
+  {
+    "question": "The 'Quit India' movement was launched in which year?",
+    "options": ["1940", "1942", "1944", "1946"],
+    "correct": 1
+  },
+  {
+    "question": "What was the slogan of the Quit India Movement?",
+    "options": ["Jai Hind", "Do or Die", "Swaraj is my birthright", "Vande Mataram"],
+    "correct": 1
+  },
+  {
+    "question": "'Swaraj is my birthright, and I shall have it!' — who said this?",
+    "options": ["Mahatma Gandhi", "Subhas Chandra Bose", "Bal Gangadhar Tilak", "Bhagat Singh"],
+    "correct": 2
+  },
+  {
+    "question": "Who founded the Indian National Congress (INC)?",
+    "options": ["Mahatma Gandhi", "A.O. Hume", "Dadabhai Naoroji", "Gopal Krishna Gokhale"],
+    "correct": 1
+  },
+  {
+    "question": "Who gave the slogan 'Jai Hind'?",
+    "options": ["Jawaharlal Nehru", "Subhas Chandra Bose", "Sardar Patel", "Bhagat Singh"],
+    "correct": 1
+  },
+  {
+    "question": "Who is known as the 'Iron Man of India'?",
+    "options": ["Jawaharlal Nehru", "B.R. Ambedkar", "Sardar Vallabhbhai Patel", "Subhas Chandra Bose"],
+    "correct": 2
+  },
+  {
+    "question": "Who is known as the 'Father of the Indian Constitution'?",
+    "options": ["Mahatma Gandhi", "Jawaharlal Nehru", "B.R. Ambedkar", "Rajendra Prasad"],
+    "correct": 2
+  },
+  {
+    "question": "India gained independence on which date?",
+    "options": ["15 August 1947", "26 January 1950", "15 August 1948", "26 January 1947"],
+    "correct": 0
+  },
+  {
+    "question": "26th January is celebrated as Republic Day because on this day India adopted its?",
+    "options": ["National Flag", "National Anthem", "Constitution", "National Emblem"],
+    "correct": 2
+  },
+  {
+    "question": "Who was the first President of independent India?",
+    "options": ["Jawaharlal Nehru", "Rajendra Prasad", "S. Radhakrishnan", "B.R. Ambedkar"],
+    "correct": 1
+  },
+  {
+    "question": "Who was the last Viceroy of British India?",
+    "options": ["Lord Curzon", "Lord Irwin", "Lord Mountbatten", "Lord Wavell"],
+    "correct": 2
+  },
+  {
+    "question": "The Non-Cooperation Movement was launched by Gandhi in which year?",
+    "options": ["1918", "1920", "1922", "1930"],
+    "correct": 1
+  },
+  {
+    "question": "Bhagat Singh, Rajguru, and Sukhdev were hanged on which date?",
+    "options": ["23 March 1931", "14 August 1947", "30 January 1948", "26 January 1930"],
+    "correct": 0
+  },
+  {
+    "question": "The Ashoka Chakra on the Indian flag has how many spokes?",
+    "options": ["12", "16", "22", "24"],
+    "correct": 3
+  },
+  {
+    "question": "Which ancient Indian city is considered one of the oldest continuously inhabited cities in the world?",
+    "options": ["Delhi", "Pataliputra", "Varanasi", "Ujjain"],
+    "correct": 2
+  },
+  {
+    "question": "The Indus Valley Civilisation flourished around which river system?",
+    "options": ["Ganga-Yamuna", "Indus-Saraswati", "Brahmaputra", "Narmada-Tapti"],
+    "correct": 1
+  },
+  {
+    "question": "Mohenjo-daro, a major Indus Valley city, is located in present-day?",
+    "options": ["India", "Pakistan", "Afghanistan", "Bangladesh"],
+    "correct": 1
+  }
+]
