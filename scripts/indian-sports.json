@@ -1,0 +1,252 @@
+[
+  {
+    "question": "Who captained India to their first Cricket World Cup victory in 1983?",
+    "options": ["Sunil Gavaskar", "Kapil Dev", "Mohinder Amarnath", "Ravi Shastri"],
+    "correct": 1
+  },
+  {
+    "question": "India won the 2011 Cricket World Cup under whose captaincy?",
+    "options": ["Virat Kohli", "Sachin Tendulkar", "MS Dhoni", "Gautam Gambhir"],
+    "correct": 2
+  },
+  {
+    "question": "Who hit the winning six in the 2011 World Cup final?",
+    "options": ["Sachin Tendulkar", "Yuvraj Singh", "MS Dhoni", "Gautam Gambhir"],
+    "correct": 2
+  },
+  {
+    "question": "India won the inaugural T20 World Cup in 2007. Who was the captain?",
+    "options": ["Rahul Dravid", "MS Dhoni", "Sourav Ganguly", "Virender Sehwag"],
+    "correct": 1
+  },
+  {
+    "question": "Who holds the record for most international centuries (100)?",
+    "options": ["Virat Kohli", "Ricky Ponting", "Sachin Tendulkar", "Brian Lara"],
+    "correct": 2
+  },
+  {
+    "question": "Who was the first Indian cricketer to score a double century in ODIs?",
+    "options": ["Virender Sehwag", "Sachin Tendulkar", "Rohit Sharma", "Kapil Dev"],
+    "correct": 1
+  },
+  {
+    "question": "Rohit Sharma holds the record for most double centuries in ODIs. How many?",
+    "options": ["1", "2", "3", "4"],
+    "correct": 2
+  },
+  {
+    "question": "Who is known as 'The Wall' of Indian cricket?",
+    "options": ["Sachin Tendulkar", "VVS Laxman", "Rahul Dravid", "Sourav Ganguly"],
+    "correct": 2
+  },
+  {
+    "question": "Who is called 'Captain Cool'?",
+    "options": ["Virat Kohli", "Rohit Sharma", "Sourav Ganguly", "MS Dhoni"],
+    "correct": 3
+  },
+  {
+    "question": "Which bowler has the most wickets in Test cricket for India?",
+    "options": ["Kapil Dev", "Anil Kumble", "Ravichandran Ashwin", "Harbhajan Singh"],
+    "correct": 1
+  },
+  {
+    "question": "Who took 10 wickets in a single Test innings — a world record — against Pakistan in 1999?",
+    "options": ["Harbhajan Singh", "Javagal Srinath", "Anil Kumble", "Venkatesh Prasad"],
+    "correct": 2
+  },
+  {
+    "question": "Which IPL team has won the most titles (5)?",
+    "options": ["Chennai Super Kings", "Kolkata Knight Riders", "Mumbai Indians", "Royal Challengers"],
+    "correct": 2
+  },
+  {
+    "question": "Who won the first IPL season in 2008?",
+    "options": ["Chennai Super Kings", "Rajasthan Royals", "Mumbai Indians", "Deccan Chargers"],
+    "correct": 1
+  },
+  {
+    "question": "Who is the highest run-scorer in IPL history?",
+    "options": ["Rohit Sharma", "Suresh Raina", "Virat Kohli", "David Warner"],
+    "correct": 2
+  },
+  {
+    "question": "Which cricketer is known as 'Hitman'?",
+    "options": ["MS Dhoni", "Virat Kohli", "Rohit Sharma", "KL Rahul"],
+    "correct": 2
+  },
+  {
+    "question": "Major Dhyan Chand is a legend of which sport?",
+    "options": ["Cricket", "Football", "Hockey", "Wrestling"],
+    "correct": 2
+  },
+  {
+    "question": "How many Olympic gold medals did India's hockey team win between 1928-1956?",
+    "options": ["4", "5", "6", "8"],
+    "correct": 2
+  },
+  {
+    "question": "India's National Sports Day (29th August) is celebrated on the birthday of?",
+    "options": ["Sachin Tendulkar", "Milkha Singh", "Major Dhyan Chand", "PT Usha"],
+    "correct": 2
+  },
+  {
+    "question": "India won a bronze medal in hockey at which recent Olympics after 41 years?",
+    "options": ["Rio 2016", "Tokyo 2020", "London 2012", "Beijing 2008"],
+    "correct": 1
+  },
+  {
+    "question": "Who was India's first individual Olympic gold medallist?",
+    "options": ["Neeraj Chopra", "Sushil Kumar", "Abhinav Bindra", "Karnam Malleswari"],
+    "correct": 2
+  },
+  {
+    "question": "Abhinav Bindra won his Olympic gold medal in which sport?",
+    "options": ["Archery", "Wrestling", "Badminton", "10m Air Rifle Shooting"],
+    "correct": 3
+  },
+  {
+    "question": "Neeraj Chopra won Olympic gold at Tokyo 2020 in which event?",
+    "options": ["Shot Put", "Discus Throw", "Javelin Throw", "Hammer Throw"],
+    "correct": 2
+  },
+  {
+    "question": "Who was the first Indian woman to win an Olympic medal?",
+    "options": ["PT Usha", "Saina Nehwal", "Karnam Malleswari", "Mary Kom"],
+    "correct": 2
+  },
+  {
+    "question": "Karnam Malleswari won her Olympic bronze medal in which sport?",
+    "options": ["Wrestling", "Weightlifting", "Boxing", "Shooting"],
+    "correct": 1
+  },
+  {
+    "question": "Who is known as the 'Flying Sikh' of Indian athletics?",
+    "options": ["Neeraj Chopra", "Milkha Singh", "Jeev Milkha Singh", "PT Usha"],
+    "correct": 1
+  },
+  {
+    "question": "PT Usha narrowly missed a medal at which Olympics, finishing 4th in the 400m hurdles?",
+    "options": ["Moscow 1980", "Los Angeles 1984", "Seoul 1988", "Barcelona 1992"],
+    "correct": 1
+  },
+  {
+    "question": "Who was the first Indian badminton player to win an Olympic medal?",
+    "options": ["PV Sindhu", "Saina Nehwal", "Kidambi Srikanth", "Prakash Padukone"],
+    "correct": 1
+  },
+  {
+    "question": "PV Sindhu won Olympic silver in 2016 and bronze in 2020. Which city hosted the 2016 Games?",
+    "options": ["London", "Tokyo", "Rio de Janeiro", "Beijing"],
+    "correct": 2
+  },
+  {
+    "question": "Mary Kom is a multiple-time World Champion in which sport?",
+    "options": ["Judo", "Wrestling", "Boxing", "Weightlifting"],
+    "correct": 2
+  },
+  {
+    "question": "How many times has Mary Kom won the World Boxing Championship?",
+    "options": ["4", "5", "6", "7"],
+    "correct": 2
+  },
+  {
+    "question": "Sania Mirza is India's most successful player in which sport?",
+    "options": ["Badminton", "Table Tennis", "Tennis", "Squash"],
+    "correct": 2
+  },
+  {
+    "question": "Which Indian wrestler won back-to-back Olympic medals (bronze 2008, silver 2012)?",
+    "options": ["Yogeshwar Dutt", "Bajrang Punia", "Sushil Kumar", "Ravi Kumar Dahiya"],
+    "correct": 2
+  },
+  {
+    "question": "Vishwanathan Anand is a multiple-time World Champion in which game?",
+    "options": ["Carrom", "Bridge", "Chess", "Go"],
+    "correct": 2
+  },
+  {
+    "question": "Which Indian city hosted the 2010 Commonwealth Games?",
+    "options": ["Mumbai", "Kolkata", "Bangalore", "New Delhi"],
+    "correct": 3
+  },
+  {
+    "question": "Kabaddi originated in which country?",
+    "options": ["Pakistan", "Iran", "India", "Sri Lanka"],
+    "correct": 2
+  },
+  {
+    "question": "India has won how many Kabaddi World Cups (standard style, men's)?",
+    "options": ["2", "3", "4", "All editions till 2016"],
+    "correct": 3
+  },
+  {
+    "question": "Who is known as the 'God of Cricket'?",
+    "options": ["Don Bradman", "Virat Kohli", "Sachin Tendulkar", "Brian Lara"],
+    "correct": 2
+  },
+  {
+    "question": "Sourav Ganguly, who became BCCI president, was famous for his captaincy and which batting style?",
+    "options": ["Right-handed", "Left-handed", "Switch hitter", "Ambidextrous"],
+    "correct": 1
+  },
+  {
+    "question": "The Rajiv Gandhi Khel Ratna Award (now Major Dhyan Chand Khel Ratna) is India's highest award in?",
+    "options": ["Cinema", "Literature", "Sports", "Science"],
+    "correct": 2
+  },
+  {
+    "question": "Who was the first Indian to win the All England Badminton Championship?",
+    "options": ["Saina Nehwal", "PV Sindhu", "Prakash Padukone", "Pullela Gopichand"],
+    "correct": 2
+  },
+  {
+    "question": "Pullela Gopichand, now a famous badminton coach, won the All England title in which year?",
+    "options": ["1999", "2001", "2003", "2005"],
+    "correct": 1
+  },
+  {
+    "question": "In the 2023 Cricket World Cup held in India, who won the tournament?",
+    "options": ["India", "Australia", "England", "South Africa"],
+    "correct": 1
+  },
+  {
+    "question": "Jasprit Bumrah is known for his unique action in which form of cricket delivery?",
+    "options": ["Spin bowling", "Fast bowling", "Medium pace", "Leg spin"],
+    "correct": 1
+  },
+  {
+    "question": "Who holds the record for the fastest century in IPL history (30 balls)?",
+    "options": ["AB de Villiers", "Chris Gayle", "KL Rahul", "David Miller"],
+    "correct": 1
+  },
+  {
+    "question": "Leander Paes won an Olympic bronze medal in tennis at which Games?",
+    "options": ["Barcelona 1992", "Atlanta 1996", "Sydney 2000", "Athens 2004"],
+    "correct": 1
+  },
+  {
+    "question": "The Pro Kabaddi League (PKL) was launched in which year?",
+    "options": ["2012", "2014", "2016", "2018"],
+    "correct": 1
+  },
+  {
+    "question": "Mithali Raj is the leading run-scorer in women's international cricket. Which country does she represent?",
+    "options": ["Australia", "England", "India", "New Zealand"],
+    "correct": 2
+  },
+  {
+    "question": "Which Indian footballer was known as the 'Indian Pele'?",
+    "options": ["Sunil Chhetri", "Bhaichung Bhutia", "IM Vijayan", "PK Banerjee"],
+    "correct": 1
+  },
+  {
+    "question": "India won the 2024 T20 World Cup under whose captaincy?",
+    "options": ["Virat Kohli", "Rohit Sharma", "Hardik Pandya", "KL Rahul"],
+    "correct": 1
+  },
+  {
+    "question": "The Durand Cup, one of the oldest football tournaments in the world, is held in which country?",
+    "options": ["England", "Brazil", "India", "Argentina"],
+    "correct": 2
+  }
+]
