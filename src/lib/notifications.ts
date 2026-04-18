@@ -7,8 +7,12 @@ export function getNotificationUrl(
   reviewDocId?: string | null,
   pollId?: string | null,
   surveyId?: string | null,
-  marketplaceListingId?: string | null
+  marketplaceListingId?: string | null,
+  medalAwardId?: string | null
 ): string {
+  if (medalAwardId) {
+    return "/me/awards";
+  }
   if (marketplaceListingId) {
     return `/marketplace/${marketplaceListingId}`;
   }
@@ -53,6 +57,7 @@ export function getCategoryColor(category: string): string {
     review: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400",
     poll: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400",
     marketplace: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+    medal: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
   };
   return colors[category] || "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300";
 }

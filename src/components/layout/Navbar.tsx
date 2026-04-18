@@ -9,6 +9,7 @@ import clsx from "clsx";
 import SignInButton from "@/components/auth/SignInButton";
 import UserMenu from "@/components/auth/UserMenu";
 import NotificationBell from "@/components/notifications/NotificationBell";
+import MedalsChip from "@/components/medals/MedalsChip";
 import ThemeToggle from "@/components/layout/ThemeToggle";
 import { useRegistrationGuard } from "@/hooks/useRegistrationGuard";
 import {
@@ -311,6 +312,11 @@ export default function Navbar() {
       label: "Tambola",
       match: (p) => p.startsWith("/admin/tambola"),
     });
+    adminLinks.push({
+      href: "/admin/medals",
+      label: "Medals & Coins",
+      match: (p) => p.startsWith("/admin/medals"),
+    });
   }
 
   const isAdminActive = adminLinks.some((link) => {
@@ -448,6 +454,7 @@ export default function Navbar() {
 
             <ThemeToggle />
             <NotificationBell />
+            <MedalsChip />
             <div className="ml-2 border-l border-gray-200 dark:border-gray-700 pl-2">
               {session ? <UserMenu /> : <SignInButton />}
             </div>
@@ -565,9 +572,12 @@ export default function Navbar() {
               </>
             )}
 
-            <div className="border-t dark:border-gray-700 mt-2 pt-2 flex items-center justify-between">
+            <div className="border-t dark:border-gray-700 mt-2 pt-2 flex items-center justify-between gap-2">
               <ThemeToggle />
-              <NotificationBell />
+              <div className="flex items-center gap-2">
+                <NotificationBell />
+                <MedalsChip />
+              </div>
             </div>
             <div className="border-t dark:border-gray-700 mt-2 pt-2">
               {session ? (

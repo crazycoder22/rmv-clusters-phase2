@@ -48,6 +48,9 @@ export async function GET() {
       marketplaceListing: {
         select: { id: true, title: true, listingType: true },
       },
+      medalAward: {
+        select: { id: true, game: true, tier: true, coins: true },
+      },
     },
   });
 

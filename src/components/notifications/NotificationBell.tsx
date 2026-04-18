@@ -117,7 +117,8 @@ export default function NotificationBell() {
       notification.reviewDocId ?? null,
       notification.pollId ?? null,
       notification.surveyId ?? null,
-      notification.marketplaceListingId ?? null
+      notification.marketplaceListingId ?? null,
+      notification.medalAwardId ?? null
     );
     router.push(url);
   };
@@ -196,7 +197,12 @@ export default function NotificationBell() {
                           : "text-gray-600 dark:text-gray-400"
                       }`}
                     >
-                      {n.announcement
+                      {n.medalAward
+                        ? (n.message ||
+                            `🏆 ${n.medalAward.tier} medal in ${n.medalAward.game} (+${n.medalAward.coins} coins)`)
+                        : n.medalAwardId
+                        ? (n.message || "An award you received was removed")
+                        : n.announcement
                         ? n.announcement.title
                         : n.visitor
                         ? `${n.visitor.name} wants to visit your flat`
@@ -220,10 +226,14 @@ export default function NotificationBell() {
                   <div className="flex items-center gap-2 mt-1">
                     <span
                       className={`inline-block px-1.5 py-0.5 text-[10px] font-medium rounded capitalize ${getCategoryColor(
-                        n.announcement?.category ?? (n.marketplaceListing ? "marketplace" : n.survey ? "poll" : n.poll ? "poll" : n.reviewDoc ? "review" : n.post ? "community" : n.task ? "task" : n.issue ? "issue" : "visitor")
+                        n.medalAward || n.medalAwardId
+                          ? "medal"
+                          : n.announcement?.category ?? (n.marketplaceListing ? "marketplace" : n.survey ? "poll" : n.poll ? "poll" : n.reviewDoc ? "review" : n.post ? "community" : n.task ? "task" : n.issue ? "issue" : "visitor")
                       )}`}
                     >
-                      {n.announcement?.category ?? (n.marketplaceListing ? "marketplace" : n.survey ? "survey" : n.poll ? "poll" : n.reviewDoc ? "review" : n.post ? "community" : n.task ? "task" : n.issue ? "issue" : "visitor")}
+                      {n.medalAward || n.medalAwardId
+                        ? "medal"
+                        : n.announcement?.category ?? (n.marketplaceListing ? "marketplace" : n.survey ? "survey" : n.poll ? "poll" : n.reviewDoc ? "review" : n.post ? "community" : n.task ? "task" : n.issue ? "issue" : "visitor")}
                     </span>
                     <span className="text-[10px] text-gray-400 dark:text-gray-500">
                       {timeAgo(n.createdAt)}

@@ -70,6 +70,8 @@ model Resident {
   posts                    Post[]
   postComments             PostComment[]
   postLikes                PostLike[]
+  medalsReceived           MedalAward[]  @relation("MedalsReceived")
+  medalsAwarded            MedalAward[]  @relation("MedalsAwarded")
   meetingsCreated          Meeting[]        @relation("MeetingsCreated")
   meetingRsvps             MeetingRsvp[]
   reviewDocuments          ReviewDocument[]
@@ -343,6 +345,8 @@ model Notification {
   survey         Survey?        @relation(fields: [surveyId], references: [id], onDelete: Cascade)
   marketplaceListingId String?
   marketplaceListing   MarketplaceListing? @relation(fields: [marketplaceListingId], references: [id], onDelete: Cascade)
+  medalAwardId   String?
+  medalAward     MedalAward?   @relation(fields: [medalAwardId], references: [id], onDelete: SetNull)
   message        String?
   read           Boolean       @default(false)
   createdAt      DateTime      @default(now())
@@ -357,6 +361,7 @@ model Notification {
   @@index([pollId])
   @@index([surveyId])
   @@index([marketplaceListingId])
+  @@index([medalAwardId])
 }
 
 model Issue {
@@ -1462,3 +1467,31 @@ model QuizAnswer {
 }
 
 // ─── End Quiz Game ──────────────────────────────────────────────────────────
+
+// ─── Medals & Virtual Coins ────────────────────────────────────────────────
+
+enum MedalTier {
+  GOLD
+  SILVER
+  BRONZE
+}
+
+model MedalAward {
+  id          String         @id @default(cuid())
+  recipientId String
+  recipient   Resident       @relation("MedalsReceived", fields: [recipientId], references: [id], onDelete: Cascade)
+  game        String         // "Wordle", "Tambola", or free text like "Best Diwali Decoration"
+  tier        MedalTier
+  coins       Int            // virtual coins awarded with this medal
+  reason      String?        // optional context — "Won Sunday Bollywood Quiz Night"
+  awardedById String
+  awardedBy   Resident       @relation("MedalsAwarded", fields: [awardedById], references: [id])
+  notifications Notification[]
+  createdAt   DateTime       @default(now())
+
+  @@index([recipientId])
+  @@index([awardedById])
+  @@index([createdAt])
+}
+
+// ─── End Medals ────────────────────────────────────────────────────────────

@@ -274,6 +274,13 @@ export interface NotificationType {
     title: string;
     listingType: string;
   } | null;
+  medalAwardId: string | null;
+  medalAward: {
+    id: string;
+    game: string;
+    tier: "GOLD" | "SILVER" | "BRONZE";
+    coins: number;
+  } | null;
 }
 
 // Visitor types
