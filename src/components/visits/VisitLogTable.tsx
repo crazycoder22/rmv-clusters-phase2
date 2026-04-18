@@ -10,8 +10,15 @@ import {
   ChevronRight,
   Loader2,
   UserCheck,
+  UserX,
   TrendingUp,
 } from "lucide-react";
+
+// Tri-state filter for the approvedByResident column.
+//   "all"          — no filter (default)
+//   "approved"     — only visits a resident approved
+//   "not_approved" — only visits the guard let in without resident approval
+type ApprovalFilter = "all" | "approved" | "not_approved";
 
 interface VisitLogItem {
   id: string;
@@ -76,7 +83,7 @@ export default function VisitLogTable({ adminView }: { adminView: boolean }) {
   const [guard, setGuard] = useState("");
   const [block, setBlock] = useState("");
   const [flatNumber, setFlatNumber] = useState("");
-  const [residentApprovedOnly, setResidentApprovedOnly] = useState(false);
+  const [approvalFilter, setApprovalFilter] = useState<ApprovalFilter>("all");
 
   const [items, setItems] = useState<VisitLogItem[]>([]);
   const [total, setTotal] = useState(0);
@@ -97,7 +104,8 @@ export default function VisitLogTable({ adminView }: { adminView: boolean }) {
     if (guard) params.set("guard", guard);
     if (adminView && block) params.set("block", block);
     if (adminView && flatNumber) params.set("flatNumber", flatNumber);
-    if (residentApprovedOnly) params.set("approvedByResident", "true");
+    if (approvalFilter === "approved") params.set("approvedByResident", "true");
+    else if (approvalFilter === "not_approved") params.set("approvedByResident", "false");
     params.set("page", String(page));
     params.set("limit", String(LIMIT));
     try {
@@ -110,12 +118,12 @@ export default function VisitLogTable({ adminView }: { adminView: boolean }) {
     } finally {
       setLoading(false);
     }
-  }, [dateFrom, dateTo, fromSource, guard, block, flatNumber, residentApprovedOnly, page, adminView]);
+  }, [dateFrom, dateTo, fromSource, guard, block, flatNumber, approvalFilter, page, adminView]);
 
   useEffect(() => { fetchList(); }, [fetchList]);
 
   // Reset to page 1 when filters change
-  useEffect(() => { setPage(1); }, [dateFrom, dateTo, fromSource, guard, block, flatNumber, residentApprovedOnly]);
+  useEffect(() => { setPage(1); }, [dateFrom, dateTo, fromSource, guard, block, flatNumber, approvalFilter]);
 
   // Admin stats — re-fetch when date range changes
   useEffect(() => {
@@ -270,7 +278,7 @@ export default function VisitLogTable({ adminView }: { adminView: boolean }) {
               setGuard("");
               setBlock("");
               setFlatNumber("");
-              setResidentApprovedOnly(false);
+              setApprovalFilter("all");
             }}
             className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
           >
@@ -279,20 +287,57 @@ export default function VisitLogTable({ adminView }: { adminView: boolean }) {
         </div>
 
         {/* Secondary filters row */}
-        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
-          <label className="flex items-center gap-2 cursor-pointer select-none text-sm text-gray-700 dark:text-gray-300">
-            <input
-              type="checkbox"
-              checked={residentApprovedOnly}
-              onChange={(e) => setResidentApprovedOnly(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
-            />
-            <UserCheck size={14} className="text-primary-600 dark:text-primary-400" />
-            Resident-approved only
-            <span className="text-xs text-gray-400 dark:text-gray-500">
-              (hides entries where the guard approved without a resident)
-            </span>
-          </label>
+        <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+          <span className="text-sm text-gray-600 dark:text-gray-300 mr-1">
+            Resident approval:
+          </span>
+          <div
+            role="group"
+            aria-label="Filter by resident approval"
+            className="inline-flex rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden"
+          >
+            <button
+              type="button"
+              onClick={() => setApprovalFilter("all")}
+              className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+                approvalFilter === "all"
+                  ? "bg-primary-100 text-primary-800 dark:bg-primary-900/40 dark:text-primary-200"
+                  : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+              }`}
+            >
+              All
+            </button>
+            <button
+              type="button"
+              onClick={() => setApprovalFilter("approved")}
+              className={`px-3 py-1.5 text-xs font-medium border-l border-gray-200 dark:border-gray-700 transition-colors flex items-center gap-1 ${
+                approvalFilter === "approved"
+                  ? "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200"
+                  : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+              }`}
+            >
+              <UserCheck size={12} />
+              Approved
+            </button>
+            <button
+              type="button"
+              onClick={() => setApprovalFilter("not_approved")}
+              className={`px-3 py-1.5 text-xs font-medium border-l border-gray-200 dark:border-gray-700 transition-colors flex items-center gap-1 ${
+                approvalFilter === "not_approved"
+                  ? "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200"
+                  : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+              }`}
+            >
+              <UserX size={12} />
+              Not approved
+            </button>
+          </div>
+          <span className="text-xs text-gray-400 dark:text-gray-500">
+            {approvalFilter === "approved" &&
+              "Visits a resident actively approved in MyGate."}
+            {approvalFilter === "not_approved" &&
+              "Visits the guard let in without resident approval."}
+          </span>
         </div>
       </div>
 
