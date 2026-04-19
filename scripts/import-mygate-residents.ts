@@ -2,16 +2,19 @@
  * Import MyGate residents into the RMV database.
  *
  * Usage:
- *   npx tsx scripts/import-mygate-residents.ts --dry-run   # preview only
- *   npx tsx scripts/import-mygate-residents.ts             # write to DB
+ *   npx tsx scripts/import-mygate-residents.ts --dry-run               # preview only
+ *   npx tsx scripts/import-mygate-residents.ts                         # write (upsert by phone)
+ *   npx tsx scripts/import-mygate-residents.ts --skip-existing         # skip if phone match
+ *   npx tsx scripts/import-mygate-residents.ts --file <path>           # custom CSV path
  *
- * Reads ~/Downloads/rmv-residents.csv (scraped from MyGate dashboard).
+ * Reads ~/Downloads/rmv-residents.csv by default (scraped from MyGate dashboard).
  * - Only rows with Status = Active are processed
  * - Flat format must be "<block 1-4> <flatNumber>" (e.g. "1 001/002")
  * - Phone is normalized to last 10 digits
  * - Match key = normalized phone number
- *   - If an existing resident matches by phone → update their email/name/flat/type
- *   - If not → create new resident with isApproved: true
+ *   - Default: existing → update email/name/flat/type
+ *   - --skip-existing: existing → skip (no changes)
+ *   - Not found → create new resident with isApproved: true
  * - Missing Flat rows are upserted first
  */
 
@@ -25,8 +28,17 @@ import {
   type ResidentType,
 } from "../src/lib/resident-types";
 
-const CSV_PATH = join(homedir(), "Downloads", "rmv-residents.csv");
+function resolveCsvPath(): string {
+  const fileIdx = process.argv.indexOf("--file");
+  if (fileIdx >= 0 && process.argv[fileIdx + 1]) {
+    return process.argv[fileIdx + 1];
+  }
+  return join(homedir(), "Downloads", "rmv-residents.csv");
+}
+
+const CSV_PATH = resolveCsvPath();
 const DRY_RUN = process.argv.includes("--dry-run");
+const SKIP_EXISTING = process.argv.includes("--skip-existing");
 
 // ─── Types ────────────────────────────────────────────────────────────────
 
@@ -303,6 +315,7 @@ async function main() {
     created: 0,
     updated: 0,
     unchanged: 0,
+    skipped: 0,
     emailConflict: 0,
     emailExistsElsewhere: 0,
   };
@@ -313,6 +326,10 @@ async function main() {
     const existing = byPhone.get(row.phone);
 
     if (existing) {
+      if (SKIP_EXISTING) {
+        stats.skipped++;
+        continue;
+      }
       // UPDATE path
       const updateData: {
         email?: string;
@@ -422,6 +439,7 @@ async function main() {
   console.log(`  ✅ Created:       ${stats.created}`);
   console.log(`  ✏️  Updated:       ${stats.updated}`);
   console.log(`  ⚪ Unchanged:     ${stats.unchanged}`);
+  if (SKIP_EXISTING) console.log(`  ⏭️  Skipped (existing): ${stats.skipped}`);
   console.log(`  ⚠️  Email conflict (kept phone match): ${stats.emailConflict}`);
   console.log(`  ⚠️  Email exists elsewhere (skipped create): ${stats.emailExistsElsewhere}`);
 

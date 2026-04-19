@@ -237,6 +237,11 @@ export default function Navbar() {
       label: "Visit Log",
       match: (p) => p.startsWith("/admin/visits"),
     });
+    adminLinks.push({
+      href: "/admin/residents",
+      label: "Residents",
+      match: (p) => p.startsWith("/admin/residents"),
+    });
   }
   if (canAccessTasks(roles)) {
     adminLinks.push({ href: "/tasks", label: "Tasks", match: "/tasks" });
