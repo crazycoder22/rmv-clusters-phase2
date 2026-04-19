@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 import { Search, Pencil, X, Check, AlertCircle } from "lucide-react";
 import { isAdmin } from "@/lib/roles";
 import {
@@ -32,13 +33,22 @@ interface Flat {
 const BLOCKS = [1, 2, 3, 4];
 
 export default function AdminResidentsPage() {
+  return (
+    <Suspense fallback={<div className="max-w-6xl mx-auto px-4 py-12"><div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-64 animate-pulse" /></div>}>
+      <AdminResidentsContent />
+    </Suspense>
+  );
+}
+
+function AdminResidentsContent() {
   const { data: session, status: authStatus } = useSession();
+  const searchParams = useSearchParams();
   const roles = session?.user?.roles ?? [];
   const hasAccess = isAdmin(roles);
 
-  const [block, setBlock] = useState<string>("");
-  const [flatNumber, setFlatNumber] = useState("");
-  const [q, setQ] = useState("");
+  const [block, setBlock] = useState<string>(searchParams.get("block") ?? "");
+  const [flatNumber, setFlatNumber] = useState(searchParams.get("flatNumber") ?? "");
+  const [q, setQ] = useState(searchParams.get("q") ?? "");
 
   const [residents, setResidents] = useState<Resident[]>([]);
   const [loading, setLoading] = useState(false);
@@ -75,6 +85,15 @@ export default function AdminResidentsPage() {
     e.preventDefault();
     runSearch();
   }
+
+  // Auto-run search if URL params are present (e.g. linked from visit log flat)
+  useEffect(() => {
+    if (!hasAccess) return;
+    if (searchParams.get("block") || searchParams.get("flatNumber") || searchParams.get("q")) {
+      runSearch();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasAccess]);
 
   function clearAll() {
     setBlock("");

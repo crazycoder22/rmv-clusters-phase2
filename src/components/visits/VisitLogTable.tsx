@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import {
   Calendar,
   Building2,
@@ -390,7 +391,11 @@ export default function VisitLogTable({ adminView }: { adminView: boolean }) {
                   <td className="px-4 py-2.5 text-gray-500 dark:text-gray-400 text-xs">{item.visitorType}</td>
                   {adminView && (
                     <td className="px-4 py-2.5 text-gray-600 dark:text-gray-300">
-                      {item.block ? `B${item.block}-${item.flatNumber}` : item.flatRaw}
+                      {item.block && item.flatNumber ? (
+                        <FlatLinks block={item.block} flatNumber={item.flatNumber} adminView={adminView} />
+                      ) : (
+                        item.flatRaw
+                      )}
                     </td>
                   )}
                   <td className="px-4 py-2.5 text-gray-600 dark:text-gray-300">
@@ -433,7 +438,13 @@ export default function VisitLogTable({ adminView }: { adminView: boolean }) {
                 </div>
               </div>
               <div className="mt-2 flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-                {adminView && <span>{item.block ? `B${item.block}-${item.flatNumber}` : item.flatRaw}</span>}
+                {adminView && (
+                  item.block && item.flatNumber ? (
+                    <FlatLinks block={item.block} flatNumber={item.flatNumber} adminView={adminView} />
+                  ) : (
+                    <span>{item.flatRaw}</span>
+                  )
+                )}
                 <span>Approved: {item.approvedBy || "—"}</span>
                 <span>Guard: {item.allowedByGuard || "—"}</span>
               </div>
@@ -678,5 +689,27 @@ function TopList({
         </ol>
       )}
     </div>
+  );
+}
+
+function FlatLinks({ block, flatNumber, adminView }: { block: number; flatNumber: string; adminView: boolean }) {
+  if (!adminView) return <>B{block}-{flatNumber}</>;
+  const parts = flatNumber.split(/[/,]/).map((p) => p.trim()).filter(Boolean);
+  return (
+    <span>
+      <span className="text-gray-500 dark:text-gray-400">B{block}-</span>
+      {parts.map((p, i) => (
+        <span key={p + i}>
+          <Link
+            href={`/admin/residents?block=${block}&flatNumber=${encodeURIComponent(p)}`}
+            className="text-primary-600 dark:text-primary-400 hover:underline"
+            title={`View residents in B${block}-${p}`}
+          >
+            {p}
+          </Link>
+          {i < parts.length - 1 && <span className="text-gray-400">/</span>}
+        </span>
+      ))}
+    </span>
   );
 }
