@@ -694,22 +694,13 @@ function TopList({
 
 function FlatLinks({ block, flatNumber, adminView }: { block: number; flatNumber: string; adminView: boolean }) {
   if (!adminView) return <>B{block}-{flatNumber}</>;
-  const parts = flatNumber.split(/[/,]/).map((p) => p.trim()).filter(Boolean);
   return (
-    <span>
-      <span className="text-gray-500 dark:text-gray-400">B{block}-</span>
-      {parts.map((p, i) => (
-        <span key={p + i}>
-          <Link
-            href={`/admin/residents?block=${block}&flatNumber=${encodeURIComponent(p)}`}
-            className="text-primary-600 dark:text-primary-400 hover:underline"
-            title={`View residents in B${block}-${p}`}
-          >
-            {p}
-          </Link>
-          {i < parts.length - 1 && <span className="text-gray-400">/</span>}
-        </span>
-      ))}
-    </span>
+    <Link
+      href={`/admin/residents?block=${block}&flatNumber=${encodeURIComponent(flatNumber)}`}
+      className="text-primary-600 dark:text-primary-400 hover:underline"
+      title={`View residents in B${block}-${flatNumber}`}
+    >
+      B{block}-{flatNumber}
+    </Link>
   );
 }
