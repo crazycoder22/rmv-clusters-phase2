@@ -283,6 +283,66 @@ function AnimatedDots() {
   );
 }
 
+// ── API → page shape normalizer ─────────────────────────────────────────
+// The /api/quiz/sessions/[code] route uses different field names than this
+// page expects. Normalize once on read so the rest of the component can stay
+// declarative.
+
+interface ApiResponse {
+  code?: string;
+  quizTitle?: string;
+  status?: string;
+  playerCount?: number;
+  leaderboard?: Array<{ playerId: string; name: string; block?: number; score?: number }>;
+  question?: { id: string; text: string; options: string[]; timeLimitSecs: number; correctIndex?: number };
+  questionStartedAt?: string;
+  playerAnswer?: { answerIndex: number; isCorrect: boolean; points: number };
+  playerScore?: number;
+  updatedAt?: string;
+  currentQuestionIdx?: number;
+  totalQuestions?: number;
+}
+
+function normalizeQuizSession(api: ApiResponse): QuizSessionData {
+  const status = (api.status ?? "").toLowerCase() as QuizSessionData["status"];
+  const players: QuizPlayer[] = (api.leaderboard ?? []).map((p) => ({
+    playerId: p.playerId,
+    name: p.name,
+    block: p.block ?? 0,
+    score: p.score ?? 0,
+  }));
+  return {
+    code: api.code ?? "",
+    title: api.quizTitle ?? "Quiz",
+    status,
+    playerCount: api.playerCount ?? players.length,
+    players,
+    currentQuestion: api.question
+      ? {
+          id: api.question.id,
+          text: api.question.text,
+          options: api.question.options,
+          questionStartedAt: api.questionStartedAt ?? new Date().toISOString(),
+          timeLimitSecs: api.question.timeLimitSecs,
+        }
+      : null,
+    lastAnswer: api.playerAnswer
+      ? {
+          questionId: api.question?.id ?? "",
+          answerIndex: api.playerAnswer.answerIndex,
+          correct: api.playerAnswer.isCorrect,
+          pointsEarned: api.playerAnswer.points,
+          correctIndex: api.question?.correctIndex ?? -1,
+        }
+      : null,
+    leaderboard: players,
+    myScore: api.playerScore ?? 0,
+    updatedAt: api.updatedAt ?? "",
+    questionIndex: api.currentQuestionIdx ?? 0,
+    totalQuestions: api.totalQuestions ?? 0,
+  };
+}
+
 // ── Main Page ─────────────────────────────────────────────────────────────
 
 export default function QuizGamePage() {
@@ -351,7 +411,8 @@ export default function QuizGamePage() {
       try {
         const res = await fetch(`/api/quiz/sessions/${code}?playerId=${playerId}`);
         if (!res.ok) return;
-        const data: QuizSessionData = await res.json();
+        const raw: ApiResponse = await res.json();
+        const data = normalizeQuizSession(raw);
 
         // Skip if nothing changed
         if (data.updatedAt === lastUpdatedRef.current) return;
@@ -415,7 +476,14 @@ export default function QuizGamePage() {
 
         if (res.ok) {
           const data = await res.json();
-          setAnswerResult(data);
+          // The /answer endpoint returns { points, isCorrect } — map to QuizAnswer
+          setAnswerResult({
+            questionId: quizData.currentQuestion.id,
+            answerIndex,
+            correct: !!data.isCorrect,
+            pointsEarned: data.points ?? 0,
+            correctIndex: -1, // backfilled when SHOWING_RESULTS poll arrives
+          });
         }
       } catch {
         // Will reconcile on next poll

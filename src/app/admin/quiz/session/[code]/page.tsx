@@ -65,6 +65,76 @@ const OPTION_COLORS = [
 
 const MEDAL_COLORS = ["text-yellow-500", "text-gray-400", "text-amber-600"];
 
+// ── API → page shape normalizer ─────────────────────────────────────────
+// /api/quiz/sessions/[code] returns a different shape than this page expects.
+// Map field names + compute derived fields here so render logic stays simple.
+
+interface ApiAdminResponse {
+  id?: string;
+  code?: string;
+  status?: SessionState["status"];
+  quizTitle?: string;
+  currentQuestionIdx?: number;
+  totalQuestions?: number;
+  question?: { id: string; text: string; options: string[]; timeLimitSecs: number; correctIndex?: number };
+  questionStartedAt?: string;
+  totalAnswers?: number;
+  answerCounts?: number[];
+  playerCount?: number;
+  leaderboard?: Array<{ playerId: string; name: string; score?: number }>;
+}
+
+function normalizeAdminSession(api: ApiAdminResponse): SessionState {
+  const players: Player[] = (api.leaderboard ?? []).map((p) => ({
+    id: p.playerId,
+    name: p.name,
+    score: p.score ?? 0,
+  }));
+
+  const q = api.question ?? null;
+  const currentQuestion = q
+    ? {
+        text: q.text,
+        options: q.options,
+        correctOption: q.correctIndex ?? -1,
+        timeLimit: q.timeLimitSecs,
+      }
+    : null;
+
+  // Build answer distribution if we have answer counts + question options
+  let answerDistribution: AnswerDistribution[] | null = null;
+  if (api.answerCounts && q) {
+    answerDistribution = q.options.map((opt, i) => ({
+      option: opt,
+      count: api.answerCounts?.[i] ?? 0,
+      isCorrect: i === (q.correctIndex ?? -1),
+    }));
+  }
+
+  // Compute time remaining from question start + limit
+  let timeRemaining: number | null = null;
+  if (api.questionStartedAt && q && api.status === "ACTIVE") {
+    const elapsed = (Date.now() - new Date(api.questionStartedAt).getTime()) / 1000;
+    timeRemaining = Math.max(0, Math.ceil(q.timeLimitSecs - elapsed));
+  }
+
+  return {
+    id: api.id ?? "",
+    code: api.code ?? "",
+    status: api.status ?? "WAITING",
+    quizTitle: api.quizTitle ?? "Quiz",
+    currentQuestionIndex: api.currentQuestionIdx ?? 0,
+    totalQuestions: api.totalQuestions ?? 0,
+    currentQuestion,
+    answerCount: api.totalAnswers ?? 0,
+    playerCount: api.playerCount ?? players.length,
+    players,
+    leaderboard: players,
+    answerDistribution,
+    timeRemaining,
+  };
+}
+
 export default function AdminQuizSessionPage({
   params,
 }: {
@@ -93,7 +163,8 @@ export default function AdminQuizSessionPage({
     try {
       const res = await fetch(`/api/quiz/sessions/${code}`);
       if (!res.ok) return;
-      const data: SessionState = await res.json();
+      const raw = await res.json();
+      const data = normalizeAdminSession(raw);
       setSession(data);
       if (data.timeRemaining !== null && data.status === "ACTIVE") {
         setLocalTimer(data.timeRemaining);
