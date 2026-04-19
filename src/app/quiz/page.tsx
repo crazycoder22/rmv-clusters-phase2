@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Gamepad2, Users, ArrowRight, ArrowLeft } from "lucide-react";
 import clsx from "clsx";
-import AdBanner from "@/components/ads/AdBanner";
 
 interface QuizSession {
   code: string;
@@ -126,8 +125,6 @@ export default function QuizJoinPage() {
 
   return (
     <div className="max-w-lg mx-auto px-4 py-6">
-      <AdBanner page="quiz" placement="top" />
-
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <Link href="/" className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
@@ -259,8 +256,6 @@ export default function QuizJoinPage() {
           <p className="text-xs mt-1">Enter a code above to join when one starts!</p>
         </div>
       )}
-
-      <AdBanner page="quiz" placement="bottom" />
     </div>
   );
 }

@@ -15,11 +15,10 @@ const DESCRIPTION =
 const IMAGE_URL = "/banners/quiz-night-bollywood.svg";
 const LINK_URL = "/quiz";
 
-// Pages that currently render <AdBanner /> after today's wiring:
-// wordle, sudoku, crossword, memory, 2048, quiz, news, marketplace,
-// community, calendar, newsletters. We hit every game page + news to
-// maximise tonight's reach.
-const PAGES = ["wordle", "sudoku", "crossword", "memory", "2048", "quiz", "news"];
+// Pages that render <AdBanner /> AND are appropriate for a quiz-night
+// promo. We deliberately leave /quiz out — players who land there are
+// already in the quiz flow and don't need the banner.
+const PAGES = ["wordle", "sudoku", "crossword", "memory", "2048", "news"];
 
 // Today in IST as YYYY-MM-DD (matches the format /api/ads filters on).
 function istToday(): string {
