@@ -5,6 +5,7 @@ import { useSession, signIn } from "next-auth/react";
 import Link from "next/link";
 import { ArrowLeft, Trophy, RotateCcw, Info, X } from "lucide-react";
 import clsx from "clsx";
+import AdBanner from "@/components/ads/AdBanner";
 import {
   Board,
   Direction,
@@ -319,6 +320,8 @@ export default function Game2048Page() {
 
   return (
     <div className="max-w-lg mx-auto px-4 py-4">
+      <AdBanner page="2048" placement="top" />
+
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <Link
@@ -482,6 +485,8 @@ export default function Game2048Page() {
           </ul>
         </Modal>
       )}
+
+      <AdBanner page="2048" placement="bottom" />
 
       {/* Leaderboard modal */}
       {showLeaderboard && (

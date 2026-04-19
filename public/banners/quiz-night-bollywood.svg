@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <!-- Bollywood-night gradient: deep purple → magenta → orange -->
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a0033" />
+      <stop offset="50%" stop-color="#8e0a87" />
+      <stop offset="100%" stop-color="#ff6f00" />
+    </linearGradient>
+    <radialGradient id="spot" cx="30%" cy="30%" r="80%">
+      <stop offset="0%" stop-color="rgba(255, 230, 130, 0.55)" />
+      <stop offset="100%" stop-color="rgba(255, 230, 130, 0)" />
+    </radialGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="200" height="200" fill="url(#bg)" rx="12" />
+  <rect width="200" height="200" fill="url(#spot)" rx="12" />
+
+  <!-- Main film clapperboard emoji centered -->
+  <text
+    x="100"
+    y="125"
+    text-anchor="middle"
+    font-family="Helvetica, Arial, sans-serif"
+    font-size="120"
+    filter="url(#glow)"
+  >🎬</text>
+
+  <!-- Small 'QUIZ' tag in the corner -->
+  <g>
+    <rect x="120" y="155" width="70" height="32" rx="6" fill="#ffd54f" />
+    <text
+      x="155"
+      y="178"
+      text-anchor="middle"
+      font-family="Helvetica, Arial, sans-serif"
+      font-size="20"
+      font-weight="900"
+      fill="#1a0033"
+      letter-spacing="1"
+    >QUIZ</text>
+  </g>
+</svg>
