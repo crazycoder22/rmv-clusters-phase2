@@ -1,13 +1,22 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getTodayIST, calculateScore } from "@/lib/memory";
+import {
+  getTodayIST,
+  getCurrentWeekBounds,
+  calculateScore,
+  ACTIVE_DIFFICULTY,
+} from "@/lib/memory";
 
 export const dynamic = "force-dynamic";
 
 // GET — Leaderboard (daily or weekly)
+//   ?scope=daily|weekly        (default: daily)
+//   ?difficulty=easy|medium|hard  (default: hard — the only one exposed in
+//                                  the new UI; older difficulties retained
+//                                  for historical record viewing)
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const difficulty = searchParams.get("difficulty") || "medium";
+  const difficulty = searchParams.get("difficulty") || ACTIVE_DIFFICULTY;
   const scope = searchParams.get("scope") || "daily";
 
   if (scope === "daily") {
@@ -34,22 +43,20 @@ export async function GET(request: Request) {
       .slice(0, 20)
       .map((p, i) => ({ rank: i + 1, ...p }));
 
-    return NextResponse.json({ leaderboard });
+    return NextResponse.json({ leaderboard, date: today, difficulty });
   }
 
-  // Weekly: aggregate by player
-  const now = new Date();
-  const istOffset = 5.5 * 60 * 60 * 1000;
-  const ist = new Date(now.getTime() + istOffset + now.getTimezoneOffset() * 60 * 1000);
-  const dates: string[] = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(ist);
-    d.setDate(d.getDate() - i);
-    dates.push(d.toISOString().split("T")[0]);
-  }
+  // Weekly leaderboard: aggregate scores across the current Mon-Sun calendar
+  // week (IST). This replaced the previous rolling-7-day window so the
+  // weekly challenge has a clean Monday start / Sunday end every week.
+  const { monday, sunday } = getCurrentWeekBounds();
 
   const games = await prisma.memoryGame.findMany({
-    where: { date: { in: dates }, difficulty, completed: true },
+    where: {
+      date: { gte: monday, lte: sunday },
+      difficulty,
+      completed: true,
+    },
     include: {
       player: { select: { id: true, name: true, block: true, flatNumber: true } },
     },
@@ -97,5 +104,10 @@ export async function GET(request: Request) {
     .slice(0, 20)
     .map((p, i) => ({ rank: i + 1, ...p }));
 
-  return NextResponse.json({ leaderboard });
+  return NextResponse.json({
+    leaderboard,
+    weekStart: monday,
+    weekEnd: sunday,
+    difficulty,
+  });
 }

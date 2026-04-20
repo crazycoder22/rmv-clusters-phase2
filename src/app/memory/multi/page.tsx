@@ -9,6 +9,9 @@ import clsx from "clsx";
 
 type Difficulty = "easy" | "medium" | "hard";
 
+// Only difficulty exposed for new sessions (easy/medium retired Apr 2026).
+const ACTIVE_DIFFICULTY: Difficulty = "hard";
+
 interface LobbySession {
   code: string;
   difficulty: string;
@@ -18,12 +21,6 @@ interface LobbySession {
   playerCount: number;
   createdAt: string;
 }
-
-const DIFF_LABEL: Record<Difficulty, string> = {
-  easy: "Easy (4×3)",
-  medium: "Medium (4×4)",
-  hard: "Hard (5×4)",
-};
 
 export default function MemoryMultiLobbyPage() {
   const { data: session, status: sessionStatus } = useSession();
@@ -37,7 +34,9 @@ export default function MemoryMultiLobbyPage() {
   const [sessions, setSessions] = useState<LobbySession[]>([]);
   const [joining, setJoining] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [difficulty, setDifficulty] = useState<Difficulty>("medium");
+  // Difficulty is fixed at the active value; we still track it in state for
+  // the POST body so the server gets an explicit value.
+  const [difficulty] = useState<Difficulty>(ACTIVE_DIFFICULTY);
   const [error, setError] = useState("");
 
   // Redirect unauthenticated
@@ -169,22 +168,9 @@ export default function MemoryMultiLobbyPage() {
         <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100 mb-3">
           Create a Session
         </h2>
-        <div className="flex gap-2 mb-3">
-          {(["easy", "medium", "hard"] as Difficulty[]).map((d) => (
-            <button
-              key={d}
-              onClick={() => setDifficulty(d)}
-              className={clsx(
-                "flex-1 px-3 py-2 rounded-lg text-xs font-medium border transition-colors",
-                difficulty === d
-                  ? "bg-primary-600 text-white border-primary-600"
-                  : "bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-600 hover:border-primary-400"
-              )}
-            >
-              {DIFF_LABEL[d]}
-            </button>
-          ))}
-        </div>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+          5×4 board · 10 pairs · turn-based with up to 8 players.
+        </p>
         <button
           onClick={handleCreate}
           disabled={creating}

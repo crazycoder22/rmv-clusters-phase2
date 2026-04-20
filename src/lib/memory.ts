@@ -45,6 +45,12 @@ export const GRID_CONFIG: Record<Difficulty, { cols: number; rows: number; pairs
   hard: { cols: 5, rows: 4, pairs: 10 },
 };
 
+// As of Apr 20, 2026, only one difficulty is exposed in the UI; easy/medium
+// were trial-period configurations. The full Difficulty union and GRID_CONFIG
+// are kept so historical records remain readable, but new games run on this
+// difficulty by default.
+export const ACTIVE_DIFFICULTY: Difficulty = "hard";
+
 /** Generate the daily card layout for a given date and difficulty */
 export function getDailyCards(date: string, difficulty: Difficulty): string[] {
   const { pairs } = GRID_CONFIG[difficulty];
@@ -96,4 +102,28 @@ export function getTodayIST(): string {
   const istOffset = 5.5 * 60 * 60 * 1000;
   const ist = new Date(now.getTime() + istOffset + now.getTimezoneOffset() * 60 * 1000);
   return ist.toISOString().split("T")[0];
+}
+
+/**
+ * Returns the Monday→Sunday calendar week (in IST) that contains the given
+ * YYYY-MM-DD date. Defaults to the current IST week.
+ *
+ * The implementation parses the YYYY-MM-DD as a UTC calendar date and works
+ * entirely in UTC to avoid the timezone-shift bug that affects naive
+ * `new Date(str + "+05:30")` + `getDay()` patterns. SudokuGame had this off-
+ * by-one issue; we get it right here.
+ */
+export function getCurrentWeekBounds(
+  dateYmd: string = getTodayIST()
+): { monday: string; sunday: string } {
+  const [y, m, d] = dateYmd.split("-").map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d));
+  const day = date.getUTCDay(); // 0 = Sun, 1 = Mon, ..., 6 = Sat
+  const offsetToMon = day === 0 ? -6 : 1 - day;
+  const monday = new Date(date);
+  monday.setUTCDate(date.getUTCDate() + offsetToMon);
+  const sunday = new Date(monday);
+  sunday.setUTCDate(monday.getUTCDate() + 6);
+  const fmt = (x: Date) => x.toISOString().split("T")[0];
+  return { monday: fmt(monday), sunday: fmt(sunday) };
 }

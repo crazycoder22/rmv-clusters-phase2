@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateQuizCode } from "@/lib/quiz";
-import { getRandomCards, GRID_CONFIG } from "@/lib/memory";
+import { getRandomCards, GRID_CONFIG, ACTIVE_DIFFICULTY } from "@/lib/memory";
 import type { Difficulty } from "@/lib/memory";
 
 export const dynamic = "force-dynamic";
@@ -13,10 +13,12 @@ export async function POST(request: Request) {
   if (!playerId)
     return NextResponse.json({ error: "playerId required" }, { status: 400 });
 
+  // The UI no longer exposes difficulty, but we still accept the field for
+  // backward compatibility — fall back to the active default.
   const difficulty = (
     ["easy", "medium", "hard"].includes(rawDifficulty)
       ? rawDifficulty
-      : "medium"
+      : ACTIVE_DIFFICULTY
   ) as Difficulty;
 
   const player = await prisma.wordlePlayer.findUnique({ where: { id: playerId } });

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getTodayIST, getDailyCards } from "@/lib/memory";
+import { getTodayIST, getDailyCards, ACTIVE_DIFFICULTY } from "@/lib/memory";
 import type { Difficulty } from "@/lib/memory";
 
 export const dynamic = "force-dynamic";
@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const playerId = searchParams.get("playerId");
-  const difficulty = (searchParams.get("difficulty") || "medium") as Difficulty;
+  const difficulty = (searchParams.get("difficulty") || ACTIVE_DIFFICULTY) as Difficulty;
 
   if (!playerId)
     return NextResponse.json({ error: "playerId required" }, { status: 400 });

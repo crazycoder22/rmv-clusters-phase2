@@ -12,6 +12,9 @@ import AdBanner from "@/components/ads/AdBanner";
 type Difficulty = "easy" | "medium" | "hard";
 type LeaderboardScope = "daily" | "weekly";
 
+// Only difficulty exposed in the UI now (easy/medium were trial-period).
+const ACTIVE_DIFFICULTY: Difficulty = "hard";
+
 interface CardState {
   id: number;
   emoji: string;
@@ -153,13 +156,13 @@ function MemoryCard({
 function LeaderboardView({
   currentPlayerId,
   difficulty,
-  setDifficulty,
 }: {
   currentPlayerId: string | null;
   difficulty: Difficulty;
-  setDifficulty: (d: Difficulty) => void;
 }) {
-  const [scope, setScope] = useState<LeaderboardScope>("daily");
+  // Weekly is the headline view — the Mon-Sun "Memory Weekly Challenge".
+  // Daily is still available as a tab for who's-on-top-today curiosity.
+  const [scope, setScope] = useState<LeaderboardScope>("weekly");
   const [dailyEntries, setDailyEntries] = useState<LeaderboardEntry[]>([]);
   const [weeklyEntries, setWeeklyEntries] = useState<WeeklyLeaderboardEntry[]>([]);
   const [weekLabel, setWeekLabel] = useState("");
@@ -193,13 +196,7 @@ function LeaderboardView({
       .finally(() => setLoading(false));
   }, [difficulty, scope]);
 
-  const diffBtnClass = (d: Difficulty) =>
-    clsx(
-      "px-3 py-1 rounded-full text-xs font-medium border transition-colors",
-      difficulty === d
-        ? "bg-primary-600 dark:bg-primary-500 text-white border-primary-600"
-        : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-600 hover:border-primary-400"
-    );
+  // (diffBtnClass removed — only one difficulty is exposed now.)
 
   const scopeBtnClass = (s: LeaderboardScope) =>
     clsx(
@@ -234,14 +231,9 @@ function LeaderboardView({
         <p className="text-center text-xs text-gray-500 dark:text-gray-400 -mt-2">{weekLabel}</p>
       )}
 
-      {/* Difficulty filter */}
-      <div className="flex gap-2 justify-center">
-        {(["easy", "medium", "hard"] as Difficulty[]).map((d) => (
-          <button key={d} className={diffBtnClass(d)} onClick={() => setDifficulty(d)}>
-            {DIFFICULTY_CONFIG[d].label}
-          </button>
-        ))}
-      </div>
+      {/* Difficulty selector retired — leaderboard always shows the live
+          (hard) challenge. Old easy/medium records are still in the DB
+          but no longer surfaced here. */}
 
       {loading ? (
         <p className="text-center text-sm text-gray-400 dark:text-gray-500 py-8">Loading...</p>
@@ -250,8 +242,8 @@ function LeaderboardView({
           <Trophy size={40} className="mx-auto text-gray-300 dark:text-gray-600 mb-2" />
           <p className="text-sm text-gray-500 dark:text-gray-400">
             {scope === "weekly"
-              ? `No completions this week for ${difficulty}!`
-              : `No completions yet for ${difficulty}!`}
+              ? "No completions this week yet!"
+              : "No completions today yet!"}
           </p>
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Be the first to complete it!</p>
         </div>
@@ -357,7 +349,7 @@ export default function MemoryPage() {
   const [loading, setLoading] = useState(true);
 
   // Game state
-  const [difficulty, setDifficulty] = useState<Difficulty>("medium");
+  const [difficulty, setDifficulty] = useState<Difficulty>(ACTIVE_DIFFICULTY);
   const [cards, setCards] = useState<CardState[]>([]);
   const [flippedIndices, setFlippedIndices] = useState<number[]>([]);
   const [moves, setMoves] = useState(0);
@@ -571,17 +563,7 @@ export default function MemoryPage() {
     fetchGame(difficulty);
   };
 
-  // Difficulty change
-  const handleDifficultyChange = (d: Difficulty) => {
-    if (d === difficulty) return;
-    setTimerActive(false);
-    setTimeSeconds(0);
-    setMoves(0);
-    setCompleted(false);
-    setFlippedIndices([]);
-    setLockBoard(false);
-    setDifficulty(d);
-  };
+  // (Difficulty change handler removed — single fixed difficulty.)
 
   // Share result
   const handleShare = () => {
@@ -708,7 +690,6 @@ export default function MemoryPage() {
           <LeaderboardView
             currentPlayerId={playerId}
             difficulty={difficulty}
-            setDifficulty={handleDifficultyChange}
           />
         )}
 
@@ -731,22 +712,13 @@ export default function MemoryPage() {
                   </p>
                 </div>
 
-                {/* Difficulty selector */}
-                <div className="flex gap-2 justify-center">
-                  {(["easy", "medium", "hard"] as Difficulty[]).map((d) => (
-                    <button
-                      key={d}
-                      onClick={() => handleDifficultyChange(d)}
-                      className={clsx(
-                        "px-4 py-1.5 rounded-full text-sm font-medium border transition-all duration-200",
-                        difficulty === d
-                          ? "bg-primary-600 dark:bg-primary-500 text-white border-primary-600 dark:border-primary-500 shadow-sm"
-                          : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-600 hover:border-primary-400 hover:text-primary-600 dark:hover:text-primary-400"
-                      )}
-                    >
-                      {DIFFICULTY_CONFIG[d].label}
-                    </button>
-                  ))}
+                {/* Weekly Challenge banner (replaces the old difficulty
+                    selector — only one mode now). */}
+                <div className="text-center">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-primary-50 to-amber-50 dark:from-primary-900/30 dark:to-amber-900/30 border border-primary-200 dark:border-primary-700 text-xs font-semibold text-primary-700 dark:text-primary-300">
+                    <Trophy size={12} />
+                    Weekly Challenge — 5×4 grid, 10 pairs
+                  </span>
                 </div>
 
                 {/* Stats bar */}
@@ -884,21 +856,7 @@ export default function MemoryPage() {
                       </button>
                     </div>
 
-                    {/* Try other difficulties */}
-                    <div className="pt-2">
-                      <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">Try another difficulty</p>
-                      <div className="flex gap-2 justify-center">
-                        {(["easy", "medium", "hard"] as Difficulty[]).filter((d) => d !== difficulty).map((d) => (
-                          <button
-                            key={d}
-                            onClick={() => handleDifficultyChange(d)}
-                            className="px-3 py-1 rounded-full text-xs font-medium border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-primary-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-                          >
-                            {DIFFICULTY_CONFIG[d].label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                    {/* "Try another difficulty" removed — single mode only. */}
 
                     <p className="text-xs text-gray-400 dark:text-gray-500">
                       New cards at midnight IST
