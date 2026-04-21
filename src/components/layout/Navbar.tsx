@@ -324,6 +324,11 @@ export default function Navbar() {
       label: "Medals & Coins",
       match: (p) => p.startsWith("/admin/medals"),
     });
+    adminLinks.push({
+      href: "/admin/public-events",
+      label: "Public Events",
+      match: (p) => p.startsWith("/admin/public-events"),
+    });
   }
 
   const isAdminActive = adminLinks.some((link) => {

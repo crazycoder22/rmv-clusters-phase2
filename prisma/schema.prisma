@@ -72,6 +72,7 @@ model Resident {
   postLikes                PostLike[]
   medalsReceived           MedalAward[]  @relation("MedalsReceived")
   medalsAwarded            MedalAward[]  @relation("MedalsAwarded")
+  publicEventsCreated      PublicEvent[] @relation("PublicEventsCreated")
   meetingsCreated          Meeting[]        @relation("MeetingsCreated")
   meetingRsvps             MeetingRsvp[]
   reviewDocuments          ReviewDocument[]
@@ -1495,3 +1496,46 @@ model MedalAward {
 }
 
 // ─── End Medals ────────────────────────────────────────────────────────────
+
+// ─── Public Events ─────────────────────────────────────────────────────────
+// Vendor/community events (e.g. hearing check-up camp) where anyone — not
+// just logged-in residents — can register with name + block + flat + phone.
+// Registrations are visible only to admins for privacy; public pages show
+// only event details + the registration form.
+
+model PublicEvent {
+  id                   String   @id @default(cuid())
+  slug                 String   @unique
+  title                String
+  description          String?  // markdown-ish body (paragraphs)
+  organizer            String?  // "Amplifon India"
+  venue                String?  // "Club House - RMV Clusters Phase 2"
+  startAt              DateTime
+  endAt                DateTime?
+  registrationClosesAt DateTime?
+  active               Boolean  @default(true)
+  createdById          String
+  createdBy            Resident @relation("PublicEventsCreated", fields: [createdById], references: [id])
+  registrations        PublicEventRegistration[]
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([active])
+  @@index([startAt])
+}
+
+model PublicEventRegistration {
+  id         String      @id @default(cuid())
+  eventId    String
+  event      PublicEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name       String
+  phone      String
+  block      Int?
+  flatNumber String?
+  createdAt  DateTime    @default(now())
+
+  @@index([eventId])
+  @@index([phone])
+}
+
+// ─── End Public Events ─────────────────────────────────────────────────────
