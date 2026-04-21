@@ -10,7 +10,7 @@ import { prisma } from "../src/lib/prisma";
 const SLUG = "hearing-checkup-apr-2026";
 const TITLE = "Free Hearing Check-up Camp";
 const ORGANIZER = "Amplifon India";
-const VENUE = "Club House — RMV Clusters Phase 2";
+const VENUE = "Block Office — RMV Clusters Phase 2";
 
 // Times in IST (UTC+5:30): 10:00 AM – 4:00 PM on 26 April 2026.
 const START = new Date("2026-04-26T04:30:00.000Z"); // 10:00 AM IST
@@ -32,15 +32,15 @@ Bring your parents, grandparents & loved ones — because good hearing and good 
 
 // Announcement body — a little softer so it reads well in the feed.
 const ANNOUNCEMENT_SUMMARY =
-  "Sunday 26 April, 10 AM – 4 PM at the Club House. Free tests by certified experts from Amplifon India. Register online — no login needed.";
+  "Sunday 26 April, 10 AM – 4 PM at the Block Office. Free tests by certified experts from Amplifon India. Register online — no login needed.";
 
 const ANNOUNCEMENT_BODY = `🎧 Free Hearing Check-up Camp — This Sunday!
 
-Take a proactive step towards a healthier life. We're hosting a FREE hearing check-up camp at the Club House this Sunday, organised by Amplifon India.
+Take a proactive step towards a healthier life. We're hosting a FREE hearing check-up camp at the Block Office this Sunday, organised by Amplifon India.
 
 📅 Sunday, 26 April 2026
 ⏰ 10:00 AM – 4:00 PM
-📍 Club House — RMV Clusters Phase 2
+📍 Block Office — RMV Clusters Phase 2
 
 What you get (all free):
 • Advanced hearing test by certified experts
