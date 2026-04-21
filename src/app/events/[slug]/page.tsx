@@ -1,80 +1,107 @@
-import { notFound } from "next/navigation";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
 import EventRegistrationForm from "@/components/events/EventRegistrationForm";
 import { Calendar, Clock, MapPin, User, ArrowLeft } from "lucide-react";
 
-// Server-rendered event page. Fetches directly from Prisma rather than going
-// through /api/public-events/[slug] to save a network hop on first load.
+// Client component by design: matches the pattern used by every other
+// detail page in the app (e.g. /news/[id], /memory, /quiz) which fetch
+// via the API rather than hitting Prisma from a server component. SSR
+// through Prisma on Vercel was hanging because of cold-start + connection
+// pool timing; this approach ships the page immediately and loads data
+// after hydration.
 
-// Render on-demand for every request. Without this, Next.js may attempt
-// prerendering at build/runtime, which can hang when DATABASE_URL or the
-// Prisma client can't be exercised at that phase.
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  const { slug } = await params;
-  const event = await prisma.publicEvent.findUnique({
-    where: { slug },
-    select: { title: true, description: true },
-  });
-  if (!event) return { title: "Event not found" };
-  return {
-    title: `${event.title} — RMV Clusters`,
-    description: event.description ?? undefined,
-  };
+interface EventData {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  organizer: string | null;
+  venue: string | null;
+  startAt: string;
+  endAt: string | null;
+  registrationClosesAt: string | null;
+  active: boolean;
+  registrationCount: number;
 }
 
-const fmtDate = (d: Date) =>
+const fmtDate = (iso: string) =>
   new Intl.DateTimeFormat("en-IN", {
     timeZone: "Asia/Kolkata",
     weekday: "long",
     day: "numeric",
     month: "long",
     year: "numeric",
-  }).format(d);
+  }).format(new Date(iso));
 
-const fmtTime = (d: Date) =>
+const fmtTime = (iso: string) =>
   new Intl.DateTimeFormat("en-IN", {
     timeZone: "Asia/Kolkata",
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
-  }).format(d);
+  }).format(new Date(iso));
 
-export default async function PublicEventPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  const { slug } = await params;
-  const event = await prisma.publicEvent.findUnique({
-    where: { slug },
-    select: {
-      id: true,
-      slug: true,
-      title: true,
-      description: true,
-      organizer: true,
-      venue: true,
-      startAt: true,
-      endAt: true,
-      registrationClosesAt: true,
-      active: true,
-      _count: { select: { registrations: true } },
-    },
-  });
-  if (!event) notFound();
+export default function PublicEventPage() {
+  const { slug } = useParams<{ slug: string }>();
+  const [event, setEvent] = useState<EventData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+
+  useEffect(() => {
+    if (!slug) return;
+    fetch(`/api/public-events/${slug}`)
+      .then((r) => {
+        if (r.status === 404) {
+          setNotFound(true);
+          return null;
+        }
+        return r.ok ? r.json() : null;
+      })
+      .then((data) => {
+        if (data?.event) setEvent(data.event);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [slug]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse text-gray-500 dark:text-gray-400">Loading event...</div>
+      </div>
+    );
+  }
+
+  if (notFound || !event) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">
+            Event not found
+          </h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+            The event you're looking for doesn't exist or has been removed.
+          </p>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1 text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300"
+          >
+            <ArrowLeft size={14} />
+            Back to RMV Clusters
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const now = new Date();
   const closed =
     !event.active ||
-    (event.registrationClosesAt !== null && event.registrationClosesAt < now);
+    (event.registrationClosesAt !== null &&
+      new Date(event.registrationClosesAt) < now);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary-50/40 via-white to-white dark:from-primary-950/40 dark:via-gray-900 dark:to-gray-900 py-8 sm:py-12">
@@ -95,7 +122,10 @@ export default async function PublicEventPage({
           </h1>
           {event.organizer && (
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Organised by <span className="font-medium text-gray-700 dark:text-gray-300">{event.organizer}</span>
+              Organised by{" "}
+              <span className="font-medium text-gray-700 dark:text-gray-300">
+                {event.organizer}
+              </span>
             </p>
           )}
 
@@ -121,13 +151,13 @@ export default async function PublicEventPage({
             <div className="flex items-start gap-3">
               <User size={16} className="shrink-0 mt-0.5 text-primary-600 dark:text-primary-400" />
               <dd className="text-gray-700 dark:text-gray-200">
-                {event._count.registrations}{" "}
-                {event._count.registrations === 1 ? "person" : "people"} registered so far
+                {event.registrationCount}{" "}
+                {event.registrationCount === 1 ? "person" : "people"} registered so far
               </dd>
             </div>
           </dl>
 
-          {/* Description (simple paragraph rendering) */}
+          {/* Description */}
           {event.description && (
             <div className="mt-5 space-y-3 text-sm sm:text-[15px] text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
               {event.description}
