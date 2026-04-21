@@ -7,6 +7,12 @@ import { Calendar, Clock, MapPin, User, ArrowLeft } from "lucide-react";
 // Server-rendered event page. Fetches directly from Prisma rather than going
 // through /api/public-events/[slug] to save a network hop on first load.
 
+// Render on-demand for every request. Without this, Next.js may attempt
+// prerendering at build/runtime, which can hang when DATABASE_URL or the
+// Prisma client can't be exercised at that phase.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function generateMetadata({
   params,
 }: {

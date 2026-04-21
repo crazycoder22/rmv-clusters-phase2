@@ -3,6 +3,10 @@ import { notFound } from "next/navigation";
 import { CheckCircle2, Calendar, MapPin } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 
+// Render on-demand — same reasoning as the parent /events/[slug]/page.tsx.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 // Server-rendered thank-you page shown after a successful registration.
 // Reads ?n= (position) and ?name= from the query string to personalise the
 // confirmation. Falls back gracefully if either is missing.
