@@ -32,7 +32,9 @@ const fmtTime = (iso: string) =>
   }).format(new Date(iso));
 
 function ThanksInner() {
-  const { slug } = useParams<{ slug: string }>();
+  // The URL segment is [id] (see sibling /events/[id]/page.tsx for the
+  // routing reason). For public events this carries the slug.
+  const { id } = useParams<{ id: string }>();
   const searchParams = useSearchParams();
   const n = searchParams.get("n");
   const name = searchParams.get("name");
@@ -41,8 +43,8 @@ function ThanksInner() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!slug) return;
-    fetch(`/api/public-events/${slug}`)
+    if (!id) return;
+    fetch(`/api/public-events/${id}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (d?.event) {
@@ -56,7 +58,7 @@ function ThanksInner() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [slug]);
+  }, [id]);
 
   const positionNum = n ? parseInt(n, 10) : null;
   const firstName = name?.trim();

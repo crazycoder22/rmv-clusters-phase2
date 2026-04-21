@@ -6,12 +6,16 @@ import Link from "next/link";
 import EventRegistrationForm from "@/components/events/EventRegistrationForm";
 import { Calendar, Clock, MapPin, User, ArrowLeft } from "lucide-react";
 
-// Client component by design: matches the pattern used by every other
-// detail page in the app (e.g. /news/[id], /memory, /quiz) which fetch
-// via the API rather than hitting Prisma from a server component. SSR
-// through Prisma on Vercel was hanging because of cold-start + connection
-// pool timing; this approach ships the page immediately and loads data
-// after hydration.
+// Lives under /events/[id]/ — not [slug] — because the segment already
+// has sibling routes (dashboard/, rsvp/, sports/) using [id]. Next.js
+// disallows two dynamic param names at the same level, so the new
+// public-event page shares the same [id] segment. The `id` param
+// carries whatever slug or cuid the URL was visited with; our backend
+// lookup uses it as a slug for public-event URLs.
+//
+// Client component: matches the pattern used by every other detail
+// page in the app (/news/[id], /memory, /quiz) — fetch via API rather
+// than hitting Prisma from a server component.
 
 interface EventData {
   id: string;
@@ -45,14 +49,17 @@ const fmtTime = (iso: string) =>
   }).format(new Date(iso));
 
 export default function PublicEventPage() {
-  const { slug } = useParams<{ slug: string }>();
+  // The URL segment is [id]; for public events this is actually the slug
+  // (e.g. "hearing-checkup-apr-2026"). Our /api/public-events endpoint
+  // treats it as a slug lookup.
+  const { id } = useParams<{ id: string }>();
   const [event, setEvent] = useState<EventData | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
-    if (!slug) return;
-    fetch(`/api/public-events/${slug}`)
+    if (!id) return;
+    fetch(`/api/public-events/${id}`)
       .then((r) => {
         if (r.status === 404) {
           setNotFound(true);
@@ -65,7 +72,7 @@ export default function PublicEventPage() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [slug]);
+  }, [id]);
 
   if (loading) {
     return (
