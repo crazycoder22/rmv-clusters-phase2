@@ -37,7 +37,9 @@ function isGroup(item: NavItem): item is NavGroup {
   return "links" in item;
 }
 
-const publicPaths = ["/", "/contact", "/videos", "/surveys"];
+// Pages that show up in the navbar for unauthenticated visitors. The pages
+// themselves enforce their own auth (or don't, for genuinely public ones).
+const publicPaths = ["/", "/contact", "/videos", "/surveys", "/faq"];
 
 // Top-level links shown directly in the navbar
 const topLevelLinks: NavLink[] = [
