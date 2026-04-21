@@ -1,93 +1,74 @@
-"use client";
-
-import { useState } from "react";
-import clsx from "clsx";
-import { ChevronDown } from "lucide-react";
+import Link from "next/link";
+import { ChevronRight, FileText } from "lucide-react";
 import SectionHeading from "@/components/ui/SectionHeading";
-import faqData from "@/data/faq.json";
+import { FAQ_TOPICS } from "@/data/faqTopics";
 
-export default function FAQPage() {
-  const [activeCategory, setActiveCategory] = useState("all");
-  const [openItems, setOpenItems] = useState<Set<string>>(new Set());
+export const metadata = {
+  title: "FAQs — RMV Clusters",
+  description:
+    "Frequently asked questions for RMV Clusters residents, organised by topic.",
+};
 
-  const categories = ["all", ...faqData.categories];
-  const filtered =
-    activeCategory === "all"
-      ? faqData.items
-      : faqData.items.filter((item) => item.category === activeCategory);
-
-  const toggleItem = (id: string) => {
-    setOpenItems((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  };
-
+export default function FAQLandingPage() {
   return (
-    <div className="py-12">
+    <div className="py-10 sm:py-12">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <SectionHeading
           title="Frequently Asked Questions"
-          subtitle="Find answers to common questions about our community"
+          subtitle="Pick a topic to see answers to common questions."
         />
 
-        {/* Category filters */}
-        <div className="mt-8 flex flex-wrap gap-2 justify-center">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={clsx(
-                "px-4 py-2 rounded-full text-sm font-medium transition-colors capitalize",
-                activeCategory === cat
-                  ? "bg-primary-600 text-white"
-                  : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
-              )}
+        {/* Topic cards. Single column on mobile, 2 columns on sm+ for
+            denser scanning. Each card is a full-width tap target so it
+            stays comfortable on phones. */}
+        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          {FAQ_TOPICS.map((topic) => (
+            <Link
+              key={topic.slug}
+              href={`/faq/${topic.slug}`}
+              className="group relative flex flex-col p-4 sm:p-5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-primary-400 dark:hover:border-primary-500 hover:shadow-md transition-all"
             >
-              {cat}
-            </button>
+              {topic.isNew && (
+                <span className="absolute top-3 right-3 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">
+                  New
+                </span>
+              )}
+
+              <div className="flex items-start gap-3 mb-2">
+                <span className="text-3xl leading-none shrink-0">{topic.emoji}</span>
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 group-hover:text-primary-700 dark:group-hover:text-primary-300 transition-colors">
+                    {topic.title}
+                  </h3>
+                  {topic.publishedAt && (
+                    <p className="text-[10px] uppercase tracking-wider text-gray-400 dark:text-gray-500 mt-0.5">
+                      Published {topic.publishedAt}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <p className="text-sm text-gray-600 dark:text-gray-400 leading-snug mb-3">
+                {topic.description}
+              </p>
+
+              <div className="mt-auto flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                <span>{topic.items.length} question{topic.items.length === 1 ? "" : "s"}</span>
+                <span className="inline-flex items-center gap-1 text-primary-600 dark:text-primary-400 font-medium group-hover:gap-2 transition-all">
+                  Read
+                  <ChevronRight size={14} />
+                </span>
+              </div>
+            </Link>
           ))}
         </div>
 
-        {/* FAQ Items */}
-        <div className="mt-8 space-y-3">
-          {filtered.map((item) => {
-            const isOpen = openItems.has(item.id);
-            return (
-              <div
-                key={item.id}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden"
-              >
-                <button
-                  onClick={() => toggleItem(item.id)}
-                  className="w-full flex items-center justify-between p-5 text-left"
-                >
-                  <span className="font-medium text-gray-900 dark:text-gray-100 pr-4">
-                    {item.question}
-                  </span>
-                  <ChevronDown
-                    size={20}
-                    className={clsx(
-                      "text-gray-400 shrink-0 transition-transform",
-                      isOpen && "rotate-180"
-                    )}
-                  />
-                </button>
-                {isOpen && (
-                  <div className="px-5 pb-5 -mt-1">
-                    <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-                      {item.answer}
-                    </p>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+        {/* Helper note at the bottom */}
+        <div className="mt-10 text-center text-sm text-gray-500 dark:text-gray-400">
+          <p className="inline-flex items-center gap-1.5">
+            <FileText size={14} />
+            More topics will be added over time. Suggestions? Reach out to the committee.
+          </p>
         </div>
       </div>
     </div>
