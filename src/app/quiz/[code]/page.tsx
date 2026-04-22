@@ -6,6 +6,14 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Trophy, Medal, Users, CheckCircle2, XCircle, Clock } from "lucide-react";
 import clsx from "clsx";
+import QuizMuteToggle from "@/components/quiz/QuizMuteToggle";
+import {
+  sfxTap,
+  sfxCorrect,
+  sfxWrong,
+  sfxFanfare,
+  unlockAudio,
+} from "@/lib/quiz-audio";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -455,6 +463,41 @@ export default function QuizGamePage() {
     return () => clearInterval(interval);
   }, [playerId, code, quizData?.status]);
 
+  // ── SFX reactions to state transitions ────────────────────────────────
+  // These refs live for the lifetime of QuizJoinPage and survive the
+  // conditional returns below, so we can dedup exactly-once plays even
+  // as the component re-renders between WAITING / ACTIVE / RESULTS /
+  // COMPLETED states.
+  const lastChimedQuestionRef = useRef<string | null>(null);
+  const playedFanfareRef = useRef<boolean>(false);
+
+  // Correct / wrong chime when the results for the current question
+  // come back from the server. Guarded by question id so re-polls of
+  // the same showing_results phase don't re-chime.
+  useEffect(() => {
+    if (quizData?.status !== "showing_results") return;
+    const answer = quizData.lastAnswer;
+    if (!answer) return; // player didn't submit → no chime
+    if (lastChimedQuestionRef.current === answer.questionId) return;
+    lastChimedQuestionRef.current = answer.questionId;
+    if (answer.correct) sfxCorrect();
+    else sfxWrong();
+  }, [quizData?.status, quizData?.lastAnswer]);
+
+  // Fanfare when the whole quiz ends — once per mount.
+  useEffect(() => {
+    if (quizData?.status === "completed" && !playedFanfareRef.current) {
+      playedFanfareRef.current = true;
+      sfxFanfare();
+    }
+  }, [quizData?.status]);
+
+  // Pre-unlock the AudioContext on any early interaction. Harmless if
+  // called without a gesture — it just stays locked until one happens.
+  useEffect(() => {
+    unlockAudio();
+  }, []);
+
   // Submit answer
   const submitAnswer = useCallback(
     async (answerIndex: number) => {
@@ -462,6 +505,10 @@ export default function QuizGamePage() {
 
       setSelectedAnswer(answerIndex);
       setAnswerSubmitted(true);
+      // Audible feedback that the tap registered. This also serves as
+      // the user gesture that unlocks the AudioContext for subsequent
+      // correct/wrong chimes on iOS Safari.
+      sfxTap();
 
       try {
         const res = await fetch(`/api/quiz/sessions/${code}/answer`, {
@@ -524,6 +571,7 @@ export default function QuizGamePage() {
   if (quizData.status === "waiting") {
     return (
       <div className="max-w-lg mx-auto px-4 py-6">
+        <QuizMuteToggle />
         <Header code={code} title={quizData.title} />
         <div className="flex flex-col items-center justify-center py-16 space-y-6">
           <div className="w-20 h-20 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
@@ -562,6 +610,7 @@ export default function QuizGamePage() {
 
     return (
       <div className="max-w-lg mx-auto px-4 py-6">
+        <QuizMuteToggle />
         <Header code={code} title={quizData.title} />
 
         {/* Progress */}
@@ -660,6 +709,7 @@ export default function QuizGamePage() {
 
     return (
       <div className="max-w-lg mx-auto px-4 py-6">
+        <QuizMuteToggle />
         <Header code={code} title={quizData.title} />
 
         {/* Result banner */}
@@ -738,6 +788,7 @@ export default function QuizGamePage() {
     return (
       <div className="max-w-lg mx-auto px-4 py-6">
         {showConfetti && <Confetti />}
+        <QuizMuteToggle />
         <Header code={code} title={quizData.title} />
 
         {/* Final result */}

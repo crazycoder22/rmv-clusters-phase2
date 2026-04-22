@@ -20,6 +20,8 @@ import {
   Crown,
   Timer,
 } from "lucide-react";
+import QuizHostAudio from "@/components/quiz/QuizHostAudio";
+import QuizMuteToggle from "@/components/quiz/QuizMuteToggle";
 
 interface Player {
   id: string;
@@ -257,6 +259,15 @@ export default function AdminQuizSessionPage({
 
   return (
     <div className="py-10">
+      {/* Background music + stings driven by session state (zero UI). */}
+      <QuizHostAudio
+        status={session.status}
+        currentQuestionIdx={session.currentQuestionIndex}
+      />
+      {/* Floating mute toggle, fixed top-right. Click also unlocks the
+          AudioContext so SFX fire even if music isn't playing. */}
+      <QuizMuteToggle />
+
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
         {/* Back link */}
         <Link
