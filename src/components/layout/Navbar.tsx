@@ -198,143 +198,191 @@ export default function Navbar() {
     [isLoggedIn, isFullAccess, isSuperAdminUser]
   );
 
-  // Build admin links based on roles
-  const adminLinks: { href: string; label: string; match: string | ((p: string) => boolean) }[] = [];
+  // Build admin nav items grouped by theme. Each group contains links
+  // gated by individual role checks; groups with zero visible links are
+  // filtered out so the dropdown only shows sections the user can use.
+  type AdminLink = {
+    href: string;
+    label: string;
+    match: string | ((p: string) => boolean);
+  };
+  type AdminGroup = { label: string; links: AdminLink[] };
 
+  const adminGroups: AdminGroup[] = [];
+
+  // ── Community ─────────────────────────────────────────────────────────
+  const communityLinks: AdminLink[] = [];
   if (canManageAnnouncements(roles) || canManageResidents(roles)) {
-    adminLinks.push({ href: "/admin", label: "Announcements", match: "/admin" });
-  }
-  if (canManageAnnouncements(roles)) {
-    adminLinks.push({
-      href: "/admin/calendar",
-      label: "Calendar",
-      match: (p) => p.startsWith("/admin/calendar"),
-    });
-    adminLinks.push({
-      href: "/accounts/expenses",
-      label: "Accounts",
-      match: (p) => p.startsWith("/accounts"),
-    });
+    communityLinks.push({ href: "/admin", label: "Announcements", match: "/admin" });
   }
   if (canManageNewsletters(roles)) {
-    adminLinks.push({
+    communityLinks.push({
       href: "/admin/newsletters",
       label: "Newsletters",
       match: (p) => p.startsWith("/admin/newsletters"),
     });
   }
+  if (canManageAnnouncements(roles)) {
+    communityLinks.push({
+      href: "/admin/videos",
+      label: "Video Library",
+      match: (p) => p.startsWith("/admin/videos"),
+    });
+  }
   if (canManageAds(roles)) {
-    adminLinks.push({
+    communityLinks.push({
       href: "/admin/ads",
       label: "Banner Ads",
       match: (p) => p.startsWith("/admin/ads"),
     });
   }
-  if (canManageVisitors(roles)) {
-    adminLinks.push({ href: "/visitors", label: "Visitors", match: "/visitors" });
-  }
+  if (communityLinks.length) adminGroups.push({ label: "Community", links: communityLinks });
+
+  // ── Residents & Access ────────────────────────────────────────────────
+  const residentLinks: AdminLink[] = [];
   if (isAdmin(roles)) {
-    adminLinks.push({
-      href: "/admin/visits",
-      label: "Visit Log",
-      match: (p) => p.startsWith("/admin/visits"),
-    });
-    adminLinks.push({
+    residentLinks.push({
       href: "/admin/residents",
       label: "Residents",
       match: (p) => p.startsWith("/admin/residents"),
     });
   }
+  if (canManageVisitors(roles)) {
+    residentLinks.push({ href: "/visitors", label: "Visitors", match: "/visitors" });
+  }
+  if (isAdmin(roles)) {
+    residentLinks.push({
+      href: "/admin/visits",
+      label: "Visit Log",
+      match: (p) => p.startsWith("/admin/visits"),
+    });
+  }
+  if (canManageAnnouncements(roles)) {
+    residentLinks.push({
+      href: "/admin/sos-acceptances",
+      label: "SOS Acceptances",
+      match: (p) => p.startsWith("/admin/sos-acceptances"),
+    });
+  }
+  if (residentLinks.length) adminGroups.push({ label: "Residents & Access", links: residentLinks });
+
+  // ── Events ────────────────────────────────────────────────────────────
+  const eventLinks: AdminLink[] = [];
+  if (canManageAnnouncements(roles)) {
+    eventLinks.push({
+      href: "/admin/calendar",
+      label: "Calendar",
+      match: (p) => p.startsWith("/admin/calendar"),
+    });
+  }
+  if (canManageMeetings(roles)) {
+    eventLinks.push({
+      href: "/admin/meetings",
+      label: "Meetings",
+      match: (p) => p.startsWith("/admin/meetings"),
+    });
+  }
+  if (canManageAnnouncements(roles)) {
+    eventLinks.push({
+      href: "/admin/public-events",
+      label: "Public Events",
+      match: (p) => p.startsWith("/admin/public-events"),
+    });
+    eventLinks.push({
+      href: "/admin/tambola",
+      label: "Tambola",
+      match: (p) => p.startsWith("/admin/tambola"),
+    });
+  }
+  if (eventLinks.length) adminGroups.push({ label: "Events", links: eventLinks });
+
+  // ── Games ─────────────────────────────────────────────────────────────
+  const gameLinks: AdminLink[] = [];
+  if (canManageAnnouncements(roles)) {
+    gameLinks.push({
+      href: "/admin/quiz",
+      label: "Quiz",
+      match: (p) => p.startsWith("/admin/quiz"),
+    });
+    gameLinks.push({
+      href: "/admin/fantasy",
+      label: "Fantasy Cricket",
+      match: (p) => p.startsWith("/admin/fantasy"),
+    });
+    gameLinks.push({
+      href: "/admin/medals",
+      label: "Medals & Coins",
+      match: (p) => p.startsWith("/admin/medals"),
+    });
+  }
+  if (gameLinks.length) adminGroups.push({ label: "Games", links: gameLinks });
+
+  // ── Tasks & Docs ──────────────────────────────────────────────────────
+  const taskLinks: AdminLink[] = [];
   if (canAccessTasks(roles)) {
-    adminLinks.push({ href: "/tasks", label: "Tasks", match: "/tasks" });
+    taskLinks.push({ href: "/tasks", label: "Tasks", match: "/tasks" });
   }
   if (canManageChecklist(roles)) {
-    adminLinks.push({
+    taskLinks.push({
       href: "/admin/checklist",
       label: "Checklist Items",
       match: (p) => p.startsWith("/admin/checklist"),
     });
   }
   if (canManageDocuments(roles)) {
-    adminLinks.push({
+    taskLinks.push({
       href: "/admin/documents",
       label: "Documents",
       match: (p) => p.startsWith("/admin/documents"),
     });
   }
-  if (canManageMeetings(roles)) {
-    adminLinks.push({
-      href: "/admin/meetings",
-      label: "Meetings",
-      match: (p) => p.startsWith("/admin/meetings"),
-    });
-  }
   if (canManageReviewDocs(roles)) {
-    adminLinks.push({
+    taskLinks.push({
       href: "/admin/review-docs",
       label: "Review Docs",
       match: (p) => p.startsWith("/admin/review-docs"),
     });
   }
+  if (taskLinks.length) adminGroups.push({ label: "Tasks & Docs", links: taskLinks });
+
+  // ── Engagement ────────────────────────────────────────────────────────
+  const engagementLinks: AdminLink[] = [];
   if (canManagePolls(roles)) {
-    adminLinks.push({
+    engagementLinks.push({
       href: "/admin/polls/new",
       label: "Polls",
       match: (p) => p.startsWith("/admin/polls"),
     });
-    adminLinks.push({
+    engagementLinks.push({
       href: "/admin/surveys/new",
       label: "Surveys",
       match: (p) => p.startsWith("/admin/surveys"),
     });
   }
+  if (engagementLinks.length) adminGroups.push({ label: "Engagement", links: engagementLinks });
+
+  // ── Finance & Facility ────────────────────────────────────────────────
+  const financeLinks: AdminLink[] = [];
   if (canManageAnnouncements(roles)) {
-    adminLinks.push({
-      href: "/admin/sos-acceptances",
-      label: "SOS Acceptances",
-      match: (p) => p.startsWith("/admin/sos-acceptances"),
+    financeLinks.push({
+      href: "/accounts/expenses",
+      label: "Accounts",
+      match: (p) => p.startsWith("/accounts"),
     });
-    adminLinks.push({
-      href: "/admin/fantasy",
-      label: "Fantasy Cricket",
-      match: (p) => p.startsWith("/admin/fantasy"),
-    });
-    adminLinks.push({
-      href: "/admin/quiz",
-      label: "Quiz",
-      match: (p) => p.startsWith("/admin/quiz"),
-    });
-    adminLinks.push({
+    financeLinks.push({
       href: "/admin/housekeeping",
       label: "Housekeeping",
       match: (p) => p.startsWith("/admin/housekeeping"),
     });
-    adminLinks.push({
-      href: "/admin/videos",
-      label: "Video Library",
-      match: (p) => p.startsWith("/admin/videos"),
-    });
-    adminLinks.push({
-      href: "/admin/tambola",
-      label: "Tambola",
-      match: (p) => p.startsWith("/admin/tambola"),
-    });
-    adminLinks.push({
-      href: "/admin/medals",
-      label: "Medals & Coins",
-      match: (p) => p.startsWith("/admin/medals"),
-    });
-    adminLinks.push({
-      href: "/admin/public-events",
-      label: "Public Events",
-      match: (p) => p.startsWith("/admin/public-events"),
-    });
   }
+  if (financeLinks.length) adminGroups.push({ label: "Finance & Facility", links: financeLinks });
 
-  const isAdminActive = adminLinks.some((link) => {
-    if (typeof link.match === "function") return link.match(pathname);
-    return pathname === link.match;
-  });
+  // Flat list — used for the "is any admin section active?" check and
+  // the "should the Admin button appear at all?" check.
+  const allAdminLinks = adminGroups.flatMap((g) => g.links);
+  const isAdminActive = allAdminLinks.some((link) =>
+    typeof link.match === "function" ? link.match(pathname) : pathname === link.match
+  );
 
   // Close all dropdowns when clicking outside
   useEffect(() => {
@@ -415,7 +463,7 @@ export default function Navbar() {
             })}
 
             {/* Admin Dropdown */}
-            {adminLinks.length > 0 && (
+            {allAdminLinks.length > 0 && (
               <div className="relative" ref={adminDropdownRef}>
                 <button
                   onClick={() => setOpenDropdown(openDropdown === "admin" ? null : "admin")}
@@ -438,27 +486,41 @@ export default function Navbar() {
                 </button>
 
                 {openDropdown === "admin" && (
-                  <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
-                    {adminLinks.map((link) => {
-                      const active =
-                        typeof link.match === "function"
-                          ? link.match(pathname)
-                          : pathname === link.match;
-                      return (
-                        <Link
-                          key={link.href}
-                          href={link.href}
-                          className={clsx(
-                            "block px-4 py-2 text-sm transition-colors",
-                            active
-                              ? "bg-primary-50 text-primary-700 font-medium dark:bg-primary-900/50 dark:text-primary-300"
-                              : "text-gray-700 hover:bg-gray-50 hover:text-primary-700 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-primary-300"
-                          )}
-                        >
-                          {link.label}
-                        </Link>
-                      );
-                    })}
+                  // w-56 fits "SOS Acceptances" without truncation;
+                  // max-h caps height at 75vh (with internal scroll) so
+                  // the dropdown never exceeds the viewport even when
+                  // the user zooms in or the browser window is small.
+                  <div className="absolute right-0 mt-1 w-56 max-h-[75vh] overflow-y-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
+                    {adminGroups.map((group, gIdx) => (
+                      <div key={group.label}>
+                        {gIdx > 0 && (
+                          <div className="border-t border-gray-100 dark:border-gray-700 my-1" />
+                        )}
+                        <p className="px-4 pt-1.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                          {group.label}
+                        </p>
+                        {group.links.map((link) => {
+                          const active =
+                            typeof link.match === "function"
+                              ? link.match(pathname)
+                              : pathname === link.match;
+                          return (
+                            <Link
+                              key={link.href}
+                              href={link.href}
+                              className={clsx(
+                                "block px-4 py-2 text-sm transition-colors",
+                                active
+                                  ? "bg-primary-50 text-primary-700 font-medium dark:bg-primary-900/50 dark:text-primary-300"
+                                  : "text-gray-700 hover:bg-gray-50 hover:text-primary-700 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-primary-300"
+                              )}
+                            >
+                              {link.label}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
@@ -551,8 +613,10 @@ export default function Navbar() {
               );
             })}
 
-            {/* Mobile Admin Section */}
-            {adminLinks.length > 0 && (
+            {/* Mobile Admin Section — grouped same as desktop, with a
+                single "Admin" header at the top followed by each
+                group's label as a smaller subheading. */}
+            {allAdminLinks.length > 0 && (
               <>
                 <div className="border-t dark:border-gray-700 mt-2 pt-2">
                   <p className="px-3 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-1">
@@ -560,27 +624,34 @@ export default function Navbar() {
                     Admin
                   </p>
                 </div>
-                {adminLinks.map((link) => {
-                  const active =
-                    typeof link.match === "function"
-                      ? link.match(pathname)
-                      : pathname === link.match;
-                  return (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      onClick={() => setMobileOpen(false)}
-                      className={clsx(
-                        "block px-3 py-2 rounded-md text-base font-medium transition-colors",
-                        active
-                          ? "bg-primary-50 text-primary-700 dark:bg-primary-900/50 dark:text-primary-300"
-                          : "text-gray-600 hover:text-primary-700 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-primary-300 dark:hover:bg-primary-900/50"
-                      )}
-                    >
-                      {link.label}
-                    </Link>
-                  );
-                })}
+                {adminGroups.map((group) => (
+                  <div key={group.label}>
+                    <p className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                      {group.label}
+                    </p>
+                    {group.links.map((link) => {
+                      const active =
+                        typeof link.match === "function"
+                          ? link.match(pathname)
+                          : pathname === link.match;
+                      return (
+                        <Link
+                          key={link.href}
+                          href={link.href}
+                          onClick={() => setMobileOpen(false)}
+                          className={clsx(
+                            "block px-3 py-2 rounded-md text-base font-medium transition-colors",
+                            active
+                              ? "bg-primary-50 text-primary-700 dark:bg-primary-900/50 dark:text-primary-300"
+                              : "text-gray-600 hover:text-primary-700 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-primary-300 dark:hover:bg-primary-900/50"
+                          )}
+                        >
+                          {link.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                ))}
               </>
             )}
 
