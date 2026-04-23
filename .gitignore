@@ -44,6 +44,9 @@ next-env.d.ts
 prisma/dev.db
 prisma/dev.db-journal
 
-# capacitor
-/ios
-/android
+# mobile (Capacitor)
+/mobile/node_modules
+/mobile/dist
+/mobile/ios
+/mobile/android
+/mobile/.env*
