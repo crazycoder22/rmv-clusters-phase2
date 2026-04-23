@@ -1,7 +1,10 @@
 import { HashRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider, useAuth } from "./auth/AuthProvider";
 import SignIn from "./auth/SignIn";
-import Home from "./pages/Home";
+import Shell from "./layout/Shell";
+import Dashboard from "./pages/Dashboard";
+import Games from "./pages/Games";
+import News from "./pages/News";
 import MemoryGame from "./pages/MemoryGame";
 import Wordle from "./pages/Wordle";
 import Sudoku from "./pages/Sudoku";
@@ -40,21 +43,25 @@ function Gate() {
 
   return (
     <HashRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/memory" element={<MemoryGame />} />
-        <Route path="/memory/multi" element={<MemoryMulti />} />
-        <Route path="/memory/multi/:code" element={<MemoryMultiSession />} />
-        <Route path="/wordle" element={<Wordle />} />
-        <Route path="/sudoku" element={<Sudoku />} />
-        <Route path="/2048" element={<Game2048 />} />
-        <Route path="/quiz" element={<QuizJoin />} />
-        <Route path="/quiz/:code" element={<QuizSession />} />
-        <Route path="/tambola" element={<TambolaJoin />} />
-        <Route path="/tambola/:code" element={<TambolaSession />} />
-        <Route path="/fantasy" element={<FantasyMatches />} />
-        <Route path="/fantasy/:matchId" element={<FantasyMatch />} />
-      </Routes>
+      <Shell>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/games" element={<Games />} />
+          <Route path="/news" element={<News />} />
+          <Route path="/memory" element={<MemoryGame />} />
+          <Route path="/memory/multi" element={<MemoryMulti />} />
+          <Route path="/memory/multi/:code" element={<MemoryMultiSession />} />
+          <Route path="/wordle" element={<Wordle />} />
+          <Route path="/sudoku" element={<Sudoku />} />
+          <Route path="/2048" element={<Game2048 />} />
+          <Route path="/quiz" element={<QuizJoin />} />
+          <Route path="/quiz/:code" element={<QuizSession />} />
+          <Route path="/tambola" element={<TambolaJoin />} />
+          <Route path="/tambola/:code" element={<TambolaSession />} />
+          <Route path="/fantasy" element={<FantasyMatches />} />
+          <Route path="/fantasy/:matchId" element={<FantasyMatch />} />
+        </Routes>
+      </Shell>
     </HashRouter>
   );
 }

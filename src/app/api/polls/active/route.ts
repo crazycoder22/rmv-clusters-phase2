@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getAuthedResident } from "@/lib/api-auth";
 
-export async function GET() {
-  const session = await auth();
-  if (!session?.user?.email) {
+export async function GET(request: Request) {
+  const resident = await getAuthedResident(request);
+  if (!resident) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

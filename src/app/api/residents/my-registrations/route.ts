@@ -1,34 +1,21 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getAuthedResident } from "@/lib/api-auth";
 
-async function requireResident() {
-  const session = await auth();
-  if (!session?.user?.email) {
-    return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
-  }
-  if (!session.user.isRegistered) {
-    return { error: NextResponse.json({ error: "Not registered" }, { status: 403 }) };
-  }
-  const resident = await prisma.resident.findUnique({
-    where: { email: session.user.email },
-  });
+export async function GET(request: Request) {
+  const resident = await getAuthedResident(request);
   if (!resident) {
-    return { error: NextResponse.json({ error: "Resident not found" }, { status: 404 }) };
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  return { session, resident };
-}
+  if (!resident.isApproved) {
+    return NextResponse.json({ error: "Not approved" }, { status: 403 });
+  }
 
-export async function GET() {
-  const check = await requireResident();
-  if ("error" in check && check.error) return check.error;
-
-  const { resident } = check;
   const now = new Date();
 
   const rsvps = await prisma.rsvp.findMany({
     where: {
-      residentId: resident!.id,
+      residentId: resident.id,
       eventConfig: {
         announcement: { date: { gte: now } },
       },
@@ -39,14 +26,14 @@ export async function GET() {
           announcement: { select: { id: true, title: true, date: true } },
         },
       },
-      items: { include: { menuItem: true } },
+      items: true,
     },
     orderBy: { createdAt: "desc" },
   });
 
   const sportsRegs = await prisma.sportsRegistration.findMany({
     where: {
-      residentId: resident!.id,
+      residentId: resident.id,
       sportsConfig: {
         announcement: { date: { gte: now } },
       },
@@ -64,7 +51,6 @@ export async function GET() {
     orderBy: { createdAt: "desc" },
   });
 
-  // Shape the response
   const rsvpData = rsvps.map((r) => ({
     id: r.id,
     announcementId: r.eventConfig.announcement.id,

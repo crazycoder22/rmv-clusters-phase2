@@ -1,21 +1,15 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-
-async function requireResident() {
-  const session = await auth();
-  if (!session?.user?.email) {
-    return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
-  }
-  if (!session.user.isRegistered) {
-    return { error: NextResponse.json({ error: "Not registered" }, { status: 403 }) };
-  }
-  return { session };
-}
+import { getAuthedResident } from "@/lib/api-auth";
 
 export async function GET(request: Request) {
-  const check = await requireResident();
-  if ("error" in check && check.error) return check.error;
+  const resident = await getAuthedResident(request);
+  if (!resident) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!resident.isApproved) {
+    return NextResponse.json({ error: "Not approved" }, { status: 403 });
+  }
 
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q")?.trim() || "";

@@ -16,3 +16,40 @@ body,
   flex-direction: column;
   min-height: 100svh;
 }
+
+/* Light styling for admin-authored HTML (announcement body/summary) */
+.mobile-rich p {
+  margin: 0 0 0.6rem;
+}
+.mobile-rich p:last-child {
+  margin-bottom: 0;
+}
+.mobile-rich a {
+  color: #818cf8;
+  text-decoration: underline;
+}
+.mobile-rich ul,
+.mobile-rich ol {
+  margin: 0.5rem 0;
+  padding-left: 1.25rem;
+}
+.mobile-rich li {
+  margin: 0.2rem 0;
+}
+.mobile-rich strong,
+.mobile-rich b {
+  color: #f1f5f9;
+  font-weight: 600;
+}
+.mobile-rich h1,
+.mobile-rich h2,
+.mobile-rich h3 {
+  color: #f1f5f9;
+  font-weight: 600;
+  margin: 0.6rem 0 0.3rem;
+}
+.mobile-rich img {
+  max-width: 100%;
+  border-radius: 0.5rem;
+  margin: 0.5rem 0;
+}
