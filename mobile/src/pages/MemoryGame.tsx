@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Clock, Layers, RotateCcw, Star, Trophy } from "lucide-react";
+import {
+  ArrowLeft,
+  Clock,
+  Layers,
+  RotateCcw,
+  Star,
+  Trophy,
+} from "lucide-react";
 import clsx from "clsx";
 import {
   ACTIVE_DIFFICULTY,
@@ -10,6 +17,9 @@ import {
   getStars,
   getTodayIST,
 } from "../lib/memory";
+import { apiFetch } from "../lib/api";
+import { useAuth } from "../auth/AuthProvider";
+import MemoryLeaderboard from "../components/MemoryLeaderboard";
 
 type CardState = {
   id: number;
@@ -18,23 +28,11 @@ type CardState = {
   matched: boolean;
 };
 
+type Tab = "game" | "leaderboard";
+
 const FLIP_DELAY = 800;
 const difficulty = ACTIVE_DIFFICULTY;
 const config = GRID_CONFIG[difficulty];
-
-type BestToday = { moves: number; time: number; date: string };
-const BEST_KEY = `memory_best_${difficulty}`;
-
-function loadBestToday(today: string): BestToday | null {
-  const raw = localStorage.getItem(BEST_KEY);
-  if (!raw) return null;
-  try {
-    const parsed = JSON.parse(raw) as BestToday;
-    return parsed.date === today ? parsed : null;
-  } catch {
-    return null;
-  }
-}
 
 function initialCards(today: string): CardState[] {
   return getDailyCards(today, difficulty).map((emoji, i) => ({
@@ -46,6 +44,10 @@ function initialCards(today: string): CardState[] {
 }
 
 export default function MemoryGame() {
+  const { user } = useAuth();
+  const playerId = user?.playerId ?? null;
+
+  const [tab, setTab] = useState<Tab>("game");
   const today = getTodayIST();
 
   const [cards, setCards] = useState<CardState[]>(() => initialCards(today));
@@ -55,11 +57,39 @@ export default function MemoryGame() {
   const [timerActive, setTimerActive] = useState(false);
   const [lockBoard, setLockBoard] = useState(false);
   const [completed, setCompleted] = useState(false);
-  const [bestToday, setBestToday] = useState<BestToday | null>(() =>
-    loadBestToday(today)
-  );
+  const [bestToday, setBestToday] = useState<{ moves: number; time: number } | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Fetch server-side game state on mount / playerId change.
+  useEffect(() => {
+    if (!playerId) return;
+    let cancelled = false;
+    setLoading(true);
+    apiFetch(`/api/memory/game?playerId=${playerId}&difficulty=${difficulty}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (cancelled || !data) return;
+        if (data.completed) {
+          setCompleted(true);
+          setLockBoard(true);
+          setMoves(data.moves ?? 0);
+          setTimeSeconds(data.timeSeconds ?? 0);
+          setBestToday({ moves: data.moves, time: data.timeSeconds ?? 0 });
+          setCards((prev) =>
+            prev.map((c) => ({ ...c, matched: true, flipped: false }))
+          );
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [playerId]);
 
   useEffect(() => {
     if (!timerActive || completed) return;
@@ -70,6 +100,27 @@ export default function MemoryGame() {
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, [timerActive, completed]);
+
+  const submitCompletion = useCallback(
+    (finalMoves: number, finalTime: number) => {
+      if (!playerId) return;
+      apiFetch("/api/memory/game", {
+        method: "POST",
+        body: JSON.stringify({
+          playerId,
+          difficulty,
+          moves: finalMoves,
+          timeSeconds: finalTime,
+        }),
+      })
+        .then((r) => (r.ok ? r.json() : null))
+        .then(() => {
+          setBestToday({ moves: finalMoves, time: finalTime });
+        })
+        .catch(() => {});
+    },
+    [playerId]
+  );
 
   const handleCardClick = useCallback(
     (index: number) => {
@@ -112,22 +163,7 @@ export default function MemoryGame() {
               setCompleted(true);
               setTimerActive(false);
               setTimeSeconds((t) => {
-                const result: BestToday = {
-                  moves: newMoves,
-                  time: t,
-                  date: today,
-                };
-                const existing = loadBestToday(today);
-                const isBetter =
-                  !existing ||
-                  newMoves < existing.moves ||
-                  (newMoves === existing.moves && t < existing.time);
-                if (isBetter) {
-                  localStorage.setItem(BEST_KEY, JSON.stringify(result));
-                  setBestToday(result);
-                } else {
-                  setBestToday(existing);
-                }
+                submitCompletion(newMoves, t);
                 return t;
               });
             }
@@ -149,17 +185,17 @@ export default function MemoryGame() {
         }, FLIP_DELAY);
       }
     },
-    [cards, completed, flipped, lockBoard, moves, timerActive, today]
+    [cards, completed, flipped, lockBoard, moves, timerActive, submitCompletion]
   );
 
-  const handleNewGame = () => {
+  const handleRestart = () => {
+    if (completed) return; // can't replay a completed daily
     setCards(initialCards(today));
     setFlipped([]);
     setMoves(0);
     setTimeSeconds(0);
     setTimerActive(false);
     setLockBoard(false);
-    setCompleted(false);
   };
 
   const stars = completed ? getStars(difficulty, moves) : 0;
@@ -177,6 +213,92 @@ export default function MemoryGame() {
         <div className="h-9 w-9" />
       </header>
 
+      <div className="mb-4 flex justify-center">
+        <div className="flex items-center rounded-lg bg-slate-800 p-0.5">
+          <TabButton active={tab === "game"} onClick={() => setTab("game")}>
+            <Layers size={14} /> Game
+          </TabButton>
+          <TabButton
+            active={tab === "leaderboard"}
+            onClick={() => setTab("leaderboard")}
+          >
+            <Trophy size={14} /> Leaderboard
+          </TabButton>
+        </div>
+      </div>
+
+      {tab === "leaderboard" ? (
+        <MemoryLeaderboard currentPlayerId={playerId} />
+      ) : (
+        <GameView
+          loading={loading}
+          cards={cards}
+          moves={moves}
+          timeSeconds={timeSeconds}
+          bestToday={bestToday}
+          completed={completed}
+          lockBoard={lockBoard}
+          stars={stars}
+          onCardClick={handleCardClick}
+          onRestart={handleRestart}
+          onSeeLeaderboard={() => setTab("leaderboard")}
+        />
+      )}
+
+      <div className="flex-1" />
+    </div>
+  );
+}
+
+function TabButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={clsx(
+        "flex items-center gap-1.5 rounded-md px-4 py-1.5 text-sm font-medium transition-colors",
+        active ? "bg-slate-700 text-white shadow-sm" : "text-slate-400"
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+function GameView({
+  loading,
+  cards,
+  moves,
+  timeSeconds,
+  bestToday,
+  completed,
+  lockBoard,
+  stars,
+  onCardClick,
+  onRestart,
+  onSeeLeaderboard,
+}: {
+  loading: boolean;
+  cards: CardState[];
+  moves: number;
+  timeSeconds: number;
+  bestToday: { moves: number; time: number } | null;
+  completed: boolean;
+  lockBoard: boolean;
+  stars: number;
+  onCardClick: (idx: number) => void;
+  onRestart: () => void;
+  onSeeLeaderboard: () => void;
+}) {
+  return (
+    <>
       <div className="mx-auto mb-4 inline-flex items-center gap-1.5 self-center rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-300">
         <Trophy size={12} />
         Daily Challenge — 5×4 · 10 pairs
@@ -198,21 +320,27 @@ export default function MemoryGame() {
         )}
       </div>
 
-      <div className="mx-auto grid w-full max-w-sm flex-shrink-0 grid-cols-5 gap-2">
-        {cards.map((card, idx) => (
-          <Card
-            key={card.id}
-            card={card}
-            disabled={lockBoard || completed}
-            onClick={() => handleCardClick(idx)}
-          />
-        ))}
-      </div>
+      {loading ? (
+        <div className="flex justify-center py-16 text-sm text-slate-500">
+          Loading today's game…
+        </div>
+      ) : (
+        <div className="mx-auto grid w-full max-w-sm flex-shrink-0 grid-cols-5 gap-2">
+          {cards.map((card, idx) => (
+            <Card
+              key={card.id}
+              card={card}
+              disabled={lockBoard || completed}
+              onClick={() => onCardClick(idx)}
+            />
+          ))}
+        </div>
+      )}
 
-      {!completed && (
+      {!completed && !loading && (
         <div className="mt-6 flex justify-center">
           <button
-            onClick={handleNewGame}
+            onClick={onRestart}
             className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-300 active:bg-slate-700"
           >
             <RotateCcw size={15} />
@@ -224,9 +352,7 @@ export default function MemoryGame() {
       {completed && (
         <div className="mt-6 rounded-2xl border border-slate-700 bg-slate-800/80 p-6 text-center shadow-lg">
           <div className="text-4xl">🎉</div>
-          <h2 className="mt-3 text-xl font-bold text-white">
-            Congratulations!
-          </h2>
+          <h2 className="mt-3 text-xl font-bold text-white">Congratulations!</h2>
           <div className="mt-3 flex justify-center gap-1">
             {[1, 2, 3].map((i) => (
               <Star
@@ -249,18 +375,16 @@ export default function MemoryGame() {
             <SummaryStat value={String(config.pairs)} label="Optimal" />
           </div>
           <button
-            onClick={handleNewGame}
+            onClick={onSeeLeaderboard}
             className="mt-5 inline-flex items-center gap-2 rounded-lg bg-indigo-500 px-5 py-2.5 text-sm font-medium text-white active:bg-indigo-600"
           >
-            <RotateCcw size={15} />
-            Play again
+            <Trophy size={15} />
+            See leaderboard
           </button>
           <p className="mt-3 text-xs text-slate-500">New cards at midnight IST</p>
         </div>
       )}
-
-      <div className="flex-1" />
-    </div>
+    </>
   );
 }
 
@@ -318,9 +442,7 @@ function Card({
           transform: revealed ? "rotateY(180deg)" : "rotateY(0deg)",
         }}
       >
-        <div
-          className="absolute inset-0 flex items-center justify-center rounded-xl border-2 border-indigo-400/60 bg-gradient-to-br from-indigo-500 to-indigo-700 [backface-visibility:hidden]"
-        >
+        <div className="absolute inset-0 flex items-center justify-center rounded-xl border-2 border-indigo-400/60 bg-gradient-to-br from-indigo-500 to-indigo-700 [backface-visibility:hidden]">
           <Star className="text-white/50" size={24} />
         </div>
         <div

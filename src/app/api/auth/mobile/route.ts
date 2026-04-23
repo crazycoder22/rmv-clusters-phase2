@@ -32,6 +32,7 @@ export async function POST(req: Request) {
       id: true,
       email: true,
       name: true,
+      phone: true,
       block: true,
       flatNumber: true,
       isApproved: true,
@@ -65,6 +66,21 @@ export async function POST(req: Request) {
       });
   }
 
+  // Ensure a WordlePlayer row exists for this resident — that's the model
+  // game scores (memory, wordle, sudoku, etc.) are keyed by.
+  const player = await prisma.wordlePlayer.upsert({
+    where: { email: resident.email.toLowerCase() },
+    update: {},
+    create: {
+      name: resident.name,
+      block: resident.block,
+      flatNumber: resident.flatNumber,
+      email: resident.email.toLowerCase(),
+      phone: resident.phone,
+    },
+    select: { id: true },
+  });
+
   const token = await issueMobileJwt({
     sub: resident.id,
     email: resident.email,
@@ -80,6 +96,7 @@ export async function POST(req: Request) {
       flatNumber: resident.flatNumber,
       imageUrl: identity.picture ?? resident.googleImage ?? null,
       roles: resident.roles.map((r) => r.name),
+      playerId: player.id,
     },
   });
 }

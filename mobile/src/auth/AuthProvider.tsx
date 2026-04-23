@@ -20,6 +20,7 @@ export type AuthUser = {
   flatNumber: string;
   imageUrl?: string | null;
   roles: string[];
+  playerId: string;
 };
 
 export type SignInErrorReason =
