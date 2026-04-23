@@ -92,6 +92,7 @@ export async function POST(req: Request) {
       id: resident.id,
       email: resident.email,
       name: resident.name,
+      phone: resident.phone,
       block: resident.block,
       flatNumber: resident.flatNumber,
       imageUrl: identity.picture ?? resident.googleImage ?? null,

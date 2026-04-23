@@ -16,6 +16,7 @@ export type AuthUser = {
   id: string;
   email: string;
   name: string;
+  phone: string;
   block: number;
   flatNumber: string;
   imageUrl?: string | null;

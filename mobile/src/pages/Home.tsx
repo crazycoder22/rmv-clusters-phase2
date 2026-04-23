@@ -69,6 +69,24 @@ export default function Home() {
           title="2048"
           subtitle="Swipe to merge tiles"
         />
+        <GameTile
+          to="/quiz"
+          icon="🎮"
+          title="Quiz Night"
+          subtitle="Join a live community quiz"
+        />
+        <GameTile
+          to="/tambola"
+          icon="🎫"
+          title="Tambola"
+          subtitle="Live bingo with prizes"
+        />
+        <GameTile
+          to="/fantasy"
+          icon="🏏"
+          title="Fantasy Cricket"
+          subtitle="Build your team, climb the leaderboard"
+        />
       </div>
 
       <div className="mt-auto pt-10 text-center text-xs text-slate-500">

@@ -7,6 +7,7 @@ import {
   RotateCcw,
   Star,
   Trophy,
+  Users,
 } from "lucide-react";
 import clsx from "clsx";
 import {
@@ -210,7 +211,13 @@ export default function MemoryGame() {
           <ArrowLeft size={20} />
         </Link>
         <h1 className="text-lg font-semibold text-white">Memory Match</h1>
-        <div className="h-9 w-9" />
+        <Link
+          to="/memory/multi"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 hover:bg-slate-800"
+          title="Multiplayer"
+        >
+          <Users size={18} />
+        </Link>
       </header>
 
       <div className="mb-4 flex justify-center">
