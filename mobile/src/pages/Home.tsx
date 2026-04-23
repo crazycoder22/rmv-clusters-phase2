@@ -51,6 +51,12 @@ export default function Home() {
           title="Memory Match"
           subtitle="Daily 5×4 card challenge"
         />
+        <GameTile
+          to="/wordle"
+          icon="🔤"
+          title="Wordle"
+          subtitle="Guess the 5-letter word"
+        />
       </div>
 
       <div className="mt-auto pt-10 text-center text-xs text-slate-500">

@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from "./auth/AuthProvider";
 import SignIn from "./auth/SignIn";
 import Home from "./pages/Home";
 import MemoryGame from "./pages/MemoryGame";
+import Wordle from "./pages/Wordle";
 
 export default function App() {
   return (
@@ -32,6 +33,7 @@ function Gate() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/memory" element={<MemoryGame />} />
+        <Route path="/wordle" element={<Wordle />} />
       </Routes>
     </HashRouter>
   );
