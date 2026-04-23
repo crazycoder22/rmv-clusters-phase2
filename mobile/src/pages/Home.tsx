@@ -57,6 +57,18 @@ export default function Home() {
           title="Wordle"
           subtitle="Guess the 5-letter word"
         />
+        <GameTile
+          to="/sudoku"
+          icon="🔢"
+          title="Sudoku"
+          subtitle="Daily 9×9 number puzzle"
+        />
+        <GameTile
+          to="/2048"
+          icon="🎯"
+          title="2048"
+          subtitle="Swipe to merge tiles"
+        />
       </div>
 
       <div className="mt-auto pt-10 text-center text-xs text-slate-500">
