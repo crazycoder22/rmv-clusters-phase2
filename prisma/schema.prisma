@@ -1514,6 +1514,16 @@ model PublicEvent {
   endAt                DateTime?
   registrationClosesAt DateTime?
   active               Boolean  @default(true)
+  // Optional contribution/crowdsourcing config. When contributionEnabled is
+  // true, the public form collects a rupee amount from each registrant and
+  // the page shows payment instructions (UPI + QR). Admins mark entries paid
+  // manually after receiving the money offline.
+  contributionEnabled  Boolean  @default(false)
+  maxContribution      Int?     // rupees; enforced on the form if set
+  targetAmount         Int?     // rupees; shown as a thermometer if set
+  paymentInstructions  String?  // markdown text shown near the payment details
+  paymentQrImageUrl    String?  // uploaded QR (Vercel Blob URL)
+  upiId                String?  // e.g. "9019903594@okbizaxis"
   createdById          String
   createdBy            Resident @relation("PublicEventsCreated", fields: [createdById], references: [id])
   registrations        PublicEventRegistration[]
@@ -1525,14 +1535,19 @@ model PublicEvent {
 }
 
 model PublicEventRegistration {
-  id         String      @id @default(cuid())
-  eventId    String
-  event      PublicEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  name       String
-  phone      String
-  block      Int?
-  flatNumber String?
-  createdAt  DateTime    @default(now())
+  id                 String      @id @default(cuid())
+  eventId            String
+  event              PublicEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name               String
+  phone              String
+  block              Int?
+  flatNumber         String?
+  // Contribution fields — populated only on contribution-enabled events.
+  contributionAmount Int?        // rupees pledged
+  paid               Boolean     @default(false)
+  paidAt             DateTime?
+  adminNote          String?     // optional admin note when toggling paid
+  createdAt          DateTime    @default(now())
 
   @@index([eventId])
   @@index([phone])

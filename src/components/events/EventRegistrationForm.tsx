@@ -7,14 +7,24 @@ import clsx from "clsx";
 
 interface Props {
   slug: string;
+  /** When true, the form collects a rupee contribution amount and the label
+   *  changes from "Register" to "Pledge my contribution". */
+  contributionEnabled?: boolean;
+  /** Upper bound shown to the user and enforced client-side. */
+  maxContribution?: number | null;
 }
 
-export default function EventRegistrationForm({ slug }: Props) {
+export default function EventRegistrationForm({
+  slug,
+  contributionEnabled,
+  maxContribution,
+}: Props) {
   const router = useRouter();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [block, setBlock] = useState("");
   const [flatNumber, setFlatNumber] = useState("");
+  const [amount, setAmount] = useState("");
   // Honeypot — real users never type here because it's visually hidden.
   const [website, setWebsite] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -34,6 +44,21 @@ export default function EventRegistrationForm({ slug }: Props) {
       return;
     }
 
+    let amountNumber: number | undefined;
+    if (contributionEnabled) {
+      amountNumber = Number(String(amount).trim());
+      if (!Number.isFinite(amountNumber) || amountNumber < 1) {
+        setError("Please enter how much you'd like to contribute.");
+        return;
+      }
+      if (maxContribution && amountNumber > maxContribution) {
+        setError(
+          `Please keep contributions ≤ ₹${maxContribution} so we can include everyone.`
+        );
+        return;
+      }
+    }
+
     setSubmitting(true);
     try {
       const res = await fetch(`/api/public-events/${slug}/register`, {
@@ -44,6 +69,7 @@ export default function EventRegistrationForm({ slug }: Props) {
           phone,
           block: block ? Number(block) : undefined,
           flatNumber,
+          contributionAmount: amountNumber,
           website, // honeypot
         }),
       });
@@ -68,10 +94,12 @@ export default function EventRegistrationForm({ slug }: Props) {
       className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 sm:p-6"
     >
       <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
-        Register
+        {contributionEnabled ? "Pledge your contribution" : "Register"}
       </h2>
       <p className="text-xs text-gray-500 dark:text-gray-400 mb-5">
-        Takes 30 seconds. No login required.
+        {contributionEnabled
+          ? "Pay via UPI after submitting. Admin will mark you as paid once received."
+          : "Takes 30 seconds. No login required."}
       </p>
 
       {/* Honeypot: kept far off-screen + tab-out so screen readers / autofill
@@ -175,6 +203,33 @@ export default function EventRegistrationForm({ slug }: Props) {
             placeholder="10-digit mobile number"
           />
         </div>
+
+        {/* Contribution amount */}
+        {contributionEnabled && (
+          <div>
+            <label htmlFor="ev-amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Contribution (₹) <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="ev-amount"
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={maxContribution ?? undefined}
+              step={1}
+              required
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-base sm:text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              placeholder={maxContribution ? `Up to ₹${maxContribution}` : "Amount in ₹"}
+            />
+            {maxContribution && (
+              <p className="mt-1 text-[11px] text-gray-400 dark:text-gray-500">
+                Max ₹{maxContribution} per person so we can include everyone.
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       {error && (
@@ -196,12 +251,12 @@ export default function EventRegistrationForm({ slug }: Props) {
         {submitting ? (
           <>
             <Loader2 size={18} className="animate-spin" />
-            Registering...
+            {contributionEnabled ? "Saving pledge..." : "Registering..."}
           </>
         ) : (
           <>
             <Check size={18} />
-            Register me
+            {contributionEnabled ? "Pledge" : "Register me"}
           </>
         )}
       </button>

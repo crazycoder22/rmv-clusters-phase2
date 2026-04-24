@@ -91,6 +91,8 @@ export async function POST(
       id: true,
       active: true,
       registrationClosesAt: true,
+      contributionEnabled: true,
+      maxContribution: true,
     },
   });
   if (!event) {
@@ -110,11 +112,13 @@ export async function POST(
   }
 
   // 4. Validate fields. Required: name + phone. Optional: block + flat.
-  const { name, phone, block, flatNumber } = body as {
+  //    Contribution amount is required only for contribution-enabled events.
+  const { name, phone, block, flatNumber, contributionAmount } = body as {
     name?: string;
     phone?: string;
     block?: number | string;
     flatNumber?: string;
+    contributionAmount?: number | string;
   };
 
   const cleanName = (name ?? "").trim();
@@ -145,6 +149,30 @@ export async function POST(
 
   const cleanFlat = (flatNumber ?? "").trim().slice(0, 30) || null;
 
+  // Contribution amount: required when contributionEnabled, else ignored.
+  let cleanAmount: number | null = null;
+  if (event.contributionEnabled) {
+    const asNum =
+      typeof contributionAmount === "number"
+        ? contributionAmount
+        : Number(String(contributionAmount ?? "").trim());
+    if (!Number.isFinite(asNum) || !Number.isInteger(asNum) || asNum < 1) {
+      return NextResponse.json(
+        { error: "Please enter a contribution amount (whole rupees)." },
+        { status: 400 }
+      );
+    }
+    if (event.maxContribution && asNum > event.maxContribution) {
+      return NextResponse.json(
+        {
+          error: `Please keep contributions ≤ ₹${event.maxContribution} so we can include everyone.`,
+        },
+        { status: 400 }
+      );
+    }
+    cleanAmount = asNum;
+  }
+
   // 5. Create the registration.
   const reg = await prisma.publicEventRegistration.create({
     data: {
@@ -153,6 +181,7 @@ export async function POST(
       phone: cleanPhone,
       block: cleanBlock,
       flatNumber: cleanFlat,
+      contributionAmount: cleanAmount,
     },
     select: { id: true, createdAt: true },
   });

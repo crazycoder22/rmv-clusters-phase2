@@ -74,6 +74,12 @@ export async function POST(request: Request) {
     endAt,
     registrationClosesAt,
     active,
+    contributionEnabled,
+    maxContribution,
+    targetAmount,
+    paymentInstructions,
+    paymentQrImageUrl,
+    upiId,
   } = body as {
     slug?: string;
     title?: string;
@@ -84,6 +90,12 @@ export async function POST(request: Request) {
     endAt?: string;
     registrationClosesAt?: string;
     active?: boolean;
+    contributionEnabled?: boolean;
+    maxContribution?: number | null;
+    targetAmount?: number | null;
+    paymentInstructions?: string | null;
+    paymentQrImageUrl?: string | null;
+    upiId?: string | null;
   };
 
   if (!slug?.trim() || !title?.trim() || !startAt) {
@@ -121,6 +133,12 @@ export async function POST(request: Request) {
       endAt: endAt ? new Date(endAt) : null,
       registrationClosesAt: registrationClosesAt ? new Date(registrationClosesAt) : null,
       active: active !== undefined ? active : true,
+      contributionEnabled: contributionEnabled === true,
+      maxContribution: maxContribution ?? null,
+      targetAmount: targetAmount ?? null,
+      paymentInstructions: paymentInstructions?.trim() || null,
+      paymentQrImageUrl: paymentQrImageUrl?.trim() || null,
+      upiId: upiId?.trim() || null,
       createdById: resident.id,
     },
   });

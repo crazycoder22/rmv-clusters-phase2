@@ -41,18 +41,30 @@ export async function GET(
       phone: true,
       block: true,
       flatNumber: true,
+      contributionAmount: true,
+      paid: true,
+      paidAt: true,
+      adminNote: true,
       createdAt: true,
     },
   });
 
   if (format === "csv") {
-    const header = "#,Name,Phone,Block,Flat,Registered At";
+    const header =
+      "#,Name,Phone,Block,Flat,Amount,Paid,Paid At,Registered At";
     const rows = registrations.map((r, i) => {
       const when = new Date(r.createdAt).toLocaleString("en-IN", {
         timeZone: "Asia/Kolkata",
         dateStyle: "medium",
         timeStyle: "short",
       });
+      const paidWhen = r.paidAt
+        ? new Date(r.paidAt).toLocaleString("en-IN", {
+            timeZone: "Asia/Kolkata",
+            dateStyle: "medium",
+            timeStyle: "short",
+          })
+        : "";
       const esc = (s: string | number | null) =>
         s == null ? "" : `"${String(s).replace(/"/g, '""')}"`;
       return [
@@ -61,6 +73,9 @@ export async function GET(
         esc(r.phone),
         r.block ?? "",
         esc(r.flatNumber),
+        r.contributionAmount ?? "",
+        r.paid ? "Yes" : "No",
+        esc(paidWhen),
         esc(when),
       ].join(",");
     });
@@ -83,7 +98,72 @@ export async function GET(
       phone: r.phone,
       block: r.block,
       flatNumber: r.flatNumber,
+      contributionAmount: r.contributionAmount,
+      paid: r.paid,
+      paidAt: r.paidAt,
+      adminNote: r.adminNote,
       createdAt: r.createdAt,
     })),
   });
+}
+
+// PATCH /api/admin/public-events/[id]/registrations — update a registration
+// (mark paid / unpaid, adjust amount, set admin note). Admin only.
+// Body: { registrationId, paid?, contributionAmount?, adminNote? }
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await auth();
+  if (!session?.user?.email)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!canManageAnnouncements(session.user.roles))
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const { id } = await params;
+  const body = await request.json().catch(() => null);
+  if (!body)
+    return NextResponse.json({ error: "Invalid body" }, { status: 400 });
+
+  const { registrationId, paid, contributionAmount, adminNote } = body as {
+    registrationId?: string;
+    paid?: boolean;
+    contributionAmount?: number | null;
+    adminNote?: string | null;
+  };
+
+  if (!registrationId)
+    return NextResponse.json(
+      { error: "registrationId required" },
+      { status: 400 }
+    );
+
+  const existing = await prisma.publicEventRegistration.findUnique({
+    where: { id: registrationId },
+  });
+  if (!existing || existing.eventId !== id)
+    return NextResponse.json(
+      { error: "Registration not found" },
+      { status: 404 }
+    );
+
+  const data: Record<string, unknown> = {};
+  if (typeof paid === "boolean") {
+    data.paid = paid;
+    data.paidAt = paid ? new Date() : null;
+  }
+  if (contributionAmount !== undefined)
+    data.contributionAmount =
+      contributionAmount == null
+        ? null
+        : Math.trunc(Number(contributionAmount));
+  if (adminNote !== undefined)
+    data.adminNote = adminNote ? String(adminNote).trim() : null;
+
+  const updated = await prisma.publicEventRegistration.update({
+    where: { id: registrationId },
+    data,
+  });
+
+  return NextResponse.json({ registration: updated });
 }
