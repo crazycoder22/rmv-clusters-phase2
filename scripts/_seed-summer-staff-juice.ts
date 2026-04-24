@@ -25,7 +25,7 @@ const CLOSES_AT = new Date("2026-04-26T14:30:00.000Z"); // 20:00 IST
 const MAX_CONTRIBUTION = 800;
 const TARGET_AMOUNT = 14000; // 20 staff × ₹20 × 35 days
 
-const DESCRIPTION = `The sun is out, and it's brutal. Let's make sure every one of our housekeeping, security and gardener team gets a fresh glass of lemon juice each day through summer.
+const DESCRIPTION = `The sun is out, and it's brutal. Let's make sure our staff gets a fresh glass of lemon juice each day through summer.
 
 Plan:
 • 20 staff × ₹20 per glass × 1 glass a day
@@ -47,7 +47,7 @@ const ANN_SUMMARY =
 
 const ANN_BODY = `🍋 **Summer Lemon Juice — for our staff, by us**
 
-The heat is brutal right now. Let's make sure every one of our housekeeping, security and gardener team gets a fresh glass of lemon juice every day through summer.
+The heat is brutal right now. Let's make sure our staff gets a fresh glass of lemon juice every day through summer.
 
 **Plan**
 • 20 staff × ₹20 per glass × 1 glass/day

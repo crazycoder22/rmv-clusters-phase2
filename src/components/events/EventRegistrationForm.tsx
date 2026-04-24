@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Loader2 } from "lucide-react";
+import { Check, Loader2, UserCheck } from "lucide-react";
 import clsx from "clsx";
 
 interface Props {
@@ -29,6 +29,27 @@ export default function EventRegistrationForm({
   const [website, setWebsite] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [prefilledName, setPrefilledName] = useState<string | null>(null);
+
+  // Auto-fill for signed-in residents. Hits the cookie-authed /api/residents/me
+  // on mount; silent if the user isn't logged in or isn't registered.
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/residents/me", { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (cancelled || !data?.name) return;
+        setName((prev) => prev || data.name);
+        setPhone((prev) => prev || data.phone || "");
+        setBlock((prev) => prev || (data.block ? String(data.block) : ""));
+        setFlatNumber((prev) => prev || data.flatNumber || "");
+        setPrefilledName(data.name);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -96,11 +117,21 @@ export default function EventRegistrationForm({
       <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
         {contributionEnabled ? "Pledge your contribution" : "Register"}
       </h2>
-      <p className="text-xs text-gray-500 dark:text-gray-400 mb-5">
+      <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
         {contributionEnabled
           ? "Pay via UPI after submitting. Admin will mark you as paid once received."
           : "Takes 30 seconds. No login required."}
       </p>
+
+      {prefilledName && (
+        <div className="mb-4 flex items-center gap-2 rounded-lg border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 px-3 py-2 text-xs text-green-800 dark:text-green-300">
+          <UserCheck size={14} />
+          <span>
+            Signed in as <span className="font-semibold">{prefilledName}</span>{" "}
+            — your details are pre-filled. Edit if needed.
+          </span>
+        </div>
+      )}
 
       {/* Honeypot: kept far off-screen + tab-out so screen readers / autofill
           may still touch it (bots), but humans never see it. */}
