@@ -9,6 +9,7 @@ import {
   LogOut,
   ShieldCheck,
   Video,
+  Wrench,
   type LucideIcon,
 } from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
@@ -28,6 +29,12 @@ export default function MorePage() {
       </header>
 
       <Group title="Community">
+        <Row
+          to="/issues"
+          icon={Wrench}
+          title="Issues"
+          subtitle="Report a maintenance problem"
+        />
         <Row
           to="/faq"
           icon={HelpCircle}

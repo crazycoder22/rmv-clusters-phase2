@@ -1,39 +1,62 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { isAdmin as checkIsAdmin, hasExactRole } from "@/lib/roles";
+import { getAuthedResident } from "@/lib/api-auth";
+
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const resident = await getAuthedResident(request);
+  if (!resident) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { id } = await params;
+  const issue = await prisma.issue.findUnique({
+    where: { id },
+    include: {
+      resident: { select: { name: true, block: true, flatNumber: true } },
+      closedByResident: { select: { name: true } },
+    },
+  });
+  if (!issue) {
+    return NextResponse.json({ error: "Issue not found" }, { status: 404 });
+  }
+
+  // Authors and managers can view; everyone else gets 403.
+  const isManager =
+    checkIsAdmin(resident.roles) ||
+    hasExactRole(resident.roles, "FACILITY_MANAGER");
+  if (issue.residentId !== resident.id && !isManager) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  return NextResponse.json({ issue, isManager });
+}
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user?.email) {
+  const resident = await getAuthedResident(request);
+  if (!resident) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const resident = await prisma.resident.findUnique({
-    where: { email: session.user.email },
-    select: { id: true, roles: { select: { name: true } } },
-  });
-
-  const roleNames = resident?.roles.map((r) => r.name) ?? [];
-  const isManager = checkIsAdmin(roleNames) || hasExactRole(roleNames, "FACILITY_MANAGER");
-
-  if (!resident || !isManager) {
+  const isManager =
+    checkIsAdmin(resident.roles) ||
+    hasExactRole(resident.roles, "FACILITY_MANAGER");
+  if (!isManager) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const { id } = await params;
 
-  const issue = await prisma.issue.findUnique({
-    where: { id },
-  });
-
+  const issue = await prisma.issue.findUnique({ where: { id } });
   if (!issue) {
     return NextResponse.json({ error: "Issue not found" }, { status: 404 });
   }
-
   if (issue.status === "CLOSED") {
     return NextResponse.json(
       { error: "Issue is already closed" },
@@ -60,12 +83,8 @@ export async function PATCH(
       closedAt: new Date(),
     },
     include: {
-      resident: {
-        select: { name: true, block: true, flatNumber: true },
-      },
-      closedByResident: {
-        select: { name: true },
-      },
+      resident: { select: { name: true, block: true, flatNumber: true } },
+      closedByResident: { select: { name: true } },
     },
   });
 

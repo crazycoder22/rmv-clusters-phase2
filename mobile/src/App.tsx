@@ -25,6 +25,9 @@ import Gallery from "./pages/Gallery";
 import Videos from "./pages/Videos";
 import SosGuidelines from "./pages/SosGuidelines";
 import SosWarriors from "./pages/SosWarriors";
+import Issues from "./pages/Issues";
+import IssueNew from "./pages/IssueNew";
+import IssueDetail from "./pages/IssueDetail";
 
 export default function App() {
   return (
@@ -76,6 +79,9 @@ function Gate() {
           <Route path="/videos" element={<Videos />} />
           <Route path="/sos-guidelines" element={<SosGuidelines />} />
           <Route path="/sos-warriors" element={<SosWarriors />} />
+          <Route path="/issues" element={<Issues />} />
+          <Route path="/issues/new" element={<IssueNew />} />
+          <Route path="/issues/:id" element={<IssueDetail />} />
         </Routes>
       </Shell>
     </HashRouter>

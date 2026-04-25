@@ -1,27 +1,19 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { isAdmin as checkIsAdmin, hasExactRole } from "@/lib/roles";
+import { getAuthedResident } from "@/lib/api-auth";
 
-export async function GET() {
-  const session = await auth();
-  if (!session?.user?.email) {
+export async function GET(request: Request) {
+  const resident = await getAuthedResident(request);
+  if (!resident) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const resident = await prisma.resident.findUnique({
-    where: { email: session.user.email },
-    select: { id: true, roles: { select: { name: true } } },
-  });
-
-  if (!resident) {
-    return NextResponse.json({ error: "Not registered" }, { status: 403 });
-  }
-
-  const roleNames = resident.roles.map((r) => r.name);
-  const isManager = checkIsAdmin(roleNames) || hasExactRole(roleNames, "FACILITY_MANAGER");
+  const isManager =
+    checkIsAdmin(resident.roles) || hasExactRole(resident.roles, "FACILITY_MANAGER");
   // FM only manages, others can also raise issues
-  const canRaise = !hasExactRole(roleNames, "FACILITY_MANAGER") || checkIsAdmin(roleNames);
+  const canRaise =
+    !hasExactRole(resident.roles, "FACILITY_MANAGER") || checkIsAdmin(resident.roles);
 
   const issues = await prisma.issue.findMany({
     where: isManager ? {} : { residentId: resident.id },
@@ -40,24 +32,19 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const session = await auth();
-  if (!session?.user?.email) {
+  const resident = await getAuthedResident(request);
+  if (!resident) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
-  const resident = await prisma.resident.findUnique({
-    where: { email: session.user.email },
-    select: { id: true, isApproved: true, roles: { select: { name: true } } },
-  });
-
-  if (!resident || !resident.isApproved) {
+  if (!resident.isApproved) {
     return NextResponse.json({ error: "Not approved" }, { status: 403 });
   }
 
-  const roleNames = resident.roles.map((r) => r.name);
-
   // Facility managers (who are not also admins) cannot raise issues
-  if (hasExactRole(roleNames, "FACILITY_MANAGER") && !checkIsAdmin(roleNames)) {
+  if (
+    hasExactRole(resident.roles, "FACILITY_MANAGER") &&
+    !checkIsAdmin(resident.roles)
+  ) {
     return NextResponse.json(
       { error: "Facility managers cannot raise issues" },
       { status: 403 }
