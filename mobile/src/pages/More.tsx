@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import {
+  BarChart3,
   BookOpen,
   ChevronRight,
   HelpCircle,
@@ -35,6 +36,12 @@ export default function MorePage() {
           icon={MessageCircle}
           title="Community Feed"
           subtitle="Posts, likes, comments — share with neighbours"
+        />
+        <Row
+          to="/polls"
+          icon={BarChart3}
+          title="Polls"
+          subtitle="Vote and see what residents think"
         />
         <Row
           to="/issues"

@@ -24,6 +24,7 @@ const MORE_PREFIXES = [
   "/sos-warriors",
   "/issues",
   "/community",
+  "/polls",
 ];
 
 function isGamesActive(pathname: string): boolean {

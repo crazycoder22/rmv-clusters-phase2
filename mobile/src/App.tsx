@@ -30,6 +30,8 @@ import IssueNew from "./pages/IssueNew";
 import IssueDetail from "./pages/IssueDetail";
 import Community from "./pages/Community";
 import CommunityPost from "./pages/CommunityPost";
+import Polls from "./pages/Polls";
+import PollDetail from "./pages/PollDetail";
 
 export default function App() {
   return (
@@ -86,6 +88,8 @@ function Gate() {
           <Route path="/issues/:id" element={<IssueDetail />} />
           <Route path="/community" element={<Community />} />
           <Route path="/community/:id" element={<CommunityPost />} />
+          <Route path="/polls" element={<Polls />} />
+          <Route path="/polls/:id" element={<PollDetail />} />
         </Routes>
       </Shell>
     </HashRouter>
