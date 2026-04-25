@@ -10,6 +10,7 @@ import {
   LogOut,
   MessageCircle,
   ShieldCheck,
+  Users,
   Video,
   Wrench,
   type LucideIcon,
@@ -42,6 +43,12 @@ export default function MorePage() {
           icon={BarChart3}
           title="Polls"
           subtitle="Vote and see what residents think"
+        />
+        <Row
+          to="/visits"
+          icon={Users}
+          title="Visitors"
+          subtitle="Who came to your flat (from MyGate)"
         />
         <Row
           to="/issues"

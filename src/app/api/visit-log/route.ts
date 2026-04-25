@@ -3,16 +3,19 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { isAdmin } from "@/lib/roles";
 import { istTodayYmd } from "@/lib/dates-ist";
+import { getAuthedResident } from "@/lib/api-auth";
 
 export const dynamic = "force-dynamic";
 
 // GET /api/visit-log
 //
 // Query params:
-//   scope              "mine" (default) → always scoped to caller's own flat,
-//                                          even for admins (the /visits page)
-//                      "all"             → all entries, admin role required
-//                                          (the /admin/visits page)
+//   scope              "mine" (default) → caller's own flat. Accepts both
+//                                          NextAuth cookie and the mobile
+//                                          Bearer JWT.
+//                      "all"             → all entries; admin only and
+//                                          cookie-only (the /admin/visits
+//                                          page).
 //   date               YYYY-MM-DD, default today (IST)
 //   fromSource         case-insensitive exact match
 //   guard              case-insensitive exact match
@@ -21,36 +24,53 @@ export const dynamic = "force-dynamic";
 //   page, limit        pagination (limit clamped 1..200)
 export async function GET(request: Request) {
   try {
-    const session = await auth();
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const resident = await prisma.resident.findUnique({
-      where: { email: session.user.email },
-      select: { block: true, flatNumber: true, isApproved: true },
-    });
-
-    if (!resident?.isApproved) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
     const { searchParams } = new URL(request.url);
     const scope = searchParams.get("scope") === "all" ? "all" : "mine";
     const adminView = scope === "all";
 
-    // Admin scope requires admin role
-    if (adminView && !isAdmin(session.user.roles)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    // For mine scope, accept either Bearer JWT or session cookie. For admin
+    // scope, require a cookie session with admin role (web-only).
+    let block: number | null = null;
+    let flatNumber: string | null = null;
+    let isAdminUser = false;
+
+    if (adminView) {
+      const session = await auth();
+      if (!session?.user?.email) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      if (!isAdmin(session.user.roles)) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+      isAdminUser = true;
+    } else {
+      const resident = await getAuthedResident(request);
+      if (!resident) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      if (!resident.isApproved) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+      block = resident.block;
+      flatNumber = resident.flatNumber;
     }
 
-    const dateFrom = searchParams.get("dateFrom") || searchParams.get("date") || istTodayYmd();
+    const dateFrom =
+      searchParams.get("dateFrom") ||
+      searchParams.get("date") ||
+      istTodayYmd();
     const dateTo = searchParams.get("dateTo") || dateFrom;
     const fromSource = searchParams.get("fromSource") || undefined;
     const guard = searchParams.get("guard") || undefined;
     const approvedByResidentParam = searchParams.get("approvedByResident");
-    const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10) || 1);
-    const limit = Math.min(200, Math.max(1, parseInt(searchParams.get("limit") || "50", 10) || 50));
+    const page = Math.max(
+      1,
+      parseInt(searchParams.get("page") || "1", 10) || 1
+    );
+    const limit = Math.min(
+      200,
+      Math.max(1, parseInt(searchParams.get("limit") || "50", 10) || 50)
+    );
 
     const where: {
       visitDate?: string | { gte?: string; lte?: string };
@@ -60,11 +80,14 @@ export async function GET(request: Request) {
       allowedByGuard?: { equals: string; mode: "insensitive" };
       approvedByResident?: boolean;
     } = {};
-    where.visitDate = dateFrom === dateTo ? dateFrom : { gte: dateFrom, lte: dateTo };
+    where.visitDate =
+      dateFrom === dateTo ? dateFrom : { gte: dateFrom, lte: dateTo };
     if (approvedByResidentParam === "true") where.approvedByResident = true;
-    else if (approvedByResidentParam === "false") where.approvedByResident = false;
+    else if (approvedByResidentParam === "false")
+      where.approvedByResident = false;
 
     if (adminView) {
+      void isAdminUser;
       const blockParam = searchParams.get("block");
       const flatNumberParam = searchParams.get("flatNumber");
       if (blockParam) {
@@ -73,13 +96,15 @@ export async function GET(request: Request) {
       }
       if (flatNumberParam) where.flatNumber = flatNumberParam;
     } else {
-      // Owner view: always force caller's own flat, regardless of their role.
-      where.block = resident.block;
-      where.flatNumber = resident.flatNumber;
+      // Owner view: always force caller's own flat.
+      if (block != null) where.block = block;
+      if (flatNumber != null) where.flatNumber = flatNumber;
     }
 
-    if (fromSource) where.fromSource = { equals: fromSource, mode: "insensitive" };
-    if (guard) where.allowedByGuard = { equals: guard, mode: "insensitive" };
+    if (fromSource)
+      where.fromSource = { equals: fromSource, mode: "insensitive" };
+    if (guard)
+      where.allowedByGuard = { equals: guard, mode: "insensitive" };
 
     const [items, total] = await Promise.all([
       prisma.visitLog.findMany({
@@ -94,6 +119,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ items, total, page, limit, scope });
   } catch (err) {
     console.error("GET /api/visit-log failed:", err);
-    return NextResponse.json({ error: "Failed to fetch visit log" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch visit log" },
+      { status: 500 }
+    );
   }
 }

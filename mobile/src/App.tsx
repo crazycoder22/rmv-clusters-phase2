@@ -32,6 +32,7 @@ import Community from "./pages/Community";
 import CommunityPost from "./pages/CommunityPost";
 import Polls from "./pages/Polls";
 import PollDetail from "./pages/PollDetail";
+import Visits from "./pages/Visits";
 
 export default function App() {
   return (
@@ -90,6 +91,7 @@ function Gate() {
           <Route path="/community/:id" element={<CommunityPost />} />
           <Route path="/polls" element={<Polls />} />
           <Route path="/polls/:id" element={<PollDetail />} />
+          <Route path="/visits" element={<Visits />} />
         </Routes>
       </Shell>
     </HashRouter>
