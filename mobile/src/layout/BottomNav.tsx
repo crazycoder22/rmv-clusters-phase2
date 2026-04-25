@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Gamepad2, Home, Newspaper } from "lucide-react";
+import { Gamepad2, Home, MoreHorizontal, Newspaper } from "lucide-react";
 import clsx from "clsx";
 
 const GAMES_PREFIXES = [
@@ -13,6 +13,8 @@ const GAMES_PREFIXES = [
   "/fantasy",
 ];
 
+const MORE_PREFIXES = ["/more", "/guidelines", "/info"];
+
 function isGamesActive(pathname: string): boolean {
   return GAMES_PREFIXES.some((p) => pathname.startsWith(p));
 }
@@ -21,8 +23,17 @@ function isNewsActive(pathname: string): boolean {
   return pathname.startsWith("/news");
 }
 
+function isMoreActive(pathname: string): boolean {
+  return MORE_PREFIXES.some((p) => pathname.startsWith(p));
+}
+
 function isHomeActive(pathname: string): boolean {
-  return pathname === "/" || (!isGamesActive(pathname) && !isNewsActive(pathname));
+  return (
+    pathname === "/" ||
+    (!isGamesActive(pathname) &&
+      !isNewsActive(pathname) &&
+      !isMoreActive(pathname))
+  );
 }
 
 export default function BottomNav() {
@@ -51,6 +62,12 @@ export default function BottomNav() {
           label="News"
           Icon={Newspaper}
           active={isNewsActive(pathname)}
+        />
+        <Tab
+          to="/more"
+          label="More"
+          Icon={MoreHorizontal}
+          active={isMoreActive(pathname)}
         />
       </div>
     </nav>

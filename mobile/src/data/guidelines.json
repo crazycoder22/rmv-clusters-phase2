@@ -1,0 +1,88 @@
+{
+  "lastUpdated": "2026-02-12",
+  "sections": [
+    {
+      "id": "parking",
+      "title": "Parking Rules",
+      "icon": "car",
+      "rules": [
+        {
+          "title": "Visitor Parking",
+          "description": "Visitors must use the designated visitor parking area. Overnight visitor parking requires prior approval from the Common Committee."
+        },
+        {
+          "title": "Two-Wheeler Parking",
+          "description": "Two-wheelers should be parked in the designated two-wheeler parking zone only."
+        },
+        {
+          "title": "No Blocking",
+          "description": "Do not block other vehicles or common pathways. Vehicles causing obstruction may be towed at the owner's expense."
+        }
+      ]
+    },
+    {
+      "id": "maintenance",
+      "title": "Maintenance & Repairs",
+      "icon": "wrench",
+      "rules": [
+        {
+          "title": "Reporting Issues",
+          "description": "Report maintenance issues via MyGate. Use the community WhatsApp group or reach out to the Facility Manager directly only for urgent matters."
+        },
+        {
+          "title": "Interior Modifications",
+          "description": "Any structural modifications to your unit require prior written approval from your respective block association."
+        },
+        {
+          "title": "Noise & Civil Work Restrictions",
+          "description": "No noise-producing work is allowed between 2:00 PM and 4:00 PM. Civil work is not permitted on Sundays and public holidays."
+        }
+      ]
+    },
+    {
+      "id": "visitors",
+      "title": "Visitor Policy",
+      "icon": "users",
+      "rules": [
+        {
+          "title": "Visitor Registration",
+          "description": "All visitors must register at the security gate with valid identification."
+        }
+      ]
+    },
+    {
+      "id": "common-areas",
+      "title": "Common Area Usage",
+      "icon": "building",
+      "rules": [
+        {
+          "title": "Cleanliness",
+          "description": "Please keep common areas clean. Do not leave personal belongings in corridors, stairways, or lobbies."
+        },
+        {
+          "title": "Children's Play Area",
+          "description": "Children under 10 must be supervised by an adult in the play area. Equipment should be used responsibly."
+        }
+      ]
+    },
+    {
+      "id": "waste",
+      "title": "Waste Management",
+      "icon": "trash-2",
+      "rules": [
+        {
+          "title": "Segregation",
+          "description": "All waste must be segregated into wet and dry categories before disposal."
+        },
+        {
+          "title": "Collection Times",
+          "description": "Waste collection happens daily between 7:00 AM and 9:00 AM. Please keep your segregated waste ready for collection."
+        },
+        {
+          "title": "E-Waste & Hazardous",
+          "description": "E-waste and hazardous materials should not be mixed with regular waste. Contact the management office for special disposal arrangements."
+        }
+      ]
+    }
+  ]
+}

@@ -17,6 +17,9 @@ import FantasyMatches from "./pages/FantasyMatches";
 import FantasyMatch from "./pages/FantasyMatch";
 import MemoryMulti from "./pages/MemoryMulti";
 import MemoryMultiSession from "./pages/MemoryMultiSession";
+import Guidelines from "./pages/Guidelines";
+import Info from "./pages/Info";
+import MorePage from "./pages/More";
 
 export default function App() {
   return (
@@ -60,6 +63,9 @@ function Gate() {
           <Route path="/tambola/:code" element={<TambolaSession />} />
           <Route path="/fantasy" element={<FantasyMatches />} />
           <Route path="/fantasy/:matchId" element={<FantasyMatch />} />
+          <Route path="/guidelines" element={<Guidelines />} />
+          <Route path="/info" element={<Info />} />
+          <Route path="/more" element={<MorePage />} />
         </Routes>
       </Shell>
     </HashRouter>
