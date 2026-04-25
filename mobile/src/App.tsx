@@ -20,6 +20,11 @@ import MemoryMultiSession from "./pages/MemoryMultiSession";
 import Guidelines from "./pages/Guidelines";
 import Info from "./pages/Info";
 import MorePage from "./pages/More";
+import Faq from "./pages/Faq";
+import Gallery from "./pages/Gallery";
+import Videos from "./pages/Videos";
+import SosGuidelines from "./pages/SosGuidelines";
+import SosWarriors from "./pages/SosWarriors";
 
 export default function App() {
   return (
@@ -66,6 +71,11 @@ function Gate() {
           <Route path="/guidelines" element={<Guidelines />} />
           <Route path="/info" element={<Info />} />
           <Route path="/more" element={<MorePage />} />
+          <Route path="/faq" element={<Faq />} />
+          <Route path="/gallery" element={<Gallery />} />
+          <Route path="/videos" element={<Videos />} />
+          <Route path="/sos-guidelines" element={<SosGuidelines />} />
+          <Route path="/sos-warriors" element={<SosWarriors />} />
         </Routes>
       </Shell>
     </HashRouter>

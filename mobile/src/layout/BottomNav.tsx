@@ -13,7 +13,16 @@ const GAMES_PREFIXES = [
   "/fantasy",
 ];
 
-const MORE_PREFIXES = ["/more", "/guidelines", "/info"];
+const MORE_PREFIXES = [
+  "/more",
+  "/guidelines",
+  "/info",
+  "/faq",
+  "/gallery",
+  "/videos",
+  "/sos-guidelines",
+  "/sos-warriors",
+];
 
 function isGamesActive(pathname: string): boolean {
   return GAMES_PREFIXES.some((p) => pathname.startsWith(p));

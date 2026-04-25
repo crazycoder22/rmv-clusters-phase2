@@ -2,8 +2,13 @@ import { Link } from "react-router-dom";
 import {
   BookOpen,
   ChevronRight,
+  HelpCircle,
+  Image as ImageIcon,
   Info,
+  LifeBuoy,
   LogOut,
+  ShieldCheck,
+  Video,
   type LucideIcon,
 } from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
@@ -22,7 +27,28 @@ export default function MorePage() {
         </p>
       </header>
 
-      <div className="overflow-hidden rounded-2xl border border-slate-700 bg-slate-800/60">
+      <Group title="Community">
+        <Row
+          to="/faq"
+          icon={HelpCircle}
+          title="FAQ"
+          subtitle="Common questions, topic-wise"
+        />
+        <Row
+          to="/gallery"
+          icon={ImageIcon}
+          title="Gallery"
+          subtitle="Blocks, play areas, surroundings"
+        />
+        <Row
+          to="/videos"
+          icon={Video}
+          title="Videos"
+          subtitle="Community playlists and events"
+        />
+      </Group>
+
+      <Group title="Rules & safety">
         <Row
           to="/guidelines"
           icon={BookOpen}
@@ -30,17 +56,32 @@ export default function MorePage() {
           subtitle="Parking, maintenance, waste, visitors"
         />
         <Row
+          to="/sos-guidelines"
+          icon={LifeBuoy}
+          title="SOS Guidelines"
+          subtitle="When and how to use the SOS group"
+        />
+        <Row
+          to="/sos-warriors"
+          icon={ShieldCheck}
+          title="SOS Warriors"
+          subtitle="Trained volunteers, tap to call"
+        />
+      </Group>
+
+      <Group title="App">
+        <Row
           to="/info"
           icon={Info}
           title="About"
           subtitle="Address, contact, socials"
         />
-      </div>
+      </Group>
 
       {user && (
         <button
           onClick={() => void signOut()}
-          className="mt-4 flex items-center gap-3 rounded-2xl border border-slate-700 bg-slate-800/60 px-4 py-3 text-left text-sm text-red-300 active:bg-slate-800"
+          className="mt-2 flex items-center gap-3 rounded-2xl border border-slate-700 bg-slate-800/60 px-4 py-3 text-left text-sm text-red-300 active:bg-slate-800"
         >
           <LogOut size={16} />
           Sign out
@@ -51,6 +92,25 @@ export default function MorePage() {
         RMV Clusters Phase 2 · v1.0
       </p>
     </div>
+  );
+}
+
+function Group({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="mb-5">
+      <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
+        {title}
+      </h2>
+      <div className="overflow-hidden rounded-2xl border border-slate-700 bg-slate-800/60">
+        {children}
+      </div>
+    </section>
   );
 }
 
