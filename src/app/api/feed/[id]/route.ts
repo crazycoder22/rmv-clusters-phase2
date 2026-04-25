@@ -1,23 +1,18 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { del } from "@vercel/blob";
+import { getAuthedResident } from "@/lib/api-auth";
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user?.email || !session.user.isApproved) {
+  const resident = await getAuthedResident(request);
+  if (!resident) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
-  const resident = await prisma.resident.findUnique({
-    where: { email: session.user.email },
-    select: { id: true },
-  });
-  if (!resident) {
-    return NextResponse.json({ error: "Not registered" }, { status: 403 });
+  if (!resident.isApproved) {
+    return NextResponse.json({ error: "Not approved" }, { status: 403 });
   }
 
   const { id } = await params;
@@ -25,7 +20,13 @@ export async function GET(
     where: { id },
     include: {
       author: {
-        select: { id: true, name: true, block: true, flatNumber: true, googleImage: true },
+        select: {
+          id: true,
+          name: true,
+          block: true,
+          flatNumber: true,
+          googleImage: true,
+        },
       },
       _count: { select: { comments: true, likes: true } },
       likes: {
@@ -56,17 +57,12 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user?.email || !session.user.isApproved) {
+  const resident = await getAuthedResident(request);
+  if (!resident) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
-  const resident = await prisma.resident.findUnique({
-    where: { email: session.user.email },
-    select: { id: true, roles: { select: { name: true } } },
-  });
-  if (!resident) {
-    return NextResponse.json({ error: "Not registered" }, { status: 403 });
+  if (!resident.isApproved) {
+    return NextResponse.json({ error: "Not approved" }, { status: 403 });
   }
 
   const { id } = await params;
@@ -80,24 +76,23 @@ export async function DELETE(
   }
 
   const isAuthor = post.authorId === resident.id;
-  const isAdmin = resident.roles.some((r) =>
-    ["ADMIN", "SUPERADMIN"].includes(r.name)
+  const isAdminish = resident.roles.some((r) =>
+    ["ADMIN", "SUPERADMIN"].includes(r)
   );
 
-  if (!isAuthor && !isAdmin) {
+  if (!isAuthor && !isAdminish) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  // Cleanup Vercel Blob images
+  // Cleanup Vercel Blob images (best-effort)
   if (post.images.length > 0) {
     try {
       await Promise.all(post.images.map((url) => del(url)));
     } catch {
-      // Continue even if blob cleanup fails
+      // ignore
     }
   }
 
   await prisma.post.delete({ where: { id } });
-
   return NextResponse.json({ success: true });
 }

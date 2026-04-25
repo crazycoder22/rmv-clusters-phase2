@@ -1,22 +1,17 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getAuthedResident } from "@/lib/api-auth";
 
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string; commentId: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user?.email || !session.user.isApproved) {
+  const resident = await getAuthedResident(request);
+  if (!resident) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
-  const resident = await prisma.resident.findUnique({
-    where: { email: session.user.email },
-    select: { id: true, roles: { select: { name: true } } },
-  });
-  if (!resident) {
-    return NextResponse.json({ error: "Not registered" }, { status: 403 });
+  if (!resident.isApproved) {
+    return NextResponse.json({ error: "Not approved" }, { status: 403 });
   }
 
   const { commentId } = await params;
@@ -31,11 +26,11 @@ export async function DELETE(
   }
 
   const isAuthor = comment.authorId === resident.id;
-  const isAdmin = resident.roles.some((r) =>
-    ["ADMIN", "SUPERADMIN"].includes(r.name)
+  const isAdminish = resident.roles.some((r) =>
+    ["ADMIN", "SUPERADMIN"].includes(r)
   );
 
-  if (!isAuthor && !isAdmin) {
+  if (!isAuthor && !isAdminish) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

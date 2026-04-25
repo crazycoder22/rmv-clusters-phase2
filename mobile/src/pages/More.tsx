@@ -7,6 +7,7 @@ import {
   Info,
   LifeBuoy,
   LogOut,
+  MessageCircle,
   ShieldCheck,
   Video,
   Wrench,
@@ -29,6 +30,12 @@ export default function MorePage() {
       </header>
 
       <Group title="Community">
+        <Row
+          to="/community"
+          icon={MessageCircle}
+          title="Community Feed"
+          subtitle="Posts, likes, comments — share with neighbours"
+        />
         <Row
           to="/issues"
           icon={Wrench}

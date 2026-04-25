@@ -1,19 +1,14 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getAuthedResident } from "@/lib/api-auth";
 
 export async function GET(request: Request) {
-  const session = await auth();
-  if (!session?.user?.email || !session.user.isApproved) {
+  const resident = await getAuthedResident(request);
+  if (!resident) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
-  const resident = await prisma.resident.findUnique({
-    where: { email: session.user.email },
-    select: { id: true },
-  });
-  if (!resident) {
-    return NextResponse.json({ error: "Not registered" }, { status: 403 });
+  if (!resident.isApproved) {
+    return NextResponse.json({ error: "Not approved" }, { status: 403 });
   }
 
   const { searchParams } = new URL(request.url);
@@ -31,7 +26,13 @@ export async function GET(request: Request) {
     orderBy: { createdAt: "desc" },
     include: {
       author: {
-        select: { id: true, name: true, block: true, flatNumber: true, googleImage: true },
+        select: {
+          id: true,
+          name: true,
+          block: true,
+          flatNumber: true,
+          googleImage: true,
+        },
       },
       _count: { select: { comments: true, likes: true } },
       likes: {
@@ -63,16 +64,27 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const session = await auth();
-  if (!session?.user?.email || !session.user.isApproved) {
+  const resident = await getAuthedResident(request);
+  if (!resident) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  if (!resident.isApproved) {
+    return NextResponse.json({ error: "Not approved" }, { status: 403 });
+  }
 
-  const resident = await prisma.resident.findUnique({
-    where: { email: session.user.email },
-    select: { id: true, name: true, block: true, flatNumber: true, googleImage: true },
+  // Re-fetch the bits we need for the response (the helper already gave us
+  // name/block/flat but we also want googleImage to render the avatar).
+  const fullResident = await prisma.resident.findUnique({
+    where: { id: resident.id },
+    select: {
+      id: true,
+      name: true,
+      block: true,
+      flatNumber: true,
+      googleImage: true,
+    },
   });
-  if (!resident) {
+  if (!fullResident) {
     return NextResponse.json({ error: "Not registered" }, { status: 403 });
   }
 
@@ -88,7 +100,10 @@ export async function POST(request: Request) {
   }
 
   if (images && images.length > 4) {
-    return NextResponse.json({ error: "Maximum 4 images allowed" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Maximum 4 images allowed" },
+      { status: 400 }
+    );
   }
 
   const post = await prisma.post.create({
@@ -100,15 +115,18 @@ export async function POST(request: Request) {
     },
   });
 
-  return NextResponse.json({
-    id: post.id,
-    content: post.content,
-    images: post.images,
-    videoUrl: post.videoUrl,
-    author: resident,
-    commentCount: 0,
-    likeCount: 0,
-    isLiked: false,
-    createdAt: post.createdAt,
-  }, { status: 201 });
+  return NextResponse.json(
+    {
+      id: post.id,
+      content: post.content,
+      images: post.images,
+      videoUrl: post.videoUrl,
+      author: fullResident,
+      commentCount: 0,
+      likeCount: 0,
+      isLiked: false,
+      createdAt: post.createdAt,
+    },
+    { status: 201 }
+  );
 }

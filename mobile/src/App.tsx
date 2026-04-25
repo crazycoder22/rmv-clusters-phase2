@@ -28,6 +28,8 @@ import SosWarriors from "./pages/SosWarriors";
 import Issues from "./pages/Issues";
 import IssueNew from "./pages/IssueNew";
 import IssueDetail from "./pages/IssueDetail";
+import Community from "./pages/Community";
+import CommunityPost from "./pages/CommunityPost";
 
 export default function App() {
   return (
@@ -82,6 +84,8 @@ function Gate() {
           <Route path="/issues" element={<Issues />} />
           <Route path="/issues/new" element={<IssueNew />} />
           <Route path="/issues/:id" element={<IssueDetail />} />
+          <Route path="/community" element={<Community />} />
+          <Route path="/community/:id" element={<CommunityPost />} />
         </Routes>
       </Shell>
     </HashRouter>
