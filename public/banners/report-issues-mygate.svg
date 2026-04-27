@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <!-- Calm utility gradient: deep teal → sky blue -->
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f3460" />
+      <stop offset="60%" stop-color="#1e6091" />
+      <stop offset="100%" stop-color="#3b9ae1" />
+    </linearGradient>
+    <radialGradient id="spot" cx="75%" cy="20%" r="80%">
+      <stop offset="0%" stop-color="rgba(255, 255, 255, 0.35)" />
+      <stop offset="100%" stop-color="rgba(255, 255, 255, 0)" />
+    </radialGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="200" height="200" fill="url(#bg)" rx="12" />
+  <rect width="200" height="200" fill="url(#spot)" rx="12" />
+
+  <!-- Big wrench icon -->
+  <text
+    x="60"
+    y="115"
+    text-anchor="middle"
+    font-family="Helvetica, Arial, sans-serif"
+    font-size="90"
+    filter="url(#glow)"
+  >🔧</text>
+
+  <!-- Headline -->
+  <text
+    x="195"
+    y="62"
+    text-anchor="end"
+    font-family="Helvetica, Arial, sans-serif"
+    font-size="20"
+    font-weight="800"
+    fill="#ffffff"
+    letter-spacing="0.2"
+  >Spot an issue?</text>
+
+  <!-- Subline -->
+  <text
+    x="195"
+    y="86"
+    text-anchor="end"
+    font-family="Helvetica, Arial, sans-serif"
+    font-size="13"
+    fill="rgba(255,255,255,0.85)"
+  >in a common area</text>
+
+  <!-- CTA pill -->
+  <g>
+    <rect x="100" y="150" width="86" height="32" rx="16" fill="#ffd54f" />
+    <text
+      x="143"
+      y="172"
+      text-anchor="middle"
+      font-family="Helvetica, Arial, sans-serif"
+      font-size="13"
+      font-weight="900"
+      fill="#0f3460"
+      letter-spacing="0.5"
+    >RAISE ON MYGATE</text>
+  </g>
+</svg>
