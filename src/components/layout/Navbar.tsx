@@ -53,6 +53,7 @@ const navGroups: NavGroup[] = [
     label: "Games",
     links: [
       { href: "/wordle", label: "Wordle" },
+      { href: "/anagram", label: "Anagram" },
       { href: "/sudoku", label: "Sudoku" },
       { href: "/crossword", label: "Crossword" },
       { href: "/memory", label: "Memory" },
