@@ -87,6 +87,7 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<TabId>("approvals");
   const [residents, setResidents] = useState<ResidentWithRole[]>([]);
   const [loadingResidents, setLoadingResidents] = useState(false);
+  const [residentSearch, setResidentSearch] = useState("");
 
   // Pending approvals state
   const [pendingResidents, setPendingResidents] = useState<ResidentWithRole[]>([]);
@@ -1690,11 +1691,31 @@ export default function AdminPage() {
         </div>
       )}
 
-      {activeTab === "manage" && isSuperAdmin() && (
+      {activeTab === "manage" && isSuperAdmin() && (() => {
+        const q = residentSearch.trim().toLowerCase();
+        const filteredResidents = q
+          ? residents.filter((r) => {
+              const flat = `b${r.block}-${r.flatNumber}`.toLowerCase();
+              return (
+                r.name.toLowerCase().includes(q) ||
+                (r.phone ?? "").toLowerCase().includes(q) ||
+                (r.flatNumber ?? "").toLowerCase().includes(q) ||
+                String(r.block) === q ||
+                flat.includes(q) ||
+                (r.email ?? "").toLowerCase().includes(q)
+              );
+            })
+          : residents;
+        return (
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
               All Residents
+              {q && (
+                <span className="ml-2 text-sm font-normal text-gray-400 dark:text-gray-500">
+                  ({filteredResidents.length} of {residents.length})
+                </span>
+              )}
             </h2>
             <button
               onClick={fetchResidents}
@@ -1705,6 +1726,25 @@ export default function AdminPage() {
             </button>
           </div>
 
+          {/* Search */}
+          <div className="mb-4 relative">
+            <input
+              type="search"
+              value={residentSearch}
+              onChange={(e) => setResidentSearch(e.target.value)}
+              placeholder="Search by name, flat (e.g. 204 or B1-204), block, phone, or email…"
+              className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+            />
+            <svg
+              className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M11 18a7 7 0 110-14 7 7 0 010 14z" />
+            </svg>
+          </div>
+
           {loadingResidents && residents.length === 0 ? (
             <p className="text-gray-500 dark:text-gray-400 text-center py-8">
               Loading residents...
@@ -1712,6 +1752,10 @@ export default function AdminPage() {
           ) : residents.length === 0 ? (
             <p className="text-gray-500 dark:text-gray-400 text-center py-8">
               No residents found.
+            </p>
+          ) : filteredResidents.length === 0 ? (
+            <p className="text-gray-500 dark:text-gray-400 text-center py-8">
+              No residents match &quot;{residentSearch}&quot;.
             </p>
           ) : (
             <div className="overflow-x-auto">
@@ -1729,7 +1773,7 @@ export default function AdminPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {residents.map((r) => (
+                  {filteredResidents.map((r) => (
                     <tr
                       key={r.id}
                       className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
@@ -1874,7 +1918,8 @@ export default function AdminPage() {
             </div>
           )}
         </div>
-      )}
+        );
+      })()}
       {/* Delete Confirmation Modal */}
       {confirmDeleteAnn && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
