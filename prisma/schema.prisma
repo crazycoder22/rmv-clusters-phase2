@@ -1040,6 +1040,7 @@ model WordlePlayer {
   memoryMultiCreated MemoryMultiSession[] @relation("MemoryMultiCreated")
   memoryMultiPlayers MemoryMultiPlayer[]  @relation("MemoryMultiPlayers")
   game2048Runs   Game2048Run[]
+  anagramGames   AnagramGame[]
   createdAt   DateTime     @default(now())
 }
 
@@ -1061,6 +1062,31 @@ model WordleGame {
 }
 
 // ─── End Wordle Game ──────────────────────────────────────────────────────
+
+// ─── Anagram (Spelling Bee–style daily) ──────────────────────────────────
+// Each player has at most one game row per IST date. The puzzle (letters +
+// required) is deterministic from the date, so it's not stored on the row;
+// `letters` is denormalised to keep the API simple. `foundWords` is the
+// running list of accepted words (lowercase) for that day's run.
+
+model AnagramGame {
+  id          String       @id @default(cuid())
+  playerId    String
+  player      WordlePlayer @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  date        String       // YYYY-MM-DD in IST
+  letters     String       // 7 distinct letters (lowercase)
+  required    String       // single letter (lowercase)
+  foundWords  String       @default("[]") // JSON array of lowercase words
+  score       Int          @default(0)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@unique([playerId, date])
+  @@index([date])
+  @@index([playerId])
+}
+
+// ─── End Anagram ──────────────────────────────────────────────────────────
 
 model ReviewComment {
   id               String          @id @default(cuid())

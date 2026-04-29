@@ -33,6 +33,7 @@ import CommunityPost from "./pages/CommunityPost";
 import Polls from "./pages/Polls";
 import PollDetail from "./pages/PollDetail";
 import Visits from "./pages/Visits";
+import Anagram from "./pages/Anagram";
 
 export default function App() {
   return (
@@ -92,6 +93,7 @@ function Gate() {
           <Route path="/polls" element={<Polls />} />
           <Route path="/polls/:id" element={<PollDetail />} />
           <Route path="/visits" element={<Visits />} />
+          <Route path="/anagram" element={<Anagram />} />
         </Routes>
       </Shell>
     </HashRouter>

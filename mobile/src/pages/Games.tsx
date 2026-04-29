@@ -27,6 +27,12 @@ export default function Games() {
           subtitle="Guess the 5-letter word"
         />
         <GameTile
+          to="/anagram"
+          icon="🐝"
+          title="Anagram"
+          subtitle="Find words from 7 letters · daily"
+        />
+        <GameTile
           to="/sudoku"
           icon="🔢"
           title="Sudoku"

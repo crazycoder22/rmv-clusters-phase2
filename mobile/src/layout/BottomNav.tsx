@@ -11,6 +11,7 @@ const GAMES_PREFIXES = [
   "/quiz",
   "/tambola",
   "/fantasy",
+  "/anagram",
 ];
 
 const MORE_PREFIXES = [
