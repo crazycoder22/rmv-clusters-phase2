@@ -164,16 +164,22 @@ export function calculateRunScore(
 
 // Reachable rank thresholds — used for the "Genius/Amazing/Great" badge UX.
 // Computed against the maximum possible score for the day's puzzle.
+//
+// Tuned against a 4-15 letter `words_alpha` dictionary which inflates the
+// max because of obscure entries (AALII, ABACA, BANTU, etc.). Real human
+// players find a few dozen common words and shouldn't see 5% after 50
+// answers — these thresholds give "Genius" at ~25% which matches a strong
+// daily run on the current dict. Iterate as we learn from real play.
 export function getRankFromPercent(pct: number): string {
-  if (pct >= 100) return "Queen Bee";
-  if (pct >= 70) return "Genius";
-  if (pct >= 50) return "Amazing";
-  if (pct >= 35) return "Great";
-  if (pct >= 25) return "Nice";
-  if (pct >= 15) return "Solid";
-  if (pct >= 8) return "Good";
-  if (pct >= 4) return "Moving up";
-  if (pct >= 2) return "Good start";
+  if (pct >= 80) return "Queen Bee";
+  if (pct >= 25) return "Genius";
+  if (pct >= 15) return "Amazing";
+  if (pct >= 10) return "Great";
+  if (pct >= 7) return "Nice";
+  if (pct >= 4) return "Solid";
+  if (pct >= 2) return "Good";
+  if (pct >= 1) return "Moving up";
+  if (pct >= 0.5) return "Good start";
   return "Beginner";
 }
 
