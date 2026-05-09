@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Check, Loader2, UserCheck } from "lucide-react";
 import clsx from "clsx";
 
@@ -27,6 +28,7 @@ export default function EventRegistrationForm({
   emailHelp,
 }: Props) {
   const router = useRouter();
+  const { data: session } = useSession();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -39,8 +41,24 @@ export default function EventRegistrationForm({
   const [error, setError] = useState("");
   const [prefilledName, setPrefilledName] = useState<string | null>(null);
 
-  // Auto-fill for signed-in residents. Hits the cookie-authed /api/residents/me
-  // on mount; silent if the user isn't logged in or isn't registered.
+  // Two-stage auto-fill:
+  //   1) From the live NextAuth session — fills name + email immediately
+  //      for any signed-in Google user, including non-residents and
+  //      first-timers who haven't registered yet.
+  //   2) From /api/residents/me — adds phone/block/flat for residents.
+  // Both `setX((prev) => prev || …)` so user-typed values are never
+  // overwritten and the two stages compose cleanly.
+  useEffect(() => {
+    if (!session?.user) return;
+    if (session.user.name) {
+      setName((prev) => prev || session.user!.name!);
+      setPrefilledName((prev) => prev || session.user!.name!);
+    }
+    if (session.user.email) {
+      setEmail((prev) => prev || session.user!.email!);
+    }
+  }, [session]);
+
   useEffect(() => {
     let cancelled = false;
     fetch("/api/residents/me", { credentials: "include" })
@@ -52,7 +70,7 @@ export default function EventRegistrationForm({
         setEmail((prev) => prev || data.email || "");
         setBlock((prev) => prev || (data.block ? String(data.block) : ""));
         setFlatNumber((prev) => prev || data.flatNumber || "");
-        setPrefilledName(data.name);
+        setPrefilledName((prev) => prev || data.name);
       })
       .catch(() => {});
     return () => {
