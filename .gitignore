@@ -47,6 +47,21 @@ prisma/dev.db-journal
 # mobile (Capacitor)
 /mobile/node_modules
 /mobile/dist
-/mobile/ios
-/mobile/android
 /mobile/.env*
+
+# Native iOS — track sources (Info.plist, icons, project files), ignore
+# generated build output. Cocoapods is not used (Capacitor 8 uses SPM).
+/mobile/ios/App/build
+/mobile/ios/App/Pods
+/mobile/ios/App/App/public
+/mobile/ios/DerivedData
+/mobile/ios/.build
+/mobile/ios/**/xcuserdata/
+
+# Native Android — same idea, track sources, drop build output.
+/mobile/android/.gradle
+/mobile/android/build
+/mobile/android/app/build
+/mobile/android/local.properties
+/mobile/android/.idea
+/mobile/android/app/release
