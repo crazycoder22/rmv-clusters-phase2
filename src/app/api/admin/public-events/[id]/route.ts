@@ -53,6 +53,8 @@ export async function PATCH(
   if ("active" in body) data.active = body.active === true;
   if ("contributionEnabled" in body)
     data.contributionEnabled = body.contributionEnabled === true;
+  if ("requireEmail" in body)
+    data.requireEmail = body.requireEmail === true;
   if ("maxContribution" in body)
     data.maxContribution =
       body.maxContribution == null || body.maxContribution === ""

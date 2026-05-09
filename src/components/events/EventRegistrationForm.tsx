@@ -12,16 +12,24 @@ interface Props {
   contributionEnabled?: boolean;
   /** Upper bound shown to the user and enforced client-side. */
   maxContribution?: number | null;
+  /** When true, the form shows an email field as required (e.g. for
+   *  follow-ups like TestFlight invites). */
+  requireEmail?: boolean;
+  /** Optional override for the email field's helper text. */
+  emailHelp?: string;
 }
 
 export default function EventRegistrationForm({
   slug,
   contributionEnabled,
   maxContribution,
+  requireEmail,
+  emailHelp,
 }: Props) {
   const router = useRouter();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [block, setBlock] = useState("");
   const [flatNumber, setFlatNumber] = useState("");
   const [amount, setAmount] = useState("");
@@ -41,6 +49,7 @@ export default function EventRegistrationForm({
         if (cancelled || !data?.name) return;
         setName((prev) => prev || data.name);
         setPhone((prev) => prev || data.phone || "");
+        setEmail((prev) => prev || data.email || "");
         setBlock((prev) => prev || (data.block ? String(data.block) : ""));
         setFlatNumber((prev) => prev || data.flatNumber || "");
         setPrefilledName(data.name);
@@ -63,6 +72,14 @@ export default function EventRegistrationForm({
     if (phoneDigits.length < 10) {
       setError("Please enter a valid 10-digit mobile number.");
       return;
+    }
+
+    if (requireEmail) {
+      const trimmed = email.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+        setError("Please enter a valid email address.");
+        return;
+      }
     }
 
     let amountNumber: number | undefined;
@@ -88,6 +105,7 @@ export default function EventRegistrationForm({
         body: JSON.stringify({
           name,
           phone,
+          email: email || undefined,
           block: block ? Number(block) : undefined,
           flatNumber,
           contributionAmount: amountNumber,
@@ -234,6 +252,33 @@ export default function EventRegistrationForm({
             placeholder="10-digit mobile number"
           />
         </div>
+
+        {/* Email */}
+        {requireEmail && (
+          <div>
+            <label
+              htmlFor="ev-email"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
+              Email <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="ev-email"
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-base sm:text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              placeholder="you@example.com"
+            />
+            {emailHelp && (
+              <p className="mt-1 text-[11px] text-gray-400 dark:text-gray-500">
+                {emailHelp}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Contribution amount */}
         {contributionEnabled && (

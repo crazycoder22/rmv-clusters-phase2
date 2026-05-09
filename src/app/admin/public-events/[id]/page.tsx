@@ -22,6 +22,7 @@ interface Registration {
   id: string;
   name: string;
   phone: string;
+  email: string | null;
   block: number | null;
   flatNumber: string | null;
   contributionAmount: number | null;
@@ -48,6 +49,7 @@ interface EventFull {
   paymentInstructions: string | null;
   paymentQrImageUrl: string | null;
   upiId: string | null;
+  requireEmail: boolean;
 }
 
 const fmtWhen = (iso: string) =>
@@ -270,6 +272,7 @@ function ContributionSettingsCard({
   const [contributionEnabled, setContributionEnabled] = useState(
     event.contributionEnabled
   );
+  const [requireEmail, setRequireEmail] = useState(event.requireEmail);
   const [maxContribution, setMaxContribution] = useState(
     event.maxContribution?.toString() ?? ""
   );
@@ -314,6 +317,7 @@ function ContributionSettingsCard({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contributionEnabled,
+          requireEmail,
           maxContribution:
             maxContribution === "" ? null : Number(maxContribution),
           targetAmount: targetAmount === "" ? null : Number(targetAmount),
@@ -331,6 +335,7 @@ function ContributionSettingsCard({
       onSaved({
         ...event,
         contributionEnabled,
+        requireEmail,
         maxContribution:
           maxContribution === "" ? null : Number(maxContribution),
         targetAmount: targetAmount === "" ? null : Number(targetAmount),
@@ -348,16 +353,26 @@ function ContributionSettingsCard({
     <div className="mb-6 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-100">
-          Contribution settings
+          Form settings
         </h2>
-        <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-          <input
-            type="checkbox"
-            checked={contributionEnabled}
-            onChange={(e) => setContributionEnabled(e.target.checked)}
-          />
-          Enable
-        </label>
+        <div className="flex items-center gap-4">
+          <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+            <input
+              type="checkbox"
+              checked={requireEmail}
+              onChange={(e) => setRequireEmail(e.target.checked)}
+            />
+            Require email
+          </label>
+          <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+            <input
+              type="checkbox"
+              checked={contributionEnabled}
+              onChange={(e) => setContributionEnabled(e.target.checked)}
+            />
+            Contribution
+          </label>
+        </div>
       </div>
 
       {contributionEnabled && (
@@ -553,6 +568,16 @@ function RegistrationRow({
           {" · "}
           <span className="text-gray-400">{fmtWhen(reg.createdAt)}</span>
         </p>
+        {reg.email && (
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+            <a
+              href={`mailto:${reg.email}`}
+              className="font-mono text-primary-600 dark:text-primary-400 hover:underline"
+            >
+              ✉ {reg.email}
+            </a>
+          </p>
+        )}
       </div>
       {showAmount && reg.contributionAmount != null && (
         <>

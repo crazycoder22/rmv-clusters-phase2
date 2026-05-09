@@ -31,6 +31,7 @@ export async function GET(
       paymentInstructions: true,
       paymentQrImageUrl: true,
       upiId: true,
+      requireEmail: true,
       _count: { select: { registrations: true } },
     },
   });
@@ -88,6 +89,7 @@ export async function GET(
       paymentInstructions: event.paymentInstructions,
       paymentQrImageUrl: event.paymentQrImageUrl,
       upiId: event.upiId,
+      requireEmail: event.requireEmail,
       registrationCount: event._count.registrations,
       totals,
     },

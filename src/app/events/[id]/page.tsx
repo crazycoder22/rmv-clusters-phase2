@@ -32,6 +32,7 @@ interface EventData {
   paymentInstructions: string | null;
   paymentQrImageUrl: string | null;
   upiId: string | null;
+  requireEmail: boolean;
   totals: {
     totalPledged: number;
     totalPaid: number;
@@ -215,6 +216,12 @@ export default function PublicEventPage() {
             slug={event.slug}
             contributionEnabled={event.contributionEnabled}
             maxContribution={event.maxContribution}
+            requireEmail={event.requireEmail}
+            emailHelp={
+              event.requireEmail
+                ? "Use the email address tied to your Apple ID — TestFlight invites land there."
+                : undefined
+            }
           />
         )}
 

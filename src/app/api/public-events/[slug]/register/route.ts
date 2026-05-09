@@ -93,6 +93,7 @@ export async function POST(
       registrationClosesAt: true,
       contributionEnabled: true,
       maxContribution: true,
+      requireEmail: true,
     },
   });
   if (!event) {
@@ -113,9 +114,11 @@ export async function POST(
 
   // 4. Validate fields. Required: name + phone. Optional: block + flat.
   //    Contribution amount is required only for contribution-enabled events.
-  const { name, phone, block, flatNumber, contributionAmount } = body as {
+  //    Email is required only when event.requireEmail is true.
+  const { name, phone, email, block, flatNumber, contributionAmount } = body as {
     name?: string;
     phone?: string;
+    email?: string;
     block?: number | string;
     flatNumber?: string;
     contributionAmount?: number | string;
@@ -149,6 +152,26 @@ export async function POST(
 
   const cleanFlat = (flatNumber ?? "").trim().slice(0, 30) || null;
 
+  // Email: required when event.requireEmail, optional otherwise. We don't
+  // do strict RFC validation — a sane "looks like an email" check is enough
+  // since the form already runs HTML5 type="email" client-side.
+  const rawEmail = (email ?? "").trim().toLowerCase();
+  let cleanEmail: string | null = null;
+  if (rawEmail) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawEmail) || rawEmail.length > 200) {
+      return NextResponse.json(
+        { error: "Please enter a valid email address." },
+        { status: 400 }
+      );
+    }
+    cleanEmail = rawEmail;
+  } else if (event.requireEmail) {
+    return NextResponse.json(
+      { error: "Email is required for this signup." },
+      { status: 400 }
+    );
+  }
+
   // Contribution amount: required when contributionEnabled, else ignored.
   let cleanAmount: number | null = null;
   if (event.contributionEnabled) {
@@ -179,6 +202,7 @@ export async function POST(
       eventId: event.id,
       name: cleanName,
       phone: cleanPhone,
+      email: cleanEmail,
       block: cleanBlock,
       flatNumber: cleanFlat,
       contributionAmount: cleanAmount,

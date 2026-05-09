@@ -39,6 +39,7 @@ export async function GET(
       id: true,
       name: true,
       phone: true,
+      email: true,
       block: true,
       flatNumber: true,
       contributionAmount: true,
@@ -51,7 +52,7 @@ export async function GET(
 
   if (format === "csv") {
     const header =
-      "#,Name,Phone,Block,Flat,Amount,Paid,Paid At,Registered At";
+      "#,Name,Phone,Email,Block,Flat,Amount,Paid,Paid At,Registered At";
     const rows = registrations.map((r, i) => {
       const when = new Date(r.createdAt).toLocaleString("en-IN", {
         timeZone: "Asia/Kolkata",
@@ -71,6 +72,7 @@ export async function GET(
         i + 1,
         esc(r.name),
         esc(r.phone),
+        esc(r.email),
         r.block ?? "",
         esc(r.flatNumber),
         r.contributionAmount ?? "",
@@ -96,6 +98,7 @@ export async function GET(
       id: r.id,
       name: r.name,
       phone: r.phone,
+      email: r.email,
       block: r.block,
       flatNumber: r.flatNumber,
       contributionAmount: r.contributionAmount,

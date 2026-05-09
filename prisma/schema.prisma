@@ -1550,6 +1550,10 @@ model PublicEvent {
   paymentInstructions  String?  // markdown text shown near the payment details
   paymentQrImageUrl    String?  // uploaded QR (Vercel Blob URL)
   upiId                String?  // e.g. "9019903594@okbizaxis"
+  // When true, the public form collects an email from each registrant
+  // (useful for events that need to follow up — e.g. TestFlight invites
+  // need an Apple ID email). Optional otherwise.
+  requireEmail         Boolean  @default(false)
   createdById          String
   createdBy            Resident @relation("PublicEventsCreated", fields: [createdById], references: [id])
   registrations        PublicEventRegistration[]
@@ -1566,6 +1570,7 @@ model PublicEventRegistration {
   event              PublicEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
   name               String
   phone              String
+  email              String?     // optional; required when event.requireEmail is true
   block              Int?
   flatNumber         String?
   // Contribution fields — populated only on contribution-enabled events.
