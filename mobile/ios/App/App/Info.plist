@@ -47,6 +47,12 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<!-- Export compliance: app only uses HTTPS via the OS. No custom crypto.
+	     Setting this to false bakes the "exempt from export compliance"
+	     answer into the build so App Store Connect stops asking on every
+	     upload. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>GIDClientID</key>
 	<string>114554164765-h0ppp7e7enlkql9iebmcc0lef89bol74.apps.googleusercontent.com</string>
 	<key>CFBundleURLTypes</key>
