@@ -219,7 +219,7 @@ export default function PublicEventPage() {
             requireEmail={event.requireEmail}
             emailHelp={
               event.requireEmail
-                ? "Use the email address tied to your Apple ID — TestFlight invites land there."
+                ? emailHelpForSlug(event.slug)
                 : undefined
             }
           />
@@ -331,4 +331,16 @@ function ContributionPanel({ event }: { event: EventData }) {
       )}
     </div>
   );
+}
+
+// Per-event helper text for the email field. Keeps the form generic while
+// giving testers the right hint based on which beta they're signing up for.
+function emailHelpForSlug(slug: string): string {
+  if (slug === "ios-beta") {
+    return "Use the email tied to your Apple ID (Settings → [your name] on iPhone) — TestFlight invites land there.";
+  }
+  if (slug === "android-beta") {
+    return "Use the Google account you sign into Play Store with (Settings → Google → your account on Android) — the test invite goes there.";
+  }
+  return "If your sign-up email is different from the one we should reach you at, edit it here.";
 }
