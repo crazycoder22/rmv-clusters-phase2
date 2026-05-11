@@ -135,20 +135,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email?: string;
       };
       if (body.error === "not_registered") {
+        const who = body.email ? `\n(${body.email})` : "";
         setError({
           reason: "not_registered",
           email: body.email,
           message:
-            "This email isn't registered in the community. Please register on the website first.",
+            "This Google account isn't registered in the community." +
+            who +
+            "\nIf you have multiple Google accounts on this phone, tap Continue with Google again and pick the one your society profile uses.",
         });
         return;
       }
       if (body.error === "not_approved") {
+        const who = body.email ? `\n(${body.email})` : "";
         setError({
           reason: "not_approved",
           email: body.email,
           message:
-            "Your registration is pending admin approval. Please check back later.",
+            "Your registration is pending admin approval. Please check back later." +
+            who,
         });
         return;
       }

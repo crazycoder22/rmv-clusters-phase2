@@ -43,7 +43,9 @@ export default function SignIn() {
         </button>
 
         {error && error.reason !== "cancelled" && (
-          <p className="text-center text-xs text-red-400">{error.message}</p>
+          <p className="whitespace-pre-line text-center text-xs leading-relaxed text-red-400">
+            {error.message}
+          </p>
         )}
 
         <p className="text-center text-[11px] text-slate-500">
