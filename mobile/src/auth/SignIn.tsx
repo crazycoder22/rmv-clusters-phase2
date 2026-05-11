@@ -21,9 +21,12 @@ export default function SignIn() {
       <div className="flex flex-1 flex-col items-center justify-center text-center">
         <div className="text-6xl">🏘️</div>
         <h1 className="mt-4 text-3xl font-semibold tracking-tight text-white">
-          RMV Clusters
+          OneRMV
         </h1>
-        <p className="mt-2 max-w-xs text-sm text-slate-400">
+        <p className="mt-1 text-xs font-medium uppercase tracking-widest text-slate-500">
+          RMV Clusters Phase 2
+        </p>
+        <p className="mt-3 max-w-xs text-sm text-slate-400">
           Sign in to access community games, events, and more.
         </p>
       </div>
