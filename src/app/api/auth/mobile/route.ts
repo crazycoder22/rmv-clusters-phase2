@@ -42,6 +42,9 @@ export async function POST(req: Request) {
   });
 
   if (!resident) {
+    console.warn(
+      `[auth/mobile] not_registered email=${identity.email} google_sub=${identity.sub}`
+    );
     return NextResponse.json(
       { error: "not_registered", email: identity.email },
       { status: 403 }
@@ -49,11 +52,18 @@ export async function POST(req: Request) {
   }
 
   if (!resident.isApproved) {
+    console.warn(
+      `[auth/mobile] not_approved email=${identity.email} residentId=${resident.id}`
+    );
     return NextResponse.json(
       { error: "not_approved", email: identity.email },
       { status: 403 }
     );
   }
+
+  console.info(
+    `[auth/mobile] success email=${identity.email} residentId=${resident.id}`
+  );
 
   if (identity.picture && identity.picture !== resident.googleImage) {
     await prisma.resident
