@@ -65,3 +65,8 @@ prisma/dev.db-journal
 /mobile/android/local.properties
 /mobile/android/.idea
 /mobile/android/app/release
+
+# Release signing — secrets, never commit
+/mobile/android/keystore.properties
+/mobile/android/**/*.keystore
+/mobile/android/**/*.jks
