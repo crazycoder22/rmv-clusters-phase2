@@ -264,6 +264,11 @@ export default function Navbar() {
       label: "SOS Acceptances",
       match: (p) => p.startsWith("/admin/sos-acceptances"),
     });
+    residentLinks.push({
+      href: "/admin/stickers",
+      label: "Vehicle Stickers",
+      match: (p) => p.startsWith("/admin/stickers"),
+    });
   }
   if (residentLinks.length) adminGroups.push({ label: "Residents & Access", links: residentLinks });
 

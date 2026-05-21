@@ -1585,3 +1585,36 @@ model PublicEventRegistration {
 }
 
 // ─── End Public Events ─────────────────────────────────────────────────────
+
+// ─── Vehicle Stickers ──────────────────────────────────────────────────────
+// One row per flat — captures how many 4-wheeler / 2-wheeler stickers each
+// flat needs for the new security agency rollout (25 May 2026 onwards).
+// Public form fills this; admin reconciles for printing and pickup.
+//
+// `block + flatNumber` is the natural unique key — if the same flat submits
+// twice we upsert (latest submission wins), so totals stay correct.
+
+model VehicleStickerRequest {
+  id            String    @id @default(cuid())
+  block         Int
+  flatNumber    String
+  residentName  String
+  phone         String
+  email         String?
+  residentType  String    // "OWNER" | "TENANT"
+  fourWheelers  Int       @default(0)
+  twoWheelers   Int       @default(0)
+  notes         String?
+  // Pickup tracking — set by admin once stickers are handed over.
+  stickersIssued Boolean  @default(false)
+  issuedAt       DateTime?
+  issuedBy       String?  // free-text admin name; not a FK so works even if admin leaves
+  adminNote      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([block, flatNumber], name: "block_flat")
+  @@index([stickersIssued])
+}
+
+// ─── End Vehicle Stickers ──────────────────────────────────────────────────

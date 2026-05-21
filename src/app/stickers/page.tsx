@@ -1,0 +1,526 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useSession } from "next-auth/react";
+import {
+  ArrowLeft,
+  Car,
+  Bike,
+  Check,
+  Loader2,
+  ShieldCheck,
+  UserCheck,
+  Info,
+} from "lucide-react";
+import clsx from "clsx";
+
+type ResidentType = "OWNER" | "TENANT";
+
+export default function VehicleStickerPage() {
+  const { data: session } = useSession();
+
+  // Form state
+  const [block, setBlock] = useState("");
+  const [flatNumber, setFlatNumber] = useState("");
+  const [residentName, setResidentName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [residentType, setResidentType] = useState<ResidentType | "">("");
+  const [fourWheelers, setFourWheelers] = useState(0);
+  const [twoWheelers, setTwoWheelers] = useState(0);
+  const [notes, setNotes] = useState("");
+  const [website, setWebsite] = useState(""); // honeypot
+
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [done, setDone] = useState<null | { updated: boolean }>(null);
+  const [prefilledName, setPrefilledName] = useState<string | null>(null);
+
+  // Auto-fill from signed-in resident session (same pattern as event form).
+  useEffect(() => {
+    if (!session?.user) return;
+    if (session.user.name) {
+      setResidentName((prev) => prev || session.user!.name!);
+      setPrefilledName((prev) => prev || session.user!.name!);
+    }
+    if (session.user.email) {
+      setEmail((prev) => prev || session.user!.email!);
+    }
+  }, [session]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/residents/me", { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (cancelled || !data?.name) return;
+        setResidentName((prev) => prev || data.name);
+        setPhone((prev) => prev || data.phone || "");
+        setEmail((prev) => prev || data.email || "");
+        setBlock((prev) => prev || (data.block ? String(data.block) : ""));
+        setFlatNumber((prev) => prev || data.flatNumber || "");
+        // Map resident type — DB has OWNER/TENANT/OWNER_FAMILY/TENANT_FAMILY/MULTI_TENANT.
+        // For sticker purposes we collapse to OWNER/TENANT.
+        if (data.residentType) {
+          const t = String(data.residentType);
+          if (t.startsWith("OWNER")) setResidentType((prev) => prev || "OWNER");
+          else if (t.startsWith("TENANT") || t === "MULTI_TENANT") {
+            setResidentType((prev) => prev || "TENANT");
+          }
+        }
+        setPrefilledName((prev) => prev || data.name);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+
+    if (!block) return setError("Please select your block.");
+    if (!flatNumber.trim()) return setError("Please enter your flat number.");
+    if (residentName.trim().length < 2)
+      return setError("Please enter your full name.");
+    if (phone.replace(/[^\d]/g, "").length < 10)
+      return setError("Please enter a valid 10-digit mobile number.");
+    if (!residentType) return setError("Please pick Owner or Tenant.");
+    if (fourWheelers + twoWheelers === 0)
+      return setError("Please enter at least one 4-wheeler or 2-wheeler sticker.");
+
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/stickers/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          block: Number(block),
+          flatNumber: flatNumber.trim(),
+          residentName: residentName.trim(),
+          phone,
+          email: email || undefined,
+          residentType,
+          fourWheelers,
+          twoWheelers,
+          notes: notes.trim() || undefined,
+          website, // honeypot
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Could not submit. Please try again.");
+        return;
+      }
+      setDone({ updated: !!data.updated });
+    } catch {
+      setError("Network hiccup — please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (done) {
+    return <ThanksPanel updated={done.updated} onAgain={() => setDone(null)} />;
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-primary-50/40 via-white to-white dark:from-primary-950/40 dark:via-gray-900 dark:to-gray-900 py-8 sm:py-12">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-primary-700 dark:hover:text-primary-300 mb-5"
+        >
+          <ArrowLeft size={14} />
+          Back to RMV Clusters
+        </Link>
+
+        {/* Hero */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 sm:p-7 mb-6">
+          <div className="flex items-start gap-3">
+            <div className="w-11 h-11 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center shrink-0">
+              <ShieldCheck
+                size={22}
+                className="text-emerald-700 dark:text-emerald-300"
+              />
+            </div>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 leading-tight">
+                Vehicle Sticker Registration
+              </h1>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                For the new security agency starting <strong>25 May 2026</strong>.
+                Tell us how many stickers your flat needs and we&apos;ll have
+                them ready for pickup.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-5 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-3 flex gap-2 text-sm text-blue-800 dark:text-blue-200">
+            <Info size={16} className="shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium">What you need to know:</p>
+              <ul className="mt-1 list-disc pl-4 space-y-0.5 text-xs">
+                <li>One submission per flat — feel free to resubmit to correct.</li>
+                <li>
+                  Vehicle registration numbers will be captured separately in
+                  MyGate, not here.
+                </li>
+                <li>
+                  Stickers will be handed out at the Clubhouse — date &amp; time
+                  will be announced.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Form */}
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 sm:p-6"
+        >
+          {prefilledName && (
+            <div className="mb-4 flex items-center gap-2 rounded-lg border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 px-3 py-2 text-xs text-green-800 dark:text-green-300">
+              <UserCheck size={14} />
+              <span>
+                Signed in as{" "}
+                <span className="font-semibold">{prefilledName}</span> — your
+                details are pre-filled. Edit if needed.
+              </span>
+            </div>
+          )}
+
+          {/* Honeypot */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              left: "-9999px",
+              width: "1px",
+              height: "1px",
+              overflow: "hidden",
+            }}
+          >
+            <label>
+              Website
+              <input
+                type="text"
+                name="website"
+                tabIndex={-1}
+                autoComplete="off"
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+              />
+            </label>
+          </div>
+
+          <div className="space-y-4">
+            {/* Block + Flat */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label
+                  htmlFor="vs-block"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  Block <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="vs-block"
+                  value={block}
+                  onChange={(e) => setBlock(e.target.value)}
+                  className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-base sm:text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                >
+                  <option value="">Select block</option>
+                  <option value="1">Block 1</option>
+                  <option value="2">Block 2</option>
+                  <option value="3">Block 3</option>
+                  <option value="4">Block 4</option>
+                </select>
+              </div>
+              <div>
+                <label
+                  htmlFor="vs-flat"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  Flat Number <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="vs-flat"
+                  type="text"
+                  maxLength={30}
+                  required
+                  value={flatNumber}
+                  onChange={(e) => setFlatNumber(e.target.value)}
+                  className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-base sm:text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="e.g. 205 or G3"
+                />
+              </div>
+            </div>
+
+            {/* Name */}
+            <div>
+              <label
+                htmlFor="vs-name"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
+                Full Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="vs-name"
+                type="text"
+                autoComplete="name"
+                required
+                minLength={2}
+                maxLength={80}
+                value={residentName}
+                onChange={(e) => setResidentName(e.target.value)}
+                className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-base sm:text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                placeholder="e.g. Ramesh Iyer"
+              />
+            </div>
+
+            {/* Phone */}
+            <div>
+              <label
+                htmlFor="vs-phone"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
+                Mobile Number <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="vs-phone"
+                type="tel"
+                autoComplete="tel"
+                required
+                inputMode="tel"
+                pattern="[\d\s\+\-\(\)]{10,15}"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-base sm:text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                placeholder="10-digit mobile number"
+              />
+            </div>
+
+            {/* Email (optional) */}
+            <div>
+              <label
+                htmlFor="vs-email"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
+                Email{" "}
+                <span className="text-gray-400 dark:text-gray-500 text-xs">
+                  (optional)
+                </span>
+              </label>
+              <input
+                id="vs-email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-base sm:text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                placeholder="you@example.com"
+              />
+            </div>
+
+            {/* Owner / Tenant */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Are you the Owner or a Tenant?{" "}
+                <span className="text-red-500">*</span>
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                {(["OWNER", "TENANT"] as ResidentType[]).map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setResidentType(t)}
+                    className={clsx(
+                      "px-3 py-2.5 rounded-lg border text-sm font-medium transition-colors",
+                      residentType === t
+                        ? "border-primary-500 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300"
+                        : "border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:border-gray-400"
+                    )}
+                  >
+                    {t === "OWNER" ? "Owner" : "Tenant"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Sticker counts */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                How many stickers do you need?{" "}
+                <span className="text-red-500">*</span>
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <CounterField
+                  icon={<Car size={18} />}
+                  label="4-wheelers (cars)"
+                  value={fourWheelers}
+                  onChange={setFourWheelers}
+                />
+                <CounterField
+                  icon={<Bike size={18} />}
+                  label="2-wheelers (bikes/scooters)"
+                  value={twoWheelers}
+                  onChange={setTwoWheelers}
+                />
+              </div>
+            </div>
+
+            {/* Notes */}
+            <div>
+              <label
+                htmlFor="vs-notes"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
+                Notes{" "}
+                <span className="text-gray-400 dark:text-gray-500 text-xs">
+                  (optional)
+                </span>
+              </label>
+              <textarea
+                id="vs-notes"
+                rows={3}
+                maxLength={500}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-base sm:text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                placeholder="e.g. One car is out of station, will pick up sticker later."
+              />
+            </div>
+          </div>
+
+          {error && (
+            <div className="mt-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-sm text-red-700 dark:text-red-300">
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={submitting}
+            className={clsx(
+              "mt-5 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-semibold text-white text-base",
+              submitting
+                ? "bg-gray-300 dark:bg-gray-600 cursor-not-allowed"
+                : "bg-primary-600 hover:bg-primary-700"
+            )}
+          >
+            {submitting ? (
+              <>
+                <Loader2 size={18} className="animate-spin" />
+                Saving…
+              </>
+            ) : (
+              <>
+                <Check size={18} />
+                Submit my sticker request
+              </>
+            )}
+          </button>
+
+          <p className="mt-3 text-[11px] text-gray-400 dark:text-gray-500 text-center">
+            Your details are visible only to RMV admins. No login required.
+          </p>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function CounterField({
+  icon,
+  label,
+  value,
+  onChange,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+}) {
+  const clamp = (n: number) => Math.max(0, Math.min(10, n));
+  return (
+    <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/40 p-3">
+      <div className="flex items-center gap-2 text-gray-700 dark:text-gray-200 text-sm font-medium">
+        <span className="text-primary-600 dark:text-primary-400">{icon}</span>
+        {label}
+      </div>
+      <div className="mt-2 flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => onChange(clamp(value - 1))}
+          disabled={value <= 0}
+          className="w-9 h-9 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-bold hover:bg-gray-100 dark:hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
+          aria-label={`Decrease ${label}`}
+        >
+          −
+        </button>
+        <input
+          type="number"
+          min={0}
+          max={10}
+          inputMode="numeric"
+          value={value}
+          onChange={(e) => onChange(clamp(parseInt(e.target.value || "0", 10)))}
+          className="flex-1 text-center text-lg font-semibold px-2 py-1.5 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-gray-100"
+        />
+        <button
+          type="button"
+          onClick={() => onChange(clamp(value + 1))}
+          disabled={value >= 10}
+          className="w-9 h-9 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-bold hover:bg-gray-100 dark:hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
+          aria-label={`Increase ${label}`}
+        >
+          +
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ThanksPanel({
+  updated,
+  onAgain,
+}: {
+  updated: boolean;
+  onAgain: () => void;
+}) {
+  return (
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-gradient-to-b from-primary-50/40 via-white to-white dark:from-primary-950/40 dark:via-gray-900 dark:to-gray-900">
+      <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-7 text-center">
+        <div className="mx-auto w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mb-4">
+          <Check size={28} className="text-emerald-700 dark:text-emerald-300" />
+        </div>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+          {updated ? "Updated!" : "Thanks — we&apos;ve got it!"}
+        </h2>
+        <p className="mt-2 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+          {updated
+            ? "Your sticker request has been updated. We&apos;ll use the latest count for printing."
+            : "Your sticker request is recorded. We&apos;ll let you know once stickers are ready for pickup at the Clubhouse."}
+        </p>
+        <div className="mt-5 flex flex-col sm:flex-row gap-2 justify-center">
+          <button
+            onClick={onAgain}
+            className="px-4 py-2.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium"
+          >
+            Submit another flat
+          </button>
+          <Link
+            href="/"
+            className="px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm font-medium"
+          >
+            Back to home
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
