@@ -12,8 +12,21 @@ import {
   ShieldCheck,
   UserCheck,
   Info,
+  MapPin,
+  Clock,
+  PlayCircle,
+  ExternalLink,
 } from "lucide-react";
 import clsx from "clsx";
+
+// ── Process config ────────────────────────────────────────────────────────
+// Edit these two constants to point at the real MyGate tutorial and to
+// announce help-desk timings without redeploying components elsewhere.
+// Leave MYGATE_VIDEO_URL empty to hide the video link entirely.
+const MYGATE_VIDEO_URL = ""; // TODO: paste MyGate vehicle-registration video URL
+const HELP_DESK_SCHEDULE: { when: string; where: string }[] = [
+  { when: "Tomorrow (14 May), 4 – 6 PM", where: "Near the jack fruit tree" },
+];
 
 type ResidentType = "OWNER" | "TENANT";
 
@@ -158,21 +171,118 @@ export default function VehicleStickerPage() {
             </div>
           </div>
 
-          <div className="mt-5 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-3 flex gap-2 text-sm text-blue-800 dark:text-blue-200">
+          {/* Step 1 — MyGate prerequisite */}
+          <div className="mt-5 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-3 flex gap-2 text-sm text-amber-900 dark:text-amber-200">
+            <Info size={16} className="shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-semibold">
+                Step 1 — Register vehicles in MyGate first
+              </p>
+              <p className="mt-1 text-xs leading-relaxed">
+                Open MyGate → Vehicles → Add Vehicle for each car / bike in
+                your flat. Vehicle numbers stay in MyGate, not here.
+              </p>
+              {MYGATE_VIDEO_URL && (
+                <a
+                  href={MYGATE_VIDEO_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-amber-900 dark:text-amber-100 hover:underline"
+                >
+                  <PlayCircle size={13} />
+                  Watch the 1-min tutorial
+                  <ExternalLink size={11} />
+                </a>
+              )}
+            </div>
+          </div>
+
+          {/* Step 2 — this form */}
+          <div className="mt-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-3 flex gap-2 text-sm text-blue-900 dark:text-blue-200">
             <Info size={16} className="shrink-0 mt-0.5" />
             <div>
-              <p className="font-medium">What you need to know:</p>
-              <ul className="mt-1 list-disc pl-4 space-y-0.5 text-xs">
-                <li>One submission per flat — feel free to resubmit to correct.</li>
-                <li>
-                  Vehicle registration numbers will be captured separately in
-                  MyGate, not here.
-                </li>
-                <li>
-                  Stickers will be handed out at the Clubhouse — date &amp; time
-                  will be announced.
-                </li>
-              </ul>
+              <p className="font-semibold">
+                Step 2 — Tell us your sticker count (this form)
+              </p>
+              <p className="mt-1 text-xs leading-relaxed">
+                Just a number of 4-wheeler and 2-wheeler stickers. One
+                submission per flat — feel free to resubmit if anything
+                changes.
+              </p>
+            </div>
+          </div>
+
+          {/* Step 3 — pickup */}
+          <div className="mt-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 p-3 text-sm text-emerald-900 dark:text-emerald-200">
+            <div className="flex gap-2 items-start">
+              <Info size={16} className="shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="font-semibold">Step 3 — Collect your stickers</p>
+                <ul className="mt-2 space-y-2 text-xs">
+                  {HELP_DESK_SCHEDULE.map((s, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <Clock size={12} className="shrink-0 mt-0.5" />
+                      <span>
+                        <strong>{s.when}</strong> · {s.where}
+                      </span>
+                    </li>
+                  ))}
+                  <li className="flex items-start gap-2">
+                    <MapPin size={12} className="shrink-0 mt-0.5" />
+                    <span>
+                      <strong>25 May (Sun) morning</strong> · near the main
+                      gate <em>— last day before agency switch</em>
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <MapPin size={12} className="shrink-0 mt-0.5" />
+                    <span>
+                      Out of town? Collect later from the manager at the{" "}
+                      <strong>Block 2 office</strong>.
+                    </span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Step 4 — apply on vehicle */}
+          <div className="mt-3 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 p-3 text-sm text-purple-900 dark:text-purple-200">
+            <div className="flex gap-2 items-start">
+              <Info size={16} className="shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="font-semibold">
+                  Step 4 — Apply the sticker where security can see it
+                </p>
+                <ul className="mt-2 space-y-1.5 text-xs">
+                  <li className="flex items-start gap-2">
+                    <Car size={12} className="shrink-0 mt-0.5" />
+                    <span>
+                      <strong>Car:</strong> top corner of the windshield, on
+                      the side closest to the guard cabin — clean the glass
+                      first so it sticks well.
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Bike size={12} className="shrink-0 mt-0.5" />
+                    <span>
+                      <strong>Bike / scooter:</strong> front fairing or just
+                      below the headlight — somewhere the guard can spot
+                      while you ride in.
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Info size={12} className="shrink-0 mt-0.5" />
+                    <span>
+                      Peel off old security stickers from the previous agency.
+                    </span>
+                  </li>
+                </ul>
+                <div className="mt-3 rounded-md bg-purple-100 dark:bg-purple-900/40 p-2 text-xs font-medium leading-snug">
+                  🚨 <strong>Sticker visible → no stop.</strong> No sticker →
+                  guard will stop and check every time you enter.
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -494,18 +604,78 @@ function ThanksPanel({
 }) {
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-gradient-to-b from-primary-50/40 via-white to-white dark:from-primary-950/40 dark:via-gray-900 dark:to-gray-900">
-      <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-7 text-center">
-        <div className="mx-auto w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mb-4">
-          <Check size={28} className="text-emerald-700 dark:text-emerald-300" />
+      <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 sm:p-7">
+        <div className="text-center">
+          <div className="mx-auto w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mb-4">
+            <Check size={28} className="text-emerald-700 dark:text-emerald-300" />
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+            {updated ? "Updated!" : "Thanks — we've got it!"}
+          </h2>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+            {updated
+              ? "Your sticker request has been updated. We'll use the latest count for printing."
+              : "Your sticker request is recorded. Here's how to collect your stickers."}
+          </p>
         </div>
-        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-          {updated ? "Updated!" : "Thanks — we&apos;ve got it!"}
-        </h2>
-        <p className="mt-2 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-          {updated
-            ? "Your sticker request has been updated. We&apos;ll use the latest count for printing."
-            : "Your sticker request is recorded. We&apos;ll let you know once stickers are ready for pickup at the Clubhouse."}
-        </p>
+
+        {/* Pickup details — repeated here so residents see them after submit too */}
+        <div className="mt-5 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 p-3 text-sm text-emerald-900 dark:text-emerald-200">
+          <p className="font-semibold mb-2">Pick up at any of these:</p>
+          <ul className="space-y-2 text-xs">
+            {HELP_DESK_SCHEDULE.map((s, i) => (
+              <li key={i} className="flex items-start gap-2">
+                <Clock size={12} className="shrink-0 mt-0.5" />
+                <span>
+                  <strong>{s.when}</strong> · {s.where}
+                </span>
+              </li>
+            ))}
+            <li className="flex items-start gap-2">
+              <MapPin size={12} className="shrink-0 mt-0.5" />
+              <span>
+                <strong>25 May (Sun) morning</strong> · near the main gate
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <MapPin size={12} className="shrink-0 mt-0.5" />
+              <span>
+                <strong>Block 2 office</strong> · manager has spare stickers on
+                working days
+              </span>
+            </li>
+          </ul>
+          <p className="mt-3 text-[11px] italic">
+            Don&apos;t forget — register vehicles in MyGate first if you
+            haven&apos;t already.
+          </p>
+        </div>
+
+        {/* Where to stick — shown after submit so it's top-of-mind for pickup day */}
+        <div className="mt-3 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 p-3 text-sm text-purple-900 dark:text-purple-200">
+          <p className="font-semibold mb-2">After you collect — where to stick:</p>
+          <ul className="space-y-1.5 text-xs">
+            <li className="flex items-start gap-2">
+              <Car size={12} className="shrink-0 mt-0.5" />
+              <span>
+                <strong>Car:</strong> top corner of windshield, side closest to
+                the guard cabin.
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <Bike size={12} className="shrink-0 mt-0.5" />
+              <span>
+                <strong>Bike / scooter:</strong> front fairing or below the
+                headlight.
+              </span>
+            </li>
+          </ul>
+          <p className="mt-3 text-xs font-semibold leading-snug">
+            🚨 Sticker visible → guard waves you through. No sticker → guard
+            stops and checks.
+          </p>
+        </div>
+
         <div className="mt-5 flex flex-col sm:flex-row gap-2 justify-center">
           <button
             onClick={onAgain}
