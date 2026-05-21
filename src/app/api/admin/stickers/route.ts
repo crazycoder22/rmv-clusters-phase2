@@ -33,9 +33,18 @@ export async function GET(request: NextRequest) {
       acc.twoWheelers += r.twoWheelers;
       acc.flats += 1;
       if (r.stickersIssued) acc.issued += 1;
+      if (r.mygateRegistered) acc.mygateConfirmed += 1;
+      if (r.alreadyHasSticker) acc.selfCollected += 1;
       return acc;
     },
-    { fourWheelers: 0, twoWheelers: 0, flats: 0, issued: 0 }
+    {
+      fourWheelers: 0,
+      twoWheelers: 0,
+      flats: 0,
+      issued: 0,
+      mygateConfirmed: 0,
+      selfCollected: 0,
+    }
   );
 
   const url = new URL(request.url);
@@ -54,6 +63,8 @@ export async function GET(request: NextRequest) {
       "Type",
       "4-wheelers",
       "2-wheelers",
+      "MyGate Registered",
+      "Already Has Sticker",
       "Notes",
       "Submitted",
       "Stickers Issued",
@@ -71,6 +82,8 @@ export async function GET(request: NextRequest) {
         r.residentType,
         r.fourWheelers,
         r.twoWheelers,
+        r.mygateRegistered ? "YES" : "NO",
+        r.alreadyHasSticker ? "YES" : "NO",
         r.notes ?? "",
         new Date(r.createdAt).toLocaleString("en-IN", {
           timeZone: "Asia/Kolkata",

@@ -85,6 +85,8 @@ export async function POST(request: NextRequest) {
     fourWheelers,
     twoWheelers,
     notes,
+    mygateRegistered,
+    alreadyHasSticker,
   } = body as {
     block?: number | string;
     flatNumber?: string;
@@ -95,7 +97,12 @@ export async function POST(request: NextRequest) {
     fourWheelers?: number | string;
     twoWheelers?: number | string;
     notes?: string;
+    mygateRegistered?: boolean;
+    alreadyHasSticker?: boolean;
   };
+
+  const mygateDone = !!mygateRegistered;
+  const alreadyCollected = !!alreadyHasSticker;
 
   // Block: required, 1-4.
   const blockNum = Number(block);
@@ -179,6 +186,48 @@ export async function POST(request: NextRequest) {
 
   const cleanNotes = (notes ?? "").trim().slice(0, 500) || null;
 
+  // If the resident self-declares they already have the stickers, we
+  // pre-mark the row as issued so the admin's "remaining to print"
+  // numbers stay accurate. But we never clobber a previous admin action:
+  // if the row already has stickersIssued=true (handed over by admin),
+  // leave that record as-is.
+  const existing = await prisma.vehicleStickerRequest.findUnique({
+    where: { block_flat: { block: blockNum, flatNumber: cleanFlat } },
+    select: { stickersIssued: true, issuedBy: true },
+  });
+
+  // Decide what to write for the issuance fields on this submission.
+  // Three cases:
+  //   1. Already admin-issued → keep admin record untouched
+  //   2. Resident toggles alreadyHasSticker on a fresh / self-declared row →
+  //      stamp as self-declared (or update timestamp)
+  //   3. Resident toggles alreadyHasSticker OFF on a previously self-declared
+  //      row → roll it back to pending (admin-issued rows untouched)
+  const adminIssued =
+    existing?.stickersIssued === true && existing.issuedBy !== "self-declared";
+
+  let issuanceUpdate: {
+    stickersIssued?: boolean;
+    issuedAt?: Date | null;
+    issuedBy?: string | null;
+  } = {};
+  if (!adminIssued) {
+    if (alreadyCollected) {
+      issuanceUpdate = {
+        stickersIssued: true,
+        issuedAt: new Date(),
+        issuedBy: "self-declared",
+      };
+    } else if (existing?.issuedBy === "self-declared") {
+      // resident reversed their earlier self-declaration
+      issuanceUpdate = {
+        stickersIssued: false,
+        issuedAt: null,
+        issuedBy: null,
+      };
+    }
+  }
+
   // Upsert — one record per flat. Latest submission wins.
   const row = await prisma.vehicleStickerRequest.upsert({
     where: { block_flat: { block: blockNum, flatNumber: cleanFlat } },
@@ -192,11 +241,11 @@ export async function POST(request: NextRequest) {
       fourWheelers: fourW,
       twoWheelers: twoW,
       notes: cleanNotes,
+      mygateRegistered: mygateDone,
+      alreadyHasSticker: alreadyCollected,
+      ...issuanceUpdate,
     },
     update: {
-      // Don't touch `stickersIssued` / `issuedAt` / `issuedBy` / `adminNote`
-      // — those are admin-managed. A resident re-submitting just refreshes
-      // their request fields.
       residentName: cleanName,
       phone: cleanPhone,
       email: cleanEmail,
@@ -204,6 +253,10 @@ export async function POST(request: NextRequest) {
       fourWheelers: fourW,
       twoWheelers: twoW,
       notes: cleanNotes,
+      mygateRegistered: mygateDone,
+      alreadyHasSticker: alreadyCollected,
+      // adminNote is never touched on resubmissions — admin-only field.
+      ...issuanceUpdate,
     },
     select: { id: true, createdAt: true, updatedAt: true },
   });

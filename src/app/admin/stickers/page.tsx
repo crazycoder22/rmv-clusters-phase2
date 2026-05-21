@@ -16,6 +16,8 @@ import {
   Circle,
   ExternalLink,
   Trash2,
+  Smartphone,
+  HandCoins,
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -30,6 +32,8 @@ interface StickerRow {
   fourWheelers: number;
   twoWheelers: number;
   notes: string | null;
+  mygateRegistered: boolean;
+  alreadyHasSticker: boolean;
   stickersIssued: boolean;
   issuedAt: string | null;
   issuedBy: string | null;
@@ -43,6 +47,8 @@ interface Totals {
   twoWheelers: number;
   flats: number;
   issued: number;
+  mygateConfirmed: number;
+  selfCollected: number;
 }
 
 const fmtDate = (iso: string) =>
@@ -66,6 +72,8 @@ export default function AdminStickersPage() {
     twoWheelers: 0,
     flats: 0,
     issued: 0,
+    mygateConfirmed: 0,
+    selfCollected: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -77,6 +85,7 @@ export default function AdminStickersPage() {
   const [issuedFilter, setIssuedFilter] = useState<"" | "issued" | "pending">(
     ""
   );
+  const [mygateFilter, setMygateFilter] = useState<"" | "yes" | "no">("");
 
   useEffect(() => {
     if (!roleLoading && !canManageAnnouncements()) router.replace("/");
@@ -91,7 +100,14 @@ export default function AdminStickersPage() {
       .then((d) => {
         setRows(d.rows ?? []);
         setTotals(
-          d.totals ?? { fourWheelers: 0, twoWheelers: 0, flats: 0, issued: 0 }
+          d.totals ?? {
+            fourWheelers: 0,
+            twoWheelers: 0,
+            flats: 0,
+            issued: 0,
+            mygateConfirmed: 0,
+            selfCollected: 0,
+          }
         );
         setLoading(false);
       })
@@ -106,6 +122,8 @@ export default function AdminStickersPage() {
       if (blockFilter && String(r.block) !== blockFilter) return false;
       if (issuedFilter === "issued" && !r.stickersIssued) return false;
       if (issuedFilter === "pending" && r.stickersIssued) return false;
+      if (mygateFilter === "yes" && !r.mygateRegistered) return false;
+      if (mygateFilter === "no" && r.mygateRegistered) return false;
       if (q) {
         const blob =
           `${r.block} ${r.flatNumber} ${r.residentName} ${r.phone} ${r.email ?? ""}`.toLowerCase();
@@ -113,7 +131,7 @@ export default function AdminStickersPage() {
       }
       return true;
     });
-  }, [rows, search, blockFilter, issuedFilter]);
+  }, [rows, search, blockFilter, issuedFilter, mygateFilter]);
 
   async function toggleIssued(row: StickerRow) {
     const next = !row.stickersIssued;
@@ -209,8 +227,8 @@ export default function AdminStickersPage() {
           </a>
         </div>
 
-        {/* Totals (KPI cards) */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        {/* Totals (KPI cards) — Row 1: demand */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
           <KpiCard
             icon={<Car size={18} />}
             label="4-Wheeler stickers"
@@ -233,6 +251,21 @@ export default function AdminStickersPage() {
             icon={<CheckCircle2 size={18} />}
             label="Stickers issued"
             value={`${totals.issued} / ${totals.flats}`}
+            tone="amber"
+          />
+        </div>
+        {/* Row 2: self-reported status */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+          <KpiCard
+            icon={<Smartphone size={18} />}
+            label="MyGate confirmed (self-reported)"
+            value={`${totals.mygateConfirmed} / ${totals.flats}`}
+            tone="sky"
+          />
+          <KpiCard
+            icon={<HandCoins size={18} />}
+            label="Already collected (self-reported)"
+            value={totals.selfCollected}
             tone="amber"
           />
         </div>
@@ -273,6 +306,17 @@ export default function AdminStickersPage() {
             <option value="">All status</option>
             <option value="pending">Not yet issued</option>
             <option value="issued">Issued</option>
+          </select>
+          <select
+            value={mygateFilter}
+            onChange={(e) =>
+              setMygateFilter(e.target.value as typeof mygateFilter)
+            }
+            className="px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm"
+          >
+            <option value="">MyGate: all</option>
+            <option value="yes">MyGate: confirmed</option>
+            <option value="no">MyGate: pending</option>
           </select>
           <span className="text-xs text-gray-500 dark:text-gray-400">
             Showing {filtered.length} of {rows.length}
@@ -320,9 +364,25 @@ export default function AdminStickersPage() {
                         {r.phone}
                         {r.email ? ` · ${r.email}` : ""}
                       </div>
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {r.mygateRegistered ? (
+                          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300">
+                            <Smartphone size={9} /> MyGate ✓
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-500 dark:bg-gray-900/40 dark:text-gray-400">
+                            <Smartphone size={9} /> MyGate ?
+                          </span>
+                        )}
+                        {r.alreadyHasSticker && (
+                          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+                            <HandCoins size={9} /> Self-collected
+                          </span>
+                        )}
+                      </div>
                       {r.notes && (
                         <div className="mt-1 text-xs text-amber-700 dark:text-amber-300 italic">
-                          “{r.notes}”
+                          &ldquo;{r.notes}&rdquo;
                         </div>
                       )}
                     </td>
@@ -353,25 +413,44 @@ export default function AdminStickersPage() {
                       )}
                     </td>
                     <td className="px-3 py-3">
-                      <button
-                        onClick={() => toggleIssued(r)}
-                        className={clsx(
-                          "inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium border transition-colors",
-                          r.stickersIssued
-                            ? "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100"
-                            : "bg-gray-50 dark:bg-gray-900/40 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100"
-                        )}
-                      >
-                        {r.stickersIssued ? (
-                          <>
-                            <CheckCircle2 size={12} /> Issued
-                          </>
-                        ) : (
-                          <>
-                            <Circle size={12} /> Pending
-                          </>
-                        )}
-                      </button>
+                      {(() => {
+                        const isSelfCollected =
+                          r.stickersIssued && r.issuedBy === "self-declared";
+                        return (
+                          <button
+                            onClick={() => toggleIssued(r)}
+                            className={clsx(
+                              "inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium border transition-colors",
+                              isSelfCollected
+                                ? "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 hover:bg-amber-100"
+                                : r.stickersIssued
+                                  ? "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100"
+                                  : "bg-gray-50 dark:bg-gray-900/40 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100"
+                            )}
+                            title={
+                              isSelfCollected
+                                ? "Resident self-declared they already have the stickers. Click to override."
+                                : r.stickersIssued
+                                  ? "Stickers handed over by admin. Click to mark as pending."
+                                  : "Not yet issued. Click to mark as issued."
+                            }
+                          >
+                            {isSelfCollected ? (
+                              <>
+                                <HandCoins size={12} /> Self-collected
+                              </>
+                            ) : r.stickersIssued ? (
+                              <>
+                                <CheckCircle2 size={12} /> Issued
+                              </>
+                            ) : (
+                              <>
+                                <Circle size={12} /> Pending
+                              </>
+                            )}
+                          </button>
+                        );
+                      })()}
                       {r.stickersIssued && r.issuedAt && (
                         <div className="mt-1 text-[10px] text-gray-500 dark:text-gray-400">
                           by {r.issuedBy ?? "admin"} · {fmtDate(r.issuedAt)}

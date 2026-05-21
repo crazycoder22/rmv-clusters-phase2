@@ -42,6 +42,8 @@ export default function VehicleStickerPage() {
   const [residentType, setResidentType] = useState<ResidentType | "">("");
   const [fourWheelers, setFourWheelers] = useState(0);
   const [twoWheelers, setTwoWheelers] = useState(0);
+  const [mygateRegistered, setMygateRegistered] = useState(false);
+  const [alreadyHasSticker, setAlreadyHasSticker] = useState(false);
   const [notes, setNotes] = useState("");
   const [website, setWebsite] = useState(""); // honeypot
 
@@ -118,6 +120,8 @@ export default function VehicleStickerPage() {
           residentType,
           fourWheelers,
           twoWheelers,
+          mygateRegistered,
+          alreadyHasSticker,
           notes: notes.trim() || undefined,
           website, // honeypot
         }),
@@ -483,6 +487,27 @@ export default function VehicleStickerPage() {
               </div>
             </div>
 
+            {/* Self-declared compliance checkboxes */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Quick status check
+              </label>
+              <div className="space-y-2">
+                <CheckboxField
+                  checked={mygateRegistered}
+                  onChange={setMygateRegistered}
+                  label="I have already added all vehicle details in MyGate"
+                  hint="Helps us skip the MyGate check at the help desk."
+                />
+                <CheckboxField
+                  checked={alreadyHasSticker}
+                  onChange={setAlreadyHasSticker}
+                  label="I have already collected my stickers (no pickup needed)"
+                  hint="If you got your stickers earlier, tick this so we don't print extras. You'll be marked as 'self-collected' in our records."
+                />
+              </div>
+            </div>
+
             {/* Notes */}
             <div>
               <label
@@ -541,6 +566,46 @@ export default function VehicleStickerPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+function CheckboxField({
+  checked,
+  onChange,
+  label,
+  hint,
+}: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  label: string;
+  hint?: string;
+}) {
+  return (
+    <label
+      className={clsx(
+        "flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-colors",
+        checked
+          ? "border-primary-400 dark:border-primary-500 bg-primary-50 dark:bg-primary-900/20"
+          : "border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/40 hover:border-gray-300 dark:hover:border-gray-600"
+      )}
+    >
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="mt-0.5 w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+      />
+      <div className="flex-1">
+        <div className="text-sm font-medium text-gray-800 dark:text-gray-100">
+          {label}
+        </div>
+        {hint && (
+          <div className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+            {hint}
+          </div>
+        )}
+      </div>
+    </label>
   );
 }
 

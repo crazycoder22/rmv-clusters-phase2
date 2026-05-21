@@ -1605,16 +1605,22 @@ model VehicleStickerRequest {
   fourWheelers  Int       @default(0)
   twoWheelers   Int       @default(0)
   notes         String?
-  // Pickup tracking — set by admin once stickers are handed over.
+  // Self-declared compliance flags. Set true by the resident on the form;
+  // admin can override via the dashboard.
+  mygateRegistered    Boolean @default(false) // resident confirms MyGate has vehicle details
+  alreadyHasSticker   Boolean @default(false) // resident already collected somehow
+  // Pickup tracking — set by admin once stickers are handed over, OR auto-set
+  // when alreadyHasSticker=true with issuedBy="self-declared".
   stickersIssued Boolean  @default(false)
   issuedAt       DateTime?
-  issuedBy       String?  // free-text admin name; not a FK so works even if admin leaves
+  issuedBy       String?  // admin name, or "self-declared" for auto-issued rows
   adminNote      String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   @@unique([block, flatNumber], name: "block_flat")
   @@index([stickersIssued])
+  @@index([mygateRegistered])
 }
 
 // ─── End Vehicle Stickers ──────────────────────────────────────────────────
