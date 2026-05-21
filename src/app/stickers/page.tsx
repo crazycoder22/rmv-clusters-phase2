@@ -26,6 +26,7 @@ import clsx from "clsx";
 const MYGATE_VIDEO_URL = "https://youtu.be/0xOrzlr7SOs";
 const HELP_DESK_SCHEDULE: { when: string; where: string }[] = [
   { when: "Tomorrow (22 May), 4 – 6 PM", where: "Near the jack fruit tree" },
+  { when: "Saturday 23 May, 10 AM – 10 PM", where: "Near the jack fruit tree" },
 ];
 
 type ResidentType = "OWNER" | "TENANT";
@@ -234,7 +235,7 @@ export default function VehicleStickerPage() {
                   <li className="flex items-start gap-2">
                     <MapPin size={12} className="shrink-0 mt-0.5" />
                     <span>
-                      <strong>25 May (Sun) morning</strong> · near the main
+                      <strong>25 May (Mon) morning</strong> · near the main
                       gate <em>— last day before agency switch</em>
                     </span>
                   </li>
@@ -699,7 +700,7 @@ function ThanksPanel({
             <li className="flex items-start gap-2">
               <MapPin size={12} className="shrink-0 mt-0.5" />
               <span>
-                <strong>25 May (Sun) morning</strong> · near the main gate
+                <strong>25 May (Mon) morning</strong> · near the main gate
               </span>
             </li>
             <li className="flex items-start gap-2">

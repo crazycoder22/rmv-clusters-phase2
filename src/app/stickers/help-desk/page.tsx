@@ -163,7 +163,7 @@ export default function HelpDeskSopPage() {
           </h2>
           <ul className="text-sm space-y-1 pl-1">
             <li>
-              <strong>25 May (Sun) morning</strong> — near the main gate.
+              <strong>25 May (Mon) morning</strong> — near the main gate.
             </li>
             <li>
               <strong>Block 2 office</strong> — manager has spare stickers any
