@@ -11,19 +11,15 @@ import {
   Loader2,
   ShieldCheck,
   UserCheck,
-  Info,
   MapPin,
   Clock,
-  PlayCircle,
-  ExternalLink,
 } from "lucide-react";
 import clsx from "clsx";
 
-// ── Process config ────────────────────────────────────────────────────────
-// Edit these two constants to point at the real MyGate tutorial and to
-// announce help-desk timings without redeploying components elsewhere.
-// Leave MYGATE_VIDEO_URL empty to hide the video link entirely.
-const MYGATE_VIDEO_URL = "https://youtu.be/0xOrzlr7SOs";
+// ── Pickup schedule ───────────────────────────────────────────────────────
+// Shown in the post-submit Thanks panel so residents who arrive via the
+// WhatsApp link still see where to pick up their stickers. Process info
+// (MyGate tutorial, where-to-stick, etc.) lives in the WhatsApp message.
 const HELP_DESK_SCHEDULE: { when: string; where: string }[] = [
   { when: "Friday 22 May, 4 – 6 PM", where: "Near the jack fruit tree" },
   { when: "Saturday 23 May, 10 AM – 1 PM", where: "Near the jack fruit tree" },
@@ -155,140 +151,22 @@ export default function VehicleStickerPage() {
           Back to RMV Clusters
         </Link>
 
-        {/* Hero */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 sm:p-7 mb-6">
-          <div className="flex items-start gap-3">
-            <div className="w-11 h-11 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center shrink-0">
-              <ShieldCheck
-                size={22}
-                className="text-emerald-700 dark:text-emerald-300"
-              />
-            </div>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 leading-tight">
-                Vehicle Sticker Registration
-              </h1>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                For the new security agency starting <strong>25 May 2026</strong>.
-                Tell us how many stickers your flat needs and we&apos;ll have
-                them ready for pickup.
-              </p>
-            </div>
+        {/* Title — process info lives in the WhatsApp announcement,
+            so the page itself stays focused on the form. */}
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center shrink-0">
+            <ShieldCheck
+              size={20}
+              className="text-emerald-700 dark:text-emerald-300"
+            />
           </div>
-
-          {/* Step 1 — MyGate prerequisite */}
-          <div className="mt-5 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-3 flex gap-2 text-sm text-amber-900 dark:text-amber-200">
-            <Info size={16} className="shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p className="font-semibold">
-                Step 1 — Register vehicles in MyGate first
-              </p>
-              <p className="mt-1 text-xs leading-relaxed">
-                Open MyGate → Vehicles → Add Vehicle for each car / bike in
-                your flat. Vehicle numbers stay in MyGate, not here.
-              </p>
-              {MYGATE_VIDEO_URL && (
-                <a
-                  href={MYGATE_VIDEO_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-amber-900 dark:text-amber-100 hover:underline"
-                >
-                  <PlayCircle size={13} />
-                  Watch the 1-min tutorial
-                  <ExternalLink size={11} />
-                </a>
-              )}
-            </div>
-          </div>
-
-          {/* Step 2 — this form */}
-          <div className="mt-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-3 flex gap-2 text-sm text-blue-900 dark:text-blue-200">
-            <Info size={16} className="shrink-0 mt-0.5" />
-            <div>
-              <p className="font-semibold">
-                Step 2 — Tell us your sticker count (this form)
-              </p>
-              <p className="mt-1 text-xs leading-relaxed">
-                Just a number of 4-wheeler and 2-wheeler stickers. One
-                submission per flat — feel free to resubmit if anything
-                changes.
-              </p>
-            </div>
-          </div>
-
-          {/* Step 3 — pickup */}
-          <div className="mt-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 p-3 text-sm text-emerald-900 dark:text-emerald-200">
-            <div className="flex gap-2 items-start">
-              <Info size={16} className="shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <p className="font-semibold">Step 3 — Collect your stickers</p>
-                <ul className="mt-2 space-y-2 text-xs">
-                  {HELP_DESK_SCHEDULE.map((s, i) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <Clock size={12} className="shrink-0 mt-0.5" />
-                      <span>
-                        <strong>{s.when}</strong> · {s.where}
-                      </span>
-                    </li>
-                  ))}
-                  <li className="flex items-start gap-2">
-                    <MapPin size={12} className="shrink-0 mt-0.5" />
-                    <span>
-                      <strong>25 May (Mon) morning</strong> · near the main
-                      gate <em>— last day before agency switch</em>
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <MapPin size={12} className="shrink-0 mt-0.5" />
-                    <span>
-                      Out of town? Collect later from the manager at the{" "}
-                      <strong>Block 2 office</strong>.
-                    </span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          {/* Step 4 — apply on vehicle */}
-          <div className="mt-3 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 p-3 text-sm text-purple-900 dark:text-purple-200">
-            <div className="flex gap-2 items-start">
-              <Info size={16} className="shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <p className="font-semibold">
-                  Step 4 — Apply the sticker where security can see it
-                </p>
-                <ul className="mt-2 space-y-1.5 text-xs">
-                  <li className="flex items-start gap-2">
-                    <Car size={12} className="shrink-0 mt-0.5" />
-                    <span>
-                      <strong>Car:</strong> top corner of the windshield, on
-                      the side closest to the guard cabin — clean the glass
-                      first so it sticks well.
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Bike size={12} className="shrink-0 mt-0.5" />
-                    <span>
-                      <strong>Bike / scooter:</strong> front fairing or just
-                      below the headlight — somewhere the guard can spot
-                      while you ride in.
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Info size={12} className="shrink-0 mt-0.5" />
-                    <span>
-                      Peel off old security stickers from the previous agency.
-                    </span>
-                  </li>
-                </ul>
-                <div className="mt-3 rounded-md bg-purple-100 dark:bg-purple-900/40 p-2 text-xs font-medium leading-snug">
-                  🚨 <strong>Sticker visible → no stop.</strong> No sticker →
-                  guard will stop and check every time you enter.
-                </div>
-              </div>
-            </div>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 leading-tight">
+              Vehicle Sticker Registration
+            </h1>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              For the new security agency starting 25 May 2026.
+            </p>
           </div>
         </div>
 
