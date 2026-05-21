@@ -23,7 +23,7 @@ import clsx from "clsx";
 // Edit these two constants to point at the real MyGate tutorial and to
 // announce help-desk timings without redeploying components elsewhere.
 // Leave MYGATE_VIDEO_URL empty to hide the video link entirely.
-const MYGATE_VIDEO_URL = ""; // TODO: paste MyGate vehicle-registration video URL
+const MYGATE_VIDEO_URL = "https://youtu.be/0xOrzlr7SOs";
 const HELP_DESK_SCHEDULE: { when: string; where: string }[] = [
   { when: "Tomorrow (14 May), 4 – 6 PM", where: "Near the jack fruit tree" },
 ];
