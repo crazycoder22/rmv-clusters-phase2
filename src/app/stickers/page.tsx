@@ -489,25 +489,21 @@ export default function VehicleStickerPage() {
 
             {/* Self-declared compliance checkboxes */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Quick status check
               </label>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                Tick these honestly — the help desk skips checks for confirmed
-                flats, so you breeze through.
-              </p>
               <div className="space-y-2">
                 <CheckboxField
                   checked={mygateRegistered}
                   onChange={setMygateRegistered}
                   label="I have already added all vehicle details in MyGate"
-                  hint="Helps us skip the MyGate check at the help desk."
+                  hint="Needed before we give you stickers."
                 />
                 <CheckboxField
                   checked={alreadyHasSticker}
                   onChange={setAlreadyHasSticker}
-                  label="I have already collected my stickers (no pickup needed)"
-                  hint="If you got your stickers earlier, tick this so we don't print extras. You'll be marked as 'self-collected' in our records."
+                  label="I already have stickers"
+                  hint="No new stickers required."
                 />
               </div>
             </div>
