@@ -65,7 +65,7 @@ export default function HelpDeskSopPage() {
         {/* Per-resident flow */}
         <section className="mb-5">
           <h2 className="text-base font-bold uppercase tracking-wider text-gray-700 print:text-black mb-2">
-            👉 For each resident — 6 steps
+            👉 For each resident
           </h2>
           <ol className="text-sm space-y-2 list-decimal pl-5">
             <li>
@@ -76,13 +76,26 @@ export default function HelpDeskSopPage() {
               find the row.
             </li>
             <li>
+              <strong>Glance at the chips under the name:</strong>
+              <ul className="mt-1 list-disc pl-5 text-xs">
+                <li>
+                  Green <strong>MyGate ✓</strong> chip → skip step 5 (no
+                  need to ask them to show MyGate)
+                </li>
+                <li>
+                  Amber <strong>Self-collected</strong> chip → they already
+                  have stickers, just confirm the count and wave them off
+                </li>
+              </ul>
+            </li>
+            <li>
               <strong>Confirm verbally:</strong> &ldquo;You need{" "}
               <em>X cars</em> and <em>Y bikes</em>, right?&rdquo;
             </li>
             <li>
-              <strong>Show me MyGate:</strong> ask the resident to open
-              MyGate → Vehicles. Even one vehicle registered there is enough
-              proof they&apos;ve set it up.
+              <strong>Show me MyGate</strong> (only if the chip isn&apos;t
+              green): ask the resident to open MyGate → Vehicles. Even one
+              vehicle registered there is enough proof.
             </li>
             <li>
               <strong>Hand over the stickers.</strong>

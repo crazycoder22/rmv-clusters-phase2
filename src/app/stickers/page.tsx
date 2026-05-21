@@ -489,9 +489,13 @@ export default function VehicleStickerPage() {
 
             {/* Self-declared compliance checkboxes */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Quick status check
               </label>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                Tick these honestly — the help desk skips checks for confirmed
+                flats, so you breeze through.
+              </p>
               <div className="space-y-2">
                 <CheckboxField
                   checked={mygateRegistered}
