@@ -25,7 +25,7 @@ import clsx from "clsx";
 // Leave MYGATE_VIDEO_URL empty to hide the video link entirely.
 const MYGATE_VIDEO_URL = "https://youtu.be/0xOrzlr7SOs";
 const HELP_DESK_SCHEDULE: { when: string; where: string }[] = [
-  { when: "Tomorrow (22 May), 4 – 6 PM", where: "Near the jack fruit tree" },
+  { when: "Friday 22 May, 4 – 6 PM", where: "Near the jack fruit tree" },
   { when: "Saturday 23 May, 10 AM – 1 PM", where: "Near the jack fruit tree" },
 ];
 
