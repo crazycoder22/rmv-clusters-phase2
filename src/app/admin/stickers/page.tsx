@@ -18,6 +18,7 @@ import {
   Trash2,
   Smartphone,
   HandCoins,
+  BookOpen,
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -224,13 +225,22 @@ export default function AdminStickersPage() {
               </p>
             </div>
           </div>
-          <a
-            href="/api/admin/stickers?format=csv"
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700"
-          >
-            <Download size={16} />
-            Export CSV
-          </a>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/admin/stickers/guide"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm font-medium"
+            >
+              <BookOpen size={16} />
+              Manager guide
+            </Link>
+            <a
+              href="/api/admin/stickers?format=csv"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700"
+            >
+              <Download size={16} />
+              Export CSV
+            </a>
+          </div>
         </div>
 
         {/* Totals (KPI cards) — Row 1: demand */}
