@@ -185,6 +185,15 @@ export function canManageAds(
   return isAdmin(roles);
 }
 
+/** Check if user can view + issue vehicle stickers from the dashboard
+ *  (ADMIN, SUPERADMIN, COMMUNITY_ADMIN, or FACILITY_MANAGER). Deletions
+ *  remain admin-only. */
+export function canIssueStickers(
+  roles: UserRole[] | string[] | null | undefined
+): boolean {
+  return isAdmin(roles) || hasExactRole(roles, "FACILITY_MANAGER");
+}
+
 /** Get display name for a role */
 export function getRoleDisplayName(role: UserRole | string): string {
   const names: Record<string, string> = {

@@ -25,6 +25,7 @@ import {
   canManageReviewDocs,
   canManagePolls,
   canManageAds,
+  canIssueStickers,
   isAdmin,
   isSuperAdmin,
 } from "@/lib/roles";
@@ -264,6 +265,10 @@ export default function Navbar() {
       label: "SOS Acceptances",
       match: (p) => p.startsWith("/admin/sos-acceptances"),
     });
+  }
+  if (canIssueStickers(roles)) {
+    // Facility managers also get this link, even though they can't see
+    // other entries in the "Residents & Access" group.
     residentLinks.push({
       href: "/admin/stickers",
       label: "Vehicle Stickers",

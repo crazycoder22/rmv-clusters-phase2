@@ -1,10 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { canManageAnnouncements } from "@/lib/roles";
+import { canIssueStickers, canManageAnnouncements } from "@/lib/roles";
 
 export const dynamic = "force-dynamic";
 
+// View + issue: admins and facility managers
+async function requireStickerStaff() {
+  const session = await auth();
+  if (!session?.user?.email) {
+    return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
+  }
+  if (!canIssueStickers(session.user.roles)) {
+    return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
+  }
+  return { session };
+}
+
+// Destructive actions (delete a row) stay admin-only — facility manager
+// can issue but shouldn't be able to remove residents' submissions.
 async function requireAdmin() {
   const session = await auth();
   if (!session?.user?.email) {
@@ -20,7 +34,7 @@ async function requireAdmin() {
 //   ?format=csv   — returns CSV file (text/csv)
 //   default       — returns JSON with rows + totals
 export async function GET(request: NextRequest) {
-  const check = await requireAdmin();
+  const check = await requireStickerStaff();
   if ("error" in check && check.error) return check.error;
 
   const rows = await prisma.vehicleStickerRequest.findMany({
@@ -117,9 +131,10 @@ export async function GET(request: NextRequest) {
 // PATCH /api/admin/stickers
 //   { id, stickersIssued, adminNote }
 // Toggles the issued flag for one row. When flipping to issued, stamps
-// issuedAt + issuedBy from the current admin session.
+// issuedAt + issuedBy from the current session — usable by both admins
+// and facility managers.
 export async function PATCH(request: NextRequest) {
-  const check = await requireAdmin();
+  const check = await requireStickerStaff();
   if ("error" in check && check.error) return check.error;
   const { session } = check;
 

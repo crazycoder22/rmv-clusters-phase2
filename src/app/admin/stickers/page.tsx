@@ -63,7 +63,13 @@ const fmtDate = (iso: string) =>
   }).format(new Date(iso));
 
 export default function AdminStickersPage() {
-  const { canManageAnnouncements, isLoading: roleLoading } = useRole();
+  const {
+    canIssueStickers,
+    canManageAnnouncements,
+    isLoading: roleLoading,
+  } = useRole();
+  // Admin = can delete; facility manager = view + issue only.
+  const canDelete = canManageAnnouncements();
   const router = useRouter();
 
   const [rows, setRows] = useState<StickerRow[]>([]);
@@ -88,8 +94,8 @@ export default function AdminStickersPage() {
   const [mygateFilter, setMygateFilter] = useState<"" | "yes" | "no">("");
 
   useEffect(() => {
-    if (!roleLoading && !canManageAnnouncements()) router.replace("/");
-  }, [roleLoading, canManageAnnouncements, router]);
+    if (!roleLoading && !canIssueStickers()) router.replace("/");
+  }, [roleLoading, canIssueStickers, router]);
 
   // Refresh handler — used both on mount and after admin actions. All setState
   // calls live inside async callbacks, so this is safe to invoke from an
@@ -458,13 +464,15 @@ export default function AdminStickersPage() {
                       )}
                     </td>
                     <td className="px-3 py-3 text-right">
-                      <button
-                        onClick={() => deleteRow(r)}
-                        className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-600 dark:hover:text-red-400"
-                        title="Delete"
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                      {canDelete && (
+                        <button
+                          onClick={() => deleteRow(r)}
+                          className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+                          title="Delete"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
