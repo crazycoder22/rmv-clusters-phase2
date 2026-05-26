@@ -40,6 +40,7 @@ import AdminEvents from "./pages/AdminEvents";
 import AdminEventDetail from "./pages/AdminEventDetail";
 import AdminMedals from "./pages/AdminMedals";
 import AdminIssues from "./pages/AdminIssues";
+import AdminVisits from "./pages/AdminVisits";
 
 export default function App() {
   return (
@@ -106,6 +107,7 @@ function Gate() {
           <Route path="/admin/events/:id" element={<AdminEventDetail />} />
           <Route path="/admin/medals" element={<AdminMedals />} />
           <Route path="/admin/issues" element={<AdminIssues />} />
+          <Route path="/admin/visits" element={<AdminVisits />} />
         </Routes>
       </Shell>
     </HashRouter>

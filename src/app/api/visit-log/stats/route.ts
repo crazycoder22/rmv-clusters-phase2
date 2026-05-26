@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { isAdmin } from "@/lib/roles";
 import { istTodayYmd } from "@/lib/dates-ist";
+import { getAuthedResident } from "@/lib/api-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -10,13 +10,15 @@ export const dynamic = "force-dynamic";
 // Query params:
 //   dateFrom  YYYY-MM-DD (default: today IST)
 //   dateTo    YYYY-MM-DD (default: dateFrom)
+//
+// Accepts NextAuth cookie (web) or `Authorization: Bearer <jwt>` (mobile).
 export async function GET(request: Request) {
   try {
-    const session = await auth();
-    if (!session?.user?.email) {
+    const resident = await getAuthedResident(request);
+    if (!resident) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if (!isAdmin(session.user.roles)) {
+    if (!isAdmin(resident.roles)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 

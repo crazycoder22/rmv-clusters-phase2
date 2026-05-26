@@ -1,20 +1,22 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { isAdmin } from "@/lib/roles";
+import { getAuthedResident } from "@/lib/api-auth";
 
 export const dynamic = "force-dynamic";
 
 // GET /api/visit-log/trend — daily resident-approval % for the last N days
 // Query params:
 //   days  number of days (default 30, max 90)
+//
+// Accepts NextAuth cookie (web) or `Authorization: Bearer <jwt>` (mobile).
 export async function GET(request: Request) {
   try {
-    const session = await auth();
-    if (!session?.user?.email) {
+    const resident = await getAuthedResident(request);
+    if (!resident) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if (!isAdmin(session.user.roles)) {
+    if (!isAdmin(resident.roles)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
