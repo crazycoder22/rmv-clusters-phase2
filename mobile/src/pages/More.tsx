@@ -11,6 +11,7 @@ import {
   Info,
   LifeBuoy,
   LogOut,
+  Megaphone,
   MessageCircle,
   ShieldCheck,
   TrendingUp,
@@ -55,6 +56,14 @@ export default function MorePage() {
 
       {showAdmin && (
         <Group title="Admin">
+          {showEventAdmin && (
+            <Row
+              to="/admin/announcements"
+              icon={Megaphone}
+              title="Announcements"
+              subtitle="Post & edit news, drafts, RSVPs"
+            />
+          )}
           {showStickerAdmin && (
             <Row
               to="/admin/stickers"

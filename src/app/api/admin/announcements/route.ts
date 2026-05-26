@@ -1,17 +1,18 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { canManageAnnouncements } from "@/lib/roles";
+import { getAuthedResident } from "@/lib/api-auth";
 
-async function requireAdmin() {
-  const session = await auth();
-  if (!session?.user?.email) {
+// Accepts NextAuth cookie (web) or `Authorization: Bearer <jwt>` (mobile).
+async function requireAdmin(request: Request) {
+  const resident = await getAuthedResident(request);
+  if (!resident) {
     return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
   }
-  if (!canManageAnnouncements(session.user.roles)) {
+  if (!canManageAnnouncements(resident.roles)) {
     return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
   }
-  return { session };
+  return { resident };
 }
 
 const announcementInclude = {
@@ -26,8 +27,8 @@ const announcementInclude = {
   },
 };
 
-export async function GET() {
-  const check = await requireAdmin();
+export async function GET(request: Request) {
+  const check = await requireAdmin(request);
   if ("error" in check && check.error) return check.error;
 
   const announcements = await prisma.announcement.findMany({
@@ -39,11 +40,11 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const check = await requireAdmin();
+  const check = await requireAdmin(request);
   if ("error" in check && check.error) return check.error;
 
   const body = await request.json();
-  const { title, date, category, priority, summary, body: announcementBody, author, link, linkText, imageUrl, published, eventConfig, sportsConfig } = body;
+  const { title, date, category, priority, summary, body: announcementBody, author, link, linkText, imageUrl, emoji, published, eventConfig, sportsConfig } = body;
 
   // Validate required fields
   if (!title || !summary || !announcementBody || !author) {
@@ -107,6 +108,7 @@ export async function POST(request: Request) {
         link: link || null,
         linkText: linkText || null,
         imageUrl: imageUrl || null,
+        emoji: emoji || null,
         published: published !== undefined ? published : true,
         ...(eventConfig && {
           eventConfig: {

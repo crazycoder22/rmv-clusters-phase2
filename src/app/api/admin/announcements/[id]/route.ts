@@ -1,24 +1,25 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { canManageAnnouncements } from "@/lib/roles";
+import { getAuthedResident } from "@/lib/api-auth";
 
-async function requireAdmin() {
-  const session = await auth();
-  if (!session?.user?.email) {
+// Accepts NextAuth cookie (web) or `Authorization: Bearer <jwt>` (mobile).
+async function requireAdmin(request: Request) {
+  const resident = await getAuthedResident(request);
+  if (!resident) {
     return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
   }
-  if (!canManageAnnouncements(session.user.roles)) {
+  if (!canManageAnnouncements(resident.roles)) {
     return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
   }
-  return { session };
+  return { resident };
 }
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const check = await requireAdmin();
+  const check = await requireAdmin(request);
   if ("error" in check && check.error) return check.error;
 
   const { id } = await params;
@@ -58,6 +59,7 @@ export async function PATCH(
   if (body.link !== undefined) updateData.link = body.link || null;
   if (body.linkText !== undefined) updateData.linkText = body.linkText || null;
   if (body.imageUrl !== undefined) updateData.imageUrl = body.imageUrl || null;
+  if (body.emoji !== undefined) updateData.emoji = body.emoji || null;
   if (body.published !== undefined) updateData.published = body.published;
 
   try {
@@ -298,10 +300,10 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const check = await requireAdmin();
+  const check = await requireAdmin(request);
   if ("error" in check && check.error) return check.error;
 
   const { id } = await params;
