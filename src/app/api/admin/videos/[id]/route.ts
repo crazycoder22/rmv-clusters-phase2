@@ -1,20 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { canManageAnnouncements } from "@/lib/roles";
 import { prisma } from "@/lib/prisma";
 import { extractYouTubeId } from "@/lib/youtube";
+import { getAuthedResident } from "@/lib/api-auth";
 
-async function requireAdmin() {
-  const session = await auth();
-  if (!session?.user?.email)
+// Accepts NextAuth cookie (web) or `Authorization: Bearer <jwt>` (mobile).
+async function requireAdmin(request: Request) {
+  const resident = await getAuthedResident(request);
+  if (!resident)
     return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
-  if (!canManageAnnouncements(session.user.roles))
+  if (!canManageAnnouncements(resident.roles))
     return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
-  return { session };
+  return { resident };
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const check = await requireAdmin();
+  const check = await requireAdmin(req);
   if ("error" in check) return check.error;
 
   const { id } = await params;
@@ -36,8 +37,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   return NextResponse.json({ video });
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const check = await requireAdmin();
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const check = await requireAdmin(req);
   if ("error" in check) return check.error;
 
   const { id } = await params;

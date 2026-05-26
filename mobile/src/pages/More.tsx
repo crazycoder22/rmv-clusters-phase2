@@ -84,6 +84,14 @@ export default function MorePage() {
               subtitle="Mark paid, review attendees"
             />
           )}
+          {showEventAdmin && (
+            <Row
+              to="/admin/videos"
+              icon={Video}
+              title="Video library"
+              subtitle="Playlists & YouTube videos"
+            />
+          )}
           {showMedalAdmin && (
             <Row
               to="/admin/medals"
