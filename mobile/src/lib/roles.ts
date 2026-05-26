@@ -47,3 +47,11 @@ export function canManageAnnouncements(roles: Roles): boolean {
 export function canIssueMedals(roles: Roles): boolean {
   return canManageAnnouncements(roles);
 }
+
+/**
+ * Can manage community issues (mark closed, see all flats' issues).
+ * Mirrors the server check in /api/issues — admins + FACILITY_MANAGER.
+ */
+export function canManageIssues(roles: Roles): boolean {
+  return isAdmin(roles) || has(roles, "FACILITY_MANAGER");
+}

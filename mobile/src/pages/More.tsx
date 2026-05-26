@@ -23,6 +23,7 @@ import {
   canIssueMedals,
   canIssueStickers,
   canManageAnnouncements,
+  canManageIssues,
 } from "../lib/roles";
 
 export default function MorePage() {
@@ -30,7 +31,9 @@ export default function MorePage() {
   const showStickerAdmin = canIssueStickers(user?.roles);
   const showEventAdmin = canManageAnnouncements(user?.roles);
   const showMedalAdmin = canIssueMedals(user?.roles);
-  const showAdmin = showStickerAdmin || showEventAdmin || showMedalAdmin;
+  const showIssueAdmin = canManageIssues(user?.roles);
+  const showAdmin =
+    showStickerAdmin || showEventAdmin || showMedalAdmin || showIssueAdmin;
 
   return (
     <div className="flex flex-1 flex-col px-4 pt-[max(2rem,env(safe-area-inset-top,0px))]">
@@ -67,6 +70,14 @@ export default function MorePage() {
               icon={Award}
               title="Medals & coins"
               subtitle="Award medals from your phone"
+            />
+          )}
+          {showIssueAdmin && (
+            <Row
+              to="/admin/issues"
+              icon={Wrench}
+              title="Issues"
+              subtitle="Triage and close maintenance issues"
             />
           )}
         </Group>
