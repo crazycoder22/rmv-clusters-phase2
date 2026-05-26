@@ -1,24 +1,19 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth";
 import { canManageAnnouncements } from "@/lib/roles";
 import { generateQuizCode } from "@/lib/quiz";
+import { getAuthedResident } from "@/lib/api-auth";
 
 export const dynamic = "force-dynamic";
 
-// POST — Create a live quiz session
+// POST — Create a live quiz session.
+// Accepts NextAuth cookie (web) or `Authorization: Bearer <jwt>` (mobile).
 export async function POST(request: Request) {
-  const session = await auth();
-  if (!session?.user?.email)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (!canManageAnnouncements(session.user.roles))
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-
-  const resident = await prisma.resident.findUnique({
-    where: { email: session.user.email },
-  });
+  const resident = await getAuthedResident(request);
   if (!resident)
-    return NextResponse.json({ error: "Resident not found" }, { status: 404 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!canManageAnnouncements(resident.roles))
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { quizId } = await request.json();
   if (!quizId)

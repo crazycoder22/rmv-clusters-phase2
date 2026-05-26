@@ -1,20 +1,21 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth";
 import { canManageAnnouncements } from "@/lib/roles";
+import { getAuthedResident } from "@/lib/api-auth";
 
 export const dynamic = "force-dynamic";
 
-// POST — End the quiz session (admin)
+// POST — End the quiz session (admin).
+// Accepts NextAuth cookie (web) or `Authorization: Bearer <jwt>` (mobile).
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ code: string }> }
 ) {
   const { code } = await params;
-  const authSession = await auth();
-  if (!authSession?.user?.email)
+  const me = await getAuthedResident(request);
+  if (!me)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (!canManageAnnouncements(authSession.user.roles))
+  if (!canManageAnnouncements(me.roles))
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   await prisma.quizSession.update({

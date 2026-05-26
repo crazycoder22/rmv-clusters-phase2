@@ -152,6 +152,14 @@ export default function MorePage() {
               subtitle="Create session, draw numbers, track prizes"
             />
           )}
+          {showEventAdmin && (
+            <Row
+              to="/admin/quiz"
+              icon={HelpCircle}
+              title="Quiz host"
+              subtitle="Launch a saved quiz, advance questions"
+            />
+          )}
           {showRoleAdmin && (
             <Row
               to="/admin/roles"

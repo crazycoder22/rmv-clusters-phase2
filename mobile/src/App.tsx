@@ -50,6 +50,8 @@ import AdminResidents from "./pages/AdminResidents";
 import AdminSos from "./pages/AdminSos";
 import AdminTambola from "./pages/AdminTambola";
 import AdminTambolaHost from "./pages/AdminTambolaHost";
+import AdminQuiz from "./pages/AdminQuiz";
+import AdminQuizHost from "./pages/AdminQuizHost";
 
 export default function App() {
   return (
@@ -133,6 +135,8 @@ function Gate() {
           <Route path="/admin/sos" element={<AdminSos />} />
           <Route path="/admin/tambola" element={<AdminTambola />} />
           <Route path="/admin/tambola/:code" element={<AdminTambolaHost />} />
+          <Route path="/admin/quiz" element={<AdminQuiz />} />
+          <Route path="/admin/quiz/:code" element={<AdminQuizHost />} />
         </Routes>
       </Shell>
     </HashRouter>
