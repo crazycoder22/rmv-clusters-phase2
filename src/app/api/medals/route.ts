@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { canManageAnnouncements } from "@/lib/roles";
+import { getAuthedResident } from "@/lib/api-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -12,18 +12,12 @@ export const dynamic = "force-dynamic";
 // Query params:
 //   - recipientId  (optional)  — filter to one recipient
 //   - limit        (optional)  — default 50, max 200
+//
+// Accepts NextAuth cookie (web) or `Authorization: Bearer <jwt>` (mobile).
 export async function GET(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const me = await prisma.resident.findUnique({
-    where: { email: session.user.email },
-    select: { id: true },
-  });
+  const me = await getAuthedResident(request);
   if (!me) {
-    return NextResponse.json({ error: "Not registered" }, { status: 403 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { searchParams } = new URL(request.url);
@@ -33,7 +27,7 @@ export async function GET(request: NextRequest) {
     200
   );
 
-  const isAdmin = canManageAnnouncements(session.user.roles);
+  const isAdmin = canManageAnnouncements(me.roles);
 
   // Non-admins can only see their own awards.
   if (!isAdmin) {
@@ -68,21 +62,15 @@ export async function GET(request: NextRequest) {
 // ── POST /api/medals ────────────────────────────────────────────────────────
 // Create a new award. Admin only. Also creates an in-app notification for the
 // recipient in the same transaction.
+//
+// Accepts NextAuth cookie (web) or `Authorization: Bearer <jwt>` (mobile).
 export async function POST(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.email) {
+  const awardedBy = await getAuthedResident(request);
+  if (!awardedBy) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  if (!canManageAnnouncements(session.user.roles)) {
+  if (!canManageAnnouncements(awardedBy.roles)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
-  const awardedBy = await prisma.resident.findUnique({
-    where: { email: session.user.email },
-    select: { id: true },
-  });
-  if (!awardedBy) {
-    return NextResponse.json({ error: "Admin resident not found" }, { status: 404 });
   }
 
   const body = await request.json().catch(() => null);

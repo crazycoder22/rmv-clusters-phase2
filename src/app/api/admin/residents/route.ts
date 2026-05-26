@@ -2,8 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "../../../../generated/prisma/client";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { isSuperAdmin, isAdmin, canManageResidents } from "@/lib/roles";
+import {
+  isSuperAdmin,
+  isAdmin,
+  canManageResidents,
+  canManageAnnouncements,
+} from "@/lib/roles";
 import { isValidResidentType } from "@/lib/resident-types";
+import { getAuthedResident } from "@/lib/api-auth";
 
 async function requireSuperAdmin() {
   const session = await auth();
@@ -14,6 +20,20 @@ async function requireSuperAdmin() {
     return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
   }
   return { session };
+}
+
+// Search mode accepts either NextAuth cookie OR mobile JWT, so the iOS app's
+// medals admin screen can look up recipients.
+async function requireSearchAccess(request: Request) {
+  const resident = await getAuthedResident(request);
+  if (!resident) {
+    return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
+  }
+  // Admins and event managers can both search (used by the medals UI).
+  if (!isAdmin(resident.roles) && !canManageAnnouncements(resident.roles)) {
+    return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
+  }
+  return { resident };
 }
 
 async function requireResidentManager() {
@@ -57,9 +77,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ residents });
   }
 
-  // Search mode (admin)
+  // Search mode (admin or event manager — also reachable via mobile JWT)
   if (isSearch) {
-    const check = await requireAdmin();
+    const check = await requireSearchAccess(request);
     if ("error" in check && check.error) return check.error;
 
     const q = (searchParams.get("q") ?? "").trim();

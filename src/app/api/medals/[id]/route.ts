@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { canManageAnnouncements } from "@/lib/roles";
+import { getAuthedResident } from "@/lib/api-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -9,16 +9,18 @@ export const dynamic = "force-dynamic";
 // Undo a mistakenly-awarded medal. Admin only. The Notification's
 // medalAwardId is set to null via the SetNull cascade in the schema, so the
 // user's notification stays in their bell as a record.
+//
+// Accepts NextAuth cookie (web) or `Authorization: Bearer <jwt>` (mobile).
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const session = await auth();
-  if (!session?.user?.email) {
+  const me = await getAuthedResident(request);
+  if (!me) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  if (!canManageAnnouncements(session.user.roles)) {
+  if (!canManageAnnouncements(me.roles)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

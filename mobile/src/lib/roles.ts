@@ -32,11 +32,18 @@ export function canIssueStickers(roles: Roles): boolean {
 }
 
 /**
- * Higher gate than canIssueStickers — used for destructive actions like
- * deleting a sticker submission. Mirrors `canManageAnnouncements`.
- * Currently identical to isAdmin; kept as its own helper so the gate can
- * diverge later without changing call sites.
+ * Can create / manage announcements, events, and medals. Mirrors the web
+ * `canManageAnnouncements` — admins + EVENT_MANAGER.
  */
 export function canManageAnnouncements(roles: Roles): boolean {
-  return isAdmin(roles);
+  return isAdmin(roles) || has(roles, "EVENT_MANAGER");
+}
+
+/**
+ * Can issue medals & coins from the admin UI. Same gate as
+ * canManageAnnouncements — kept as its own helper so call sites read
+ * naturally and the gate can diverge later.
+ */
+export function canIssueMedals(roles: Roles): boolean {
+  return canManageAnnouncements(roles);
 }

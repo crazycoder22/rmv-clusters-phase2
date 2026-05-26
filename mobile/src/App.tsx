@@ -38,6 +38,7 @@ import Stickers from "./pages/Stickers";
 import AdminStickers from "./pages/AdminStickers";
 import AdminEvents from "./pages/AdminEvents";
 import AdminEventDetail from "./pages/AdminEventDetail";
+import AdminMedals from "./pages/AdminMedals";
 
 export default function App() {
   return (
@@ -102,6 +103,7 @@ function Gate() {
           <Route path="/admin/stickers" element={<AdminStickers />} />
           <Route path="/admin/events" element={<AdminEvents />} />
           <Route path="/admin/events/:id" element={<AdminEventDetail />} />
+          <Route path="/admin/medals" element={<AdminMedals />} />
         </Routes>
       </Shell>
     </HashRouter>

@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import {
+  Award,
   BarChart3,
   BookOpen,
   CalendarDays,
@@ -18,13 +19,18 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
-import { canIssueStickers, canManageAnnouncements } from "../lib/roles";
+import {
+  canIssueMedals,
+  canIssueStickers,
+  canManageAnnouncements,
+} from "../lib/roles";
 
 export default function MorePage() {
   const { user, signOut } = useAuth();
   const showStickerAdmin = canIssueStickers(user?.roles);
   const showEventAdmin = canManageAnnouncements(user?.roles);
-  const showAdmin = showStickerAdmin || showEventAdmin;
+  const showMedalAdmin = canIssueMedals(user?.roles);
+  const showAdmin = showStickerAdmin || showEventAdmin || showMedalAdmin;
 
   return (
     <div className="flex flex-1 flex-col px-4 pt-[max(2rem,env(safe-area-inset-top,0px))]">
@@ -53,6 +59,14 @@ export default function MorePage() {
               icon={CalendarDays}
               title="Event registrations"
               subtitle="Mark paid, review attendees"
+            />
+          )}
+          {showMedalAdmin && (
+            <Row
+              to="/admin/medals"
+              icon={Award}
+              title="Medals & coins"
+              subtitle="Award medals from your phone"
             />
           )}
         </Group>
