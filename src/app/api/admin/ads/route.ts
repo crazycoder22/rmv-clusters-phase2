@@ -1,22 +1,23 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { canManageAds } from "@/lib/roles";
+import { getAuthedResident } from "@/lib/api-auth";
 
 export const dynamic = "force-dynamic";
 
-async function requireAdmin() {
-  const session = await auth();
-  if (!session?.user?.email)
+// Accepts NextAuth cookie (web) or `Authorization: Bearer <jwt>` (mobile).
+async function requireAdmin(request: Request) {
+  const resident = await getAuthedResident(request);
+  if (!resident)
     return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
-  if (!canManageAds(session.user.roles))
+  if (!canManageAds(resident.roles))
     return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
-  return { session };
+  return { resident };
 }
 
 // GET /api/admin/ads
-export async function GET() {
-  const check = await requireAdmin();
+export async function GET(request: Request) {
+  const check = await requireAdmin(request);
   if ("error" in check && check.error) return check.error;
 
   const ads = await prisma.ad.findMany({
@@ -27,7 +28,7 @@ export async function GET() {
 
 // POST /api/admin/ads
 export async function POST(request: Request) {
-  const check = await requireAdmin();
+  const check = await requireAdmin(request);
   if ("error" in check && check.error) return check.error;
 
   const body = await request.json();

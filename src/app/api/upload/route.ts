@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { put } from "@vercel/blob";
+import { getAuthedResident } from "@/lib/api-auth";
 
+// Accepts NextAuth cookie (web) or `Authorization: Bearer <jwt>` (mobile).
 export async function POST(request: Request) {
-  const session = await auth();
-  if (!session?.user?.email || !session.user.isApproved) {
+  const resident = await getAuthedResident(request);
+  if (!resident || !resident.isApproved) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

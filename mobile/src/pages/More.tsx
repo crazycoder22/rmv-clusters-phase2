@@ -92,6 +92,14 @@ export default function MorePage() {
               subtitle="Playlists & YouTube videos"
             />
           )}
+          {showVisitAdmin && (
+            <Row
+              to="/admin/ads"
+              icon={ImageIcon}
+              title="Banner ads"
+              subtitle="Sponsor placements & schedules"
+            />
+          )}
           {showMedalAdmin && (
             <Row
               to="/admin/medals"
