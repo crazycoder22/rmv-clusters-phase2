@@ -48,6 +48,8 @@ import AdminVideos from "./pages/AdminVideos";
 import AdminAds from "./pages/AdminAds";
 import AdminResidents from "./pages/AdminResidents";
 import AdminSos from "./pages/AdminSos";
+import AdminTambola from "./pages/AdminTambola";
+import AdminTambolaHost from "./pages/AdminTambolaHost";
 
 export default function App() {
   return (
@@ -129,6 +131,8 @@ function Gate() {
           <Route path="/admin/ads" element={<AdminAds />} />
           <Route path="/admin/residents" element={<AdminResidents />} />
           <Route path="/admin/sos" element={<AdminSos />} />
+          <Route path="/admin/tambola" element={<AdminTambola />} />
+          <Route path="/admin/tambola/:code" element={<AdminTambolaHost />} />
         </Routes>
       </Shell>
     </HashRouter>

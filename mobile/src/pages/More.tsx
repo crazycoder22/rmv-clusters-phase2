@@ -7,6 +7,7 @@ import {
   Car,
   ChevronRight,
   Crown,
+  Dices,
   HelpCircle,
   Image as ImageIcon,
   Info,
@@ -141,6 +142,14 @@ export default function MorePage() {
               icon={LifeBuoy}
               title="SOS acceptance"
               subtitle="Warrior promotion + guideline acceptances"
+            />
+          )}
+          {showEventAdmin && (
+            <Row
+              to="/admin/tambola"
+              icon={Dices}
+              title="Tambola host"
+              subtitle="Create session, draw numbers, track prizes"
             />
           )}
           {showRoleAdmin && (
