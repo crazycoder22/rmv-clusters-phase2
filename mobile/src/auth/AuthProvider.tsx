@@ -11,6 +11,7 @@ import { SocialLogin } from "@capgo/capacitor-social-login";
 import { Preferences } from "@capacitor/preferences";
 import { GOOGLE_IOS_CLIENT_ID, GOOGLE_WEB_CLIENT_ID } from "../config";
 import { apiFetch } from "../lib/api";
+import { unregisterPushNotifications } from "../lib/push-init";
 
 export type AuthUser = {
   id: string;
@@ -177,6 +178,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
+    // Drop the device token while we still have a JWT to authenticate the
+    // DELETE call, otherwise the resident keeps getting pushes after
+    // logout.
+    try {
+      await unregisterPushNotifications(session?.token ?? null);
+    } catch {
+      // ignore — never block sign-out on a push-cleanup failure
+    }
     try {
       await SocialLogin.logout({ provider: "google" });
     } catch {
@@ -186,7 +195,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(null);
     setStatus("signedOut");
     setError(null);
-  }, []);
+  }, [session]);
 
   return (
     <AuthContext.Provider

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { canManageAnnouncements } from "@/lib/roles";
 import { getAuthedResident } from "@/lib/api-auth";
+import { sendPushToResidents } from "@/lib/push";
 
 // Accepts NextAuth cookie (web) or `Authorization: Bearer <jwt>` (mobile).
 async function requireAdmin(request: Request) {
@@ -180,6 +181,22 @@ export async function POST(request: Request) {
           })),
           skipDuplicates: true,
         });
+      }
+
+      // Fan out push notifications to every device. Wrap in try/catch so a
+      // push failure never blocks the announcement from being created.
+      try {
+        const emoji = announcement.emoji ?? "📢";
+        await sendPushToResidents(null, {
+          title: `${emoji} ${announcement.title}`,
+          body: announcement.summary,
+          data: {
+            type: "announcement",
+            id: announcement.id,
+          },
+        });
+      } catch (pushErr) {
+        console.error("[announcement push] send failed:", pushErr);
       }
     }
 

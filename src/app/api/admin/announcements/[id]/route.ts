@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { canManageAnnouncements } from "@/lib/roles";
 import { getAuthedResident } from "@/lib/api-auth";
+import { sendPushToResidents } from "@/lib/push";
 
 // Accepts NextAuth cookie (web) or `Authorization: Bearer <jwt>` (mobile).
 async function requireAdmin(request: Request) {
@@ -269,7 +270,9 @@ export async function PATCH(
       },
     });
 
-    // Create notifications when publishing (draft → published)
+    // Create notifications when publishing (draft → published) — and only
+    // fire push pieces on the FIRST publish transition, never on subsequent
+    // edits of an already-published announcement.
     if (body.published === true) {
       const existingCount = await prisma.notification.count({
         where: { announcementId: id },
@@ -286,6 +289,21 @@ export async function PATCH(
             })),
             skipDuplicates: true,
           });
+        }
+
+        // Push fan-out. Best-effort; never blocks the PATCH.
+        try {
+          const emoji = announcement.emoji ?? "📢";
+          await sendPushToResidents(null, {
+            title: `${emoji} ${announcement.title}`,
+            body: announcement.summary,
+            data: {
+              type: "announcement",
+              id: announcement.id,
+            },
+          });
+        } catch (pushErr) {
+          console.error("[announcement push] send failed:", pushErr);
         }
       }
     }

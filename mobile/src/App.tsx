@@ -52,6 +52,7 @@ import AdminTambola from "./pages/AdminTambola";
 import AdminTambolaHost from "./pages/AdminTambolaHost";
 import AdminQuiz from "./pages/AdminQuiz";
 import AdminQuizHost from "./pages/AdminQuizHost";
+import PushNotificationsMount from "./components/PushNotificationsMount";
 
 export default function App() {
   return (
@@ -78,6 +79,7 @@ function Gate() {
 
   return (
     <HashRouter>
+      <PushNotificationsMount />
       <Shell>
         <Routes>
           <Route path="/" element={<Dashboard />} />

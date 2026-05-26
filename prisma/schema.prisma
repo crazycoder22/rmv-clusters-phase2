@@ -90,6 +90,7 @@ model Resident {
   tambolaSessions          TambolaSession[]
   quizzes                  Quiz[]
   quizSessionsCreated      QuizSession[]    @relation("QuizSessionsCreated")
+  deviceTokens             DeviceToken[]
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 }
@@ -1624,3 +1625,24 @@ model VehicleStickerRequest {
 }
 
 // ─── End Vehicle Stickers ──────────────────────────────────────────────────
+
+// ─── Push Notification Device Tokens ───────────────────────────────────────
+
+// Per-resident push tokens. Each resident may have several rows — one per
+// device they sign in on. The token itself is unique across all rows so we
+// can de-dupe when the same device is reused. `platform` is currently
+// always "ios" but is here so we can fan out to Android/web later without
+// a schema change.
+model DeviceToken {
+  id          String   @id @default(cuid())
+  residentId  String
+  resident    Resident @relation(fields: [residentId], references: [id], onDelete: Cascade)
+  token       String   @unique
+  platform    String   // "ios" | "android" | "web"
+  lastSeenAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  @@index([residentId])
+}
+
+// ─── End Push Notification Device Tokens ───────────────────────────────────
