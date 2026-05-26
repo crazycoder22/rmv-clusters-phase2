@@ -1,40 +1,42 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { canIssueStickers, canManageAnnouncements } from "@/lib/roles";
+import { getAuthedResident } from "@/lib/api-auth";
 
 export const dynamic = "force-dynamic";
 
-// View + issue: admins and facility managers
-async function requireStickerStaff() {
-  const session = await auth();
-  if (!session?.user?.email) {
+// View + issue: admins and facility managers. Accepts either a NextAuth
+// session cookie (web) or `Authorization: Bearer <mobile-jwt>` from the
+// iOS / Android app, via getAuthedResident().
+async function requireStickerStaff(request: Request) {
+  const resident = await getAuthedResident(request);
+  if (!resident) {
     return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
   }
-  if (!canIssueStickers(session.user.roles)) {
+  if (!canIssueStickers(resident.roles)) {
     return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
   }
-  return { session };
+  return { resident };
 }
 
 // Destructive actions (delete a row) stay admin-only — facility manager
 // can issue but shouldn't be able to remove residents' submissions.
-async function requireAdmin() {
-  const session = await auth();
-  if (!session?.user?.email) {
+async function requireAdmin(request: Request) {
+  const resident = await getAuthedResident(request);
+  if (!resident) {
     return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
   }
-  if (!canManageAnnouncements(session.user.roles)) {
+  if (!canManageAnnouncements(resident.roles)) {
     return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
   }
-  return { session };
+  return { resident };
 }
 
 // GET /api/admin/stickers
 //   ?format=csv   — returns CSV file (text/csv)
 //   default       — returns JSON with rows + totals
 export async function GET(request: NextRequest) {
-  const check = await requireStickerStaff();
+  const check = await requireStickerStaff(request);
   if ("error" in check && check.error) return check.error;
 
   const rows = await prisma.vehicleStickerRequest.findMany({
@@ -134,16 +136,16 @@ export async function GET(request: NextRequest) {
 // issuedAt + issuedBy from the current session — usable by both admins
 // and facility managers.
 export async function PATCH(request: NextRequest) {
-  const check = await requireStickerStaff();
+  const check = await requireStickerStaff(request);
   if ("error" in check && check.error) return check.error;
-  const { session } = check;
+  const { resident } = check;
 
   const body = await request.json().catch(() => null);
   if (!body?.id) {
     return NextResponse.json({ error: "Missing id" }, { status: 400 });
   }
 
-  const adminName = session?.user?.name ?? session?.user?.email ?? "admin";
+  const adminName = resident?.name ?? resident?.email ?? "admin";
 
   const data: Record<string, unknown> = {};
   if (typeof body.stickersIssued === "boolean") {
@@ -175,7 +177,7 @@ export async function PATCH(request: NextRequest) {
 // DELETE /api/admin/stickers?id=...
 // Admin can remove a duplicate / mistaken entry.
 export async function DELETE(request: NextRequest) {
-  const check = await requireAdmin();
+  const check = await requireAdmin(request);
   if ("error" in check && check.error) return check.error;
 
   const id = new URL(request.url).searchParams.get("id");

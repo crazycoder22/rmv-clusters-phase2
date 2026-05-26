@@ -17,9 +17,11 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
+import { canIssueStickers } from "../lib/roles";
 
 export default function MorePage() {
   const { user, signOut } = useAuth();
+  const showAdmin = canIssueStickers(user?.roles);
 
   return (
     <div className="flex flex-1 flex-col px-4 pt-[max(2rem,env(safe-area-inset-top,0px))]">
@@ -31,6 +33,17 @@ export default function MorePage() {
           Community info, rules, and settings
         </p>
       </header>
+
+      {showAdmin && (
+        <Group title="Admin">
+          <Row
+            to="/admin/stickers"
+            icon={ShieldCheck}
+            title="Sticker requests"
+            subtitle="Review submissions, mark issued"
+          />
+        </Group>
+      )}
 
       <Group title="Community">
         <Row
