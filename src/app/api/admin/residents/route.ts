@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "../../../../generated/prisma/client";
-import { auth } from "@/auth";
+import { auth } from "@/auth"; // retained for requireSuperAdmin (web-only full-list)
 import { prisma } from "@/lib/prisma";
 import {
   isSuperAdmin,
@@ -36,26 +36,28 @@ async function requireSearchAccess(request: Request) {
   return { resident };
 }
 
-async function requireResidentManager() {
-  const session = await auth();
-  if (!session?.user?.email) {
+// Accepts NextAuth cookie (web) or `Authorization: Bearer <jwt>` (mobile).
+async function requireResidentManager(request: Request) {
+  const resident = await getAuthedResident(request);
+  if (!resident) {
     return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
   }
-  if (!canManageResidents(session.user.roles)) {
+  if (!canManageResidents(resident.roles)) {
     return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
   }
-  return { session };
+  return { resident };
 }
 
-async function requireAdmin() {
-  const session = await auth();
-  if (!session?.user?.email) {
+// Accepts NextAuth cookie (web) or `Authorization: Bearer <jwt>` (mobile).
+async function requireAdmin(request: Request) {
+  const resident = await getAuthedResident(request);
+  if (!resident) {
     return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
   }
-  if (!isAdmin(session.user.roles)) {
+  if (!isAdmin(resident.roles)) {
     return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
   }
-  return { session };
+  return { resident };
 }
 
 export async function GET(request: NextRequest) {
@@ -65,7 +67,7 @@ export async function GET(request: NextRequest) {
 
   // Pending approvals can be viewed by anyone who can manage residents
   if (pending === "true") {
-    const check = await requireResidentManager();
+    const check = await requireResidentManager(request);
     if ("error" in check && check.error) return check.error;
 
     const residents = await prisma.resident.findMany({
@@ -124,7 +126,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: Request) {
-  const check = await requireResidentManager();
+  const check = await requireResidentManager(request);
   if ("error" in check && check.error) return check.error;
 
   const body = await request.json();
@@ -214,7 +216,7 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
-  const check = await requireAdmin();
+  const check = await requireAdmin(request);
   if ("error" in check && check.error) return check.error;
 
   const body = await request.json();
@@ -299,7 +301,7 @@ export async function PUT(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const check = await requireResidentManager();
+  const check = await requireResidentManager(request);
   if ("error" in check && check.error) return check.error;
 
   const body = await request.json();

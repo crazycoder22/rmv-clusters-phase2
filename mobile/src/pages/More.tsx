@@ -27,6 +27,7 @@ import {
   canIssueStickers,
   canManageAnnouncements,
   canManageIssues,
+  canManageResidents,
   isAdmin,
   isSuperAdmin,
 } from "../lib/roles";
@@ -38,6 +39,7 @@ export default function MorePage() {
   const showMedalAdmin = canIssueMedals(user?.roles);
   const showIssueAdmin = canManageIssues(user?.roles);
   const showVisitAdmin = isAdmin(user?.roles);
+  const showResidentAdmin = canManageResidents(user?.roles);
   const showRoleAdmin = isSuperAdmin(user?.roles);
   const showAdmin =
     showStickerAdmin ||
@@ -45,6 +47,7 @@ export default function MorePage() {
     showMedalAdmin ||
     showIssueAdmin ||
     showVisitAdmin ||
+    showResidentAdmin ||
     showRoleAdmin;
 
   return (
@@ -122,6 +125,14 @@ export default function MorePage() {
               icon={TrendingUp}
               title="Visitor approvals"
               subtitle="Daily / weekly approval % per block"
+            />
+          )}
+          {showResidentAdmin && (
+            <Row
+              to="/admin/residents"
+              icon={Users}
+              title="Residents"
+              subtitle="Approve, edit flat / phone / type"
             />
           )}
           {showRoleAdmin && (

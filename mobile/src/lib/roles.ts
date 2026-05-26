@@ -55,3 +55,11 @@ export function canIssueMedals(roles: Roles): boolean {
 export function canManageIssues(roles: Roles): boolean {
   return isAdmin(roles) || has(roles, "FACILITY_MANAGER");
 }
+
+/**
+ * Can approve / reject residents and edit their basic details.
+ * Mirrors `canManageResidents` in src/lib/roles.ts — admin only.
+ */
+export function canManageResidents(roles: Roles): boolean {
+  return isAdmin(roles);
+}
