@@ -135,6 +135,14 @@ export default function MorePage() {
               subtitle="Approve, edit flat / phone / type"
             />
           )}
+          {showEventAdmin && (
+            <Row
+              to="/admin/sos"
+              icon={LifeBuoy}
+              title="SOS acceptance"
+              subtitle="Warrior promotion + guideline acceptances"
+            />
+          )}
           {showRoleAdmin && (
             <Row
               to="/admin/roles"
