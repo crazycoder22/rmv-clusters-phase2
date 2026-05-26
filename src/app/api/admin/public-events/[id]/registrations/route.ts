@@ -1,22 +1,23 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { canManageAnnouncements } from "@/lib/roles";
+import { getAuthedResident } from "@/lib/api-auth";
 
 export const dynamic = "force-dynamic";
 
 // GET /api/admin/public-events/[id]/registrations
 //   ?format=csv → downloadable CSV for the vendor
 //   (default)   → JSON list
+// Accepts NextAuth cookie or mobile Bearer JWT via getAuthedResident().
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user?.email) {
+  const resident = await getAuthedResident(request);
+  if (!resident) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  if (!canManageAnnouncements(session.user.roles)) {
+  if (!canManageAnnouncements(resident.roles)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -117,10 +118,10 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user?.email)
+  const resident = await getAuthedResident(request);
+  if (!resident)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (!canManageAnnouncements(session.user.roles))
+  if (!canManageAnnouncements(resident.roles))
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { id } = await params;

@@ -36,6 +36,8 @@ import Visits from "./pages/Visits";
 import Anagram from "./pages/Anagram";
 import Stickers from "./pages/Stickers";
 import AdminStickers from "./pages/AdminStickers";
+import AdminEvents from "./pages/AdminEvents";
+import AdminEventDetail from "./pages/AdminEventDetail";
 
 export default function App() {
   return (
@@ -98,6 +100,8 @@ function Gate() {
           <Route path="/anagram" element={<Anagram />} />
           <Route path="/stickers" element={<Stickers />} />
           <Route path="/admin/stickers" element={<AdminStickers />} />
+          <Route path="/admin/events" element={<AdminEvents />} />
+          <Route path="/admin/events/:id" element={<AdminEventDetail />} />
         </Routes>
       </Shell>
     </HashRouter>
