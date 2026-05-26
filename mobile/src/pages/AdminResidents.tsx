@@ -11,9 +11,11 @@ import {
   Mail,
   Pencil,
   Phone,
+  Plus,
   Search,
   ShieldCheck,
   Sparkles,
+  UserPlus,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -86,6 +88,7 @@ export default function AdminResidents() {
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [showNew, setShowNew] = useState(false);
 
   // Fetch pending list once on mount and after every approve/reject.
   const refreshPending = useCallback(async () => {
@@ -228,7 +231,32 @@ export default function AdminResidents() {
               : "No pending approvals"}
           </p>
         </div>
+        <button
+          type="button"
+          onClick={() => setShowNew((v) => !v)}
+          className={clsx(
+            "flex h-9 items-center gap-1 rounded-full px-3 text-sm font-medium",
+            showNew
+              ? "bg-slate-800 text-slate-300"
+              : "bg-indigo-500 text-white active:bg-indigo-600"
+          )}
+        >
+          {showNew ? <X size={14} /> : <Plus size={14} />}
+          {showNew ? "Close" : "New"}
+        </button>
       </header>
+
+      {showNew && (
+        <NewResidentForm
+          token={token}
+          onCreated={async () => {
+            setShowNew(false);
+            // Refresh pending in case the new resident landed there (server
+            // creates with isApproved: true so they won't, but it's cheap).
+            await refreshPending();
+          }}
+        />
+      )}
 
       {/* Pending approvals */}
       <section className="mb-3">
@@ -700,3 +728,231 @@ function Field({
 
 const inputCls =
   "w-full rounded-lg border border-slate-700 bg-slate-900/60 px-2.5 py-1.5 text-[13px] text-white placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none";
+
+// ── New resident form ──────────────────────────────────────────────────────
+
+const ASSIGNABLE_ROLES = [
+  "RESIDENT",
+  "ADMIN",
+  "COMMUNITY_ADMIN",
+  "EVENT_MANAGER",
+  "FACILITY_MANAGER",
+  "SECURITY",
+] as const;
+type AssignableRole = (typeof ASSIGNABLE_ROLES)[number];
+
+const ROLE_LABELS: Record<AssignableRole, string> = {
+  RESIDENT: "Resident",
+  ADMIN: "Admin",
+  COMMUNITY_ADMIN: "Community Admin",
+  EVENT_MANAGER: "Event Mgr",
+  FACILITY_MANAGER: "Facility Mgr",
+  SECURITY: "Security",
+};
+
+function NewResidentForm({
+  token,
+  onCreated,
+}: {
+  token: string | null;
+  onCreated: () => void | Promise<void>;
+}) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [block, setBlock] = useState<"1" | "2" | "3" | "4">("1");
+  const [flatNumber, setFlatNumber] = useState("");
+  const [residentType, setResidentType] = useState<ResidentType>("OWNER");
+  const [roleName, setRoleName] = useState<AssignableRole>("RESIDENT");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const [ok, setOk] = useState<string | null>(null);
+
+  function reset() {
+    setName("");
+    setEmail("");
+    setPhone("");
+    setBlock("1");
+    setFlatNumber("");
+    setResidentType("OWNER");
+    setRoleName("RESIDENT");
+  }
+
+  async function submit() {
+    setErr(null);
+    setOk(null);
+    if (!name.trim() || !email.trim() || !phone.trim() || !flatNumber.trim()) {
+      setErr("Name, email, phone and flat are required.");
+      return;
+    }
+    if (!email.includes("@")) {
+      setErr("Email must include an @.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const res = await apiFetch("/api/admin/residents", {
+        method: "POST",
+        token,
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim().toLowerCase(),
+          phone: phone.trim(),
+          block: parseInt(block, 10),
+          flatNumber: flatNumber.trim(),
+          residentType,
+          roleName,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setErr(data?.error ?? "Could not create resident.");
+        return;
+      }
+      const data = await res.json();
+      setOk(`Added ${data.resident?.name ?? "resident"} (auto-approved).`);
+      reset();
+      // Trigger parent refresh (pending list & any open search).
+      await onCreated();
+    } catch {
+      setErr("Network error");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className="mb-3 space-y-3 rounded-2xl border border-indigo-700/50 bg-slate-800/80 p-3">
+      <div className="flex items-center gap-2 text-[11px] text-slate-400">
+        <UserPlus size={14} className="text-indigo-300" />
+        Add a new resident · auto-approved
+      </div>
+
+      <Field label="Name">
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Full name"
+          className={inputCls}
+        />
+      </Field>
+
+      <Field label="Email">
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="someone@example.com"
+          autoCapitalize="none"
+          autoCorrect="off"
+          className={inputCls}
+        />
+      </Field>
+
+      <Field label="Phone">
+        <input
+          type="tel"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder="+91…"
+          className={inputCls}
+        />
+      </Field>
+
+      <div className="grid grid-cols-[100px,1fr] gap-2">
+        <Field label="Block">
+          <div className="grid grid-cols-4 gap-0.5">
+            {(["1", "2", "3", "4"] as const).map((b) => (
+              <button
+                key={b}
+                type="button"
+                onClick={() => setBlock(b)}
+                className={clsx(
+                  "rounded-md py-1.5 text-[11px] font-semibold",
+                  block === b
+                    ? "bg-indigo-500 text-white"
+                    : "bg-slate-900 text-slate-300 active:bg-slate-800"
+                )}
+              >
+                B{b}
+              </button>
+            ))}
+          </div>
+        </Field>
+        <Field label="Flat number">
+          <input
+            value={flatNumber}
+            onChange={(e) => setFlatNumber(e.target.value)}
+            placeholder="e.g. 1304"
+            className={inputCls}
+          />
+        </Field>
+      </div>
+
+      <Field label="Resident type">
+        <div className="flex flex-wrap gap-1.5">
+          {RESIDENT_TYPES.map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setResidentType(t)}
+              className={clsx(
+                "rounded-full px-3 py-1 text-[11px] font-medium",
+                residentType === t
+                  ? "bg-indigo-500 text-white"
+                  : "bg-slate-900 text-slate-300 active:bg-slate-800"
+              )}
+            >
+              {RESIDENT_TYPE_LABELS[t]}
+            </button>
+          ))}
+        </div>
+      </Field>
+
+      <Field label="Initial role">
+        <div className="flex flex-wrap gap-1.5">
+          {ASSIGNABLE_ROLES.map((r) => (
+            <button
+              key={r}
+              type="button"
+              onClick={() => setRoleName(r)}
+              className={clsx(
+                "rounded-full px-3 py-1 text-[11px] font-medium",
+                roleName === r
+                  ? "bg-indigo-500 text-white"
+                  : "bg-slate-900 text-slate-300 active:bg-slate-800"
+              )}
+            >
+              {ROLE_LABELS[r]}
+            </button>
+          ))}
+        </div>
+      </Field>
+
+      {err && (
+        <p className="rounded-lg border border-red-700/60 bg-red-900/20 px-3 py-1.5 text-[11px] text-red-200">
+          {err}
+        </p>
+      )}
+      {ok && (
+        <p className="rounded-lg border border-emerald-700/60 bg-emerald-900/20 px-3 py-1.5 text-[11px] text-emerald-200">
+          {ok}
+        </p>
+      )}
+
+      <button
+        type="button"
+        onClick={submit}
+        disabled={busy}
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-500 py-2.5 text-sm font-semibold text-white active:bg-indigo-600 disabled:opacity-50"
+      >
+        {busy ? (
+          <Loader2 size={14} className="animate-spin" />
+        ) : (
+          <UserPlus size={14} />
+        )}
+        Add resident
+      </button>
+    </section>
+  );
+}
