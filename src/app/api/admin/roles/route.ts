@@ -1,17 +1,19 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { isSuperAdmin } from "@/lib/roles";
 import { isValidResidentType } from "@/lib/resident-types";
+import { getAuthedResident } from "@/lib/api-auth";
 
+// PATCH /api/admin/roles — SUPERADMIN-only.
+// Accepts NextAuth cookie (web) or `Authorization: Bearer <jwt>` (mobile).
 export async function PATCH(request: Request) {
-  const session = await auth();
+  const me = await getAuthedResident(request);
 
-  if (!session?.user?.email) {
+  if (!me) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!isSuperAdmin(session.user.roles)) {
+  if (!isSuperAdmin(me.roles)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

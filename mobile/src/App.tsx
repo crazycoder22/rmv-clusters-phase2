@@ -43,6 +43,7 @@ import AdminIssues from "./pages/AdminIssues";
 import AdminVisits from "./pages/AdminVisits";
 import AdminAnnouncements from "./pages/AdminAnnouncements";
 import AdminAnnouncementEdit from "./pages/AdminAnnouncementEdit";
+import AdminRoles from "./pages/AdminRoles";
 
 export default function App() {
   return (
@@ -119,6 +120,7 @@ function Gate() {
             path="/admin/announcements/:id"
             element={<AdminAnnouncementEdit />}
           />
+          <Route path="/admin/roles" element={<AdminRoles />} />
         </Routes>
       </Shell>
     </HashRouter>

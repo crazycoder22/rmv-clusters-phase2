@@ -6,6 +6,7 @@ import {
   CalendarDays,
   Car,
   ChevronRight,
+  Crown,
   HelpCircle,
   Image as ImageIcon,
   Info,
@@ -27,6 +28,7 @@ import {
   canManageAnnouncements,
   canManageIssues,
   isAdmin,
+  isSuperAdmin,
 } from "../lib/roles";
 
 export default function MorePage() {
@@ -36,12 +38,14 @@ export default function MorePage() {
   const showMedalAdmin = canIssueMedals(user?.roles);
   const showIssueAdmin = canManageIssues(user?.roles);
   const showVisitAdmin = isAdmin(user?.roles);
+  const showRoleAdmin = isSuperAdmin(user?.roles);
   const showAdmin =
     showStickerAdmin ||
     showEventAdmin ||
     showMedalAdmin ||
     showIssueAdmin ||
-    showVisitAdmin;
+    showVisitAdmin ||
+    showRoleAdmin;
 
   return (
     <div className="flex flex-1 flex-col px-4 pt-[max(2rem,env(safe-area-inset-top,0px))]">
@@ -102,6 +106,14 @@ export default function MorePage() {
               icon={TrendingUp}
               title="Visitor approvals"
               subtitle="Daily / weekly approval % per block"
+            />
+          )}
+          {showRoleAdmin && (
+            <Row
+              to="/admin/roles"
+              icon={Crown}
+              title="Manage roles"
+              subtitle="Assign admin, event mgr, security, etc."
             />
           )}
         </Group>
