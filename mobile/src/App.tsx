@@ -34,6 +34,7 @@ import Polls from "./pages/Polls";
 import PollDetail from "./pages/PollDetail";
 import Visits from "./pages/Visits";
 import Anagram from "./pages/Anagram";
+import Stickers from "./pages/Stickers";
 
 export default function App() {
   return (
@@ -94,6 +95,7 @@ function Gate() {
           <Route path="/polls/:id" element={<PollDetail />} />
           <Route path="/visits" element={<Visits />} />
           <Route path="/anagram" element={<Anagram />} />
+          <Route path="/stickers" element={<Stickers />} />
         </Routes>
       </Shell>
     </HashRouter>

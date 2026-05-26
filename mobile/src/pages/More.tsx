@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import {
   BarChart3,
   BookOpen,
+  Car,
   ChevronRight,
   HelpCircle,
   Image as ImageIcon,
@@ -73,6 +74,15 @@ export default function MorePage() {
           icon={Video}
           title="Videos"
           subtitle="Community playlists and events"
+        />
+      </Group>
+
+      <Group title="Services">
+        <Row
+          to="/stickers"
+          icon={Car}
+          title="Vehicle stickers"
+          subtitle="Request RMV stickers for cars / bikes"
         />
       </Group>
 
