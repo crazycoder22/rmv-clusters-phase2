@@ -9,6 +9,11 @@ body,
   color: #f8fafc;
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  /* Native shell: never show a horizontal scrollbar. Any future page that
+     accidentally overflows horizontally will simply clip rather than leave
+     the WebView in a permanently scrolled-right state. */
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
 }
 
 #root {

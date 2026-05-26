@@ -232,7 +232,6 @@ export default function AdminRoles() {
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search name, email, phone, flat…"
             className="flex-1 bg-transparent py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none"
-            autoFocus
           />
           {searching ? (
             <Loader2 size={14} className="animate-spin text-slate-500" />
