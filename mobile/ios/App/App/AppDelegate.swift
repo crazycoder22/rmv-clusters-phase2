@@ -7,7 +7,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        // Force-link our local Swift plugins. Capacitor 8's auto-discovery
+        // sometimes misses classes that aren't otherwise referenced from
+        // any code path — the linker dead-strips them and they never
+        // register with the Obj-C runtime. A throwaway `.self` reference
+        // keeps the symbol alive.
+        _ = HealthKitPlugin.self
+        NSLog("[OneRMV] HealthKitPlugin reference forced; class=\\(HealthKitPlugin.self)")
         return true
     }
 
