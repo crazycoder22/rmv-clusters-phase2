@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import {
+  Activity,
   Award,
   BarChart3,
   BookOpen,
@@ -189,6 +190,12 @@ export default function MorePage() {
           icon={Users}
           title="Visitors"
           subtitle="Who came to your flat (from MyGate)"
+        />
+        <Row
+          to="/my-steps"
+          icon={Activity}
+          title="My steps"
+          subtitle="Daily activity from Apple Health"
         />
         <Row
           to="/issues"

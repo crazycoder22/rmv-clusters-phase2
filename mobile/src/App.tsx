@@ -54,6 +54,7 @@ import AdminQuiz from "./pages/AdminQuiz";
 import AdminQuizHost from "./pages/AdminQuizHost";
 import StepEventDetail from "./pages/StepEventDetail";
 import StepLeaderboard from "./pages/StepLeaderboard";
+import MySteps from "./pages/MySteps";
 import PushNotificationsMount from "./components/PushNotificationsMount";
 import StepSyncMount from "./components/StepSyncMount";
 
@@ -145,6 +146,7 @@ function Gate() {
           <Route path="/admin/quiz/:code" element={<AdminQuizHost />} />
           <Route path="/steps/:id" element={<StepEventDetail />} />
           <Route path="/steps/:id/leaderboard" element={<StepLeaderboard />} />
+          <Route path="/my-steps" element={<MySteps />} />
         </Routes>
       </Shell>
     </HashRouter>
