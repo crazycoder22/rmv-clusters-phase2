@@ -1,24 +1,26 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { canManageAnnouncements } from "@/lib/roles";
+import { getAuthedResident } from "@/lib/api-auth";
+import { upsertStepEntries } from "@/lib/steps";
 
-async function requireAdmin() {
-  const session = await auth();
-  if (!session?.user?.email) {
+// Accepts NextAuth cookie (web) or `Authorization: Bearer <jwt>` (mobile).
+async function requireAdmin(request: Request) {
+  const resident = await getAuthedResident(request);
+  if (!resident) {
     return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
   }
-  if (!canManageAnnouncements(session.user.roles)) {
+  if (!canManageAnnouncements(resident.roles)) {
     return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
   }
-  return { session };
+  return { resident };
 }
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const check = await requireAdmin();
+  const check = await requireAdmin(request);
   if ("error" in check && check.error) return check.error;
 
   const { id } = await params;
@@ -125,7 +127,7 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const check = await requireAdmin();
+  const check = await requireAdmin(request);
   if ("error" in check && check.error) return check.error;
 
   const { id } = await params;
@@ -149,68 +151,23 @@ export async function POST(
   }
 
   const eventConfigId = announcement.eventConfig.id;
-  const date = new Date(dateStr + "T00:00:00.000Z");
-
-  // Filter valid entries (steps > 0)
-  const validEntries = entries.filter((e) => e.steps > 0 && (e.rsvpId || e.guestRsvpId));
-
-  // Also find entries that should be deleted (steps = 0 but may have existing records)
-  const zeroEntries = entries.filter((e) => (!e.steps || e.steps <= 0) && (e.rsvpId || e.guestRsvpId));
 
   try {
-    // Process in batches to avoid transaction timeout
-    const BATCH_SIZE = 10;
-
-    // Upsert valid entries in batches
-    for (let i = 0; i < validEntries.length; i += BATCH_SIZE) {
-      const batch = validEntries.slice(i, i + BATCH_SIZE);
-      await prisma.$transaction(
-        batch.map((entry) => {
-          if (entry.rsvpId) {
-            return prisma.stepEntry.upsert({
-              where: { rsvpId_date: { rsvpId: entry.rsvpId, date } },
-              create: {
-                eventConfigId,
-                rsvpId: entry.rsvpId,
-                date,
-                steps: entry.steps,
-              },
-              update: { steps: entry.steps },
-            });
-          } else {
-            return prisma.stepEntry.upsert({
-              where: { guestRsvpId_date: { guestRsvpId: entry.guestRsvpId!, date } },
-              create: {
-                eventConfigId,
-                guestRsvpId: entry.guestRsvpId,
-                date,
-                steps: entry.steps,
-              },
-              update: { steps: entry.steps },
-            });
-          }
-        })
-      );
-    }
-
-    // Delete zero entries in a single batch
-    if (zeroEntries.length > 0) {
-      const rsvpIds = zeroEntries.filter((e) => e.rsvpId).map((e) => e.rsvpId!);
-      const guestIds = zeroEntries.filter((e) => e.guestRsvpId).map((e) => e.guestRsvpId!);
-
-      await prisma.$transaction([
-        ...(rsvpIds.length > 0
-          ? [prisma.stepEntry.deleteMany({ where: { rsvpId: { in: rsvpIds }, date } })]
-          : []),
-        ...(guestIds.length > 0
-          ? [prisma.stepEntry.deleteMany({ where: { guestRsvpId: { in: guestIds }, date } })]
-          : []),
-      ]);
-    }
+    // Admin can overwrite freely — including zero-out a value — so disable
+    // the guard that protects against accidental zero-overwrites.
+    const result = await upsertStepEntries(
+      eventConfigId,
+      entries.map((e) => ({
+        date: dateStr,
+        steps: e.steps,
+        rsvpId: e.rsvpId,
+        guestRsvpId: e.guestRsvpId,
+      })),
+      { guardZeroOverwrite: false }
+    );
+    return NextResponse.json(result);
   } catch (err) {
     console.error("Step save error:", err);
     return NextResponse.json({ error: String(err) }, { status: 500 });
   }
-
-  return NextResponse.json({ saved: validEntries.length });
 }

@@ -53,6 +53,12 @@
 	     upload. -->
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<!-- HealthKit read access — required so iOS shows the "OneRMV would
+	     like to access your step count" prompt and lets HKHealthStore
+	     return data. We only READ steps; we never write to Apple Health,
+	     so NSHealthUpdateUsageDescription is intentionally omitted. -->
+	<key>NSHealthShareUsageDescription</key>
+	<string>OneRMV reads your step count from Apple Health to track Stepup challenge progress. Data is sent to the community server only when you participate in an active challenge.</string>
 	<key>GIDClientID</key>
 	<string>114554164765-h0ppp7e7enlkql9iebmcc0lef89bol74.apps.googleusercontent.com</string>
 	<key>CFBundleURLTypes</key>

@@ -76,6 +76,20 @@ export default function Dashboard() {
 
   const [polls, setPolls] = useState<ActivePoll[]>([]);
 
+  // Active step events the resident has registered for. Surfaced as a hero
+  // card so the active Stepup challenge is the first thing you see on
+  // launch during the event window.
+  const [stepEvents, setStepEvents] = useState<
+    {
+      announcementId: string;
+      title: string;
+      emoji: string | null;
+      startDate: string;
+      endDate: string;
+      dailyGoal: number;
+    }[]
+  >([]);
+
   const [search, setSearch] = useState("");
   const [results, setResults] = useState<ResidentResult[]>([]);
   const [searching, setSearching] = useState(false);
@@ -103,6 +117,13 @@ export default function Dashboard() {
       .then((r) => (r.ok ? r.json() : { polls: [] }))
       .then((data) => {
         if (!cancelled) setPolls(data.polls ?? []);
+      })
+      .catch(() => {});
+
+    apiFetch("/api/me/step-events", { token })
+      .then((r) => (r.ok ? r.json() : { events: [] }))
+      .then((data) => {
+        if (!cancelled) setStepEvents(data.events ?? []);
       })
       .catch(() => {});
 
@@ -179,6 +200,50 @@ export default function Dashboard() {
           <LogOut size={18} />
         </button>
       </header>
+
+      {/* Active Stepup challenge hero — only shown when the resident has
+          registered for an event currently inside its 14-day window. */}
+      {stepEvents.length > 0 && (
+        <section className="mb-5">
+          {stepEvents.map((e) => {
+            const today = new Date();
+            const end = new Date(e.endDate);
+            const daysLeft = Math.max(
+              0,
+              Math.ceil(
+                (end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+              )
+            );
+            return (
+              <Link
+                key={e.announcementId}
+                to={`/steps/${e.announcementId}`}
+                className="flex items-center gap-3 rounded-2xl border border-emerald-700/50 bg-gradient-to-br from-emerald-500/20 to-indigo-500/20 p-4 active:from-emerald-500/30 active:to-indigo-500/30"
+              >
+                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-white/10 text-2xl">
+                  {e.emoji ?? "🏃"}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="truncate text-sm font-semibold text-white">
+                    {e.title}
+                  </p>
+                  <p className="text-[11px] text-emerald-100">
+                    {daysLeft > 0
+                      ? `${daysLeft} day${daysLeft !== 1 ? "s" : ""} left`
+                      : "Finished — view results"}
+                    {e.dailyGoal > 0 &&
+                      ` · ${e.dailyGoal.toLocaleString()} daily goal`}
+                  </p>
+                </div>
+                <ChevronRight
+                  size={16}
+                  className="flex-shrink-0 text-white/70"
+                />
+              </Link>
+            );
+          })}
+        </section>
+      )}
 
       {/* Resident search */}
       <section className="mb-5 rounded-2xl border border-slate-700 bg-slate-800/60 p-3">

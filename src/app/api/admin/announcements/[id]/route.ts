@@ -88,6 +88,7 @@ export async function PATCH(
               confirmationMessage: ec.confirmationMessage || null,
               enableFeedback: ec.enableFeedback ?? false,
               feedbackStyle: ec.feedbackStyle ?? "stars",
+              stepTrackingEnabled: ec.stepTrackingEnabled === true,
             },
           });
 
@@ -178,6 +179,7 @@ export async function PATCH(
               confirmationMessage: ec.confirmationMessage || null,
               enableFeedback: ec.enableFeedback ?? false,
               feedbackStyle: ec.feedbackStyle ?? "stars",
+              stepTrackingEnabled: ec.stepTrackingEnabled === true,
               ...(ec.menuItems && ec.menuItems.length > 0 && {
                 menuItems: {
                   create: ec.menuItems.map(

@@ -71,6 +71,7 @@ const emptyNewsForm = {
   confirmationMessage: "",
   enableFeedback: false,
   feedbackStyle: "stars" as "stars" | "emoji",
+  stepTrackingEnabled: false,
   mealType: "dinner",
   rsvpDeadline: "",
   menuItems: [] as MenuItemFormEntry[],
@@ -396,7 +397,7 @@ export default function AdminPage() {
       const {
         enableRsvp, enableFoodOrdering, requirePayment, enableEntranceFee, entranceFee, entranceFeeLabel,
         confirmationMessage,
-        enableFeedback, feedbackStyle, mealType, rsvpDeadline, menuItems: menuItemsForm,
+        enableFeedback, feedbackStyle, stepTrackingEnabled, mealType, rsvpDeadline, menuItems: menuItemsForm,
         customFields: customFieldsForm,
         enableSportsRegistration, registrationDeadline, sportItems: sportItemsForm,
         ...baseForm
@@ -411,6 +412,7 @@ export default function AdminPage() {
           confirmationMessage: confirmationMessage.trim() || null,
           enableFeedback,
           ...(enableFeedback && { feedbackStyle }),
+          stepTrackingEnabled,
         };
 
         // Entrance fee
@@ -518,6 +520,7 @@ export default function AdminPage() {
       confirmationMessage: ec?.confirmationMessage ?? "",
       enableFeedback: ec?.enableFeedback ?? false,
       feedbackStyle: (ec?.feedbackStyle as "stars" | "emoji") ?? "stars",
+      stepTrackingEnabled: ec?.stepTrackingEnabled ?? false,
       mealType: ec?.mealType || "dinner",
       rsvpDeadline: ec?.rsvpDeadline
         ? new Date(ec.rsvpDeadline).toISOString().slice(0, 16)
@@ -1149,6 +1152,34 @@ export default function AdminPage() {
                           </select>
                         </div>
                       )}
+
+                      {/* Step tracking — Stepup challenges only.
+                          Toggling this on flips eventConfig.stepTrackingEnabled
+                          so the mobile app surfaces this event in its
+                          /api/me/step-events feed and shows a per-participant
+                          dashboard with HealthKit sync. */}
+                      <div className="flex items-start gap-2">
+                        <input
+                          type="checkbox"
+                          id="stepTrackingEnabled"
+                          name="stepTrackingEnabled"
+                          checked={newsForm.stepTrackingEnabled}
+                          onChange={handleNewsChange}
+                          className="mt-0.5 h-4 w-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
+                        />
+                        <div>
+                          <label
+                            htmlFor="stepTrackingEnabled"
+                            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                          >
+                            Enable step tracking (Stepup challenge)
+                          </label>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            Mobile app shows a dashboard, syncs steps from
+                            Apple Health, and updates the leaderboard daily.
+                          </p>
+                        </div>
+                      </div>
 
                       {/* Post-Registration Confirmation Message */}
                       <div>

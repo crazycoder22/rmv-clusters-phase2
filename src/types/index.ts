@@ -87,6 +87,8 @@ export interface EventConfigType {
   confirmationMessage: string | null;
   enableFeedback: boolean;
   feedbackStyle: "stars" | "emoji";
+  /** When true the mobile app surfaces a Stepup challenge dashboard. */
+  stepTrackingEnabled?: boolean;
   menuItems: MenuItemType[];
   customFields?: CustomFieldType[];
 }

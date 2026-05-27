@@ -52,7 +52,10 @@ import AdminTambola from "./pages/AdminTambola";
 import AdminTambolaHost from "./pages/AdminTambolaHost";
 import AdminQuiz from "./pages/AdminQuiz";
 import AdminQuizHost from "./pages/AdminQuizHost";
+import StepEventDetail from "./pages/StepEventDetail";
+import StepLeaderboard from "./pages/StepLeaderboard";
 import PushNotificationsMount from "./components/PushNotificationsMount";
+import StepSyncMount from "./components/StepSyncMount";
 
 export default function App() {
   return (
@@ -80,6 +83,7 @@ function Gate() {
   return (
     <HashRouter>
       <PushNotificationsMount />
+      <StepSyncMount />
       <Shell>
         <Routes>
           <Route path="/" element={<Dashboard />} />
@@ -139,6 +143,8 @@ function Gate() {
           <Route path="/admin/tambola/:code" element={<AdminTambolaHost />} />
           <Route path="/admin/quiz" element={<AdminQuiz />} />
           <Route path="/admin/quiz/:code" element={<AdminQuizHost />} />
+          <Route path="/steps/:id" element={<StepEventDetail />} />
+          <Route path="/steps/:id/leaderboard" element={<StepLeaderboard />} />
         </Routes>
       </Shell>
     </HashRouter>

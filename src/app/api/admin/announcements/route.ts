@@ -122,6 +122,7 @@ export async function POST(request: Request) {
               confirmationMessage: eventConfig.confirmationMessage || null,
               enableFeedback: eventConfig.enableFeedback ?? false,
               feedbackStyle: eventConfig.feedbackStyle ?? "stars",
+              stepTrackingEnabled: eventConfig.stepTrackingEnabled === true,
               ...(eventConfig.menuItems && eventConfig.menuItems.length > 0 && {
                 menuItems: {
                   create: eventConfig.menuItems.map(

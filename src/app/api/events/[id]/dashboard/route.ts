@@ -1,13 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-
-function parseGoal(value: string): number {
-  if (!value) return 0;
-  const cleaned = value.trim().toUpperCase();
-  const match = cleaned.match(/^(\d+(?:\.\d+)?)\s*K$/);
-  if (match) return Math.round(parseFloat(match[1]) * 1000);
-  return parseInt(cleaned) || 0;
-}
+import { parseGoal } from "@/lib/steps";
 
 export async function GET(
   _request: Request,

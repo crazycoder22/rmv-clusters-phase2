@@ -107,6 +107,10 @@ model EventConfig {
   confirmationMessage String?    // Optional message shown after RSVP (e.g., group link)
   enableFeedback   Boolean      @default(false)
   feedbackStyle   String       @default("stars") // "stars" or "emoji"
+  // When true, mobile app surfaces a step-tracking dashboard for participants
+  // and the /api/me/step-events endpoint lists this event. Stepup challenges
+  // toggle this on; food/RSVP-only events leave it off.
+  stepTrackingEnabled Boolean   @default(false)
   menuItems      MenuItem[]
   customFields   CustomField[]
   rsvps          Rsvp[]
