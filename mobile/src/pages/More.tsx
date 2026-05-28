@@ -73,6 +73,14 @@ export default function MorePage() {
               subtitle="Post & edit news, drafts, RSVPs"
             />
           )}
+          {showEventAdmin && (
+            <Row
+              to="/admin/calendar"
+              icon={CalendarDays}
+              title="Manage calendar"
+              subtitle="Add holidays, festivals, key dates"
+            />
+          )}
           {showStickerAdmin && (
             <Row
               to="/admin/stickers"
@@ -173,6 +181,12 @@ export default function MorePage() {
       )}
 
       <Group title="Community">
+        <Row
+          to="/calendar"
+          icon={CalendarDays}
+          title="Calendar"
+          subtitle="Events, festivals, maintenance dates"
+        />
         <Row
           to="/community"
           icon={MessageCircle}
