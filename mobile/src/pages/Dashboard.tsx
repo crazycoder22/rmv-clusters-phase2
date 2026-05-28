@@ -2,12 +2,16 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ChevronRight,
+  Circle,
+  Flame,
   HeartPulse,
+  Loader2,
   LogOut,
   Phone,
   Search,
   Shield,
   Siren,
+  Target,
 } from "lucide-react";
 import { Browser } from "@capacitor/browser";
 import clsx from "clsx";
@@ -90,6 +94,18 @@ export default function Dashboard() {
     }[]
   >([]);
 
+  // Owned habits not yet marked done today — surfaced as a quick-action card.
+  const [habitsToday, setHabitsToday] = useState<
+    {
+      id: string;
+      title: string;
+      emoji: string | null;
+      currentStreak: number;
+      todayDone: boolean;
+    }[]
+  >([]);
+  const [habitBusyId, setHabitBusyId] = useState<string | null>(null);
+
   const [search, setSearch] = useState("");
   const [results, setResults] = useState<ResidentResult[]>([]);
   const [searching, setSearching] = useState(false);
@@ -127,10 +143,40 @@ export default function Dashboard() {
       })
       .catch(() => {});
 
+    apiFetch("/api/habits", { token })
+      .then((r) => (r.ok ? r.json() : { owned: [] }))
+      .then((data) => {
+        if (cancelled) return;
+        // Only active habits not yet done today belong on the dashboard card.
+        const pending = (data.owned ?? []).filter(
+          (h: { active: boolean; todayDone: boolean }) =>
+            h.active && !h.todayDone
+        );
+        setHabitsToday(pending);
+      })
+      .catch(() => {});
+
     return () => {
       cancelled = true;
     };
   }, [token]);
+
+  // Quick-mark a habit done from the dashboard card; removes it from the list.
+  async function markHabitDone(habitId: string) {
+    setHabitBusyId(habitId);
+    try {
+      const res = await apiFetch(`/api/habits/${habitId}/checkin`, {
+        method: "POST",
+        token,
+        body: JSON.stringify({}),
+      });
+      if (res.ok) {
+        setHabitsToday((prev) => prev.filter((h) => h.id !== habitId));
+      }
+    } finally {
+      setHabitBusyId(null);
+    }
+  }
 
   // Debounced resident search.
   useEffect(() => {
@@ -242,6 +288,57 @@ export default function Dashboard() {
               </Link>
             );
           })}
+        </section>
+      )}
+
+      {/* Habits to mark today — quick check-off without leaving the home tab. */}
+      {habitsToday.length > 0 && (
+        <section className="mb-5 rounded-2xl border border-slate-700 bg-slate-800/60 p-3">
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-slate-400">
+              <Target size={12} /> Mark today
+            </h2>
+            <Link
+              to="/habits"
+              className="text-[11px] font-medium text-indigo-300 active:underline"
+            >
+              All habits
+            </Link>
+          </div>
+          <ul className="space-y-1.5">
+            {habitsToday.map((h) => (
+              <li
+                key={h.id}
+                className="flex items-center gap-3 rounded-xl bg-slate-900/50 px-3 py-2"
+              >
+                <button
+                  type="button"
+                  onClick={() => void markHabitDone(h.id)}
+                  disabled={habitBusyId === h.id}
+                  aria-label={`Mark ${h.title} done`}
+                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-slate-600 bg-slate-900 text-slate-400 active:bg-slate-800 disabled:opacity-50"
+                >
+                  {habitBusyId === h.id ? (
+                    <Loader2 size={15} className="animate-spin" />
+                  ) : (
+                    <Circle size={18} />
+                  )}
+                </button>
+                <Link to={`/habits/${h.id}`} className="flex flex-1 min-w-0 items-center gap-2">
+                  <span className="flex-1 truncate text-sm text-white">
+                    {h.emoji ? `${h.emoji} ` : ""}
+                    {h.title}
+                  </span>
+                  {h.currentStreak > 0 && (
+                    <span className="inline-flex items-center gap-0.5 text-[11px] text-orange-300">
+                      <Flame size={11} />
+                      {h.currentStreak}
+                    </span>
+                  )}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
 
