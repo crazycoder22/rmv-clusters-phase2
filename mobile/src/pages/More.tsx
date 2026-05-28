@@ -17,6 +17,7 @@ import {
   Megaphone,
   MessageCircle,
   ShieldCheck,
+  Target,
   TrendingUp,
   Users,
   Video,
@@ -210,6 +211,12 @@ export default function MorePage() {
           icon={Activity}
           title="My steps"
           subtitle="Daily activity from Apple Health"
+        />
+        <Row
+          to="/habits"
+          icon={Target}
+          title="Habits"
+          subtitle="Build routines with an accountability partner"
         />
         <Row
           to="/issues"

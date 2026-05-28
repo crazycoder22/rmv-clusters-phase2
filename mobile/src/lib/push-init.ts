@@ -82,6 +82,10 @@ export async function initPushNotifications(
             navigate("/more"); // medals list lives under More → admin
           } else if (type === "issue" && data?.id) {
             navigate(`/issues/${data.id}`);
+          } else if (type?.startsWith("habit")) {
+            // habit_invite / habit_accepted / habit_nudge — deep-link to the
+            // habit if we have an id, else the habits list (invites show there).
+            navigate(data?.id ? `/habits/${data.id}` : "/habits");
           } else {
             navigate("/");
           }

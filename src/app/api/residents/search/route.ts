@@ -32,7 +32,7 @@ export async function GET(request: Request) {
         ...blockFilter,
       ],
     },
-    select: { name: true, block: true, flatNumber: true },
+    select: { id: true, name: true, block: true, flatNumber: true },
     take: 20,
     orderBy: [{ block: "asc" }, { flatNumber: "asc" }],
   });

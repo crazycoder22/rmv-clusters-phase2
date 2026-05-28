@@ -91,6 +91,8 @@ model Resident {
   quizzes                  Quiz[]
   quizSessionsCreated      QuizSession[]    @relation("QuizSessionsCreated")
   deviceTokens             DeviceToken[]
+  habitsOwned              Habit[]          @relation("HabitsOwned")
+  habitsPartnered          Habit[]          @relation("HabitsPartnered")
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 }
@@ -1650,3 +1652,56 @@ model DeviceToken {
 }
 
 // ─── End Push Notification Device Tokens ───────────────────────────────────
+
+// ─── Habit Tracker ─────────────────────────────────────────────────────────
+
+// Accountability-partner invite lifecycle. A habit starts at `none` (no
+// partner). Inviting moves to `pending`; the partner accepts (`accepted`)
+// or declines (`declined`). Only `accepted` grants view + nudge rights.
+enum HabitPartnerStatus {
+  none
+  pending
+  accepted
+  declined
+}
+
+// A personal daily habit owned by one resident, with an optional
+// accountability partner (another resident). Private — only the owner and
+// an accepted partner can see it. Dates are stored as the midnight-IST
+// instant (see src/lib/habits.ts) so the whole stack agrees on "today".
+model Habit {
+  id            String             @id @default(cuid())
+  ownerId       String
+  owner         Resident           @relation("HabitsOwned", fields: [ownerId], references: [id], onDelete: Cascade)
+  title         String
+  emoji         String?
+  targetMinutes Int?
+  startDate     DateTime
+  endDate       DateTime
+  active        Boolean            @default(true)
+  partnerId     String?
+  partner       Resident?          @relation("HabitsPartnered", fields: [partnerId], references: [id])
+  partnerStatus HabitPartnerStatus @default(none)
+  lastNudgedAt  DateTime?
+  checkins      HabitCheckin[]
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  @@index([ownerId])
+  @@index([partnerId])
+}
+
+// One row per completed day. `date` is the midnight-IST instant for that
+// civil day; the unique constraint guarantees at most one check-in per day.
+model HabitCheckin {
+  id        String   @id @default(cuid())
+  habitId   String
+  habit     Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  date      DateTime
+  createdAt DateTime @default(now())
+
+  @@unique([habitId, date])
+  @@index([habitId])
+}
+
+// ─── End Habit Tracker ─────────────────────────────────────────────────────

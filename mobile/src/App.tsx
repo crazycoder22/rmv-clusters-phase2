@@ -57,6 +57,8 @@ import StepLeaderboard from "./pages/StepLeaderboard";
 import MySteps from "./pages/MySteps";
 import Calendar from "./pages/Calendar";
 import AdminCalendar from "./pages/AdminCalendar";
+import Habits from "./pages/Habits";
+import HabitDetail from "./pages/HabitDetail";
 import PushNotificationsMount from "./components/PushNotificationsMount";
 import StepSyncMount from "./components/StepSyncMount";
 
@@ -151,6 +153,8 @@ function Gate() {
           <Route path="/my-steps" element={<MySteps />} />
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/admin/calendar" element={<AdminCalendar />} />
+          <Route path="/habits" element={<Habits />} />
+          <Route path="/habits/:id" element={<HabitDetail />} />
         </Routes>
       </Shell>
     </HashRouter>
