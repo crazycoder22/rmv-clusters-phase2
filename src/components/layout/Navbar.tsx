@@ -91,6 +91,7 @@ const navGroups: NavGroup[] = [
     label: "Services",
     links: [
       { href: "/marketplace", label: "Marketplace" },
+      { href: "/food", label: "Food" },
       { href: "/domestic-help", label: "Domestic Help" },
       { href: "/documents", label: "Documents" },
       { href: "/checklist", label: "Checklist" },
