@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthedResident } from "@/lib/api-auth";
+import { sendPushToResidents } from "@/lib/push";
 
 export async function GET(
   request: Request,
@@ -91,6 +92,22 @@ export async function POST(
         message: `${resident.name} commented on your post`,
       },
     });
+
+    // Push the post author (best-effort; never block the comment).
+    // A short snippet of the comment gives useful context.
+    try {
+      const snippet =
+        content.trim().length > 80
+          ? `${content.trim().slice(0, 77)}…`
+          : content.trim();
+      await sendPushToResidents([post.authorId], {
+        title: "💬 New comment",
+        body: `${resident.name}: ${snippet}`,
+        data: { type: "post", id: postId },
+      });
+    } catch (err) {
+      console.error("[comment push] failed:", err);
+    }
   }
 
   return NextResponse.json({ ...comment, author }, { status: 201 });

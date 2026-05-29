@@ -86,6 +86,9 @@ export async function initPushNotifications(
             // habit_invite / habit_accepted / habit_nudge — deep-link to the
             // habit if we have an id, else the habits list (invites show there).
             navigate(data?.id ? `/habits/${data.id}` : "/habits");
+          } else if (type === "post" && data?.id) {
+            // Comment on the resident's community post → open that post.
+            navigate(`/community/${data.id}`);
           } else {
             navigate("/");
           }
