@@ -93,6 +93,10 @@ model Resident {
   deviceTokens             DeviceToken[]
   habitsOwned              Habit[]          @relation("HabitsOwned")
   habitsPartnered          Habit[]          @relation("HabitsPartnered")
+  foodMenusByChef          FoodMenu[]       @relation("FoodMenusByChef")
+  foodOrdersByBuyer        FoodOrder[]      @relation("FoodOrdersByBuyer")
+  chefFollowers            ChefFollow[]     @relation("ChefFollowers")
+  chefFollowing            ChefFollow[]     @relation("ChefFollowing")
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 }
@@ -1705,3 +1709,112 @@ model HabitCheckin {
 }
 
 // ─── End Habit Tracker ─────────────────────────────────────────────────────
+
+// ─── Community Food Ordering (Home Kitchens) ────────────────────────────────
+
+// OPEN  = accepting orders. CLOSED = chef stopped new orders (existing live).
+// ARCHIVED = soft-hidden (chef "deleted" a menu that had order history; we
+// keep the rows so paid/owed records survive).
+enum FoodMenuStatus {
+  OPEN
+  CLOSED
+  ARCHIVED
+}
+
+// PLACED → CONFIRMED (chef accepts / receives payment) | → CANCELLED (either).
+// Payment booleans are ORTHOGONAL to this — a CANCELLED order may still carry
+// buyerPaid=true (money paid, refund owed offline); never overwrite that.
+enum FoodOrderStatus {
+  PLACED
+  CONFIRMED
+  CANCELLED
+}
+
+model FoodMenu {
+  id          String         @id @default(cuid())
+  chefId      String
+  chef        Resident       @relation("FoodMenusByChef", fields: [chefId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  date        DateTime       // midnight-IST instant for the day it's for
+  orderByAt   DateTime?      // optional order deadline
+  pickupInfo  String?        // e.g. "Pickup from B2-304 after 12:30"
+  status      FoodMenuStatus @default(OPEN)
+  items       FoodMenuItem[]
+  orders      FoodOrder[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([chefId])
+  @@index([date])
+  @@index([status])
+}
+
+model FoodMenuItem {
+  id          String          @id @default(cuid())
+  menuId      String
+  menu        FoodMenu        @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  price       Float
+  imageUrl    String?
+  soldOut     Boolean         @default(false)
+  sortOrder   Int             @default(0)
+  orderItems  FoodOrderItem[]
+
+  @@index([menuId])
+}
+
+model FoodOrder {
+  id          String          @id @default(cuid())
+  menuId      String
+  menu        FoodMenu        @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  buyerId     String
+  buyer       Resident        @relation("FoodOrdersByBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
+  status      FoodOrderStatus @default(PLACED)
+  note        String?
+  totalAmount Float           // server-computed snapshot at order time
+  buyerPaid   Boolean         @default(false) // buyer's "I paid" claim
+  buyerPaidAt DateTime?
+  chefPaid    Boolean         @default(false) // chef's "received" confirmation
+  chefPaidAt  DateTime?
+  cancelledBy String?         // "buyer" | "chef" — for dispute clarity
+  items       FoodOrderItem[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([menuId])
+  @@index([buyerId])
+  @@index([status])
+}
+
+// menuItem is OPTIONAL + SetNull so deleting a dish never corrupts past order
+// history — the name/price snapshots preserve exactly what was ordered.
+model FoodOrderItem {
+  id            String        @id @default(cuid())
+  orderId       String
+  order         FoodOrder     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItemId    String?
+  menuItem      FoodMenuItem? @relation(fields: [menuItemId], references: [id], onDelete: SetNull)
+  nameSnapshot  String
+  priceSnapshot Float
+  qty           Int
+
+  @@index([orderId])
+}
+
+// Residents follow a chef to get a push when that chef publishes a new menu.
+model ChefFollow {
+  id         String   @id @default(cuid())
+  chefId     String
+  chef       Resident @relation("ChefFollowers", fields: [chefId], references: [id], onDelete: Cascade)
+  followerId String
+  follower   Resident @relation("ChefFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([chefId, followerId])
+  @@index([chefId])
+  @@index([followerId])
+}
+
+// ─── End Community Food Ordering ────────────────────────────────────────────

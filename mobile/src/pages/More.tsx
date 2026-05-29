@@ -19,6 +19,7 @@ import {
   ShieldCheck,
   Target,
   TrendingUp,
+  UtensilsCrossed,
   Users,
   Video,
   Wrench,
@@ -217,6 +218,12 @@ export default function MorePage() {
           icon={Target}
           title="Habits"
           subtitle="Build routines with an accountability partner"
+        />
+        <Row
+          to="/food"
+          icon={UtensilsCrossed}
+          title="Food"
+          subtitle="Home kitchens — order or sell food"
         />
         <Row
           to="/issues"

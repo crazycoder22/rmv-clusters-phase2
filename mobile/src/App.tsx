@@ -59,6 +59,9 @@ import Calendar from "./pages/Calendar";
 import AdminCalendar from "./pages/AdminCalendar";
 import Habits from "./pages/Habits";
 import HabitDetail from "./pages/HabitDetail";
+import Food from "./pages/Food";
+import FoodMenuDetail from "./pages/FoodMenuDetail";
+import FoodMenuEdit from "./pages/FoodMenuEdit";
 import PushNotificationsMount from "./components/PushNotificationsMount";
 import StepSyncMount from "./components/StepSyncMount";
 
@@ -155,6 +158,10 @@ function Gate() {
           <Route path="/admin/calendar" element={<AdminCalendar />} />
           <Route path="/habits" element={<Habits />} />
           <Route path="/habits/:id" element={<HabitDetail />} />
+          <Route path="/food" element={<Food />} />
+          <Route path="/food/menus/new" element={<FoodMenuEdit />} />
+          <Route path="/food/menus/:id/edit" element={<FoodMenuEdit />} />
+          <Route path="/food/menus/:id" element={<FoodMenuDetail />} />
         </Routes>
       </Shell>
     </HashRouter>
