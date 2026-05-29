@@ -70,3 +70,22 @@ prisma/dev.db-journal
 /mobile/android/keystore.properties
 /mobile/android/**/*.keystore
 /mobile/android/**/*.jks
+
+# ─── Local data dumps — resident PII, NEVER commit ──────────────────────────
+# Root-level spreadsheets / CSV exports + scratch DB used during ops work.
+/*.csv
+/*.xlsx
+/*.xls
+/dev.db
+/dev.db-journal
+/photos/
+/SVB-QR.jpeg
+/rmv-side-view.webp
+
+# Stray root-level Capacitor init — the real app lives in /mobile.
+/ios/
+
+# Local editor / agent tooling
+/.claude/
+/.vscode/
+/.idea/
