@@ -31,6 +31,13 @@ export async function GET(
 
   const isChef = menu.chefId === me.id;
 
+  // Whether the caller (a buyer) follows this chef — drives the Follow toggle.
+  const following = isChef
+    ? false
+    : (await prisma.chefFollow.count({
+        where: { chefId: menu.chefId, followerId: me.id },
+      })) > 0;
+
   // Orders — scoped by role.
   const orders = await prisma.foodOrder.findMany({
     where: isChef ? { menuId: id } : { menuId: id, buyerId: me.id },
@@ -61,6 +68,7 @@ export async function GET(
       // Phone only exposed to buyers so they can coordinate pickup/payment.
       phone: isChef ? null : menu.chef.phone,
       isMe: isChef,
+      following,
     },
     items: menu.items.map((it) => ({
       id: it.id,

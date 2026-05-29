@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
+  Bell,
+  BellOff,
   ChefHat,
   Clock,
   Loader2,
@@ -56,7 +58,7 @@ interface MenuDetail {
   status: "OPEN" | "CLOSED" | "ARCHIVED";
   orderable: boolean;
   role: "chef" | "buyer";
-  chef: { id: string; name: string; block: number; flatNumber: string; phone: string | null; isMe: boolean };
+  chef: { id: string; name: string; block: number; flatNumber: string; phone: string | null; isMe: boolean; following: boolean };
   items: Dish[];
   orders: Order[];
 }
@@ -75,6 +77,7 @@ export default function FoodMenuDetail() {
   const [note, setNote] = useState("");
   const [placing, setPlacing] = useState(false);
   const [busyOrderId, setBusyOrderId] = useState<string | null>(null);
+  const [followBusy, setFollowBusy] = useState(false);
 
   const refresh = useCallback(async () => {
     try {
@@ -154,6 +157,28 @@ export default function FoodMenuDetail() {
       if (res.ok) await refresh();
     } finally {
       setBusyOrderId(null);
+    }
+  }
+
+  async function toggleFollow() {
+    if (!menu) return;
+    setFollowBusy(true);
+    const next = !menu.chef.following;
+    // optimistic
+    setMenu((m) => (m ? { ...m, chef: { ...m.chef, following: next } } : m));
+    try {
+      const res = await apiFetch(`/api/food/chefs/${menu.chef.id}/follow`, {
+        method: next ? "POST" : "DELETE",
+        token,
+      });
+      if (!res.ok) {
+        // revert on failure
+        setMenu((m) => (m ? { ...m, chef: { ...m.chef, following: !next } } : m));
+      }
+    } catch {
+      setMenu((m) => (m ? { ...m, chef: { ...m.chef, following: !next } } : m));
+    } finally {
+      setFollowBusy(false);
     }
   }
 
@@ -254,6 +279,33 @@ export default function FoodMenuDetail() {
           </a>
         )}
       </div>
+
+      {/* Follow toggle — buyers can follow a chef to get a push when they
+          publish a new menu. */}
+      {!isChef && (
+        <button
+          type="button"
+          onClick={toggleFollow}
+          disabled={followBusy}
+          className={clsx(
+            "mb-3 inline-flex items-center gap-1.5 self-start rounded-full px-3 py-1.5 text-[12px] font-semibold",
+            menu.chef.following
+              ? "bg-slate-800 text-slate-300 active:bg-slate-700"
+              : "bg-indigo-500 text-white active:bg-indigo-600"
+          )}
+        >
+          {followBusy ? (
+            <Loader2 size={13} className="animate-spin" />
+          ) : menu.chef.following ? (
+            <BellOff size={13} />
+          ) : (
+            <Bell size={13} />
+          )}
+          {menu.chef.following
+            ? `Following ${menu.chef.name.split(" ")[0]}`
+            : `Follow ${menu.chef.name.split(" ")[0]}`}
+        </button>
+      )}
 
       {/* ── CHEF VIEW: status controls + orders ── */}
       {isChef && (

@@ -142,13 +142,17 @@ export async function POST(request: Request) {
     },
   });
 
-  // Push the chef's followers (best-effort).
+  // Push on publish. For launch we broadcast to ALL approved residents
+  // (minus the chef) so the feature gets discovered; once residents start
+  // following their favourite chefs we can narrow this to followers only
+  // (the ChefFollow rows + the per-chef query below are already in place).
+  // Best-effort — never block menu creation on a push failure.
   try {
-    const followers = await prisma.chefFollow.findMany({
-      where: { chefId: me.id },
-      select: { followerId: true },
+    const residents = await prisma.resident.findMany({
+      where: { isApproved: true, id: { not: me.id } },
+      select: { id: true },
     });
-    const ids = followers.map((f) => f.followerId).filter((id) => id !== me.id);
+    const ids = residents.map((r) => r.id);
     if (ids.length > 0) {
       await sendPushToResidents(ids, {
         title: `🍲 ${me.name} published a menu`,
