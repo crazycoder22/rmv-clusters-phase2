@@ -14,9 +14,20 @@
 #
 set -euo pipefail
 
+# ── Load local ship config if present (gitignored) ──────────────────────
+# mobile/.env.ship holds ASC_ISSUER_ID / ASC_KEY_ID so runs are just
+# ./ship-ios.sh. Inline env vars still override the file.
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [ -f "$SCRIPT_DIR/.env.ship" ]; then
+  set -a
+  # shellcheck disable=SC1091
+  . "$SCRIPT_DIR/.env.ship"
+  set +a
+fi
+
 # ── Config ──────────────────────────────────────────────────────────────
 KEY_ID="${ASC_KEY_ID:-ZWFX559R2K}"
-ISSUER_ID="${ASC_ISSUER_ID:?Set ASC_ISSUER_ID to your App Store Connect API issuer UUID}"
+ISSUER_ID="${ASC_ISSUER_ID:?Set ASC_ISSUER_ID (env or mobile/.env.ship)}"
 P8_PATH="$HOME/.appstoreconnect/private_keys/AuthKey_${KEY_ID}.p8"
 
 MOBILE_DIR="$(cd "$(dirname "$0")" && pwd)"
