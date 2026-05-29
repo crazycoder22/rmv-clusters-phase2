@@ -148,6 +148,14 @@ export default function EventDashboardPage({
         {eventSummary && (
           <p className="text-gray-500 text-sm">{eventSummary}</p>
         )}
+        {hasStepTracking && (
+          <Link
+            href={`/steps/${id}`}
+            className="inline-flex items-center gap-1.5 mt-3 bg-primary-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-primary-700"
+          >
+            🏃 Enter my steps
+          </Link>
+        )}
       </div>
 
       {/* Summary Cards */}

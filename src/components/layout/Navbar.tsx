@@ -46,6 +46,7 @@ const publicPaths = ["/", "/contact", "/videos", "/surveys", "/faq"];
 const topLevelLinks: NavLink[] = [
   { href: "/news", label: "News" },
   { href: "/calendar", label: "Calendar" },
+  { href: "/habits", label: "Habits" },
 ];
 
 // Grouped dropdown links
