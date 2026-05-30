@@ -154,6 +154,10 @@ function Gate() {
           <Route path="/steps/:id" element={<StepEventDetail />} />
           <Route path="/steps/:id/leaderboard" element={<StepLeaderboard />} />
           <Route path="/my-steps" element={<MySteps />} />
+        <Route path="/parking" element={<Parking />} />
+        <Route path="/parking/slots/new" element={<ParkingSlotEdit />} />
+        <Route path="/parking/slots/:id/edit" element={<ParkingSlotEdit />} />
+        <Route path="/parking/:id" element={<ParkingSlotDetail />} />
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/admin/calendar" element={<AdminCalendar />} />
           <Route path="/habits" element={<Habits />} />
