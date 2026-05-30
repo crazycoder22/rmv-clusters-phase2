@@ -102,6 +102,8 @@ model Resident {
   initiativesAuthored      Initiative[]            @relation("InitiativesAuthored")
   initiativeComments       InitiativeComment[]     @relation("InitiativeCommentsAuthored")
   initiativeCommentLikes   InitiativeCommentLike[] @relation("InitiativeCommentLikes")
+  referendumsAuthored      Referendum[]            @relation("ReferendumsAuthored")
+  referendumBallots        ReferendumBallot[]      @relation("ReferendumBallotsCast")
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 }
@@ -1947,4 +1949,66 @@ model InitiativeCommentLike {
   @@unique([commentId, residentId])
   @@index([commentId])
   @@map("initiative_comment_likes")
+}
+
+// ── Referendum (binding, secret-ballot, one-flat-one-vote) ───────────────────
+
+enum ReferendumStatus {
+  OPEN
+  CLOSED
+}
+
+enum ReferendumEligibility {
+  OWNERS_ONLY
+  ALL_RESIDENTS
+}
+
+model Referendum {
+  id          String                @id @default(cuid())
+  authorId    String
+  author      Resident              @relation("ReferendumsAuthored", fields: [authorId], references: [id], onDelete: Cascade)
+  title       String
+  body        String
+  imageUrl    String?
+  eligibility ReferendumEligibility @default(ALL_RESIDENTS)
+  status      ReferendumStatus      @default(OPEN)
+  closesAt    DateTime
+  closedAt    DateTime?
+  closedById  String?
+  options     ReferendumOption[]
+  ballots     ReferendumBallot[]
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+
+  @@index([status, createdAt])
+  @@index([authorId])
+  @@map("referendums")
+}
+
+model ReferendumOption {
+  id           String     @id @default(cuid())
+  referendumId String
+  referendum   Referendum @relation(fields: [referendumId], references: [id], onDelete: Cascade)
+  text         String
+  sortOrder    Int        @default(0)
+  voteCount    Int        @default(0)
+  createdAt    DateTime   @default(now())
+
+  @@index([referendumId])
+  @@map("referendum_options")
+}
+
+model ReferendumBallot {
+  id           String     @id @default(cuid())
+  referendumId String
+  referendum   Referendum @relation(fields: [referendumId], references: [id], onDelete: Cascade)
+  residentId   String
+  resident     Resident   @relation("ReferendumBallotsCast", fields: [residentId], references: [id], onDelete: Cascade)
+  block        Int
+  flatNumber   String
+  createdAt    DateTime   @default(now())
+
+  @@unique([referendumId, block, flatNumber])
+  @@index([referendumId])
+  @@map("referendum_ballots")
 }

@@ -9,6 +9,7 @@ export type AuthedResident = {
   phone: string;
   block: number;
   flatNumber: string;
+  residentType: string;
   isApproved: boolean;
   roles: string[];
 };
@@ -39,6 +40,7 @@ export async function getAuthedResident(
           phone: true,
           block: true,
           flatNumber: true,
+          residentType: true,
           isApproved: true,
           roles: { select: { name: true } },
         },
@@ -51,6 +53,7 @@ export async function getAuthedResident(
         phone: resident.phone,
         block: resident.block,
         flatNumber: resident.flatNumber,
+        residentType: resident.residentType,
         isApproved: resident.isApproved,
         roles: resident.roles.map((r) => r.name),
       };
@@ -71,6 +74,7 @@ export async function getAuthedResident(
       phone: true,
       block: true,
       flatNumber: true,
+      residentType: true,
       isApproved: true,
       roles: { select: { name: true } },
     },
@@ -83,6 +87,7 @@ export async function getAuthedResident(
     phone: resident.phone,
     block: resident.block,
     flatNumber: resident.flatNumber,
+    residentType: resident.residentType,
     isApproved: resident.isApproved,
     roles: resident.roles.map((r) => r.name),
   };
