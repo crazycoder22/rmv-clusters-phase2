@@ -65,6 +65,9 @@ import FoodMenuEdit from "./pages/FoodMenuEdit";
 import Parking from "./pages/Parking";
 import ParkingSlotDetail from "./pages/ParkingSlotDetail";
 import ParkingSlotEdit from "./pages/ParkingSlotEdit";
+import Initiatives from "./pages/Initiatives";
+import InitiativeDetail from "./pages/InitiativeDetail";
+import InitiativeForm from "./pages/InitiativeForm";
 import PushNotificationsMount from "./components/PushNotificationsMount";
 import StepSyncMount from "./components/StepSyncMount";
 
@@ -169,6 +172,10 @@ function Gate() {
           <Route path="/food/menus/new" element={<FoodMenuEdit />} />
           <Route path="/food/menus/:id/edit" element={<FoodMenuEdit />} />
           <Route path="/food/menus/:id" element={<FoodMenuDetail />} />
+          <Route path="/initiatives" element={<Initiatives />} />
+          <Route path="/initiatives/new" element={<InitiativeForm />} />
+          <Route path="/initiatives/:id/edit" element={<InitiativeForm />} />
+          <Route path="/initiatives/:id" element={<InitiativeDetail />} />
         </Routes>
       </Shell>
     </HashRouter>

@@ -232,6 +232,12 @@ export default function MorePage() {
           subtitle="Book a neighbour's slot by the hour"
         />
         <Row
+          to="/initiatives"
+          icon={Megaphone}
+          title="Initiatives"
+          subtitle="Share feedback on community initiatives"
+        />
+        <Row
           to="/issues"
           icon={Wrench}
           title="Issues"
