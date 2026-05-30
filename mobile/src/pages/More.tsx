@@ -24,6 +24,7 @@ import {
   Video,
   Vote,
   Wrench,
+  ListChecks,
   type LucideIcon,
 } from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
@@ -243,6 +244,12 @@ export default function MorePage() {
           icon={Vote}
           title="Referendums"
           subtitle="Vote on community decisions"
+        />
+        <Row
+          to="/duties"
+          icon={ListChecks}
+          title="My duties"
+          subtitle="Your daily duty checklist"
         />
         <Row
           to="/issues"

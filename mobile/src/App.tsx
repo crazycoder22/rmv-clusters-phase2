@@ -71,6 +71,7 @@ import InitiativeForm from "./pages/InitiativeForm";
 import Referendums from "./pages/Referendums";
 import ReferendumDetail from "./pages/ReferendumDetail";
 import ReferendumForm from "./pages/ReferendumForm";
+import Duties from "./pages/Duties";
 import PushNotificationsMount from "./components/PushNotificationsMount";
 import StepSyncMount from "./components/StepSyncMount";
 
@@ -183,6 +184,7 @@ function Gate() {
           <Route path="/referendums/new" element={<ReferendumForm />} />
           <Route path="/referendums/:id/edit" element={<ReferendumForm />} />
           <Route path="/referendums/:id" element={<ReferendumDetail />} />
+          <Route path="/duties" element={<Duties />} />
         </Routes>
       </Shell>
     </HashRouter>
