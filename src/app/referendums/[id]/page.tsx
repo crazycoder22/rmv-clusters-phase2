@@ -6,8 +6,15 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft, Vote, Lock, CheckCircle2, Users, Trophy, ShieldAlert,
-  Trash2, Pencil, X,
+  Trash2, Pencil, X, ChevronDown, ChevronUp, Clock,
 } from "lucide-react";
+
+interface Roster {
+  voted: { name: string; block: number | null; flatNumber: string; votedAt: string }[];
+  pending: { block: number | null; flatNumber: string; residents: string[] }[];
+  votedCount: number;
+  pendingCount: number;
+}
 
 interface Option {
   id: string;
@@ -48,6 +55,22 @@ export default function ReferendumDetailPage() {
   const [selected, setSelected] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [roster, setRoster] = useState<Roster | null>(null);
+  const [rosterOpen, setRosterOpen] = useState(false);
+  const [rosterLoading, setRosterLoading] = useState(false);
+
+  async function toggleRoster() {
+    if (rosterOpen) { setRosterOpen(false); return; }
+    setRosterOpen(true);
+    if (roster) return;
+    setRosterLoading(true);
+    try {
+      const res = await fetch(`/api/referendums/${id}/voters`);
+      if (res.ok) setRoster(await res.json());
+    } finally {
+      setRosterLoading(false);
+    }
+  }
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -160,6 +183,67 @@ export default function ReferendumDetailPage() {
           <Users size={14} /> {data.turnout} of {data.eligibleFlats} eligible flats voted
           {data.eligibleFlats > 0 && ` · ${Math.round((data.turnout / data.eligibleFlats) * 100)}%`}
         </div>
+
+        {/* Committee-only voter roster (who has voted — never the choice) */}
+        {data.canManage && (
+          <div className="mt-3">
+            <button
+              type="button"
+              onClick={toggleRoster}
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700"
+            >
+              <Users size={14} /> Who has voted
+              {rosterOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+            </button>
+            {rosterOpen && (
+              <div className="mt-2 bg-white border border-gray-200 rounded-lg p-4">
+                <p className="text-xs text-gray-400 mb-3">
+                  Committee view. Shows which flats have voted — never how they voted.
+                </p>
+                {rosterLoading || !roster ? (
+                  <div className="flex justify-center py-4"><div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600" /></div>
+                ) : (
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-2">
+                        Voted ({roster.votedCount})
+                      </h4>
+                      {roster.voted.length === 0 ? (
+                        <p className="text-sm text-gray-400">No one yet.</p>
+                      ) : (
+                        <ul className="space-y-1.5 max-h-72 overflow-y-auto">
+                          {roster.voted.map((v, i) => (
+                            <li key={i} className="flex items-center justify-between text-sm">
+                              <span className="text-gray-800"><CheckCircle2 size={12} className="inline text-green-600 mr-1" />{v.name}</span>
+                              <span className="text-xs text-gray-400">B{v.block ?? "—"}, {v.flatNumber} · {fmtDateTime(v.votedAt)}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2">
+                        Not yet voted ({roster.pendingCount} flats)
+                      </h4>
+                      {roster.pending.length === 0 ? (
+                        <p className="text-sm text-gray-400">Every eligible flat has voted. 🎉</p>
+                      ) : (
+                        <ul className="space-y-1.5 max-h-72 overflow-y-auto">
+                          {roster.pending.map((p, i) => (
+                            <li key={i} className="flex items-center justify-between text-sm">
+                              <span className="text-gray-600"><Clock size={12} className="inline text-amber-500 mr-1" />{p.residents.join(", ")}</span>
+                              <span className="text-xs text-gray-400">B{p.block ?? "—"}, {p.flatNumber}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* ── State 1: can vote ── */}
         {canVote && (
