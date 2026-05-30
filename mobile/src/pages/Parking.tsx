@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { api } from "../lib/api";
+import { apiFetch } from "../lib/api";
+import { useAuth } from "../auth/AuthProvider";
 import { Car, Plus, MapPin, Clock, IndianRupee } from "lucide-react";
 
 type Tab = "find" | "slots" | "bookings";
@@ -45,6 +46,7 @@ interface OwnerBooking {
 }
 
 export default function Parking() {
+  const { token } = useAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("find");
   const [browse, setBrowse] = useState<SlotCard[]>([]);
@@ -58,20 +60,23 @@ export default function Parking() {
     setLoading(true);
     try {
       const [b, m, bk] = await Promise.all([
-        api<{ slots: SlotCard[] }>("/api/parking/slots"),
-        api<{ slots: SlotCard[] }>("/api/parking/slots?mine=owner"),
-        api<{ asBooker: BookerBooking[]; asOwner: OwnerBooking[] }>("/api/parking/bookings"),
+        apiFetch("/api/parking/slots", { token }),
+        apiFetch("/api/parking/slots?mine=owner", { token }),
+        apiFetch("/api/parking/bookings", { token }),
       ]);
-      setBrowse(b.slots || []);
-      setMine(m.slots || []);
-      setAsBooker(bk.asBooker || []);
-      setAsOwner(bk.asOwner || []);
+      if (b.ok) setBrowse((await b.json()).slots ?? []);
+      if (m.ok) setMine((await m.json()).slots ?? []);
+      if (bk.ok) {
+        const d = await bk.json();
+        setAsBooker(d.asBooker ?? []);
+        setAsOwner(d.asOwner ?? []);
+      }
     } catch {
       // ignore
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     void refresh();
@@ -80,102 +85,100 @@ export default function Parking() {
   async function patchBooking(id: string, action: string) {
     setBusyId(id);
     try {
-      await api(`/api/parking/bookings/${id}`, { method: "PATCH", body: { action } });
-      await refresh();
-    } catch {
-      // ignore
+      const res = await apiFetch(`/api/parking/bookings/${id}`, {
+        method: "PATCH",
+        token,
+        body: JSON.stringify({ action }),
+      });
+      if (res.ok) await refresh();
     } finally {
       setBusyId(null);
     }
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 pb-24">
-      <div className="px-4 padding-safe-top">
-        <div className="flex items-center justify-between pt-4 pb-4">
-          <div className="flex items-center gap-2">
-            <Car className="text-blue-400" size={24} />
-            <h1 className="text-xl font-bold">Parking</h1>
-          </div>
-          {tab === "slots" && (
-            <button
-              onClick={() => navigate("/parking/slots/new")}
-              className="flex items-center gap-1 bg-blue-600 text-white rounded-lg px-3 py-1.5 text-sm font-medium"
-            >
-              <Plus size={15} /> List
-            </button>
-          )}
+    <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)]">
+      <header className="flex items-center justify-between py-4">
+        <div className="flex items-center gap-2">
+          <Car className="text-blue-400" size={22} />
+          <h1 className="text-lg font-semibold text-white">Parking</h1>
         </div>
+        {tab === "slots" && (
+          <button
+            type="button"
+            onClick={() => navigate("/parking/slots/new")}
+            className="flex h-9 items-center gap-1 rounded-full bg-indigo-500 px-3 text-sm font-medium text-white active:bg-indigo-600"
+          >
+            <Plus size={14} /> List
+          </button>
+        )}
+      </header>
 
-        {/* Tabs */}
-        <div className="flex gap-1 bg-slate-900 border border-slate-800 rounded-lg p-1 mb-4">
-          <TabBtn active={tab === "find"} onClick={() => setTab("find")}>Find</TabBtn>
-          <TabBtn active={tab === "slots"} onClick={() => setTab("slots")}>My slots</TabBtn>
-          <TabBtn active={tab === "bookings"} onClick={() => setTab("bookings")}>My bookings</TabBtn>
-        </div>
+      <div className="mb-4 flex rounded-xl bg-slate-800 p-0.5">
+        <TabBtn active={tab === "find"} onClick={() => setTab("find")}>Find</TabBtn>
+        <TabBtn active={tab === "slots"} onClick={() => setTab("slots")}>My slots</TabBtn>
+        <TabBtn active={tab === "bookings"} onClick={() => setTab("bookings")}>My bookings</TabBtn>
       </div>
 
-      <div className="px-4">
-        {loading ? (
-          <div className="flex justify-center py-16">
-            <div className="animate-spin rounded-full h-7 w-7 border-b-2 border-blue-400" />
-          </div>
-        ) : (
-          <>
-            {tab === "find" &&
-              (browse.length === 0 ? (
-                <Empty text="No slots listed right now. Check back later." />
-              ) : (
-                <div className="space-y-3">
-                  {browse.map((s) => <SlotRow key={s.id} slot={s} onClick={() => navigate(`/parking/${s.id}`)} />)}
-                </div>
-              ))}
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <div className="h-7 w-7 animate-spin rounded-full border-b-2 border-blue-400" />
+        </div>
+      ) : (
+        <div className="flex-1 pb-4">
+          {tab === "find" &&
+            (browse.length === 0 ? (
+              <Empty text="No slots listed right now. Check back later." />
+            ) : (
+              <div className="space-y-2">
+                {browse.map((s) => <SlotRow key={s.id} slot={s} onClick={() => navigate(`/parking/${s.id}`)} />)}
+              </div>
+            ))}
 
-            {tab === "slots" &&
-              (mine.length === 0 ? (
-                <Empty text="You haven't listed a slot yet. Tap “List” to share yours." />
-              ) : (
-                <div className="space-y-3">
-                  {mine.map((s) => <SlotRow key={s.id} slot={s} ownerView onClick={() => navigate(`/parking/${s.id}`)} />)}
-                </div>
-              ))}
+          {tab === "slots" &&
+            (mine.length === 0 ? (
+              <Empty text="You haven't listed a slot yet. Tap “List” to share yours." />
+            ) : (
+              <div className="space-y-2">
+                {mine.map((s) => <SlotRow key={s.id} slot={s} ownerView onClick={() => navigate(`/parking/${s.id}`)} />)}
+              </div>
+            ))}
 
-            {tab === "bookings" && (
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Slots I booked</h2>
-                  {asBooker.length === 0 ? (
-                    <Empty text="No bookings yet." />
-                  ) : (
-                    <div className="space-y-3">
-                      {asBooker.map((b) => (
-                        <BookerRow key={b.id} b={b} busy={busyId === b.id}
-                          onOpen={() => navigate(`/parking/${b.slotId}`)}
-                          onPay={() => patchBooking(b.id, "claim_paid")}
-                          onCancel={() => patchBooking(b.id, "cancel")} />
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {asOwner.length > 0 && (
-                  <div>
-                    <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Bookings on my slots</h2>
-                    <div className="space-y-3">
-                      {asOwner.map((b) => (
-                        <OwnerRow key={b.id} b={b} busy={busyId === b.id}
-                          onOpen={() => navigate(`/parking/${b.slotId}`)}
-                          onConfirm={() => patchBooking(b.id, "confirm_paid")}
-                          onCancel={() => patchBooking(b.id, "cancel")} />
-                      ))}
-                    </div>
+          {tab === "bookings" && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Slots I booked</h2>
+                {asBooker.length === 0 ? (
+                  <Empty text="No bookings yet." />
+                ) : (
+                  <div className="space-y-2">
+                    {asBooker.map((b) => (
+                      <BookerRow key={b.id} b={b} busy={busyId === b.id}
+                        onOpen={() => navigate(`/parking/${b.slotId}`)}
+                        onPay={() => patchBooking(b.id, "claim_paid")}
+                        onCancel={() => patchBooking(b.id, "cancel")} />
+                    ))}
                   </div>
                 )}
               </div>
-            )}
-          </>
-        )}
-      </div>
+
+              {asOwner.length > 0 && (
+                <div>
+                  <h2 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Bookings on my slots</h2>
+                  <div className="space-y-2">
+                    {asOwner.map((b) => (
+                      <OwnerRow key={b.id} b={b} busy={busyId === b.id}
+                        onOpen={() => navigate(`/parking/${b.slotId}`)}
+                        onConfirm={() => patchBooking(b.id, "confirm_paid")}
+                        onCancel={() => patchBooking(b.id, "cancel")} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -183,7 +186,7 @@ export default function Parking() {
 function TabBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
     <button onClick={onClick}
-      className={`flex-1 rounded-md py-2 text-sm font-medium ${active ? "bg-blue-600 text-white" : "text-slate-400"}`}>
+      className={`flex-1 rounded-lg py-2 text-[12px] font-medium ${active ? "bg-slate-700 text-white" : "text-slate-400"}`}>
       {children}
     </button>
   );
@@ -191,9 +194,9 @@ function TabBtn({ active, onClick, children }: { active: boolean; onClick: () =>
 
 function SlotRow({ slot, ownerView, onClick }: { slot: SlotCard; ownerView?: boolean; onClick: () => void }) {
   return (
-    <button onClick={onClick} className="w-full text-left bg-slate-900 border border-slate-800 rounded-xl p-4">
+    <button onClick={onClick} className="w-full rounded-2xl border border-slate-700 bg-slate-800/60 p-3 text-left active:bg-slate-800">
       <div className="flex items-start justify-between gap-2">
-        <h3 className="font-semibold">{slot.label}</h3>
+        <h3 className="text-sm font-semibold text-white">{slot.label}</h3>
         {ownerView ? (
           <Badge color={slot.active ? "green" : "slate"}>{slot.active ? "Listed" : "Paused"}</Badge>
         ) : slot.busyNow ? (
@@ -202,11 +205,11 @@ function SlotRow({ slot, ownerView, onClick }: { slot: SlotCard; ownerView?: boo
           <Badge color="green">Free</Badge>
         )}
       </div>
-      {slot.location && <p className="text-sm text-slate-400 mt-1 flex items-center gap-1"><MapPin size={12} /> {slot.location}</p>}
-      <div className="flex items-center gap-3 mt-2 text-sm">
-        <span className="flex items-center font-semibold"><IndianRupee size={13} />{slot.hourlyRate}/hr</span>
-        {!ownerView && <span className="text-xs text-slate-500">{slot.owner.name} · Block {slot.owner.block ?? "—"}</span>}
-        {ownerView && slot.upcomingCount > 0 && <span className="text-xs text-blue-400">{slot.upcomingCount} upcoming</span>}
+      {slot.location && <p className="mt-1 flex items-center gap-1 text-[11px] text-slate-400"><MapPin size={11} /> {slot.location}</p>}
+      <div className="mt-1.5 flex items-center gap-3 text-[12px]">
+        <span className="flex items-center font-semibold text-white"><IndianRupee size={12} />{slot.hourlyRate}/hr</span>
+        {!ownerView && <span className="text-[11px] text-slate-500">{slot.owner.name} · B{slot.owner.block ?? "—"}</span>}
+        {ownerView && slot.upcomingCount > 0 && <span className="text-[11px] text-blue-400">{slot.upcomingCount} upcoming</span>}
       </div>
     </button>
   );
@@ -215,23 +218,21 @@ function SlotRow({ slot, ownerView, onClick }: { slot: SlotCard; ownerView?: boo
 function BookerRow({ b, busy, onOpen, onPay, onCancel }: { b: BookerBooking; busy: boolean; onOpen: () => void; onPay: () => void; onCancel: () => void }) {
   const upcoming = new Date(b.startAt).getTime() > Date.now();
   return (
-    <div className={`bg-slate-900 border border-slate-800 rounded-xl p-4 ${b.status === "CANCELLED" ? "opacity-60" : ""}`}>
+    <div className={`rounded-2xl border border-slate-700 bg-slate-800/60 p-3 ${b.status === "CANCELLED" ? "opacity-60" : ""}`}>
       <div className="flex items-start justify-between gap-2">
-        <button onClick={onOpen} className="font-semibold text-left">{b.slotLabel}</button>
-        <span className="font-bold">₹{b.totalAmount}</span>
+        <button onClick={onOpen} className="text-left text-sm font-semibold text-white active:underline">{b.slotLabel}</button>
+        <span className="text-sm font-bold tabular-nums text-white">₹{b.totalAmount}</span>
       </div>
-      <p className="text-sm text-slate-400 mt-0.5">{fmtRange(b.startAt, b.endAt)}</p>
-      {b.vehicleNumber && <p className="text-xs text-slate-500 mt-0.5">{b.vehicleNumber}</p>}
-      <div className="flex items-center gap-2 mt-3 flex-wrap">
+      <p className="mt-0.5 text-[11px] text-slate-400">{fmtRange(b.startAt, b.endAt)}</p>
+      {b.vehicleNumber && <p className="mt-0.5 text-[10px] text-slate-500">{b.vehicleNumber}</p>}
+      <div className="mt-2 flex flex-wrap items-center gap-1.5">
         <StatusPill status={b.status} />
         {b.status === "BOOKED" && (
-          b.ownerConfirmedPaid ? <span className="text-xs font-semibold text-green-400">Paid ✓ confirmed</span>
-          : b.bookerPaid ? <span className="text-xs font-semibold text-amber-400">Paid — awaiting confirm</span>
-          : <button onClick={onPay} disabled={busy} className="text-xs font-semibold bg-blue-600 text-white rounded-md px-3 py-1">I&apos;ve paid</button>
+          b.ownerConfirmedPaid ? <span className="text-[10px] font-bold text-emerald-300">PAID ✓ confirmed</span>
+          : b.bookerPaid ? <span className="text-[10px] font-bold text-amber-200">PAID — awaiting confirm</span>
+          : <button onClick={onPay} disabled={busy} className="rounded-full bg-indigo-500 px-2.5 py-0.5 text-[10px] font-bold text-white active:bg-indigo-600 disabled:opacity-50">I&apos;ve paid</button>
         )}
-        {b.status === "BOOKED" && upcoming && (
-          <button onClick={onCancel} disabled={busy} className="text-xs font-semibold text-red-400 ml-auto">Cancel</button>
-        )}
+        {b.status === "BOOKED" && upcoming && <button onClick={onCancel} disabled={busy} className="ml-auto text-[10px] font-bold text-red-300">Cancel</button>}
       </div>
     </div>
   );
@@ -239,38 +240,38 @@ function BookerRow({ b, busy, onOpen, onPay, onCancel }: { b: BookerBooking; bus
 
 function OwnerRow({ b, busy, onOpen, onConfirm, onCancel }: { b: OwnerBooking; busy: boolean; onOpen: () => void; onConfirm: () => void; onCancel: () => void }) {
   return (
-    <div className={`bg-slate-900 border border-slate-800 rounded-xl p-4 ${b.status === "CANCELLED" ? "opacity-60" : ""}`}>
+    <div className={`rounded-2xl border border-slate-700 bg-slate-800/60 p-3 ${b.status === "CANCELLED" ? "opacity-60" : ""}`}>
       <div className="flex items-start justify-between gap-2">
-        <button onClick={onOpen} className="font-semibold text-left">{b.slotLabel}</button>
-        <span className="font-bold">₹{b.totalAmount}</span>
+        <button onClick={onOpen} className="text-left text-sm font-semibold text-white active:underline">{b.slotLabel}</button>
+        <span className="text-sm font-bold tabular-nums text-white">₹{b.totalAmount}</span>
       </div>
-      <p className="text-sm text-slate-400 mt-0.5">{fmtRange(b.startAt, b.endAt)}</p>
-      <p className="text-xs text-slate-500 mt-0.5">{b.booker.name} · Block {b.booker.block ?? "—"}, {b.booker.flatNumber}{b.vehicleNumber ? ` · ${b.vehicleNumber}` : ""}</p>
-      <div className="flex items-center gap-2 mt-3 flex-wrap">
+      <p className="mt-0.5 text-[11px] text-slate-400">{fmtRange(b.startAt, b.endAt)}</p>
+      <p className="mt-0.5 text-[10px] text-slate-500">{b.booker.name} · B{b.booker.block ?? "—"}, {b.booker.flatNumber}{b.vehicleNumber ? ` · ${b.vehicleNumber}` : ""}</p>
+      <div className="mt-2 flex flex-wrap items-center gap-1.5">
         <StatusPill status={b.status} />
         {b.status === "BOOKED" && (
-          b.ownerConfirmedPaid ? <span className="text-xs font-semibold text-green-400">Payment confirmed</span>
-          : <button onClick={onConfirm} disabled={busy} className="text-xs font-semibold bg-green-600 text-white rounded-md px-3 py-1">{b.bookerPaid ? "Confirm payment" : "Mark received"}</button>
+          b.ownerConfirmedPaid ? <span className="text-[10px] font-bold text-emerald-300">Payment confirmed</span>
+          : <button onClick={onConfirm} disabled={busy} className="rounded-full bg-emerald-500 px-2.5 py-0.5 text-[10px] font-bold text-white active:bg-emerald-600 disabled:opacity-50">{b.bookerPaid ? "Confirm payment" : "Mark received"}</button>
         )}
-        {b.status === "BOOKED" && <button onClick={onCancel} disabled={busy} className="text-xs font-semibold text-red-400 ml-auto">Cancel</button>}
+        {b.status === "BOOKED" && <button onClick={onCancel} disabled={busy} className="ml-auto text-[10px] font-bold text-red-300">Cancel</button>}
       </div>
     </div>
   );
 }
 
 function Badge({ color, children }: { color: "green" | "amber" | "slate"; children: React.ReactNode }) {
-  const cls = color === "green" ? "text-green-300 bg-green-500/15" : color === "amber" ? "text-amber-300 bg-amber-500/15" : "text-slate-300 bg-slate-700/40";
-  return <span className={`shrink-0 text-xs font-semibold rounded-full px-2 py-0.5 ${cls}`}>{children}</span>;
+  const cls = color === "green" ? "text-emerald-300 bg-emerald-500/20" : color === "amber" ? "text-amber-200 bg-amber-500/20" : "text-slate-300 bg-slate-700";
+  return <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold ${cls}`}>{children}</span>;
 }
 function StatusPill({ status }: { status: string }) {
-  const cls = status === "CANCELLED" ? "text-red-300 bg-red-500/15" : status === "COMPLETED" ? "text-slate-300 bg-slate-700/40" : "text-green-300 bg-green-500/15";
-  return <span className={`text-xs font-semibold rounded-full px-2 py-0.5 ${cls}`}>{status === "BOOKED" ? "Booked" : status === "CANCELLED" ? "Cancelled" : "Done"}</span>;
+  const cls = status === "CANCELLED" ? "bg-red-500/20 text-red-300" : status === "COMPLETED" ? "bg-slate-700 text-slate-300" : "bg-emerald-500/20 text-emerald-300";
+  return <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${cls}`}>{status === "BOOKED" ? "BOOKED" : status}</span>;
 }
 function Empty({ text }: { text: string }) {
   return (
-    <div className="bg-slate-900 border border-dashed border-slate-700 rounded-xl py-12 text-center text-slate-500">
-      <Clock size={28} className="mx-auto mb-2 text-slate-700" />
-      <p className="text-sm px-6">{text}</p>
+    <div className="rounded-2xl border border-dashed border-slate-700 px-4 py-10 text-center text-sm text-slate-500">
+      <Clock size={26} className="mx-auto mb-2 text-slate-600" />
+      {text}
     </div>
   );
 }

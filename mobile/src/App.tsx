@@ -62,6 +62,9 @@ import HabitDetail from "./pages/HabitDetail";
 import Food from "./pages/Food";
 import FoodMenuDetail from "./pages/FoodMenuDetail";
 import FoodMenuEdit from "./pages/FoodMenuEdit";
+import Parking from "./pages/Parking";
+import ParkingSlotDetail from "./pages/ParkingSlotDetail";
+import ParkingSlotEdit from "./pages/ParkingSlotEdit";
 import PushNotificationsMount from "./components/PushNotificationsMount";
 import StepSyncMount from "./components/StepSyncMount";
 

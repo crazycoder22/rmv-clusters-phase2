@@ -226,6 +226,12 @@ export default function MorePage() {
           subtitle="Home kitchens — order or sell food"
         />
         <Row
+          to="/parking"
+          icon={Car}
+          title="Parking"
+          subtitle="Book a neighbour's slot by the hour"
+        />
+        <Row
           to="/issues"
           icon={Wrench}
           title="Issues"
