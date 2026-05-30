@@ -1730,6 +1730,73 @@ enum FoodOrderStatus {
   CANCELLED
 }
 
+// ── Parking (temporary slot sharing) ─────────────────────────────────────────
+
+enum ParkingBookingStatus {
+  BOOKED
+  CANCELLED
+  COMPLETED
+}
+
+model ParkingSlot {
+  id          String   @id @default(cuid())
+  ownerId     String
+  owner       Resident @relation("ParkingSlotsOwned", fields: [ownerId], references: [id], onDelete: Cascade)
+  label       String                       // e.g. "Basement P2 - 45" or "Block A, Slot 12"
+  location    String?                      // human directions / landmark
+  description String?                      // notes: "compact cars only", etc.
+  hourlyRate  Float                        // ₹ per hour
+  payInfo     String?                      // owner's UPI id / phone for payment
+  payQrUrl    String?                      // uploaded UPI QR image
+  active      Boolean  @default(true)      // owner can pause the listing
+  bookings    ParkingBooking[]
+  blocks      ParkingBlock[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([ownerId])
+  @@map("parking_slots")
+}
+
+model ParkingBooking {
+  id                   String               @id @default(cuid())
+  slotId               String
+  slot                 ParkingSlot          @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  bookerId             String
+  booker               Resident             @relation("ParkingBookingsByBooker", fields: [bookerId], references: [id])
+  startAt              DateTime
+  endAt                DateTime
+  vehicleNumber        String?              // the car using the slot
+  note                 String?
+  status               ParkingBookingStatus @default(BOOKED)
+  hourlyRateSnapshot   Float                // rate captured at booking time
+  totalAmount          Float                // rate × hours, snapshot
+  bookerPaid           Boolean              @default(false)
+  bookerPaidAt         DateTime?
+  ownerConfirmedPaid   Boolean              @default(false)
+  ownerConfirmedPaidAt DateTime?
+  cancelledBy          String?              // "booker" | "owner"
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+
+  @@index([slotId, startAt])
+  @@index([bookerId])
+  @@map("parking_bookings")
+}
+
+model ParkingBlock {
+  id        String      @id @default(cuid())
+  slotId    String
+  slot      ParkingSlot @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  startAt   DateTime
+  endAt     DateTime
+  reason    String?
+  createdAt DateTime    @default(now())
+
+  @@index([slotId, startAt])
+  @@map("parking_blocks")
+}
+
 model FoodMenu {
   id          String         @id @default(cuid())
   chefId      String
