@@ -89,6 +89,18 @@ export async function initPushNotifications(
           } else if (type === "post" && data?.id) {
             // Comment on the resident's community post → open that post.
             navigate(`/community/${data.id}`);
+          } else if (type === "initiative") {
+            navigate(data?.id ? `/initiatives/${data.id}` : "/initiatives");
+          } else if (type === "referendum") {
+            navigate(data?.id ? `/referendums/${data.id}` : "/referendums");
+          } else if (
+            type === "parking_booked" ||
+            type === "parking_payment" ||
+            type === "parking_cancelled"
+          ) {
+            navigate(data?.id ? `/parking/${data.id}` : "/parking");
+          } else if (type === "duty") {
+            navigate("/duties");
           } else {
             navigate("/");
           }
