@@ -41,12 +41,19 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const only = searchParams.get("job");
 
-  const ctx = { todayYmd: istTodayYmd(), now: new Date() };
-  const jobs = only ? DAILY_JOBS.filter((j) => j.id === only) : DAILY_JOBS;
+  // Which reminder wave? The morning cron passes ?wave=MORNING; the original
+  // evening cron has no param → defaults to EVENING, so existing jobs keep
+  // their once-a-day behaviour untouched.
+  const wave = searchParams.get("wave") === "MORNING" ? "MORNING" : "EVENING";
+
+  const ctx = { todayYmd: istTodayYmd(), now: new Date(), wave } as const;
+  // Run jobs scheduled for this wave (absent waves ⇒ EVENING only).
+  const waveJobs = DAILY_JOBS.filter((j) => (j.waves ?? ["EVENING"]).includes(wave));
+  const jobs = only ? waveJobs.filter((j) => j.id === only) : waveJobs;
 
   if (only && jobs.length === 0) {
     return NextResponse.json(
-      { error: `No job with id "${only}"`, available: DAILY_JOBS.map((j) => j.id) },
+      { error: `No job with id "${only}" for wave ${wave}`, available: DAILY_JOBS.map((j) => j.id) },
       { status: 404 }
     );
   }
@@ -70,6 +77,7 @@ export async function GET(request: Request) {
   return NextResponse.json({
     ranAt: ctx.now.toISOString(),
     today: ctx.todayYmd,
+    wave,
     trigger,
     results,
   });

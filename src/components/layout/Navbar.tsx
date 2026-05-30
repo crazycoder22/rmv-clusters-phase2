@@ -345,6 +345,14 @@ export default function Navbar() {
       match: (p) => p.startsWith("/admin/checklist"),
     });
   }
+  if (canAccessTasks(roles)) {
+    taskLinks.push({
+      href: "/admin/duties",
+      label: "Staff Duties",
+      match: (p) => p.startsWith("/admin/duties"),
+    });
+    taskLinks.push({ href: "/duties", label: "My Duties", match: "/duties" });
+  }
   if (canManageDocuments(roles)) {
     taskLinks.push({
       href: "/admin/documents",

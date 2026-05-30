@@ -104,6 +104,9 @@ model Resident {
   initiativeCommentLikes   InitiativeCommentLike[] @relation("InitiativeCommentLikes")
   referendumsAuthored      Referendum[]            @relation("ReferendumsAuthored")
   referendumBallots        ReferendumBallot[]      @relation("ReferendumBallotsCast")
+  dutyChecklistsCreated    DutyChecklist[]         @relation("DutyChecklistsCreated")
+  dutyChecklistsOwned      DutyChecklistOwner[]    @relation("DutyChecklistsOwned")
+  dutyCompletions          DutyCompletion[]        @relation("DutyCompletions")
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 }
@@ -2011,4 +2014,68 @@ model ReferendumBallot {
   @@unique([referendumId, block, flatNumber])
   @@index([referendumId])
   @@map("referendum_ballots")
+}
+
+// ── Duty Checklist Tracker (recurring daily staff duties + reminders) ─────────
+
+enum DutyReminderWave {
+  MORNING
+  EVENING
+}
+
+model DutyChecklist {
+  id           String               @id @default(cuid())
+  title        String
+  description  String?
+  reminderWave DutyReminderWave     @default(MORNING)
+  active       Boolean              @default(true)
+  createdById  String
+  createdBy    Resident             @relation("DutyChecklistsCreated", fields: [createdById], references: [id], onDelete: Cascade)
+  items        DutyChecklistItem[]
+  owners       DutyChecklistOwner[]
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  @@index([active])
+  @@map("duty_checklists")
+}
+
+model DutyChecklistItem {
+  id          String           @id @default(cuid())
+  checklistId String
+  checklist   DutyChecklist    @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+  title       String
+  sortOrder   Int              @default(0)
+  active      Boolean          @default(true)
+  completions DutyCompletion[]
+  createdAt   DateTime         @default(now())
+
+  @@index([checklistId])
+  @@map("duty_checklist_items")
+}
+
+model DutyChecklistOwner {
+  id          String        @id @default(cuid())
+  checklistId String
+  checklist   DutyChecklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+  residentId  String
+  resident    Resident      @relation("DutyChecklistsOwned", fields: [residentId], references: [id], onDelete: Cascade)
+
+  @@unique([checklistId, residentId])
+  @@index([residentId])
+  @@map("duty_checklist_owners")
+}
+
+model DutyCompletion {
+  id         String            @id @default(cuid())
+  itemId     String
+  item       DutyChecklistItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  date       String
+  residentId String
+  resident   Resident          @relation("DutyCompletions", fields: [residentId], references: [id], onDelete: Cascade)
+  createdAt  DateTime          @default(now())
+
+  @@unique([itemId, date])
+  @@index([itemId, date])
+  @@map("duty_completions")
 }
