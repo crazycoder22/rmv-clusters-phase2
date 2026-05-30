@@ -99,6 +99,9 @@ model Resident {
   chefFollowing            ChefFollow[]     @relation("ChefFollowing")
   parkingSlotsOwned     ParkingSlot[]    @relation("ParkingSlotsOwned")
   parkingBookings       ParkingBooking[] @relation("ParkingBookingsByBooker")
+  initiativesAuthored      Initiative[]            @relation("InitiativesAuthored")
+  initiativeComments       InitiativeComment[]     @relation("InitiativeCommentsAuthored")
+  initiativeCommentLikes   InitiativeCommentLike[] @relation("InitiativeCommentLikes")
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 }
@@ -1887,3 +1890,61 @@ model ChefFollow {
 }
 
 // ─── End Community Food Ordering ────────────────────────────────────────────
+
+// ── Initiatives (structured, time-bound community feedback) ───────────────────
+
+enum InitiativeStatus {
+  OPEN
+  CLOSED
+  ARCHIVED
+}
+
+model Initiative {
+  id              String              @id @default(cuid())
+  authorId        String
+  author          Resident            @relation("InitiativesAuthored", fields: [authorId], references: [id], onDelete: Cascade)
+  title           String
+  body            String
+  imageUrl        String?
+  status          InitiativeStatus    @default(OPEN)
+  commentsCloseAt DateTime
+  comments        InitiativeComment[]
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@index([status, createdAt])
+  @@index([authorId])
+  @@map("initiatives")
+}
+
+model InitiativeComment {
+  id           String                  @id @default(cuid())
+  initiativeId String
+  initiative   Initiative              @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
+  authorId     String
+  author       Resident                @relation("InitiativeCommentsAuthored", fields: [authorId], references: [id], onDelete: Cascade)
+  parentId     String?
+  parent       InitiativeComment?      @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies      InitiativeComment[]     @relation("CommentReplies")
+  content      String
+  isOfficial   Boolean                 @default(false)
+  likes        InitiativeCommentLike[]
+  createdAt    DateTime                @default(now())
+
+  @@index([initiativeId, parentId])
+  @@index([parentId])
+  @@map("initiative_comments")
+}
+
+model InitiativeCommentLike {
+  id         String            @id @default(cuid())
+  commentId  String
+  comment    InitiativeComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  residentId String
+  resident   Resident          @relation("InitiativeCommentLikes", fields: [residentId], references: [id], onDelete: Cascade)
+  createdAt  DateTime          @default(now())
+
+  @@unique([commentId, residentId])
+  @@index([commentId])
+  @@map("initiative_comment_likes")
+}
