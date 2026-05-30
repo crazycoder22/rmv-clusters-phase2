@@ -22,6 +22,7 @@ import {
   UtensilsCrossed,
   Users,
   Video,
+  Vote,
   Wrench,
   type LucideIcon,
 } from "lucide-react";
@@ -236,6 +237,12 @@ export default function MorePage() {
           icon={Megaphone}
           title="Initiatives"
           subtitle="Share feedback on community initiatives"
+        />
+        <Row
+          to="/referendums"
+          icon={Vote}
+          title="Referendums"
+          subtitle="Vote on community decisions"
         />
         <Row
           to="/issues"
