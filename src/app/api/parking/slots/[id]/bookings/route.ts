@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthedResident } from "@/lib/api-auth";
-import { prisma } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 import { sendPushToResidents } from "@/lib/push";
 import { validateWindow, computePrice, formatDuration } from "@/lib/parking";
 

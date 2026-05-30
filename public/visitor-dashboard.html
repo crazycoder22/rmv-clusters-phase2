@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RMV Visitor Security Report — Apr 13–19, 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;0,9..144,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<style>
+  :root {
+    --bg:        #fafaf9;
+    --card:      #ffffff;
+    --border:    #e7e5e4;
+    --border-2:  #d6d3d1;
+    --ink:       #1c1917;
+    --ink-2:     #44403c;
+    --mute:      #78716c;
+    --mute-2:    #a8a29e;
+    --blk1:      #3b82f6;   /* blue  */
+    --blk2:      #8b5cf6;   /* violet */
+    --blk3:      #db2777;   /* pink – worst block */
+    --blk4:      #f97316;   /* orange */
+    --red:       #dc2626;
+    --red-soft:  #fee2e2;
+    --green:     #059669;
+    --green-soft:#d1fae5;
+    --amber:     #d97706;
+    --gold:      #b45309;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  .page { max-width: 1280px; margin: 0 auto; padding: 48px 40px 80px; }
+
+  /* ═══ Header ═══ */
+  header.masthead {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    border-bottom: 3px solid var(--ink);
+    padding-bottom: 18px; margin-bottom: 40px;
+  }
+  .brand {
+    font-family: 'Fraunces', serif;
+    font-weight: 800;
+    font-size: 36px;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .brand span { color: var(--red); }
+  .dateline {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--mute);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* ═══ Slide card ═══ */
+  .slide {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 36px 40px 40px;
+    margin-bottom: 32px;
+    box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 2px 6px rgba(0,0,0,.03);
+    break-inside: avoid;
+  }
+  .slide.hero {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #f8fafc;
+    border-color: #0f172a;
+  }
+  .slide.hero .eyebrow { color: #fbbf24; }
+  .slide.hero .headline { color: #f8fafc; }
+  .slide.hero .sub      { color: #cbd5e1; }
+
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--red);
+    font-weight: 500;
+    margin-bottom: 10px;
+  }
+  .headline {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 32px;
+    letter-spacing: -0.015em;
+    line-height: 1.15;
+    margin: 0 0 12px 0;
+    color: var(--ink);
+  }
+  .headline em {
+    font-style: italic;
+    color: var(--red);
+  }
+  .sub {
+    font-size: 16px;
+    color: var(--ink-2);
+    margin: 0 0 28px 0;
+    max-width: 760px;
+  }
+
+  /* ═══ Stat grid (hero) ═══ */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 28px;
+    margin-top: 24px;
+    padding-top: 28px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .stat .n {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 48px;
+    line-height: 1;
+    color: #fbbf24;
+    display: block;
+    margin-bottom: 6px;
+  }
+  .stat .l {
+    font-size: 13px;
+    color: #cbd5e1;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 500;
+  }
+
+  /* ═══ Two-col (chart + insight) ═══ */
+  .split { display: grid; grid-template-columns: 1.6fr 1fr; gap: 36px; align-items: start; }
+  .split.even { grid-template-columns: 1fr 1fr; }
+  .chart-wrap { position: relative; min-height: 320px; }
+  .chart-wrap.tall { min-height: 420px; }
+  .chart-wrap.small { min-height: 260px; }
+
+  .insights {
+    background: #fafaf9;
+    border-left: 3px solid var(--red);
+    padding: 20px 22px;
+    border-radius: 0 8px 8px 0;
+  }
+  .insights h4 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; font-weight: 500;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--red);
+    margin: 0 0 12px 0;
+  }
+  .insights ul { margin: 0; padding: 0; list-style: none; }
+  .insights li {
+    font-size: 14px; color: var(--ink-2);
+    margin-bottom: 10px;
+    padding-left: 18px;
+    position: relative;
+    line-height: 1.5;
+  }
+  .insights li:before {
+    content: "→";
+    position: absolute; left: 0; top: 0;
+    color: var(--red); font-weight: 700;
+  }
+  .insights li strong { color: var(--ink); font-weight: 600; }
+
+  /* ═══ Heatmap matrix ═══ */
+  .heatmap { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .heatmap th, .heatmap td { padding: 10px 12px; text-align: right; }
+  .heatmap th:first-child, .heatmap td:first-child { text-align: left; font-weight: 500; }
+  .heatmap thead th {
+    border-bottom: 2px solid var(--ink);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--mute); font-weight: 500;
+  }
+  .heatmap tbody tr { border-bottom: 1px solid var(--border); }
+  .heatmap tbody tr:last-child { border-bottom: none; }
+  .heatmap td.cell { color: #fff; font-weight: 600; font-family: 'JetBrains Mono', monospace; border-radius: 3px; }
+  .heatmap td.total { font-weight: 700; color: var(--ink); background: #f5f5f4; }
+
+  /* ═══ Hour heatmap strip ═══ */
+  .hourstrip { display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; margin-top: 8px; }
+  .hourstrip .hc {
+    height: 46px;
+    border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; font-weight: 600;
+    color: #fff;
+  }
+  .hourstrip .hl {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; color: var(--mute);
+    text-align: center; margin-top: 4px;
+  }
+  .legend-row { display: flex; gap: 20px; font-size: 12px; color: var(--mute); margin-top: 18px; flex-wrap: wrap; }
+  .legend-dot { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+
+  /* ═══ Big-stat pills ═══ */
+  .pills { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  .pill {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    background: #fafaf9;
+  }
+  .pill .pv {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 34px;
+    line-height: 1;
+    color: var(--ink);
+  }
+  .pill .pl { font-size: 12px; color: var(--mute); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 6px; font-weight: 500; }
+  .pill.alert { background: var(--red-soft); border-color: #fecaca; }
+  .pill.alert .pv { color: var(--red); }
+
+  /* Footer */
+  footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--mute);
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    text-align: center;
+  }
+
+  @media (max-width: 900px) {
+    .split, .split.even { grid-template-columns: 1fr; }
+    .stat-grid, .pills { grid-template-columns: repeat(2, 1fr); }
+    .page { padding: 24px 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="masthead">
+  <div>
+    <div class="brand">RMV Clusters <span>Visitor Security Report</span></div>
+  </div>
+  <div class="dateline">Apr 13 – Apr 19, 2026 · 7-Day Window</div>
+</header>
+
+<!-- ═══════════════ SLIDE 1: HERO ═══════════════ -->
+<div class="slide hero">
+  <div class="eyebrow">01 · The Scale</div>
+  <h2 class="headline">2,373 visits last week. <em>1 in 4</em> enters without resident approval.</h2>
+  <p class="sub">Every day, about 340 people enter RMV. Almost 85 of them walk in without an explicit resident go-ahead — a pattern that has trended <em style="color:#fbbf24;">upward</em> over the past three days.</p>
+  <div class="stat-grid">
+    <div class="stat"><span class="n">2,373</span><div class="l">Total Visits</div></div>
+    <div class="stat"><span class="n">582</span><div class="l">Unapproved Entries</div></div>
+    <div class="stat"><span class="n">24.5%</span><div class="l">Unapproved Rate</div></div>
+    <div class="stat"><span class="n">170</span><div class="l">Late-Night (10pm–6am)</div></div>
+  </div>
+</div>
+
+<!-- ═══════════════ SLIDE 2: DAILY TREND ═══════════════ -->
+<div class="slide">
+  <div class="eyebrow">02 · Daily Trend · All Blocks</div>
+  <h2 class="headline">Unapproved rate spiked to <em>28–29%</em> in the last three days.</h2>
+  <div class="split">
+    <div class="chart-wrap tall"><canvas id="chart1"></canvas></div>
+    <div class="insights">
+      <h4>What the chart shows</h4>
+      <ul>
+        <li><strong>Volume</strong> is steady (320–370/day) — problem isn't too many visitors.</li>
+        <li><strong>Unapproved count climbed</strong> from ~72 (Apr 15) to 96 (Apr 18).</li>
+        <li>Friday Apr 17 was the single worst day: <strong>28% rate, 95 unapproved</strong>.</li>
+        <li>Saturday brought the <strong>highest volume</strong> (372 visits) of the week.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ SLIDE 3: PER BLOCK TREND ═══════════════ -->
+<div class="slide">
+  <div class="eyebrow">03 · Trend By Block</div>
+  <h2 class="headline">Block 3 is drifting the wrong way: <em>33% → 43%</em> over seven days.</h2>
+  <div class="chart-wrap tall"><canvas id="chart2"></canvas></div>
+  <div class="insights" style="margin-top: 24px;">
+    <h4>Block-by-block reading</h4>
+    <ul>
+      <li><strong>Block 1</strong> stays best-in-class (11–20%) except a single Apr 17 spike to 33%.</li>
+      <li><strong>Block 2</strong> climbs steadily all week — from 20% to 32%.</li>
+      <li><strong>Block 3</strong> is the clear outlier: finished the week at <strong>43% unapproved</strong>.</li>
+      <li><strong>Block 4</strong> is remarkably consistent (20–26%) despite the highest volume.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══════════════ SLIDE 4: BLOCK COMPARISON ═══════════════ -->
+<div class="slide">
+  <div class="eyebrow">04 · Block Comparison</div>
+  <h2 class="headline">Block 3 needs attention. Block 1 is the benchmark.</h2>
+  <div class="split">
+    <div class="chart-wrap"><canvas id="chart3"></canvas></div>
+    <div class="insights">
+      <h4>Ranking</h4>
+      <ul>
+        <li><strong>Block 1: 18.4%</strong> — lowest unapproved rate.</li>
+        <li><strong>Block 4: 23.0%</strong> — highest volume (736 visits), well managed.</li>
+        <li><strong>Block 2: 27.5%</strong> — 132 unapproved entries in 7 days.</li>
+        <li><strong>Block 3: 31.8%</strong> — 1 in every 3 entries unapproved.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ SLIDE 5: TOP SOURCES ═══════════════ -->
+<div class="slide">
+  <div class="eyebrow">05 · Who Drives Unapproved Entries</div>
+  <h2 class="headline">Seven delivery brands account for <em>two-thirds</em> of all unapproved entries.</h2>
+  <div class="split">
+    <div class="chart-wrap tall"><canvas id="chart4"></canvas></div>
+    <div class="insights">
+      <h4>Vendor concentration</h4>
+      <ul>
+        <li><strong>Zepto · Amazon · Swiggy</strong> — 196 entries (34% of unapproved).</li>
+        <li>Add <strong>Blinkit, Instamart, Zomato, BigBasket</strong> → <strong>65%</strong>.</li>
+        <li><strong>Cabs/autos</strong> rank 9th — 22 unapproved rides dropped off.</li>
+        <li>Opportunity: residents can pre-whitelist these 7 vendors per flat.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ SLIDE 6: VENDOR × BLOCK HEATMAP ═══════════════ -->
+<div class="slide">
+  <div class="eyebrow">06 · Vendor × Block Matrix</div>
+  <h2 class="headline">Each block has a different vendor story.</h2>
+  <p class="sub">Darker = more unapproved entries last week. Click insights for what jumps out.</p>
+  <div id="heatmap-container"></div>
+  <div class="insights" style="margin-top: 24px;">
+    <h4>Block-specific patterns</h4>
+    <ul>
+      <li><strong>Block 2 = Zepto problem</strong>: 28 unapproved entries — 21% of all block-2 unapproved.</li>
+      <li><strong>Block 4 = Amazon problem</strong>: 29 unapproved — 17% of all block-4 unapproved.</li>
+      <li><strong>Block 3</strong> is broad-based: Instamart, Amazon, Swiggy, BigBasket, Blinkit all ≥14.</li>
+      <li><strong>Block 1</strong> spread flat: no single vendor above 12% share.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══════════════ SLIDE 7: HOURLY ═══════════════ -->
+<div class="slide">
+  <div class="eyebrow">07 · Time of Day</div>
+  <h2 class="headline">The evening window (<em>7–10 pm</em>) is the danger zone.</h2>
+  <div class="chart-wrap tall"><canvas id="chart5"></canvas></div>
+
+  <div class="pills" style="margin-top: 30px;">
+    <div class="pill"><div class="pv">19.5%</div><div class="pl">Morning 6–10 am</div></div>
+    <div class="pill"><div class="pv">24.9%</div><div class="pl">Midday 10–2 pm</div></div>
+    <div class="pill"><div class="pv">20.3%</div><div class="pl">Afternoon 2–6 pm</div></div>
+    <div class="pill alert"><div class="pv">32.6%</div><div class="pl">Evening 6–10 pm</div></div>
+  </div>
+
+  <div class="insights" style="margin-top: 24px;">
+    <h4>What happens when</h4>
+    <ul>
+      <li><strong>Peak volume</strong>: 8–10 am (448 visits in 2 hrs) — mostly staff, mostly approved.</li>
+      <li><strong>Peak risk</strong>: 7–10 pm — unapproved rate <strong>hits 38% at 9 pm</strong>.</li>
+      <li>Every hour from 6 pm onward has ≥28% unapproved rate.</li>
+      <li><strong>Recommendation:</strong> deploy a second guard on gate 7–10 pm.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══════════════ SLIDE 8: LATE-NIGHT ═══════════════ -->
+<div class="slide">
+  <div class="eyebrow">08 · Late-Night Traffic (10 pm – 6 am)</div>
+  <h2 class="headline">170 after-hours entries — <em>100%</em> are delivery executives.</h2>
+  <div class="split even">
+    <div class="chart-wrap"><canvas id="chart6a"></canvas></div>
+    <div class="chart-wrap"><canvas id="chart6b"></canvas></div>
+  </div>
+  <div class="insights" style="margin-top: 24px;">
+    <h4>After-hours signal</h4>
+    <ul>
+      <li><strong>Block 2</strong>: 44% of its late-night entries were unapproved (17 of 39).</li>
+      <li><strong>Swiggy</strong> leads late-night volume — 35 entries (21% of all late-night).</li>
+      <li>No security staff concerns — all guards, cooks, drivers on record were approved.</li>
+      <li>Common area late-night: <strong>14 of 19 unapproved</strong> — worth investigating.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══════════════ SLIDE 9: WEEKDAY vs WEEKEND ═══════════════ -->
+<div class="slide">
+  <div class="eyebrow">09 · Weekday vs Weekend</div>
+  <h2 class="headline">Volume holds steady; weekends bring a <em>2-point</em> rate increase.</h2>
+  <div class="split even">
+    <div class="chart-wrap"><canvas id="chart7a"></canvas></div>
+    <div class="chart-wrap"><canvas id="chart7b"></canvas></div>
+  </div>
+  <div class="insights" style="margin-top: 24px;">
+    <h4>When pressure spikes</h4>
+    <ul>
+      <li><strong>Saturday:</strong> 372 visits — busiest day of the week.</li>
+      <li><strong>Friday:</strong> 28.0% unapproved — worst rate of the week.</li>
+      <li>Weekday avg: 336/day · Weekend avg: 347/day — only 3% more, not a major gap.</li>
+      <li>Rate gap: weekday 24.0% vs weekend 25.8% — persistent but mild.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══════════════ SLIDE 10: VISITOR TYPES ═══════════════ -->
+<div class="slide">
+  <div class="eyebrow">10 · Visitor Type Profile</div>
+  <h2 class="headline">Delivery executives own the problem. <em>Household staff = 0%</em> unapproved.</h2>
+  <div class="split">
+    <div class="chart-wrap tall"><canvas id="chart8"></canvas></div>
+    <div class="insights">
+      <h4>The approval gap is entirely deliveries</h4>
+      <ul>
+        <li><strong>Delivery executives</strong>: 1,378 entries — 37.4% unapproved rate.</li>
+        <li><strong>Maids, cooks, nannies, drivers, guards</strong>: 710 entries — <strong>0% unapproved</strong>.</li>
+        <li>The "standing approval" model <em>works</em> — it just isn't used for deliveries.</li>
+        <li><strong>Guests</strong>: small volume (34) but highest rate (44%).</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ SLIDE 11: RECOMMENDATIONS ═══════════════ -->
+<div class="slide" style="background: #0f172a; color: #f8fafc; border-color: #0f172a;">
+  <div class="eyebrow" style="color: #fbbf24;">11 · Next Steps</div>
+  <h2 class="headline" style="color: #f8fafc;">Four moves to cut the unapproved rate in half.</h2>
+  <p class="sub" style="color: #cbd5e1;">Prioritized by expected impact × effort.</p>
+
+  <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 28px;">
+    <div style="border-left: 3px solid #fbbf24; padding: 14px 20px; background: rgba(251,191,36,0.08); border-radius: 0 8px 8px 0;">
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #fbbf24; letter-spacing: 0.1em; text-transform: uppercase;">Highest Impact</div>
+      <div style="font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; margin-top: 6px; color: #f8fafc;">Block 3 resident campaign</div>
+      <div style="color: #cbd5e1; font-size: 14px; margin-top: 6px;">Owners-group messaging to pre-approve top 7 delivery vendors. Target: 32% → 20%.</div>
+    </div>
+    <div style="border-left: 3px solid #fbbf24; padding: 14px 20px; background: rgba(251,191,36,0.08); border-radius: 0 8px 8px 0;">
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #fbbf24; letter-spacing: 0.1em; text-transform: uppercase;">Quick Win</div>
+      <div style="font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; margin-top: 6px; color: #f8fafc;">Evening guard reinforcement</div>
+      <div style="color: #cbd5e1; font-size: 14px; margin-top: 6px;">Second guard at gate 7 – 10 pm. 33% of the week's unapproved entries happen in this 4-hour window.</div>
+    </div>
+    <div style="border-left: 3px solid #fbbf24; padding: 14px 20px; background: rgba(251,191,36,0.08); border-radius: 0 8px 8px 0;">
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #fbbf24; letter-spacing: 0.1em; text-transform: uppercase;">Structural</div>
+      <div style="font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; margin-top: 6px; color: #f8fafc;">Whitelist top 7 vendors</div>
+      <div style="color: #cbd5e1; font-size: 14px; margin-top: 6px;">Enable MyGate "frequent visitor" presets per flat. Removes 65% of unapproved entries without new staffing.</div>
+    </div>
+    <div style="border-left: 3px solid #fbbf24; padding: 14px 20px; background: rgba(251,191,36,0.08); border-radius: 0 8px 8px 0;">
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #fbbf24; letter-spacing: 0.1em; text-transform: uppercase;">Monitor</div>
+      <div style="font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; margin-top: 6px; color: #f8fafc;">Weekly dashboard</div>
+      <div style="color: #cbd5e1; font-size: 14px; margin-top: 6px;">Auto-scrape already running. Share this dashboard weekly with Management Committee.</div>
+    </div>
+  </div>
+</div>
+
+<footer>Data: MyGate daily export · Generated 20 Apr 2026</footer>
+
+</div>
+
+<script>
+// ═══ DATA (embedded) ═══════════════════════════════════════════════
+const COLORS = {
+  blk1: getComputedStyle(document.documentElement).getPropertyValue('--blk1').trim(),
+  blk2: getComputedStyle(document.documentElement).getPropertyValue('--blk2').trim(),
+  blk3: getComputedStyle(document.documentElement).getPropertyValue('--blk3').trim(),
+  blk4: getComputedStyle(document.documentElement).getPropertyValue('--blk4').trim(),
+  red: '#dc2626',
+  green: '#059669',
+  amber: '#d97706',
+  gray: '#a8a29e',
+  ink: '#1c1917',
+};
+const BLOCK_COLORS = [COLORS.blk1, COLORS.blk2, COLORS.blk3, COLORS.blk4];
+
+const DAYS = ['Mon Apr 13','Tue Apr 14','Wed Apr 15','Thu Apr 16','Fri Apr 17','Sat Apr 18','Sun Apr 19'];
+const TOTAL_DAILY     = [331,362,325,323,339,372,321];
+const UNAPP_DAILY     = [80,82,72,74,95,96,83];
+const APPR_DAILY      = TOTAL_DAILY.map((t,i) => t - UNAPP_DAILY[i]);
+const RATE_DAILY      = [24.2,22.7,22.2,22.9,28.0,25.8,25.9];
+
+const UNAPP_BY_BLOCK_DAILY = {
+  1: [11,12,15, 9,23,11, 7],
+  2: [15,18,16,14,22,25,22],
+  3: [23,16,19,21,23,25,27],
+  4: [21,29,20,26,23,27,23],
+};
+const RATE_BY_BLOCK_DAILY = {
+  1: [16.9,18.5,20.0,12.7,32.9,15.9,11.1],
+  2: [20.3,24.7,26.2,27.5,30.1,31.3,32.4],
+  3: [33.3,19.8,31.1,31.3,34.3,32.5,42.9],
+  4: [23.6,25.9,19.8,24.1,22.1,22.7,22.3],
+};
+
+const BLOCK_TOTALS = {
+  labels: ['Block 1','Block 2','Block 3','Block 4','Common'],
+  total:  [478,480,485,736,194],
+  unapp:  [ 88,132,154,169, 39],
+  rate:   [18.4,27.5,31.8,23.0,20.1],
+};
+
+const TOP_SOURCES = {
+  labels: ['Zepto','Amazon','Swiggy','Blinkit','Instamart','Zomato','BigBasket','Flipkart','Cab/Auto','Delhivery','JIO MART','SHADOWFAX','MILKBASKET'],
+  counts: [71,63,62,43,40,37,32,25,22,18,11,7,6],
+};
+
+// Vendor × block matrix (unapproved entries)
+const MATRIX = {
+  vendors: ['Zepto','Amazon','Swiggy','Blinkit','Instamart','Zomato','BigBasket','Flipkart','Cab/Auto','Delhivery'],
+  blocks: [1,2,3,4],
+  counts: [
+    // Zepto, Amazon, Swiggy, Blinkit, Instamart, Zomato, BigBasket, Flipkart, Cab/Auto, Delhivery
+    [ 7, 7,11, 3,11, 7, 0, 0, 7, 4], // Block 1
+    [28, 9,19, 4, 4,10, 9,12, 3, 0], // Block 2
+    [14,18,17,14,22,10,14, 0, 4, 4], // Block 3
+    [22,29,15,22, 3,10, 5,11, 8, 8], // Block 4
+  ],
+};
+
+const HOURS = Array.from({length:24},(_,i)=>String(i).padStart(2,'0'));
+const HOUR_TOTAL = [12,3,2,5,8,40,67,132,218,230,190,141,112,131,115,110,140,138,106,129,146,98,64,36];
+const HOUR_UNAPP = [ 2,2,0,1,6,15,18, 30, 42, 36, 35, 45, 30, 33, 31, 22, 18, 31, 32, 46, 41,37,22, 7];
+const HOUR_RATE  = HOUR_TOTAL.map((t,i)=> t>0 ? +(HOUR_UNAPP[i]/t*100).toFixed(1) : 0);
+
+// Late night
+const LN_BY_BLOCK = {
+  labels: ['Block 1','Block 2','Block 3','Block 4','Common'],
+  approved:  [26,22,17,45, 5],
+  unapproved:[ 1,17,15, 8,14],
+};
+const LN_BY_SOURCE = {
+  labels: ['Swiggy','View','Zepto','Blinkit','Zomato','Amazon','BigBasket','MILKBASKET','(blank)','MILK'],
+  counts: [35,27,18,18,17,13,7,6,6,5],
+};
+
+// Weekday / Weekend
+const DOW = {
+  labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+  total:  [331,362,325,323,339,372,321],
+  rate:   [24.2,22.7,22.2,22.9,28.0,25.8,25.9],
+};
+
+const VISITOR_TYPES = {
+  labels: ['Delivery Exec','Maid','Cook','Cab Driver','Others','Nanny','Housekeeping','Guard','Guest','Driver'],
+  total:     [1378,407,141,74,59,58,50,34,34,20],
+  unapproved:[ 515,  0,  0,23,24, 0, 0, 0,15, 0],
+};
+
+// ═══ Chart defaults ══════════════════════════════════════════════
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.color = '#57534e';
+Chart.defaults.borderColor = '#e7e5e4';
+Chart.register(ChartDataLabels);
+Chart.defaults.plugins.datalabels.display = false;
+
+const gridY = { color: '#f5f5f4', drawBorder: false };
+const noGrid = { display: false };
+
+// ═══ CHART 1: daily trend — stacked bars + rate line ═════════════
+new Chart(document.getElementById('chart1'), {
+  type: 'bar',
+  data: {
+    labels: DAYS,
+    datasets: [
+      { label:'Approved',   data: APPR_DAILY,  backgroundColor: COLORS.green, stack:'s', borderRadius:2 },
+      { label:'Unapproved', data: UNAPP_DAILY, backgroundColor: COLORS.red,   stack:'s', borderRadius:2 },
+      { label:'Unapproved rate %', data: RATE_DAILY, type:'line', yAxisID:'y2',
+        borderColor: COLORS.ink, backgroundColor: COLORS.ink, borderWidth:2,
+        pointRadius:4, pointBackgroundColor:COLORS.ink, tension:0.3 },
+    ]
+  },
+  options: {
+    maintainAspectRatio:false,
+    plugins: {
+      legend: { position:'bottom', labels:{ boxWidth:12, padding:14 } },
+      tooltip:{ callbacks:{} }
+    },
+    scales: {
+      x: { stacked:true, grid:noGrid },
+      y: { stacked:true, grid:gridY, title:{display:true,text:'Visits'} },
+      y2:{ position:'right', grid:noGrid, title:{display:true,text:'Unapproved %'}, ticks:{callback:v=>v+'%'} , min:0, max:40 },
+    }
+  }
+});
+
+// ═══ CHART 2: per-block rate line chart ═════════════════════════
+new Chart(document.getElementById('chart2'), {
+  type:'line',
+  data:{
+    labels: DAYS,
+    datasets: [1,2,3,4].map(b => ({
+      label: 'Block '+b,
+      data: RATE_BY_BLOCK_DAILY[b],
+      borderColor: BLOCK_COLORS[b-1],
+      backgroundColor: BLOCK_COLORS[b-1] + '22',
+      borderWidth: b===3 ? 3 : 2,
+      pointRadius: b===3 ? 5 : 3,
+      pointBackgroundColor: BLOCK_COLORS[b-1],
+      tension: 0.3,
+      fill: false,
+    }))
+  },
+  options:{
+    maintainAspectRatio:false,
+    plugins:{ legend:{position:'bottom', labels:{boxWidth:12,padding:14}} },
+    scales:{
+      x:{grid:noGrid},
+      y:{grid:gridY,title:{display:true,text:'Unapproved Rate %'},ticks:{callback:v=>v+'%'}}
+    }
+  }
+});
+
+// ═══ CHART 3: block comparison bar ══════════════════════════════
+new Chart(document.getElementById('chart3'),{
+  type:'bar',
+  data:{
+    labels: BLOCK_TOTALS.labels,
+    datasets:[{
+      label:'Unapproved rate %',
+      data: BLOCK_TOTALS.rate,
+      backgroundColor: ['#3b82f6','#8b5cf6','#db2777','#f97316','#a8a29e'],
+      borderRadius: 4,
+    }]
+  },
+  options:{
+    maintainAspectRatio:false,
+    plugins:{
+      legend:{display:false},
+      datalabels:{display:true,anchor:'end',align:'top',color:'#1c1917',font:{weight:'600'}, formatter:(v)=>v+'%'}
+    },
+    scales:{
+      x:{grid:noGrid},
+      y:{grid:gridY,title:{display:true,text:'Unapproved Rate %'},ticks:{callback:v=>v+'%'}, max:40}
+    }
+  }
+});
+
+// ═══ CHART 4: top sources horizontal bar ════════════════════════
+new Chart(document.getElementById('chart4'),{
+  type:'bar',
+  data:{
+    labels: TOP_SOURCES.labels,
+    datasets:[{
+      data: TOP_SOURCES.counts,
+      backgroundColor: TOP_SOURCES.labels.map((_,i) => {
+        if (i<3) return COLORS.red;
+        if (i<7) return COLORS.amber;
+        return COLORS.gray;
+      }),
+      borderRadius:3
+    }]
+  },
+  options:{
+    indexAxis:'y',
+    maintainAspectRatio:false,
+    plugins:{
+      legend:{display:false},
+      datalabels:{display:true,anchor:'end',align:'end',color:'#1c1917',font:{weight:'600'}},
+    },
+    scales:{
+      x:{grid:gridY,title:{display:true,text:'Unapproved entries (7 days)'}},
+      y:{grid:noGrid}
+    }
+  }
+});
+
+// ═══ CHART 5: hourly heatmap bars + rate line ═══════════════════
+new Chart(document.getElementById('chart5'),{
+  data:{
+    labels: HOURS.map(h=>h+':00'),
+    datasets:[
+      { type:'bar',   label:'Visits', data:HOUR_TOTAL, backgroundColor:'#cbd5e1', borderRadius:2, yAxisID:'y' },
+      { type:'bar',   label:'Unapproved', data:HOUR_UNAPP, backgroundColor:COLORS.red, borderRadius:2, yAxisID:'y' },
+      { type:'line',  label:'Unapproved rate %', data:HOUR_RATE, borderColor:COLORS.ink, backgroundColor:COLORS.ink, yAxisID:'y2', tension:0.35, pointRadius:2, borderWidth:2 },
+    ]
+  },
+  options:{
+    maintainAspectRatio:false,
+    plugins:{ legend:{position:'bottom', labels:{boxWidth:12,padding:14}} },
+    scales:{
+      x:{grid:noGrid,ticks:{maxRotation:0,autoSkip:false,font:{size:10}}},
+      y:{grid:gridY,title:{display:true,text:'Visits'}},
+      y2:{position:'right',grid:noGrid,title:{display:true,text:'Unapproved %'},ticks:{callback:v=>v+'%'}, min:0, max:80}
+    }
+  }
+});
+
+// ═══ CHART 6a: Late-night by block stacked bar ══════════════════
+new Chart(document.getElementById('chart6a'),{
+  type:'bar',
+  data:{
+    labels: LN_BY_BLOCK.labels,
+    datasets:[
+      { label:'Approved',   data: LN_BY_BLOCK.approved,   backgroundColor:COLORS.green, stack:'s', borderRadius:2 },
+      { label:'Unapproved', data: LN_BY_BLOCK.unapproved, backgroundColor:COLORS.red,   stack:'s', borderRadius:2 },
+    ]
+  },
+  options:{
+    maintainAspectRatio:false,
+    plugins:{
+      legend:{position:'bottom', labels:{boxWidth:12,padding:14}},
+      title:{display:true,text:'Late-night entries by block',font:{size:14,family:'Fraunces',weight:'600'},color:'#1c1917',padding:{bottom:12}}
+    },
+    scales:{ x:{stacked:true,grid:noGrid}, y:{stacked:true,grid:gridY} }
+  }
+});
+
+// ═══ CHART 6b: Late-night by source horizontal bar ══════════════
+new Chart(document.getElementById('chart6b'),{
+  type:'bar',
+  data:{
+    labels: LN_BY_SOURCE.labels,
+    datasets:[{ data: LN_BY_SOURCE.counts, backgroundColor: COLORS.amber, borderRadius:3 }]
+  },
+  options:{
+    indexAxis:'y',
+    maintainAspectRatio:false,
+    plugins:{
+      legend:{display:false},
+      datalabels:{display:true,anchor:'end',align:'end',color:'#1c1917',font:{weight:'600'}},
+      title:{display:true,text:'Late-night top sources',font:{size:14,family:'Fraunces',weight:'600'},color:'#1c1917',padding:{bottom:12}}
+    },
+    scales:{ x:{grid:gridY}, y:{grid:noGrid} }
+  }
+});
+
+// ═══ CHART 7a: Day-of-week volume + rate ════════════════════════
+new Chart(document.getElementById('chart7a'),{
+  data:{
+    labels: DOW.labels,
+    datasets:[
+      { type:'bar',  label:'Visits', data:DOW.total, backgroundColor:DOW.labels.map(d=>d==='Sat'||d==='Sun'?COLORS.amber:'#cbd5e1'), borderRadius:3 },
+    ]
+  },
+  options:{
+    maintainAspectRatio:false,
+    plugins:{
+      legend:{display:false},
+      datalabels:{display:true,anchor:'end',align:'top',color:'#1c1917',font:{weight:'600'}},
+      title:{display:true,text:'Visits by day',font:{size:14,family:'Fraunces',weight:'600'},color:'#1c1917',padding:{bottom:12}}
+    },
+    scales:{ x:{grid:noGrid}, y:{grid:gridY} }
+  }
+});
+
+new Chart(document.getElementById('chart7b'),{
+  data:{
+    labels: DOW.labels,
+    datasets:[
+      { type:'bar',  label:'Unapproved rate %', data:DOW.rate,
+        backgroundColor: DOW.rate.map(r => r>=27?COLORS.red : r>=24?COLORS.amber : COLORS.gray),
+        borderRadius:3 },
+    ]
+  },
+  options:{
+    maintainAspectRatio:false,
+    plugins:{
+      legend:{display:false},
+      datalabels:{display:true,anchor:'end',align:'top',color:'#1c1917',font:{weight:'600'},formatter:v=>v+'%'},
+      title:{display:true,text:'Unapproved rate by day',font:{size:14,family:'Fraunces',weight:'600'},color:'#1c1917',padding:{bottom:12}}
+    },
+    scales:{ x:{grid:noGrid}, y:{grid:gridY,ticks:{callback:v=>v+'%'}} }
+  }
+});
+
+// ═══ CHART 8: Visitor types stacked bar ═════════════════════════
+new Chart(document.getElementById('chart8'),{
+  type:'bar',
+  data:{
+    labels: VISITOR_TYPES.labels,
+    datasets:[
+      { label:'Approved',   data: VISITOR_TYPES.total.map((t,i)=>t - VISITOR_TYPES.unapproved[i]), backgroundColor: COLORS.green, stack:'s', borderRadius:2 },
+      { label:'Unapproved', data: VISITOR_TYPES.unapproved, backgroundColor: COLORS.red, stack:'s', borderRadius:2 },
+    ]
+  },
+  options:{
+    maintainAspectRatio:false,
+    plugins:{ legend:{position:'bottom', labels:{boxWidth:12,padding:14}} },
+    scales:{ x:{stacked:true,grid:noGrid}, y:{stacked:true,grid:gridY} }
+  }
+});
+
+// ═══ Heatmap (vendor × block) ═══════════════════════════════════
+(function buildHeatmap(){
+  const { vendors, counts } = MATRIX;
+  // find max for color scaling per block (column)
+  const colMax = MATRIX.blocks.map((_,j) => Math.max(...counts.map(row => row[j])));
+  const rowTotals = vendors.map((_,i) => MATRIX.blocks.reduce((s,_,j) => s + counts[j][i], 0));
+
+  const tbl = document.createElement('table');
+  tbl.className = 'heatmap';
+  const thead = document.createElement('thead');
+  thead.innerHTML = `<tr>
+    <th>Vendor</th>
+    <th>Block 1</th><th>Block 2</th><th>Block 3</th><th>Block 4</th>
+    <th>Total</th>
+  </tr>`;
+  tbl.appendChild(thead);
+
+  const tbody = document.createElement('tbody');
+  vendors.forEach((v,i) => {
+    const tr = document.createElement('tr');
+    const tdV = document.createElement('td'); tdV.textContent = v; tr.appendChild(tdV);
+    MATRIX.blocks.forEach((_,j) => {
+      const c = counts[j][i];
+      const intensity = colMax[j] > 0 ? c / colMax[j] : 0;
+      const td = document.createElement('td');
+      td.className = 'cell';
+      td.textContent = c || '·';
+      // color scaled red: opacity-based
+      const alpha = 0.15 + intensity * 0.7;
+      td.style.background = `rgba(220,38,38,${alpha.toFixed(2)})`;
+      td.style.color = intensity > 0.55 ? '#fff' : '#1c1917';
+      tr.appendChild(td);
+    });
+    const tdT = document.createElement('td'); tdT.className='total'; tdT.textContent = rowTotals[i]; tr.appendChild(tdT);
+    tbody.appendChild(tr);
+  });
+  tbl.appendChild(tbody);
+  document.getElementById('heatmap-container').appendChild(tbl);
+})();
+</script>
+</body>
+</html>

@@ -97,6 +97,8 @@ model Resident {
   foodOrdersByBuyer        FoodOrder[]      @relation("FoodOrdersByBuyer")
   chefFollowers            ChefFollow[]     @relation("ChefFollowers")
   chefFollowing            ChefFollow[]     @relation("ChefFollowing")
+  parkingSlotsOwned     ParkingSlot[]    @relation("ParkingSlotsOwned")
+  parkingBookings       ParkingBooking[] @relation("ParkingBookingsByBooker")
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 }

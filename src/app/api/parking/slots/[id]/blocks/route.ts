@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthedResident } from "@/lib/api-auth";
-import { prisma } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 import { validateWindow } from "@/lib/parking";
 
 // POST /api/parking/slots/[id]/blocks → owner reserves a window for themselves

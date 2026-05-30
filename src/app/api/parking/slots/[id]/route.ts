@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthedResident } from "@/lib/api-auth";
-import { prisma } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 import { validateRate } from "@/lib/parking";
 
 // GET /api/parking/slots/[id] → slot detail.

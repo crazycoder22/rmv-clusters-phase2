@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import QRCodeLib from "qrcode";
-import { QRCode } from "react-qr-code";
+import { QRCodeSVG } from "qrcode.react";
 import {
   ArrowLeft, MapPin, IndianRupee, Clock, Car, Pencil, Trash2,
   Download, Ban, Info,
@@ -245,7 +245,7 @@ function OwnerPanel({ slot, onChange }: { slot: SlotDetail; onChange: () => void
         <p className="text-sm text-gray-500 mt-0.5 mb-3">Print this and stick it at the slot. Residents scan to book.</p>
         {bookingUrl && (
           <div className="inline-block bg-white p-3 rounded-lg border border-gray-200">
-            <QRCode value={bookingUrl} size={180} />
+            <QRCodeSVG value={bookingUrl} size={180} />
           </div>
         )}
         <div className="mt-3">

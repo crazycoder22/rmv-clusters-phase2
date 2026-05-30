@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthedResident } from "@/lib/api-auth";
-import { prisma } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 
 // GET /api/parking/bookings → my bookings, split into:
 //   asBooker — slots I've booked
