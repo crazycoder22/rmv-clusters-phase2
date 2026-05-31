@@ -8,7 +8,7 @@ import QRCodeLib from "qrcode";
 import { QRCodeSVG } from "qrcode.react";
 import {
   ArrowLeft, MapPin, IndianRupee, Clock, Car, Pencil, Trash2,
-  Download, Ban, Info,
+  Download, Ban, Info, Printer,
 } from "lucide-react";
 import { computePrice, formatDuration, MIN_BOOKING_MINUTES } from "@/lib/parking";
 
@@ -248,10 +248,16 @@ function OwnerPanel({ slot, onChange }: { slot: SlotDetail; onChange: () => void
             <QRCodeSVG value={bookingUrl} size={180} />
           </div>
         )}
-        <div className="mt-3">
+        <div className="mt-3 flex items-center gap-2 flex-wrap">
           <button type="button" onClick={downloadQr} className="inline-flex items-center gap-1.5 bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-800">
             <Download size={15} /> Download QR
           </button>
+          <Link
+            href={`/parking/${slot.id}/qr`}
+            className="inline-flex items-center gap-1.5 border border-gray-300 text-gray-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50"
+          >
+            <Printer size={15} /> Print poster
+          </Link>
         </div>
       </div>
 
