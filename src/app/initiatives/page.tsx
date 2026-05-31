@@ -48,14 +48,14 @@ export default function InitiativesPage() {
   }, [refresh]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
               <Megaphone className="text-blue-600" /> Initiatives
             </h1>
-            <p className="text-sm text-gray-500 mt-0.5">Share structured feedback on community initiatives</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Share structured feedback on community initiatives</p>
           </div>
           {canCreate && (
             <Link
@@ -72,8 +72,8 @@ export default function InitiativesPage() {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
           </div>
         ) : items.length === 0 ? (
-          <div className="bg-white rounded-lg border border-dashed border-gray-300 py-16 text-center text-gray-500">
-            <Megaphone size={32} className="mx-auto mb-2 text-gray-300" />
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-dashed border-gray-300 dark:border-gray-600 py-16 text-center text-gray-500 dark:text-gray-400">
+            <Megaphone size={32} className="mx-auto mb-2 text-gray-300 dark:text-gray-600" />
             <p className="text-sm">No initiatives yet.{canCreate ? " Click “New initiative” to post one." : " Check back soon."}</p>
           </div>
         ) : (
@@ -82,16 +82,16 @@ export default function InitiativesPage() {
               <Link
                 key={i.id}
                 href={`/initiatives/${i.id}`}
-                className="block bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition"
+                className="block bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition"
               >
                 <div className="flex items-start justify-between gap-3">
-                  <h3 className="font-semibold text-gray-900">{i.title}</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">{i.title}</h3>
                   <StatusBadge isOpen={i.isOpen} status={i.status} commentsCloseAt={i.commentsCloseAt} />
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   by {i.author.name} · Block {i.author.block ?? "—"}
                 </p>
-                <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
+                <div className="flex items-center gap-3 mt-2 text-xs text-gray-400 dark:text-gray-500">
                   <span className="inline-flex items-center gap-1">
                     <MessageSquare size={12} /> {i.commentCount} {i.commentCount === 1 ? "comment" : "comments"}
                   </span>
@@ -114,7 +114,7 @@ function StatusBadge({ isOpen, status, commentsCloseAt }: { isOpen: boolean; sta
     );
   }
   return (
-    <span className="shrink-0 inline-flex items-center gap-1 text-xs font-semibold text-gray-600 bg-gray-100 rounded-full px-2 py-0.5">
+    <span className="shrink-0 inline-flex items-center gap-1 text-xs font-semibold text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-full px-2 py-0.5">
       <Lock size={11} /> {status === "ARCHIVED" ? "Archived" : "Closed"}
     </span>
   );

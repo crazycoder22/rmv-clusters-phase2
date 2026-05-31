@@ -104,14 +104,14 @@ export default function ParkingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
               <Car className="text-blue-600" /> Parking
             </h1>
-            <p className="text-sm text-gray-500 mt-0.5">Book a neighbour&apos;s slot by the hour</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Book a neighbour&apos;s slot by the hour</p>
           </div>
           {tab === "slots" && (
             <Link
@@ -123,7 +123,7 @@ export default function ParkingPage() {
           )}
         </div>
 
-        <div className="flex gap-1 mb-6 bg-white border border-gray-200 rounded-lg p-1 w-fit">
+        <div className="flex gap-1 mb-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-1 w-fit">
           <TabBtn active={tab === "find"} onClick={() => setTab("find")} icon={Car}>Find parking</TabBtn>
           <TabBtn active={tab === "slots"} onClick={() => setTab("slots")} icon={MapPin}>My slots</TabBtn>
           <TabBtn active={tab === "bookings"} onClick={() => setTab("bookings")} icon={Clock}>My bookings</TabBtn>
@@ -156,7 +156,7 @@ export default function ParkingPage() {
             {tab === "bookings" && (
               <div className="space-y-8">
                 <section>
-                  <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Slots I booked</h2>
+                  <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Slots I booked</h2>
                   {asBooker.length === 0 ? (
                     <Empty icon={Clock} text="No bookings yet. Find a slot to get started." />
                   ) : (
@@ -172,7 +172,7 @@ export default function ParkingPage() {
 
                 {asOwner.length > 0 && (
                   <section>
-                    <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Bookings on my slots</h2>
+                    <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Bookings on my slots</h2>
                     <div className="space-y-3">
                       {asOwner.map((b) => (
                         <OwnerCard key={b.id} b={b} busy={busyId === b.id}
@@ -194,7 +194,7 @@ export default function ParkingPage() {
 function TabBtn({ active, onClick, icon: Icon, children }: { active: boolean; onClick: () => void; icon: typeof Car; children: React.ReactNode }) {
   return (
     <button type="button" onClick={onClick}
-      className={`inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-medium transition ${active ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100"}`}>
+      className={`inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-medium transition ${active ? "bg-blue-600 text-white" : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"}`}>
       <Icon size={15} />{children}
     </button>
   );
@@ -202,11 +202,11 @@ function TabBtn({ active, onClick, icon: Icon, children }: { active: boolean; on
 
 function SlotCardView({ slot, ownerView }: { slot: SlotCard; ownerView?: boolean }) {
   return (
-    <Link href={`/parking/${slot.id}`} className="block bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition">
+    <Link href={`/parking/${slot.id}`} className="block bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition">
       <div className="flex items-start justify-between gap-2">
-        <h3 className="font-semibold text-gray-900">{slot.label}</h3>
+        <h3 className="font-semibold text-gray-900 dark:text-gray-100">{slot.label}</h3>
         {ownerView ? (
-          <span className={`shrink-0 text-xs font-semibold rounded-full px-2 py-0.5 ${slot.active ? "text-green-700 bg-green-100" : "text-gray-600 bg-gray-100"}`}>
+          <span className={`shrink-0 text-xs font-semibold rounded-full px-2 py-0.5 ${slot.active ? "text-green-700 bg-green-100" : "text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700"}`}>
             {slot.active ? "Listed" : "Paused"}
           </span>
         ) : slot.busyNow ? (
@@ -215,10 +215,10 @@ function SlotCardView({ slot, ownerView }: { slot: SlotCard; ownerView?: boolean
           <span className="shrink-0 text-xs font-semibold text-green-700 bg-green-100 rounded-full px-2 py-0.5">Free</span>
         )}
       </div>
-      {slot.location && <p className="text-sm text-gray-500 mt-1 inline-flex items-center gap-1"><MapPin size={12} /> {slot.location}</p>}
+      {slot.location && <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 inline-flex items-center gap-1"><MapPin size={12} /> {slot.location}</p>}
       <div className="flex items-center gap-3 mt-2 text-sm">
-        <span className="inline-flex items-center font-semibold text-gray-900"><IndianRupee size={13} />{slot.hourlyRate}/hr</span>
-        {!ownerView && <span className="text-xs text-gray-400">by {slot.owner.name} · Block {slot.owner.block ?? "—"}</span>}
+        <span className="inline-flex items-center font-semibold text-gray-900 dark:text-gray-100"><IndianRupee size={13} />{slot.hourlyRate}/hr</span>
+        {!ownerView && <span className="text-xs text-gray-400 dark:text-gray-500">by {slot.owner.name} · Block {slot.owner.block ?? "—"}</span>}
         {ownerView && slot.upcomingCount > 0 && <span className="text-xs text-blue-600 font-medium">{slot.upcomingCount} upcoming</span>}
       </div>
     </Link>
@@ -228,13 +228,13 @@ function SlotCardView({ slot, ownerView }: { slot: SlotCard; ownerView?: boolean
 function BookerCard({ b, busy, onPay, onCancel }: { b: BookerBooking; busy: boolean; onPay: () => void; onCancel: () => void }) {
   const upcoming = new Date(b.startAt).getTime() > Date.now();
   return (
-    <div className={`bg-white rounded-lg shadow-sm border border-gray-200 p-4 ${b.status === "CANCELLED" ? "opacity-60" : ""}`}>
+    <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 ${b.status === "CANCELLED" ? "opacity-60" : ""}`}>
       <div className="flex items-start justify-between gap-2">
-        <Link href={`/parking/${b.slotId}`} className="font-semibold text-gray-900 hover:underline">{b.slotLabel}</Link>
-        <span className="font-bold text-gray-900">₹{b.totalAmount}</span>
+        <Link href={`/parking/${b.slotId}`} className="font-semibold text-gray-900 dark:text-gray-100 hover:underline">{b.slotLabel}</Link>
+        <span className="font-bold text-gray-900 dark:text-gray-100">₹{b.totalAmount}</span>
       </div>
-      <p className="text-sm text-gray-500 mt-0.5">{fmtRange(b.startAt, b.endAt)}</p>
-      {b.vehicleNumber && <p className="text-xs text-gray-400 mt-0.5">Vehicle {b.vehicleNumber}</p>}
+      <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{fmtRange(b.startAt, b.endAt)}</p>
+      {b.vehicleNumber && <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Vehicle {b.vehicleNumber}</p>}
       <div className="flex items-center gap-2 mt-3 flex-wrap">
         <StatusPill status={b.status} />
         {b.status === "BOOKED" && (
@@ -252,13 +252,13 @@ function BookerCard({ b, busy, onPay, onCancel }: { b: BookerBooking; busy: bool
 
 function OwnerCard({ b, busy, onConfirm, onCancel }: { b: OwnerBooking; busy: boolean; onConfirm: () => void; onCancel: () => void }) {
   return (
-    <div className={`bg-white rounded-lg shadow-sm border border-gray-200 p-4 ${b.status === "CANCELLED" ? "opacity-60" : ""}`}>
+    <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 ${b.status === "CANCELLED" ? "opacity-60" : ""}`}>
       <div className="flex items-start justify-between gap-2">
-        <Link href={`/parking/${b.slotId}`} className="font-semibold text-gray-900 hover:underline">{b.slotLabel}</Link>
-        <span className="font-bold text-gray-900">₹{b.totalAmount}</span>
+        <Link href={`/parking/${b.slotId}`} className="font-semibold text-gray-900 dark:text-gray-100 hover:underline">{b.slotLabel}</Link>
+        <span className="font-bold text-gray-900 dark:text-gray-100">₹{b.totalAmount}</span>
       </div>
-      <p className="text-sm text-gray-500 mt-0.5">{fmtRange(b.startAt, b.endAt)}</p>
-      <p className="text-xs text-gray-400 mt-0.5">{b.booker.name} · Block {b.booker.block ?? "—"}, {b.booker.flatNumber}{b.vehicleNumber ? ` · ${b.vehicleNumber}` : ""}</p>
+      <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{fmtRange(b.startAt, b.endAt)}</p>
+      <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{b.booker.name} · Block {b.booker.block ?? "—"}, {b.booker.flatNumber}{b.vehicleNumber ? ` · ${b.vehicleNumber}` : ""}</p>
       <div className="flex items-center gap-2 mt-3 flex-wrap">
         <StatusPill status={b.status} />
         {b.status === "BOOKED" && (
@@ -274,14 +274,14 @@ function OwnerCard({ b, busy, onConfirm, onCancel }: { b: OwnerBooking; busy: bo
 }
 
 function StatusPill({ status }: { status: string }) {
-  const cls = status === "CANCELLED" ? "text-red-700 bg-red-100" : status === "COMPLETED" ? "text-gray-600 bg-gray-100" : "text-green-700 bg-green-100";
+  const cls = status === "CANCELLED" ? "text-red-700 bg-red-100" : status === "COMPLETED" ? "text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700" : "text-green-700 bg-green-100";
   return <span className={`text-xs font-semibold rounded-full px-2 py-0.5 ${cls}`}>{status === "BOOKED" ? "Booked" : status === "CANCELLED" ? "Cancelled" : "Done"}</span>;
 }
 
 function Empty({ icon: Icon, text }: { icon: typeof Car; text: string }) {
   return (
-    <div className="bg-white rounded-lg border border-dashed border-gray-300 py-16 text-center text-gray-500">
-      <Icon size={32} className="mx-auto mb-2 text-gray-300" />
+    <div className="bg-white dark:bg-gray-800 rounded-lg border border-dashed border-gray-300 dark:border-gray-600 py-16 text-center text-gray-500 dark:text-gray-400">
+      <Icon size={32} className="mx-auto mb-2 text-gray-300 dark:text-gray-600" />
       <p className="text-sm">{text}</p>
     </div>
   );

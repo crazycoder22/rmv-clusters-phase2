@@ -50,14 +50,14 @@ export default function ReferendumsPage() {
   }, [refresh]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
               <Vote className="text-blue-600" /> Referendums
             </h1>
-            <p className="text-sm text-gray-500 mt-0.5">Vote on community decisions — one flat, one vote</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Vote on community decisions — one flat, one vote</p>
           </div>
           {canCreate && (
             <Link
@@ -74,8 +74,8 @@ export default function ReferendumsPage() {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
           </div>
         ) : items.length === 0 ? (
-          <div className="bg-white rounded-lg border border-dashed border-gray-300 py-16 text-center text-gray-500">
-            <Vote size={32} className="mx-auto mb-2 text-gray-300" />
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-dashed border-gray-300 dark:border-gray-600 py-16 text-center text-gray-500 dark:text-gray-400">
+            <Vote size={32} className="mx-auto mb-2 text-gray-300 dark:text-gray-600" />
             <p className="text-sm">No referendums yet.{canCreate ? " Click “New referendum” to create one." : ""}</p>
           </div>
         ) : (
@@ -84,25 +84,25 @@ export default function ReferendumsPage() {
               <Link
                 key={r.id}
                 href={`/referendums/${r.id}`}
-                className="block bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition"
+                className="block bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition"
               >
                 <div className="flex items-start justify-between gap-3">
-                  <h3 className="font-semibold text-gray-900">{r.title}</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">{r.title}</h3>
                   {r.isOpen ? (
                     <span className="shrink-0 inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-100 rounded-full px-2 py-0.5">
                       <Clock size={11} /> {closesLabel(r.closesAt)}
                     </span>
                   ) : (
-                    <span className="shrink-0 inline-flex items-center gap-1 text-xs font-semibold text-gray-600 bg-gray-100 rounded-full px-2 py-0.5">
+                    <span className="shrink-0 inline-flex items-center gap-1 text-xs font-semibold text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-full px-2 py-0.5">
                       <Lock size={11} /> Closed
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   by {r.author.name} · {r.eligibility === "OWNERS_ONLY" ? "Owners only" : "All residents"}
                 </p>
                 <div className="flex items-center gap-3 mt-2 text-xs">
-                  <span className="inline-flex items-center gap-1 text-gray-400">
+                  <span className="inline-flex items-center gap-1 text-gray-400 dark:text-gray-500">
                     <Users size={12} /> {r.turnout}/{r.eligibleFlats} flats voted
                   </span>
                   {r.isOpen && r.myFlatVoted && (
@@ -111,7 +111,7 @@ export default function ReferendumsPage() {
                     </span>
                   )}
                   {r.isOpen && !r.myFlatVoted && !r.iAmEligible && (
-                    <span className="text-gray-400">Not eligible</span>
+                    <span className="text-gray-400 dark:text-gray-500">Not eligible</span>
                   )}
                   {r.isOpen && !r.myFlatVoted && r.iAmEligible && (
                     <span className="text-blue-600 font-semibold">Vote now</span>

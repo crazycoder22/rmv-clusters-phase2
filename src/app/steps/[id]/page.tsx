@@ -107,16 +107,16 @@ export default function StepEventPage() {
   const daysMet = me?.daysGoalMet ?? 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
         <div className="flex items-center justify-between">
-          <Link href={`/events/${id}/dashboard`} className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900"><ArrowLeft size={16} /> Leaderboard</Link>
+          <Link href={`/events/${id}/dashboard`} className="inline-flex items-center gap-1 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900"><ArrowLeft size={16} /> Leaderboard</Link>
         </div>
 
-        <h1 className="text-2xl font-bold text-gray-900 mt-3">🏃 {event.title}</h1>
-        <p className="text-sm text-gray-500 mt-0.5">{fmtDate(event.startDate)} – {fmtDate(event.endDate)}{goal > 0 ? ` · goal ${goal.toLocaleString()}/day` : ""}</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-3">🏃 {event.title}</h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{fmtDate(event.startDate)} – {fmtDate(event.endDate)}{goal > 0 ? ` · goal ${goal.toLocaleString()}/day` : ""}</p>
 
-        <div className="bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-lg px-4 py-2.5 mt-4">
+        <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 text-amber-800 text-sm rounded-lg px-4 py-2.5 mt-4">
           On the web you enter steps manually. The iPhone app syncs them automatically from Apple Health.
         </div>
 
@@ -126,31 +126,31 @@ export default function StepEventPage() {
           <Stat value={goal} label="daily goal" icon={Target} color="text-blue-600" />
         </div>
 
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mt-6 mb-2">Daily steps</h2>
+        <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mt-6 mb-2">Daily steps</h2>
         <div className="space-y-1.5">
           {days.map((d) => {
             const steps = doneMap.get(d.iso) ?? 0;
             const met = goal > 0 && steps >= goal;
             const isEditing = editing === d.iso;
             return (
-              <div key={d.iso} className={`flex items-center gap-3 rounded-lg border px-4 py-2.5 ${d.isToday ? "border-blue-300 bg-blue-50" : met ? "border-green-200 bg-white" : "border-gray-200 bg-white"}`}>
+              <div key={d.iso} className={`flex items-center gap-3 rounded-lg border px-4 py-2.5 ${d.isToday ? "border-blue-300 bg-blue-50 dark:bg-blue-900/30" : met ? "border-green-200 bg-white dark:bg-gray-800" : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"}`}>
                 <div className="w-20 flex-shrink-0">
-                  <p className="text-sm font-medium text-gray-900">{fmtShort(d.iso)}</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{fmtShort(d.iso)}</p>
                   {d.isToday && <p className="text-[10px] uppercase text-blue-600">today</p>}
                 </div>
                 {isEditing ? (
                   <div className="flex flex-1 items-center gap-2">
-                    <input type="number" value={editVal} onChange={(e) => setEditVal(e.target.value)} autoFocus placeholder="steps" className="flex-1 border border-gray-300 rounded-md px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500" />
+                    <input type="number" value={editVal} onChange={(e) => setEditVal(e.target.value)} autoFocus placeholder="steps" className="flex-1 border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500" />
                     <button type="button" onClick={() => saveSteps(d.iso, parseInt(editVal, 10) || 0)} disabled={saving} className="bg-green-600 text-white rounded-md px-3 py-1 text-xs font-semibold hover:bg-green-700">Save</button>
-                    <button type="button" onClick={() => { setEditing(null); setEditVal(""); }} className="border border-gray-300 rounded-md px-3 py-1 text-xs">Cancel</button>
+                    <button type="button" onClick={() => { setEditing(null); setEditVal(""); }} className="border border-gray-300 dark:border-gray-600 rounded-md px-3 py-1 text-xs">Cancel</button>
                   </div>
                 ) : (
                   <>
                     <div className="flex-1">
-                      <p className={`text-sm font-bold ${steps === 0 ? "text-gray-400" : met ? "text-green-600" : "text-gray-900"}`}>{steps > 0 ? steps.toLocaleString() : "—"}</p>
+                      <p className={`text-sm font-bold ${steps === 0 ? "text-gray-400 dark:text-gray-500" : met ? "text-green-600" : "text-gray-900 dark:text-gray-100"}`}>{steps > 0 ? steps.toLocaleString() : "—"}</p>
                     </div>
                     {(d.isPast || d.isToday) && (
-                      <button type="button" onClick={() => { setEditing(d.iso); setEditVal(String(steps || "")); }} className="text-gray-400 hover:text-gray-700"><Pencil size={14} /></button>
+                      <button type="button" onClick={() => { setEditing(d.iso); setEditVal(String(steps || "")); }} className="text-gray-400 dark:text-gray-500 hover:text-gray-700"><Pencil size={14} /></button>
                     )}
                   </>
                 )}
@@ -167,14 +167,14 @@ export default function StepEventPage() {
 
 function Stat({ value, label, icon: Icon, color }: { value: number; label: string; icon: typeof Flame; color: string }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
+    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 text-center">
       <Icon size={18} className={`mx-auto mb-1 ${color}`} />
-      <p className="text-xl font-bold text-gray-900">{value.toLocaleString()}</p>
-      <p className="text-xs text-gray-500 uppercase tracking-wide">{label}</p>
+      <p className="text-xl font-bold text-gray-900 dark:text-gray-100">{value.toLocaleString()}</p>
+      <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">{label}</p>
     </div>
   );
 }
-function Centered({ children }: { children: React.ReactNode }) { return <div className="min-h-screen bg-gray-50 flex items-center justify-center">{children}</div>; }
+function Centered({ children }: { children: React.ReactNode }) { return <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">{children}</div>; }
 function isoIST(): string { return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date()); }
 function addDays(iso: string, n: number): string { const d = new Date(iso + "T00:00:00+05:30"); d.setUTCDate(d.getUTCDate() + n); return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).format(d); }
 function fmtDate(iso: string): string { return new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short" }); }

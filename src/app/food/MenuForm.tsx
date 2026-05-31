@@ -116,19 +116,19 @@ export default function MenuForm({ menuId }: { menuId?: string }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex justify-center pt-20">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex justify-center pt-20">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
-        <Link href={isEdit ? `/food/menus/${menuId}` : "/food"} className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900">
+        <Link href={isEdit ? `/food/menus/${menuId}` : "/food"} className="inline-flex items-center gap-1 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900">
           <ArrowLeft size={16} /> Back
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900 mt-3 mb-6">{isEdit ? "Edit menu" : "New menu"}</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-3 mb-6">{isEdit ? "Edit menu" : "New menu"}</h1>
 
         <div className="space-y-4">
           <Field label="Menu title">
@@ -150,18 +150,18 @@ export default function MenuForm({ menuId }: { menuId?: string }) {
           </Field>
 
           <div>
-            <p className="text-sm font-medium text-gray-700 mb-2">Dishes</p>
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Dishes</p>
             <div className="space-y-3">
               {dishes.map((d, i) => (
                 <DishRow key={i} dish={d} onChange={(p) => updateDish(i, p)} onRemove={dishes.length > 1 ? () => setDishes((prev) => prev.filter((_, idx) => idx !== i)) : undefined} />
               ))}
             </div>
-            <button type="button" onClick={() => setDishes((p) => [...p, { name: "", description: "", price: "", imageUrl: null }])} className="mt-3 w-full inline-flex items-center justify-center gap-1 border border-dashed border-gray-300 rounded-lg py-2.5 text-sm text-gray-600 hover:bg-gray-100">
+            <button type="button" onClick={() => setDishes((p) => [...p, { name: "", description: "", price: "", imageUrl: null }])} className="mt-3 w-full inline-flex items-center justify-center gap-1 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg py-2.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
               <Plus size={15} /> Add another dish
             </button>
           </div>
 
-          {err && <p className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-3 py-2 text-sm">{err}</p>}
+          {err && <p className="bg-red-50 dark:bg-red-900/30 border border-red-200 text-red-700 rounded-lg px-3 py-2 text-sm">{err}</p>}
 
           <button type="button" onClick={save} disabled={saving} className="w-full bg-blue-600 text-white rounded-lg py-3 font-medium hover:bg-blue-700 disabled:opacity-50">
             {saving ? "Saving…" : isEdit ? "Save menu" : "Publish menu"}
@@ -192,7 +192,7 @@ function DishRow({ dish, onChange, onRemove }: { dish: DishDraft; onChange: (p: 
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-3 space-y-2">
+    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 space-y-2">
       <div className="flex gap-3">
         {dish.imageUrl ? (
           <div className="relative h-20 w-20 flex-shrink-0">
@@ -201,7 +201,7 @@ function DishRow({ dish, onChange, onRemove }: { dish: DishDraft; onChange: (p: 
             <button type="button" onClick={() => onChange({ imageUrl: null })} className="absolute -right-2 -top-2 h-6 w-6 flex items-center justify-center rounded-full bg-gray-800 text-white"><X size={12} /></button>
           </div>
         ) : (
-          <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading} className="h-20 w-20 flex-shrink-0 flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg text-gray-400 hover:bg-gray-50">
+          <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading} className="h-20 w-20 flex-shrink-0 flex items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700">
             {uploading ? <span className="text-xs">…</span> : <ImagePlus size={20} />}
           </button>
         )}
@@ -209,12 +209,12 @@ function DishRow({ dish, onChange, onRemove }: { dish: DishDraft; onChange: (p: 
         <div className="flex-1 space-y-2">
           <input value={dish.name} onChange={(e) => onChange({ name: e.target.value })} placeholder="Dish name" className={inputCls} />
           <div className="flex items-center gap-2">
-            <span className="text-gray-500">₹</span>
+            <span className="text-gray-500 dark:text-gray-400">₹</span>
             <input type="number" value={dish.price} onChange={(e) => onChange({ price: e.target.value })} placeholder="Price" className={inputCls} />
           </div>
         </div>
         {onRemove && (
-          <button type="button" onClick={onRemove} className="h-8 w-8 flex items-center justify-center self-start text-gray-400 hover:text-red-600"><Trash2 size={16} /></button>
+          <button type="button" onClick={onRemove} className="h-8 w-8 flex items-center justify-center self-start text-gray-400 dark:text-gray-500 hover:text-red-600"><Trash2 size={16} /></button>
         )}
       </div>
       <input value={dish.description} onChange={(e) => onChange({ description: e.target.value })} placeholder="Short description (optional)" className={inputCls} />
@@ -225,14 +225,14 @@ function DishRow({ dish, onChange, onRemove }: { dish: DishDraft; onChange: (p: 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{label}</label>
       {children}
     </div>
   );
 }
 
 const inputCls =
-  "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500";
+  "w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500";
 
 function todayIso(): string {
   const d = new Date();

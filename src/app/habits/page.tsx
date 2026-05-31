@@ -127,20 +127,20 @@ export default function HabitsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
               <Target className="text-blue-600" /> Habits
             </h1>
-            <p className="text-sm text-gray-500 mt-0.5">Build routines, stay accountable</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Build routines, stay accountable</p>
           </div>
           <button
             type="button"
             onClick={() => setShowNew((v) => !v)}
             className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium ${
-              showNew ? "bg-gray-100 text-gray-700" : "bg-blue-600 text-white hover:bg-blue-700"
+              showNew ? "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300" : "bg-blue-600 text-white hover:bg-blue-700"
             }`}
           >
             {showNew ? <X size={16} /> : <Plus size={16} />}
@@ -164,14 +164,14 @@ export default function HabitsPage() {
                 </h2>
                 <div className="space-y-2">
                   {invites.map((inv) => (
-                    <div key={inv.id} className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                      <p className="text-sm text-gray-800">
+                    <div key={inv.id} className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 rounded-lg p-4">
+                      <p className="text-sm text-gray-800 dark:text-gray-200">
                         <strong>{inv.ownerName}</strong> (Block {inv.ownerBlock}, {inv.ownerFlat}) wants you as their accountability partner for{" "}
                         <strong>{inv.emoji ? `${inv.emoji} ` : ""}{inv.title}</strong>
                       </p>
                       <div className="flex gap-2 mt-3">
                         <button type="button" onClick={() => respondInvite(inv.id, "accept")} disabled={busyId === inv.id} className="flex-1 inline-flex items-center justify-center gap-1 bg-green-600 text-white rounded-md py-2 text-sm font-medium hover:bg-green-700 disabled:opacity-50"><Check size={14} /> Accept</button>
-                        <button type="button" onClick={() => respondInvite(inv.id, "decline")} disabled={busyId === inv.id} className="flex-1 inline-flex items-center justify-center gap-1 border border-gray-300 text-gray-700 rounded-md py-2 text-sm font-medium hover:bg-gray-50"><X size={14} /> Decline</button>
+                        <button type="button" onClick={() => respondInvite(inv.id, "decline")} disabled={busyId === inv.id} className="flex-1 inline-flex items-center justify-center gap-1 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700"><X size={14} /> Decline</button>
                       </div>
                     </div>
                   ))}
@@ -181,34 +181,34 @@ export default function HabitsPage() {
 
             {/* My habits */}
             <section>
-              <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">My habits</h2>
+              <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">My habits</h2>
               {owned.length === 0 ? (
-                <div className="bg-white border border-dashed border-gray-300 rounded-lg py-12 text-center text-gray-500">
-                  <Target size={32} className="mx-auto mb-2 text-gray-300" />
+                <div className="bg-white dark:bg-gray-800 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg py-12 text-center text-gray-500 dark:text-gray-400">
+                  <Target size={32} className="mx-auto mb-2 text-gray-300 dark:text-gray-600" />
                   <p className="text-sm">No habits yet. Click “New habit” to start one.</p>
                 </div>
               ) : (
                 <div className="space-y-2">
                   {owned.map((h) => (
-                    <div key={h.id} className={`flex items-center gap-3 bg-white border rounded-lg p-4 ${h.todayDone ? "border-green-300" : "border-gray-200"}`}>
+                    <div key={h.id} className={`flex items-center gap-3 bg-white dark:bg-gray-800 border rounded-lg p-4 ${h.todayDone ? "border-green-300" : "border-gray-200 dark:border-gray-700"}`}>
                       <button
                         type="button"
                         onClick={() => toggleToday(h)}
                         disabled={busyId === h.id}
-                        className={`h-10 w-10 flex-shrink-0 rounded-full flex items-center justify-center ${h.todayDone ? "bg-green-600 text-white hover:bg-green-700" : "border-2 border-gray-300 text-gray-400 hover:bg-gray-50"}`}
+                        className={`h-10 w-10 flex-shrink-0 rounded-full flex items-center justify-center ${h.todayDone ? "bg-green-600 text-white hover:bg-green-700" : "border-2 border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700"}`}
                         title={h.todayDone ? "Mark not done" : "Mark done today"}
                       >
                         {h.todayDone ? <Check size={20} /> : <span className="block h-4 w-4 rounded-full" />}
                       </button>
                       <Link href={`/habits/${h.id}`} className="flex-1 min-w-0">
-                        <p className="font-semibold text-gray-900">{h.emoji ? `${h.emoji} ` : ""}{h.title}</p>
-                        <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-2">
+                        <p className="font-semibold text-gray-900 dark:text-gray-100">{h.emoji ? `${h.emoji} ` : ""}{h.title}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 flex items-center gap-2">
                           <span className="inline-flex items-center gap-1 text-orange-600"><Flame size={12} /> {h.currentStreak}d streak</span>
                           <span>·</span><span>{h.completionPct}%</span>
                           {h.partner && (<><span>·</span><span>{h.partner.status === "accepted" ? h.partner.name : h.partner.status === "pending" ? "invite sent" : ""}</span></>)}
                         </p>
                       </Link>
-                      <Link href={`/habits/${h.id}`}><ChevronRight size={18} className="text-gray-400" /></Link>
+                      <Link href={`/habits/${h.id}`}><ChevronRight size={18} className="text-gray-400 dark:text-gray-500" /></Link>
                     </div>
                   ))}
                 </div>
@@ -218,16 +218,16 @@ export default function HabitsPage() {
             {/* Partnering */}
             {partnering.length > 0 && (
               <section>
-                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Keeping accountable</h2>
+                <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Keeping accountable</h2>
                 <div className="space-y-2">
                   {partnering.map((h) => (
-                    <div key={h.id} className="flex items-center gap-3 bg-white border border-gray-200 rounded-lg p-4">
-                      <div className="h-10 w-10 flex-shrink-0 rounded-full bg-gray-100 flex items-center justify-center text-lg">{h.emoji ?? "🎯"}</div>
+                    <div key={h.id} className="flex items-center gap-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                      <div className="h-10 w-10 flex-shrink-0 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-lg">{h.emoji ?? "🎯"}</div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-gray-900">{h.title}</p>
-                        <p className="text-xs text-gray-500 mt-0.5">{h.owner.name} · <span className="text-orange-600">{h.currentStreak}d</span> · <span className={h.todayDone ? "text-green-600" : "text-gray-400"}>{h.todayDone ? "done today" : "not yet today"}</span></p>
+                        <p className="font-semibold text-gray-900 dark:text-gray-100">{h.title}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{h.owner.name} · <span className="text-orange-600">{h.currentStreak}d</span> · <span className={h.todayDone ? "text-green-600" : "text-gray-400 dark:text-gray-500"}>{h.todayDone ? "done today" : "not yet today"}</span></p>
                       </div>
-                      <button type="button" onClick={() => nudge(h.id)} disabled={busyId === h.id || !h.canNudge} className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold ${h.canNudge ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-gray-100 text-gray-400"}`}><Bell size={12} /> {h.canNudge ? "Nudge" : "Sent"}</button>
+                      <button type="button" onClick={() => nudge(h.id)} disabled={busyId === h.id || !h.canNudge} className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold ${h.canNudge ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500"}`}><Bell size={12} /> {h.canNudge ? "Nudge" : "Sent"}</button>
                     </div>
                   ))}
                 </div>
@@ -291,54 +291,54 @@ function NewHabitForm({ onCreated }: { onCreated: () => void }) {
   }
 
   return (
-    <div className="bg-white border border-blue-200 rounded-lg p-5 mb-6 space-y-4">
+    <div className="bg-white dark:bg-gray-800 border border-blue-200 rounded-lg p-5 mb-6 space-y-4">
       <div className="grid grid-cols-[80px,1fr] gap-3">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Emoji</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Emoji</label>
           <input value={emoji} onChange={(e) => setEmoji(Array.from(e.target.value).slice(0, 2).join(""))} placeholder="🧘" className={`${inputCls} text-center text-lg`} />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Habit</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Habit</label>
           <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Yoga every morning" className={inputCls} />
         </div>
       </div>
       <div className="grid grid-cols-3 gap-3">
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Start</label><input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className={inputCls} /></div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">End</label><input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className={inputCls} /></div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Mins/day</label><input type="number" value={targetMinutes} onChange={(e) => setTargetMinutes(e.target.value)} placeholder="10" className={inputCls} /></div>
+        <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Start</label><input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className={inputCls} /></div>
+        <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">End</label><input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className={inputCls} /></div>
+        <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mins/day</label><input type="number" value={targetMinutes} onChange={(e) => setTargetMinutes(e.target.value)} placeholder="10" className={inputCls} /></div>
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Accountability partner (optional)</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Accountability partner (optional)</label>
         {partner ? (
-          <div className="flex items-center justify-between border border-green-200 bg-green-50 rounded-lg px-3 py-2">
-            <span className="text-sm text-gray-800">{partner.name} <span className="text-xs text-gray-500">Block {partner.block ?? "—"}, {partner.flatNumber}</span></span>
-            <button type="button" onClick={() => { setPartner(null); setSearch(""); }} className="text-gray-400 hover:text-gray-600"><X size={16} /></button>
+          <div className="flex items-center justify-between border border-green-200 bg-green-50 dark:bg-green-900/30 rounded-lg px-3 py-2">
+            <span className="text-sm text-gray-800 dark:text-gray-200">{partner.name} <span className="text-xs text-gray-500 dark:text-gray-400">Block {partner.block ?? "—"}, {partner.flatNumber}</span></span>
+            <button type="button" onClick={() => { setPartner(null); setSearch(""); }} className="text-gray-400 dark:text-gray-500 hover:text-gray-600"><X size={16} /></button>
           </div>
         ) : (
           <>
-            <div className="flex items-center gap-2 border border-gray-300 rounded-lg px-3">
-              <Search size={15} className="text-gray-400" />
-              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search a resident to invite…" className="flex-1 py-2 text-sm focus:outline-none" />
+            <div className="flex items-center gap-2 border border-gray-300 dark:border-gray-600 rounded-lg px-3">
+              <Search size={15} className="text-gray-400 dark:text-gray-500" />
+              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search a resident to invite…" className="flex-1 py-2 text-sm bg-transparent dark:text-gray-100 focus:outline-none" />
             </div>
             {hits.length > 0 && (
-              <div className="mt-1.5 border border-gray-200 rounded-lg divide-y max-h-48 overflow-y-auto">
+              <div className="mt-1.5 border border-gray-200 dark:border-gray-700 rounded-lg divide-y max-h-48 overflow-y-auto">
                 {hits.map((hit) => (
-                  <button key={hit.id} type="button" onClick={() => setPartner(hit)} className="w-full flex items-center justify-between px-3 py-2 text-left text-sm hover:bg-gray-50">
-                    <span>{hit.name}</span><span className="text-xs text-gray-400">Block {hit.block ?? "—"}, {hit.flatNumber}</span>
+                  <button key={hit.id} type="button" onClick={() => setPartner(hit)} className="w-full flex items-center justify-between px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <span>{hit.name}</span><span className="text-xs text-gray-400 dark:text-gray-500">Block {hit.block ?? "—"}, {hit.flatNumber}</span>
                   </button>
                 ))}
               </div>
             )}
           </>
         )}
-        <p className="text-xs text-gray-400 mt-1">They get a request and can see your progress once they accept.</p>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">They get a request and can see your progress once they accept.</p>
       </div>
-      {err && <p className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-3 py-2 text-sm">{err}</p>}
+      {err && <p className="bg-red-50 dark:bg-red-900/30 border border-red-200 text-red-700 rounded-lg px-3 py-2 text-sm">{err}</p>}
       <button type="button" onClick={submit} disabled={busy} className="w-full bg-blue-600 text-white rounded-lg py-2.5 font-medium hover:bg-blue-700 disabled:opacity-50">{busy ? "Creating…" : "Create habit"}</button>
     </div>
   );
 }
 
-const inputCls = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500";
+const inputCls = "w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500";
 function todayIso(): string { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; }
 function addDays(iso: string, n: number): string { const d = new Date(iso + "T00:00:00"); d.setDate(d.getDate() + n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; }

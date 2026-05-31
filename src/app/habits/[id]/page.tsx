@@ -95,15 +95,15 @@ export default function HabitDetailPage() {
   const isOwner = habit.role === "owner";
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
         <div className="flex items-center justify-between">
-          <Link href="/habits" className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900"><ArrowLeft size={16} /> Back to Habits</Link>
-          {isOwner && <button type="button" onClick={remove} disabled={busy} className="text-gray-400 hover:text-red-600"><Trash2 size={18} /></button>}
+          <Link href="/habits" className="inline-flex items-center gap-1 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900"><ArrowLeft size={16} /> Back to Habits</Link>
+          {isOwner && <button type="button" onClick={remove} disabled={busy} className="text-gray-400 dark:text-gray-500 hover:text-red-600"><Trash2 size={18} /></button>}
         </div>
 
-        <h1 className="text-2xl font-bold text-gray-900 mt-3">{habit.emoji ? `${habit.emoji} ` : ""}{habit.title}</h1>
-        <p className="text-sm text-gray-500 mt-0.5">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-3">{habit.emoji ? `${habit.emoji} ` : ""}{habit.title}</h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
           {fmtDate(habit.startDate)} – {fmtDate(habit.endDate)}{habit.targetMinutes ? ` · ${habit.targetMinutes} min/day` : ""}{!isOwner && ` · ${habit.owner.name}'s habit`}
         </p>
 
@@ -120,19 +120,19 @@ export default function HabitDetailPage() {
           </button>
         )}
         {!isOwner && (
-          <button type="button" onClick={nudge} disabled={busy || !habit.canNudge} className={`w-full mt-4 inline-flex items-center justify-center gap-2 rounded-lg py-3 font-medium ${habit.canNudge ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-gray-100 text-gray-400"}`}>
+          <button type="button" onClick={nudge} disabled={busy || !habit.canNudge} className={`w-full mt-4 inline-flex items-center justify-center gap-2 rounded-lg py-3 font-medium ${habit.canNudge ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500"}`}>
             <Bell size={16} /> {habit.canNudge ? "Send a nudge" : "Nudged recently — try later"}
           </button>
         )}
 
         {/* Day grid */}
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mt-6 mb-2">{isOwner ? "Click a day to mark" : "Progress"}</h2>
+        <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mt-6 mb-2">{isOwner ? "Click a day to mark" : "Progress"}</h2>
         <div className="grid grid-cols-7 gap-1.5">
           {days.map((d) => {
             const done = doneSet.has(d.iso); const isToday = d.iso === habit.today;
             return (
               <button key={d.iso} type="button" onClick={() => toggle(d.iso)} disabled={!isOwner || d.inFuture || busy}
-                className={`aspect-square rounded-lg flex flex-col items-center justify-center text-xs ${done ? "bg-green-600 text-white" : d.inFuture ? "bg-gray-100 text-gray-300" : "bg-white border border-gray-200 text-gray-500"} ${isToday ? "ring-2 ring-blue-500" : ""}`}>
+                className={`aspect-square rounded-lg flex flex-col items-center justify-center text-xs ${done ? "bg-green-600 text-white" : d.inFuture ? "bg-gray-100 dark:bg-gray-700 text-gray-300 dark:text-gray-600" : "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400"} ${isToday ? "ring-2 ring-blue-500" : ""}`}>
                 <span className="font-semibold">{dayNum(d.iso)}</span>
                 <span className="text-[9px] uppercase opacity-70">{monthAbbr(d.iso)}</span>
               </button>
@@ -141,15 +141,15 @@ export default function HabitDetailPage() {
         </div>
 
         {/* Partner */}
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mt-6 mb-2">Accountability</h2>
-        <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm">
+        <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mt-6 mb-2">Accountability</h2>
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 text-sm">
           {isOwner ? (
             habit.partner ? (
-              <p className="inline-flex items-center gap-2 text-gray-800"><Sparkles size={15} className="text-blue-600" /> {habit.partner.name}
-                <span className={`text-xs font-semibold rounded-full px-2 py-0.5 ${habit.partner.status === "accepted" ? "bg-green-100 text-green-700" : habit.partner.status === "pending" ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-600"}`}>{habit.partner.status}</span>
+              <p className="inline-flex items-center gap-2 text-gray-800 dark:text-gray-200"><Sparkles size={15} className="text-blue-600" /> {habit.partner.name}
+                <span className={`text-xs font-semibold rounded-full px-2 py-0.5 ${habit.partner.status === "accepted" ? "bg-green-100 text-green-700" : habit.partner.status === "pending" ? "bg-amber-100 text-amber-700" : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"}`}>{habit.partner.status}</span>
               </p>
-            ) : <p className="text-gray-500">No partner yet. Add one when creating a habit on the app, or they can cheer you on once invited.</p>
-          ) : <p className="text-gray-500">You&apos;re keeping {habit.owner.name} accountable. Send a nudge if they haven&apos;t marked today.</p>}
+            ) : <p className="text-gray-500 dark:text-gray-400">No partner yet. Add one when creating a habit on the app, or they can cheer you on once invited.</p>
+          ) : <p className="text-gray-500 dark:text-gray-400">You&apos;re keeping {habit.owner.name} accountable. Send a nudge if they haven&apos;t marked today.</p>}
         </div>
       </div>
     </div>
@@ -158,15 +158,15 @@ export default function HabitDetailPage() {
 
 function Stat({ value, label, icon: Icon, color, suffix = "" }: { value: number; label: string; icon: typeof Flame; color: string; suffix?: string }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
+    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 text-center">
       <Icon size={18} className={`mx-auto mb-1 ${color}`} />
-      <p className="text-xl font-bold text-gray-900">{value}{suffix}</p>
-      <p className="text-xs text-gray-500 uppercase tracking-wide">{label}</p>
+      <p className="text-xl font-bold text-gray-900 dark:text-gray-100">{value}{suffix}</p>
+      <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">{label}</p>
     </div>
   );
 }
 function Centered({ children }: { children: React.ReactNode }) {
-  return <div className="min-h-screen bg-gray-50 flex items-center justify-center">{children}</div>;
+  return <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">{children}</div>;
 }
 function addDays(iso: string, n: number): string { const d = new Date(iso + "T00:00:00"); d.setDate(d.getDate() + n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; }
 function dayNum(iso: string): string { return String(parseInt(iso.slice(8, 10), 10)); }
