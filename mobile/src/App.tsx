@@ -74,6 +74,7 @@ import ReferendumForm from "./pages/ReferendumForm";
 import Duties from "./pages/Duties";
 import PushNotificationsMount from "./components/PushNotificationsMount";
 import StepSyncMount from "./components/StepSyncMount";
+import DeepLinksMount from "./components/DeepLinksMount";
 
 export default function App() {
   return (
@@ -102,6 +103,7 @@ function Gate() {
     <HashRouter>
       <PushNotificationsMount />
       <StepSyncMount />
+      <DeepLinksMount />
       <Shell>
         <Routes>
           <Route path="/" element={<Dashboard />} />
