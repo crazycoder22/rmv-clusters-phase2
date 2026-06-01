@@ -107,6 +107,9 @@ model Resident {
   dutyChecklistsCreated    DutyChecklist[]         @relation("DutyChecklistsCreated")
   dutyChecklistsOwned      DutyChecklistOwner[]    @relation("DutyChecklistsOwned")
   dutyCompletions          DutyCompletion[]        @relation("DutyCompletions")
+  conversationsA           Conversation[]          @relation("ConvA")
+  conversationsB           Conversation[]          @relation("ConvB")
+  messagesSent             DirectMessage[]         @relation("MessagesSent")
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 }
@@ -2078,4 +2081,40 @@ model DutyCompletion {
   @@unique([itemId, date])
   @@index([itemId, date])
   @@map("duty_completions")
+}
+
+// ── Direct Messaging (private 1:1 resident chat) ─────────────────────────────
+
+model Conversation {
+  id            String          @id @default(cuid())
+  aId           String                              // always the lexicographically-smaller resident id
+  a             Resident        @relation("ConvA", fields: [aId], references: [id], onDelete: Cascade)
+  bId           String
+  b             Resident        @relation("ConvB", fields: [bId], references: [id], onDelete: Cascade)
+  messages      DirectMessage[]
+  lastMessageAt DateTime        @default(now())
+  aLastReadAt   DateTime?
+  bLastReadAt   DateTime?
+  aHiddenAt     DateTime?
+  bHiddenAt     DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@unique([aId, bId])
+  @@index([aId, lastMessageAt])
+  @@index([bId, lastMessageAt])
+  @@map("conversations")
+}
+
+model DirectMessage {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         Resident     @relation("MessagesSent", fields: [senderId], references: [id], onDelete: Cascade)
+  body           String
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
+  @@map("direct_messages")
 }

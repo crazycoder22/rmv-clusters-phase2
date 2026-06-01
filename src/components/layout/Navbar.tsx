@@ -9,6 +9,7 @@ import clsx from "clsx";
 import SignInButton from "@/components/auth/SignInButton";
 import UserMenu from "@/components/auth/UserMenu";
 import NotificationBell from "@/components/notifications/NotificationBell";
+import MessagesBell from "@/components/messages/MessagesBell";
 import MedalsChip from "@/components/medals/MedalsChip";
 import ThemeToggle from "@/components/layout/ThemeToggle";
 import { useRegistrationGuard } from "@/hooks/useRegistrationGuard";
@@ -551,6 +552,7 @@ export default function Navbar() {
             )}
 
             <ThemeToggle />
+            <MessagesBell />
             <NotificationBell />
             <MedalsChip />
             <div className="ml-2 border-l border-gray-200 dark:border-gray-700 pl-2">
@@ -682,6 +684,7 @@ export default function Navbar() {
             <div className="border-t dark:border-gray-700 mt-2 pt-2 flex items-center justify-between gap-2">
               <ThemeToggle />
               <div className="flex items-center gap-2">
+                <MessagesBell />
                 <NotificationBell />
                 <MedalsChip />
               </div>
