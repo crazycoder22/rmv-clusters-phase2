@@ -16,6 +16,7 @@ import {
   LogOut,
   Megaphone,
   MessageCircle,
+  MessagesSquare,
   ShieldCheck,
   Target,
   TrendingUp,
@@ -185,6 +186,12 @@ export default function MorePage() {
       )}
 
       <Group title="Community">
+        <Row
+          to="/messages"
+          icon={MessagesSquare}
+          title="Messages"
+          subtitle="Private 1:1 chat with neighbours"
+        />
         <Row
           to="/calendar"
           icon={CalendarDays}

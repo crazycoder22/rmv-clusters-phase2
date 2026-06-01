@@ -101,6 +101,8 @@ export async function initPushNotifications(
             navigate(data?.id ? `/parking/${data.id}` : "/parking");
           } else if (type === "duty") {
             navigate("/duties");
+          } else if (type === "message" && data?.id) {
+            navigate(`/messages/${data.id}`);
           } else {
             navigate("/");
           }
