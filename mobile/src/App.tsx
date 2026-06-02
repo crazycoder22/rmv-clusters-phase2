@@ -74,6 +74,9 @@ import ReferendumForm from "./pages/ReferendumForm";
 import Duties from "./pages/Duties";
 import Messages from "./pages/Messages";
 import MessageThread from "./pages/MessageThread";
+import Groups from "./pages/Groups";
+import GroupDetail from "./pages/GroupDetail";
+import GroupPollDetail from "./pages/GroupPollDetail";
 import PushNotificationsMount from "./components/PushNotificationsMount";
 import StepSyncMount from "./components/StepSyncMount";
 import DeepLinksMount from "./components/DeepLinksMount";
@@ -191,6 +194,9 @@ function Gate() {
           <Route path="/duties" element={<Duties />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/messages/:id" element={<MessageThread />} />
+          <Route path="/groups" element={<Groups />} />
+          <Route path="/groups/:id" element={<GroupDetail />} />
+          <Route path="/groups/:id/polls/:pollId" element={<GroupPollDetail />} />
         </Routes>
       </Shell>
     </HashRouter>

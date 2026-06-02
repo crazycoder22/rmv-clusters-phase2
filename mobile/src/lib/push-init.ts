@@ -103,6 +103,8 @@ export async function initPushNotifications(
             navigate("/duties");
           } else if (type === "message" && data?.id) {
             navigate(`/messages/${data.id}`);
+          } else if (type === "group_poll" && data?.groupId && data?.id) {
+            navigate(`/groups/${data.groupId}/polls/${data.id}`);
           } else {
             navigate("/");
           }

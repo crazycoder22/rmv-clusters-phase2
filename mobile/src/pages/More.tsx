@@ -193,6 +193,12 @@ export default function MorePage() {
           subtitle="Private 1:1 chat with neighbours"
         />
         <Row
+          to="/groups"
+          icon={Users}
+          title="Groups"
+          subtitle="Sports & activity groups — join and vote"
+        />
+        <Row
           to="/calendar"
           icon={CalendarDays}
           title="Calendar"
