@@ -83,6 +83,7 @@ const navGroups: NavGroup[] = [
     label: "Community",
     links: [
       { href: "/community", label: "Community" },
+      { href: "/groups", label: "Groups" },
       { href: "/initiatives", label: "Initiatives" },
       { href: "/referendums", label: "Referendums" },
       { href: "/issues", label: "Issues" },

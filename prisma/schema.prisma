@@ -110,6 +110,10 @@ model Resident {
   conversationsA           Conversation[]          @relation("ConvA")
   conversationsB           Conversation[]          @relation("ConvB")
   messagesSent             DirectMessage[]         @relation("MessagesSent")
+  groupsCreated            Group[]                 @relation("GroupsCreated")
+  groupMemberships         GroupMember[]           @relation("GroupMemberships")
+  groupPollsAuthored       GroupPoll[]             @relation("GroupPollsAuthored")
+  groupPollVotes           GroupPollVote[]         @relation("GroupPollVotes")
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 }
@@ -2117,4 +2121,101 @@ model DirectMessage {
 
   @@index([conversationId, createdAt])
   @@map("direct_messages")
+}
+
+// ── Sports Groups + Recurring Polls ──────────────────────────────────────────
+
+enum GroupMemberRole {
+  ORGANIZER
+  MEMBER
+}
+
+enum GroupPollStatus {
+  OPEN
+  CLOSED
+}
+
+enum GroupPollOutcome {
+  GAME_ON
+  CANCELLED
+}
+
+model Group {
+  id          String        @id @default(cuid())
+  name        String
+  description String?
+  createdById String
+  createdBy   Resident      @relation("GroupsCreated", fields: [createdById], references: [id], onDelete: Cascade)
+  members     GroupMember[]
+  polls       GroupPoll[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([createdAt])
+  @@map("groups")
+}
+
+model GroupMember {
+  id         String          @id @default(cuid())
+  groupId    String
+  group      Group           @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  residentId String
+  resident   Resident        @relation("GroupMemberships", fields: [residentId], references: [id], onDelete: Cascade)
+  role       GroupMemberRole @default(MEMBER)
+  joinedAt   DateTime        @default(now())
+
+  @@unique([groupId, residentId])
+  @@index([residentId])
+  @@map("group_members")
+}
+
+model GroupPoll {
+  id        String            @id @default(cuid())
+  groupId   String
+  group     Group             @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    Resident          @relation("GroupPollsAuthored", fields: [authorId], references: [id], onDelete: Cascade)
+  title     String
+  playAt    DateTime?
+  closesAt  DateTime?
+  status    GroupPollStatus   @default(OPEN)
+  outcome   GroupPollOutcome?
+  closeNote String?
+  closedAt  DateTime?
+  options   GroupPollOption[]
+  votes     GroupPollVote[]
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@index([groupId, createdAt])
+  @@map("group_polls")
+}
+
+model GroupPollOption {
+  id        String          @id @default(cuid())
+  pollId    String
+  poll      GroupPoll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  text      String
+  sortOrder Int             @default(0)
+  votes     GroupPollVote[]
+  createdAt DateTime        @default(now())
+
+  @@index([pollId])
+  @@map("group_poll_options")
+}
+
+model GroupPollVote {
+  id         String          @id @default(cuid())
+  pollId     String
+  poll       GroupPoll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  optionId   String
+  option     GroupPollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  residentId String
+  resident   Resident        @relation("GroupPollVotes", fields: [residentId], references: [id], onDelete: Cascade)
+  createdAt  DateTime        @default(now())
+
+  @@unique([pollId, residentId])
+  @@index([pollId])
+  @@index([optionId])
+  @@map("group_poll_votes")
 }
