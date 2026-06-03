@@ -160,7 +160,7 @@ export default function GroupHomePage() {
       </div>
 
       {pollOpen && <NewPollModal groupId={id} onClose={() => setPollOpen(false)} onCreated={async (pollId) => { setPollOpen(false); router.push(`/groups/${id}/polls/${pollId}`); }} />}
-      {membersOpen && data && <ManageMembersModal group={data} onClose={() => setMembersOpen(false)} onChanged={refresh} />}
+      {membersOpen && data && <ManageMembersModal group={data} onClose={() => setMembersOpen(false)} onChanged={refresh} onDeleted={() => router.push("/groups")} />}
     </div>
   );
 }
@@ -238,10 +238,23 @@ function NewPollModal({ groupId, onClose, onCreated }: { groupId: string; onClos
   );
 }
 
-function ManageMembersModal({ group, onClose, onChanged }: { group: GroupDetail; onClose: () => void; onChanged: () => void }) {
+function ManageMembersModal({ group, onClose, onChanged, onDeleted }: { group: GroupDetail; onClose: () => void; onChanged: () => void; onDeleted: () => void }) {
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<{ id: string; name: string; block: number | null; flatNumber: string }[]>([]);
+  const [deleting, setDeleting] = useState(false);
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  async function deleteGroup() {
+    if (!confirm(`Delete the “${group.name}” group? This removes all its polls and votes for everyone. This cannot be undone.`)) return;
+    setDeleting(true);
+    try {
+      const r = await fetch(`/api/groups/${group.id}`, { method: "DELETE" });
+      if (r.ok) onDeleted();
+      else { alert((await r.json().catch(() => null))?.error ?? "Could not delete"); setDeleting(false); }
+    } catch {
+      setDeleting(false);
+    }
+  }
 
   useEffect(() => {
     if (debounce.current) clearTimeout(debounce.current);
@@ -306,6 +319,18 @@ function ManageMembersModal({ group, onClose, onChanged }: { group: GroupDetail;
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Danger zone */}
+        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <button
+            type="button"
+            onClick={deleteGroup}
+            disabled={deleting}
+            className="w-full inline-flex items-center justify-center gap-1.5 border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg py-2 text-sm font-medium hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50"
+          >
+            <Trash2 size={15} /> {deleting ? "Deleting…" : "Delete group"}
+          </button>
         </div>
       </div>
     </div>

@@ -121,7 +121,7 @@ export default function GroupDetail() {
       )}
 
       {pollOpen && <NewPollModal token={token} groupId={id} onClose={() => setPollOpen(false)} onCreated={(pid) => { setPollOpen(false); navigate(`/groups/${id}/polls/${pid}`); }} />}
-      {membersOpen && data && <ManageMembersModal token={token} group={data} onClose={() => setMembersOpen(false)} onChanged={refresh} />}
+      {membersOpen && data && <ManageMembersModal token={token} group={data} onClose={() => setMembersOpen(false)} onChanged={refresh} onDeleted={() => navigate("/groups")} />}
     </div>
   );
 }
@@ -181,7 +181,7 @@ function NewPollModal({ token, groupId, onClose, onCreated }: { token: string | 
   );
 }
 
-function ManageMembersModal({ token, group, onClose, onChanged }: { token: string | null; group: GroupDetailData; onClose: () => void; onChanged: () => void }) {
+function ManageMembersModal({ token, group, onClose, onChanged, onDeleted }: { token: string | null; group: GroupDetailData; onClose: () => void; onChanged: () => void; onDeleted: () => void }) {
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<{ id: string; name: string; block: number | null; flatNumber: string }[]>([]);
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -202,6 +202,12 @@ function ManageMembersModal({ token, group, onClose, onChanged }: { token: strin
   async function add(residentId: string) { const r = await apiFetch(`/api/groups/${group.id}/members`, { method: "POST", token, body: JSON.stringify({ residentId }) }); if (r.ok) { setQ(""); setHits([]); onChanged(); } }
   async function setRole(residentId: string, role: "ORGANIZER" | "MEMBER") { const r = await apiFetch(`/api/groups/${group.id}/members/${residentId}`, { method: "PATCH", token, body: JSON.stringify({ role }) }); if (r.ok) onChanged(); else alert((await r.json().catch(() => null))?.error ?? "Could not update"); }
   async function remove(residentId: string) { const r = await apiFetch(`/api/groups/${group.id}/members/${residentId}`, { method: "DELETE", token }); if (r.ok) onChanged(); else alert((await r.json().catch(() => null))?.error ?? "Could not remove"); }
+  async function deleteGroup() {
+    if (!confirm(`Delete the "${group.name}" group? This removes all its polls and votes for everyone. This cannot be undone.`)) return;
+    const r = await apiFetch(`/api/groups/${group.id}`, { method: "DELETE", token });
+    if (r.ok) onDeleted();
+    else alert((await r.json().catch(() => null))?.error ?? "Could not delete");
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 px-4 pt-[max(2.5rem,env(safe-area-inset-top,0px))]">
@@ -226,6 +232,11 @@ function ManageMembersModal({ token, group, onClose, onChanged }: { token: strin
               </div>
             </div>
           ))}
+        </div>
+        <div className="mt-4 border-t border-slate-700 pt-4">
+          <button onClick={deleteGroup} className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-red-800 py-2 text-sm font-medium text-red-400 active:bg-red-900/20">
+            <Trash2 size={15} /> Delete group
+          </button>
         </div>
       </div>
     </div>
