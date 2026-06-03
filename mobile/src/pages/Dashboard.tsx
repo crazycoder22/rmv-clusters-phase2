@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   ChevronRight,
   Circle,
@@ -73,6 +73,17 @@ type ActivePoll = {
 
 export default function Dashboard() {
   const { user, token, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  // SOS home-screen state (warrior banner / sender's active alert / panic flow).
+  const [sos, setSos] = useState<{
+    amWarrior: boolean;
+    myActiveAlertId: string | null;
+    warriorActiveAlertId: string | null;
+    warriorActiveCount: number;
+  } | null>(null);
+  const [sosConfirm, setSosConfirm] = useState(false);
+  const [sosSending, setSosSending] = useState(false);
 
   const [rsvps, setRsvps] = useState<Rsvp[]>([]);
   const [sportsRegs, setSportsRegs] = useState<SportsReg[]>([]);
@@ -129,6 +140,13 @@ export default function Dashboard() {
         if (!cancelled) setRegsLoading(false);
       });
 
+    apiFetch("/api/sos/me", { token })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!cancelled && data) setSos(data);
+      })
+      .catch(() => {});
+
     apiFetch("/api/polls/active", { token })
       .then((r) => (r.ok ? r.json() : { polls: [] }))
       .then((data) => {
@@ -160,6 +178,34 @@ export default function Dashboard() {
       cancelled = true;
     };
   }, [token]);
+
+  // Raise an SOS: confirm → POST → navigate to the alert screen.
+  async function sendSos() {
+    if (!token || sosSending) return;
+    setSosSending(true);
+    try {
+      const res = await apiFetch("/api/sos/alerts", {
+        method: "POST",
+        token,
+        body: JSON.stringify({}),
+      });
+      const data = await res.json().catch(() => null);
+      if (res.ok && data?.id) {
+        setSosConfirm(false);
+        navigate(`/sos/${data.id}`);
+      } else if (res.status === 409 && data?.id) {
+        // Already have an active alert — go to it.
+        setSosConfirm(false);
+        navigate(`/sos/${data.id}`);
+      } else {
+        window.alert(data?.error ?? "Couldn't send SOS. Please try again.");
+      }
+    } catch {
+      window.alert("Couldn't send SOS. Please check your connection.");
+    } finally {
+      setSosSending(false);
+    }
+  }
 
   // Quick-mark a habit done from the dashboard card; removes it from the list.
   async function markHabitDone(habitId: string) {
@@ -246,6 +292,101 @@ export default function Dashboard() {
           <LogOut size={18} />
         </button>
       </header>
+
+      {/* Active-SOS banner — warriors see any live alert; senders see their own. */}
+      {sos?.amWarrior && sos.warriorActiveAlertId ? (
+        <button
+          onClick={() => navigate(`/sos/${sos.warriorActiveAlertId}`)}
+          className="mb-4 flex w-full items-center gap-3 rounded-2xl border border-red-500/50 bg-red-500/15 px-4 py-3 text-left active:bg-red-500/25"
+        >
+          <span className="relative flex h-3 w-3 flex-shrink-0">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
+            <span className="relative inline-flex h-3 w-3 rounded-full bg-red-500" />
+          </span>
+          <span className="flex-1">
+            <span className="block text-sm font-semibold text-red-200">
+              {sos.warriorActiveCount > 1
+                ? `${sos.warriorActiveCount} active SOS alerts`
+                : "Active SOS — someone needs help"}
+            </span>
+            <span className="block text-[11px] text-red-300/80">
+              Tap to respond
+            </span>
+          </span>
+          <ChevronRight size={18} className="text-red-300" />
+        </button>
+      ) : !sos?.amWarrior && sos?.myActiveAlertId ? (
+        <button
+          onClick={() => navigate(`/sos/${sos.myActiveAlertId}`)}
+          className="mb-4 flex w-full items-center gap-3 rounded-2xl border border-amber-500/50 bg-amber-500/15 px-4 py-3 text-left active:bg-amber-500/25"
+        >
+          <Siren size={18} className="flex-shrink-0 text-amber-300" />
+          <span className="flex-1">
+            <span className="block text-sm font-semibold text-amber-200">
+              Your SOS is active
+            </span>
+            <span className="block text-[11px] text-amber-300/80">
+              Help is on the way — tap to view responders
+            </span>
+          </span>
+          <ChevronRight size={18} className="text-amber-300" />
+        </button>
+      ) : null}
+
+      {/* Emergency SOS panic button — first hero element. Hidden if the
+          resident already has a live alert (the banner above covers it). */}
+      {!sos?.myActiveAlertId ? (
+        <button
+          onClick={() => setSosConfirm(true)}
+          className="mb-4 flex w-full items-center justify-center gap-2.5 rounded-2xl bg-red-600 px-4 py-4 text-base font-bold text-white shadow-lg shadow-red-900/30 active:bg-red-700"
+        >
+          <Siren size={22} /> Emergency SOS
+        </button>
+      ) : null}
+
+      {/* Confirm sheet */}
+      {sosConfirm ? (
+        <div
+          className="fixed inset-0 z-50 flex items-end bg-black/60"
+          onClick={() => !sosSending && setSosConfirm(false)}
+        >
+          <div
+            className="w-full rounded-t-3xl border-t border-slate-700 bg-slate-900 px-5 pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] pt-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-500/15">
+              <Siren size={24} className="text-red-400" />
+            </div>
+            <p className="text-center text-lg font-bold text-white">
+              Send emergency alert?
+            </p>
+            <p className="mt-2 text-center text-sm text-slate-400">
+              This immediately alerts all SOS warriors with your name, Block{" "}
+              {user?.block}, Flat {user?.flatNumber} and phone number so they can
+              reach you.
+            </p>
+            <button
+              onClick={() => void sendSos()}
+              disabled={sosSending}
+              className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-red-600 px-4 py-3.5 text-base font-bold text-white active:bg-red-700 disabled:opacity-60"
+            >
+              {sosSending ? (
+                <Loader2 size={18} className="animate-spin" />
+              ) : (
+                <Siren size={18} />
+              )}
+              {sosSending ? "Sending…" : "Send SOS now"}
+            </button>
+            <button
+              onClick={() => setSosConfirm(false)}
+              disabled={sosSending}
+              className="mt-2 w-full rounded-2xl px-4 py-3 text-sm font-medium text-slate-400 active:bg-slate-800 disabled:opacity-60"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {/* Active Stepup challenge hero — only shown when the resident has
           registered for an event currently inside its 14-day window. */}

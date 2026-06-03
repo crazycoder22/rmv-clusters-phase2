@@ -105,6 +105,8 @@ export async function initPushNotifications(
             navigate(`/messages/${data.id}`);
           } else if (type === "group_poll" && data?.groupId && data?.id) {
             navigate(`/groups/${data.groupId}/polls/${data.id}`);
+          } else if (type === "sos" && data?.id) {
+            navigate(`/sos/${data.id}`);
           } else {
             navigate("/");
           }

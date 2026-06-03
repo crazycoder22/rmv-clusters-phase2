@@ -114,6 +114,8 @@ model Resident {
   groupMemberships         GroupMember[]           @relation("GroupMemberships")
   groupPollsAuthored       GroupPoll[]             @relation("GroupPollsAuthored")
   groupPollVotes           GroupPollVote[]         @relation("GroupPollVotes")
+  sosAlertsSent            SosAlert[]              @relation("SosAlertsSent")
+  sosResponses             SosResponse[]           @relation("SosResponses")
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 }
@@ -2218,4 +2220,45 @@ model GroupPollVote {
   @@index([pollId])
   @@index([optionId])
   @@map("group_poll_votes")
+}
+
+// ── SOS Panic Alerts (mobile panic button → warrior broadcast) ───────────────
+
+enum SosAlertStatus {
+  ACTIVE
+  RESOLVED
+}
+
+model SosAlert {
+  id           String         @id @default(cuid())
+  senderId     String
+  sender       Resident       @relation("SosAlertsSent", fields: [senderId], references: [id], onDelete: Cascade)
+  senderName   String
+  senderBlock  Int
+  senderFlat   String
+  senderPhone  String
+  note         String?
+  status       SosAlertStatus @default(ACTIVE)
+  resolvedAt   DateTime?
+  resolvedById String?
+  responses    SosResponse[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([status, createdAt])
+  @@index([senderId, status])
+  @@map("sos_alerts")
+}
+
+model SosResponse {
+  id          String   @id @default(cuid())
+  alertId     String
+  alert       SosAlert @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  responderId String
+  responder   Resident @relation("SosResponses", fields: [responderId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([alertId, responderId])
+  @@index([alertId])
+  @@map("sos_responses")
 }
