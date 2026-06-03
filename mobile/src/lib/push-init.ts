@@ -107,6 +107,10 @@ export async function initPushNotifications(
             navigate(`/groups/${data.groupId}/polls/${data.id}`);
           } else if (type === "sos" && data?.id) {
             navigate(`/sos/${data.id}`);
+          } else if (type === "amenity_request" && data?.id) {
+            navigate("/admin/amenities/approvals");
+          } else if (type === "amenity_booking" && data?.id) {
+            navigate(`/amenities/booking/${data.id}`);
           } else {
             navigate("/");
           }

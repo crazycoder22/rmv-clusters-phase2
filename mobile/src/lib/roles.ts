@@ -63,3 +63,11 @@ export function canManageIssues(roles: Roles): boolean {
 export function canManageResidents(roles: Roles): boolean {
   return isAdmin(roles);
 }
+
+/**
+ * Can manage amenities + approve bookings. Mirrors the web
+ * `canManageAmenities` — admins (incl. COMMUNITY_ADMIN) + FACILITY_MANAGER.
+ */
+export function canManageAmenities(roles: Roles): boolean {
+  return isAdmin(roles) || has(roles, "COMMUNITY_ADMIN") || has(roles, "FACILITY_MANAGER");
+}

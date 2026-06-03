@@ -26,6 +26,12 @@ import Videos from "./pages/Videos";
 import SosGuidelines from "./pages/SosGuidelines";
 import SosWarriors from "./pages/SosWarriors";
 import SosAlert from "./pages/SosAlert";
+import Amenities from "./pages/Amenities";
+import AmenityDetail from "./pages/AmenityDetail";
+import AmenityBookingDetail from "./pages/AmenityBookingDetail";
+import AmenityMyBookings from "./pages/AmenityMyBookings";
+import AdminAmenityEdit from "./pages/AdminAmenityEdit";
+import AdminAmenityApprovals from "./pages/AdminAmenityApprovals";
 import Issues from "./pages/Issues";
 import IssueNew from "./pages/IssueNew";
 import IssueDetail from "./pages/IssueDetail";
@@ -136,6 +142,13 @@ function Gate() {
           <Route path="/sos-guidelines" element={<SosGuidelines />} />
           <Route path="/sos-warriors" element={<SosWarriors />} />
           <Route path="/sos/:id" element={<SosAlert />} />
+          <Route path="/amenities" element={<Amenities />} />
+          <Route path="/amenities/my-bookings" element={<AmenityMyBookings />} />
+          <Route path="/amenities/booking/:id" element={<AmenityBookingDetail />} />
+          <Route path="/amenities/:id" element={<AmenityDetail />} />
+          <Route path="/admin/amenities/new" element={<AdminAmenityEdit />} />
+          <Route path="/admin/amenities/approvals" element={<AdminAmenityApprovals />} />
+          <Route path="/admin/amenities/:id" element={<AdminAmenityEdit />} />
           <Route path="/issues" element={<Issues />} />
           <Route path="/issues/new" element={<IssueNew />} />
           <Route path="/issues/:id" element={<IssueDetail />} />

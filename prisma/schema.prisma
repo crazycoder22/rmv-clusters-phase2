@@ -116,6 +116,7 @@ model Resident {
   groupPollVotes           GroupPollVote[]         @relation("GroupPollVotes")
   sosAlertsSent            SosAlert[]              @relation("SosAlertsSent")
   sosResponses             SosResponse[]           @relation("SosResponses")
+  amenityBookings          AmenityBooking[]        @relation("AmenityBookingsByBooker")
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 }
@@ -2261,4 +2262,84 @@ model SosResponse {
   @@unique([alertId, responderId])
   @@index([alertId])
   @@map("sos_responses")
+}
+
+enum AmenityBookingStatus {
+  PENDING    // awaiting admin approval (only for approval-required amenities)
+  CONFIRMED  // reserved
+  CANCELLED  // cancelled by booker
+  REJECTED   // declined by admin
+  COMPLETED  // slot has passed
+}
+
+// A bookable shared facility (clubhouse, court, gym, pool…). Admin-managed.
+model Amenity {
+  id                String          @id @default(cuid())
+  name              String
+  description       String?
+  location          String?                         // human directions / landmark
+  icon              String?                          // lucide icon name for the mobile UI
+  capacity          Int             @default(1)      // concurrent bookings per slot (1 = exclusive)
+  requiresApproval  Boolean         @default(false)  // PENDING until an admin confirms
+  fee               Float           @default(0)      // ₹ per booking (0 = free)
+  feeNote           String?                          // e.g. "₹500 refundable deposit"
+  payInfo           String?                          // UPI id / phone for the fee
+  payQrUrl          String?                          // uploaded UPI QR image
+  maxPerResident    Int?                             // cap of active/future bookings per resident (null = unlimited)
+  bookingWindowDays Int             @default(30)     // how far ahead residents may book
+  active            Boolean         @default(true)
+  slots             AmenitySlot[]
+  bookings          AmenityBooking[]
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@index([active])
+  @@map("amenities")
+}
+
+// A recurring bookable window template for an amenity. dayOfWeek null = every day.
+// Times are minutes-from-midnight in IST (e.g. 360 = 06:00, 420 = 07:00).
+model AmenitySlot {
+  id          String           @id @default(cuid())
+  amenityId   String
+  amenity     Amenity          @relation(fields: [amenityId], references: [id], onDelete: Cascade)
+  label       String?                              // e.g. "Morning", "Full day"
+  dayOfWeek   Int?                                 // 0=Sun … 6=Sat; null = applies every day
+  startMinute Int                                  // minutes from IST midnight
+  endMinute   Int
+  bookings    AmenityBooking[]
+  createdAt   DateTime         @default(now())
+
+  @@index([amenityId])
+  @@map("amenity_slots")
+}
+
+model AmenityBooking {
+  id                   String               @id @default(cuid())
+  amenityId            String
+  amenity              Amenity              @relation(fields: [amenityId], references: [id], onDelete: Cascade)
+  slotId               String
+  slot                 AmenitySlot          @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  bookerId             String
+  booker               Resident             @relation("AmenityBookingsByBooker", fields: [bookerId], references: [id], onDelete: Cascade)
+  startAt              DateTime             // concrete IST instant resolved from date + slot
+  endAt                DateTime
+  status               AmenityBookingStatus @default(CONFIRMED)
+  feeSnapshot          Float                @default(0)   // fee captured at booking time
+  note                 String?
+  bookerPaid           Boolean              @default(false)
+  bookerPaidAt         DateTime?
+  adminConfirmedPaid   Boolean              @default(false)
+  adminConfirmedPaidAt DateTime?
+  approvedById         String?              // admin who approved/rejected
+  approvedAt           DateTime?
+  cancelledBy          String?              // "booker" | "admin"
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+
+  @@index([amenityId, startAt])
+  @@index([slotId, startAt])
+  @@index([bookerId, status])
+  @@index([status, startAt])
+  @@map("amenity_bookings")
 }
