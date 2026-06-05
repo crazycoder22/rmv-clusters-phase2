@@ -15,12 +15,29 @@ model Role {
 }
 
 model Flat {
-  id         String @id @default(cuid())
-  block      Int    // 1, 2, 3, or 4
-  flatNumber String // e.g., "001/002", "103"
+  id         String    @id @default(cuid())
+  block      Int       // 1, 2, 3, or 4
+  flatNumber String    // e.g., "001/002", "103"
+  vehicles   Vehicle[]
 
   @@unique([block, flatNumber])
   @@index([block])
+}
+
+model Vehicle {
+  id            String   @id @default(cuid())
+  vehicleNumber String   // e.g., "KA04MT2711"
+  vehicleType   String   // "Car", "Two Wheeler"
+  isEV          Boolean  @default(false)
+  parkingName   String?  // e.g., "2-109"
+  block         Int
+  flatNumber    String
+  flat          Flat?    @relation(fields: [block, flatNumber], references: [block, flatNumber])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([vehicleNumber])
+  @@index([block, flatNumber])
 }
 
 model Announcement {

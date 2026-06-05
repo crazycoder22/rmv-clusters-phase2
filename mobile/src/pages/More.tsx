@@ -247,6 +247,12 @@ export default function MorePage() {
           subtitle="Book a neighbour's slot by the hour"
         />
         <Row
+          to="/vehicles"
+          icon={Car}
+          title="My Vehicles"
+          subtitle="View your registered vehicles"
+        />
+        <Row
           to="/amenities"
           icon={CalendarDays}
           title="Amenities"

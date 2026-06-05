@@ -70,6 +70,7 @@ import Food from "./pages/Food";
 import FoodMenuDetail from "./pages/FoodMenuDetail";
 import FoodMenuEdit from "./pages/FoodMenuEdit";
 import Parking from "./pages/Parking";
+import Vehicles from "./pages/Vehicles";
 import ParkingSlotDetail from "./pages/ParkingSlotDetail";
 import ParkingSlotEdit from "./pages/ParkingSlotEdit";
 import Initiatives from "./pages/Initiatives";
@@ -187,6 +188,7 @@ function Gate() {
           <Route path="/steps/:id/leaderboard" element={<StepLeaderboard />} />
           <Route path="/my-steps" element={<MySteps />} />
         <Route path="/parking" element={<Parking />} />
+        <Route path="/vehicles" element={<Vehicles />} />
         <Route path="/parking/slots/new" element={<ParkingSlotEdit />} />
         <Route path="/parking/slots/:id/edit" element={<ParkingSlotEdit />} />
         <Route path="/parking/:id" element={<ParkingSlotDetail />} />
