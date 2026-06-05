@@ -2360,3 +2360,41 @@ model AmenityBooking {
   @@index([status, startAt])
   @@map("amenity_bookings")
 }
+
+// Read-only mirror of MyGate Help Desk complaints, imported from the official
+// "Download Report" export. Not linked to Resident (createdBy/flat are snapshot
+// strings); status kept as a raw string since this just mirrors MyGate.
+model MygateComplaint {
+  id                String    @id @default(cuid())
+  mygateId          String    @unique          // MyGate ticket id — dedup key for re-imports
+  subject           String
+  category          String?
+  subCategory       String?
+  type              String?                     // "personal" | "common"
+  block             Int?                        // parsed from flat (e.g. "3-105" → 3)
+  flatNumber        String?                     // parsed flat ("105", "310/311")
+  flatRaw           String?                     // original "3-310/311"
+  createdBy         String?                     // resident name (snapshot)
+  status            String                      // raw MyGate status
+  isOpen            Boolean   @default(true)    // derived: not Resolved/Closed
+  assignee          String?
+  updatedUser       String?
+  escalationLevel   String?
+  comments          String?
+  mygateCreatedAt   DateTime?                   // MyGate "Created Date"
+  lastUpdateAt      DateTime?
+  closedAt          DateTime?                   // MyGate "Closed Time"
+  resolutionMinutes Int?                        // parsed from "Resolution Tat"
+  onHoldMinutes     Int?
+  reopenCount       Int       @default(0)
+  rating            Int?
+  raw               Json                        // full original row
+  importedAt        DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([status])
+  @@index([category])
+  @@index([block])
+  @@index([mygateCreatedAt])
+  @@map("mygate_complaints")
+}

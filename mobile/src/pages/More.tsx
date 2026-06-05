@@ -134,6 +134,14 @@ export default function MorePage() {
               subtitle="Triage and close maintenance issues"
             />
           )}
+          {showIssueAdmin && (
+            <Row
+              to="/admin/mygate-complaints"
+              icon={BarChart3}
+              title="MyGate Complaints"
+              subtitle="Imported Help Desk complaints + analytics"
+            />
+          )}
           {showVisitAdmin && (
             <Row
               to="/admin/visits"

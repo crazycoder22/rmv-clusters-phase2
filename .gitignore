@@ -89,3 +89,6 @@ prisma/dev.db-journal
 /.claude/
 /.vscode/
 /.idea/
+
+# MyGate report data (resident PII — never commit)
+scripts/.data/

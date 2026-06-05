@@ -402,6 +402,13 @@ export default function Navbar() {
       match: (p) => p.startsWith("/admin/housekeeping"),
     });
   }
+  if (isAdmin(roles) || (roles ?? []).includes("FACILITY_MANAGER")) {
+    financeLinks.push({
+      href: "/admin/mygate-complaints",
+      label: "MyGate Complaints",
+      match: (p) => p.startsWith("/admin/mygate-complaints"),
+    });
+  }
   if (financeLinks.length) adminGroups.push({ label: "Finance & Facility", links: financeLinks });
 
   // Flat list — used for the "is any admin section active?" check and

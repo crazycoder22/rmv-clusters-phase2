@@ -32,6 +32,7 @@ import AmenityBookingDetail from "./pages/AmenityBookingDetail";
 import AmenityMyBookings from "./pages/AmenityMyBookings";
 import AdminAmenityEdit from "./pages/AdminAmenityEdit";
 import AdminAmenityApprovals from "./pages/AdminAmenityApprovals";
+import AdminMygateComplaints from "./pages/AdminMygateComplaints";
 import Issues from "./pages/Issues";
 import IssueNew from "./pages/IssueNew";
 import IssueDetail from "./pages/IssueDetail";
@@ -150,6 +151,7 @@ function Gate() {
           <Route path="/admin/amenities/new" element={<AdminAmenityEdit />} />
           <Route path="/admin/amenities/approvals" element={<AdminAmenityApprovals />} />
           <Route path="/admin/amenities/:id" element={<AdminAmenityEdit />} />
+          <Route path="/admin/mygate-complaints" element={<AdminMygateComplaints />} />
           <Route path="/issues" element={<Issues />} />
           <Route path="/issues/new" element={<IssueNew />} />
           <Route path="/issues/:id" element={<IssueDetail />} />
