@@ -42,6 +42,14 @@ type ActivePoll = {
   _count: { votes: number };
 };
 
+type NewsItem = {
+  id: string;
+  title: string;
+  category: string;
+  date: string;
+  emoji: string | null;
+};
+
 export default function Dashboard() {
   const { user, token, signOut } = useAuth();
   const navigate = useNavigate();
@@ -61,6 +69,8 @@ export default function Dashboard() {
   const [regsLoading, setRegsLoading] = useState(true);
 
   const [polls, setPolls] = useState<ActivePoll[]>([]);
+
+  const [news, setNews] = useState<NewsItem[]>([]);
 
   // Active step events the resident has registered for. Surfaced as a hero
   // card so the active Stepup challenge is the first thing you see on
@@ -117,6 +127,13 @@ export default function Dashboard() {
       .then((r) => (r.ok ? r.json() : { polls: [] }))
       .then((data) => {
         if (!cancelled) setPolls(data.polls ?? []);
+      })
+      .catch(() => {});
+
+    apiFetch("/api/announcements", { token })
+      .then((r) => (r.ok ? r.json() : { announcements: [] }))
+      .then((data) => {
+        if (!cancelled) setNews(data.announcements ?? []);
       })
       .catch(() => {});
 
@@ -211,6 +228,14 @@ export default function Dashboard() {
       <Siren size={22} /> Emergency SOS
     </button>
   ) : null;
+
+  // Latest news from the last 2 weeks, newest first (max 4).
+  const recentNews = [...news]
+    .filter(
+      (n) => Date.now() - new Date(n.date).getTime() <= 14 * 24 * 60 * 60 * 1000
+    )
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 4);
 
   return (
     <div className="flex flex-1 flex-col px-4 pt-[max(2rem,env(safe-area-inset-top,0px))]">
@@ -496,6 +521,41 @@ export default function Dashboard() {
           </div>
         )}
       </Section>
+
+      {/* Latest news (last 2 weeks) */}
+      {recentNews.length > 0 && (
+        <section className="mb-5">
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+              Latest news
+            </h2>
+            <Link to="/news" className="text-[11px] font-medium text-indigo-300">
+              View all
+            </Link>
+          </div>
+          <div className="space-y-2">
+            {recentNews.map((n) => (
+              <Link
+                key={n.id}
+                to="/news"
+                className="flex items-center gap-3 rounded-2xl border border-slate-700 bg-slate-800/60 p-3 active:bg-slate-800"
+              >
+                <span className="text-xl">{n.emoji ?? "📰"}</span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-slate-100">
+                    {n.title}
+                  </p>
+                  <p className="text-[11px] text-slate-500">
+                    <span className="capitalize">{n.category}</span> ·{" "}
+                    {formatDate(n.date)}
+                  </p>
+                </div>
+                <ChevronRight size={16} className="flex-shrink-0 text-slate-500" />
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Active polls */}
       {polls.length > 0 && (
