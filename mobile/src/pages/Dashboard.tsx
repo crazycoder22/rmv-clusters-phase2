@@ -4,11 +4,9 @@ import {
   ChevronRight,
   Circle,
   Flame,
-  HeartPulse,
   Loader2,
   LogOut,
   Phone,
-  Shield,
   Siren,
   Target,
 } from "lucide-react";
@@ -17,30 +15,7 @@ import clsx from "clsx";
 import { apiFetch } from "../lib/api";
 import { API_BASE_URL } from "../config";
 import { useAuth } from "../auth/AuthProvider";
-
-const EMERGENCY_CONTACTS: {
-  name: string;
-  phone: string;
-  icon: typeof Shield;
-}[] = [
-  { name: "Security at MainGate", phone: "9019903594", icon: Shield },
-  {
-    name: "Kodigehalli Police Station",
-    phone: "+91 80 22943703",
-    icon: Siren,
-  },
-  { name: "RMV Hospital", phone: "+91 80 42664366", icon: HeartPulse },
-  {
-    name: "MS Ramaiah Hospital",
-    phone: "+91 80 40502000",
-    icon: HeartPulse,
-  },
-  {
-    name: "Helpline (Police / Fire / Ambulance)",
-    phone: "112",
-    icon: Phone,
-  },
-];
+import { EMERGENCY_CONTACTS } from "../lib/emergencyContacts";
 
 
 type Rsvp = {
@@ -625,6 +600,16 @@ export default function Dashboard() {
             <div>
               <p className="text-sm font-semibold text-white">Guidelines</p>
               <p className="text-[10px] text-slate-500">Community rules</p>
+            </div>
+          </Link>
+          <Link
+            to="/emergency"
+            className="flex items-center gap-3 rounded-2xl border border-red-500/40 bg-red-500/10 p-3 active:bg-red-500/20"
+          >
+            <span className="text-2xl">🚨</span>
+            <div>
+              <p className="text-sm font-semibold text-white">Emergency</p>
+              <p className="text-[10px] text-slate-400">Contacts & warriors</p>
             </div>
           </Link>
         </div>
