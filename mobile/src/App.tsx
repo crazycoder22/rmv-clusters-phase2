@@ -34,6 +34,7 @@ import AdminAmenityEdit from "./pages/AdminAmenityEdit";
 import AdminAmenityApprovals from "./pages/AdminAmenityApprovals";
 import AdminMygateComplaints from "./pages/AdminMygateComplaints";
 import ResidentDirectory from "./pages/ResidentDirectory";
+import Settings from "./pages/Settings";
 import Issues from "./pages/Issues";
 import IssueNew from "./pages/IssueNew";
 import IssueDetail from "./pages/IssueDetail";
@@ -145,6 +146,7 @@ function Gate() {
           <Route path="/sos-guidelines" element={<SosGuidelines />} />
           <Route path="/sos-warriors" element={<SosWarriors />} />
           <Route path="/residents" element={<ResidentDirectory />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="/sos/:id" element={<SosAlert />} />
           <Route path="/amenities" element={<Amenities />} />
           <Route path="/amenities/my-bookings" element={<AmenityMyBookings />} />

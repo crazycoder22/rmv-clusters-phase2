@@ -26,6 +26,7 @@ import {
   Vote,
   Wrench,
   ListChecks,
+  Settings as SettingsIcon,
   type LucideIcon,
 } from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
@@ -67,6 +68,15 @@ export default function MorePage() {
           Community info, rules, and settings
         </p>
       </header>
+
+      <Group title="Preferences">
+        <Row
+          to="/settings"
+          icon={SettingsIcon}
+          title="Settings"
+          subtitle="Senior-friendly mode & other preferences"
+        />
+      </Group>
 
       {showAdmin && (
         <Group title="Admin">

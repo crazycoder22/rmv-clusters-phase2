@@ -71,6 +71,7 @@ model Resident {
   residentType String   // "OWNER" | "OWNER_FAMILY" | "TENANT" | "TENANT_FAMILY" | "MULTI_TENANT"
   isApproved   Boolean  @default(false)
   isSosWarrior Boolean  @default(false)
+  isSeniorCitizen Boolean @default(false)
   googleImage  String?
   roles        Role[]
   rsvps                Rsvp[]

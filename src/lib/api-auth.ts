@@ -11,6 +11,7 @@ export type AuthedResident = {
   flatNumber: string;
   residentType: string;
   isApproved: boolean;
+  isSeniorCitizen: boolean;
   roles: string[];
 };
 
@@ -42,6 +43,7 @@ export async function getAuthedResident(
           flatNumber: true,
           residentType: true,
           isApproved: true,
+          isSeniorCitizen: true,
           roles: { select: { name: true } },
         },
       });
@@ -55,6 +57,7 @@ export async function getAuthedResident(
         flatNumber: resident.flatNumber,
         residentType: resident.residentType,
         isApproved: resident.isApproved,
+        isSeniorCitizen: resident.isSeniorCitizen,
         roles: resident.roles.map((r) => r.name),
       };
     } catch {
@@ -76,6 +79,7 @@ export async function getAuthedResident(
       flatNumber: true,
       residentType: true,
       isApproved: true,
+      isSeniorCitizen: true,
       roles: { select: { name: true } },
     },
   });
@@ -89,6 +93,7 @@ export async function getAuthedResident(
     flatNumber: resident.flatNumber,
     residentType: resident.residentType,
     isApproved: resident.isApproved,
+    isSeniorCitizen: resident.isSeniorCitizen,
     roles: resident.roles.map((r) => r.name),
   };
 }

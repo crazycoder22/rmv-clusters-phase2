@@ -227,6 +227,22 @@ export default function Dashboard() {
     Browser.open({ url }).catch(() => window.open(url, "_blank"));
   };
 
+  // Big circular Emergency SOS button. Hidden if the resident already has a live
+  // alert (the banner covers that case). Placed at the top for senior citizens,
+  // otherwise at the bottom of the home screen.
+  const sosButton = !sos?.myActiveAlertId ? (
+    <div className="mb-5 flex flex-col items-center">
+      <button
+        onClick={() => setSosConfirm(true)}
+        className="flex h-28 w-28 flex-col items-center justify-center gap-1 rounded-full bg-red-600 text-white shadow-lg shadow-red-900/40 active:bg-red-700"
+      >
+        <Siren size={34} />
+        <span className="text-lg font-extrabold tracking-wide">SOS</span>
+      </button>
+      <p className="mt-2 text-[11px] text-slate-500">Tap for emergency help</p>
+    </div>
+  ) : null;
+
   return (
     <div className="flex flex-1 flex-col px-4 pt-[max(2rem,env(safe-area-inset-top,0px))]">
       <header className="mb-5 flex items-center justify-between">
@@ -300,16 +316,8 @@ export default function Dashboard() {
         </button>
       ) : null}
 
-      {/* Emergency SOS panic button — first hero element. Hidden if the
-          resident already has a live alert (the banner above covers it). */}
-      {!sos?.myActiveAlertId ? (
-        <button
-          onClick={() => setSosConfirm(true)}
-          className="mb-4 flex w-full items-center justify-center gap-2.5 rounded-2xl bg-red-600 px-4 py-4 text-base font-bold text-white shadow-lg shadow-red-900/30 active:bg-red-700"
-        >
-          <Siren size={22} /> Emergency SOS
-        </button>
-      ) : null}
+      {/* SOS at the TOP for senior citizens (accessible placement). */}
+      {user?.isSeniorCitizen ? sosButton : null}
 
       {/* Confirm sheet */}
       {sosConfirm ? (
@@ -450,36 +458,6 @@ export default function Dashboard() {
         </section>
       )}
 
-      {/* Emergency */}
-      <Section title="Emergency">
-        <div className="overflow-hidden rounded-2xl border border-slate-700 bg-slate-800/60">
-          {EMERGENCY_CONTACTS.map((c, i) => {
-            const Icon = c.icon;
-            const primaryPhone = c.phone.split(",")[0].trim();
-            return (
-              <a
-                key={c.name}
-                href={`tel:${primaryPhone.replace(/\s+/g, "")}`}
-                className={clsx(
-                  "flex items-center gap-3 px-4 py-3 active:bg-slate-800",
-                  i < EMERGENCY_CONTACTS.length - 1 &&
-                    "border-b border-slate-700"
-                )}
-              >
-                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-red-500/15 text-red-300">
-                  <Icon size={17} />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-slate-100">{c.name}</p>
-                  <p className="text-[11px] text-slate-500">{c.phone}</p>
-                </div>
-                <Phone size={14} className="text-slate-500" />
-              </a>
-            );
-          })}
-        </div>
-      </Section>
-
       {/* My registrations */}
       <Section title="My upcoming">
         {regsLoading ? (
@@ -601,6 +579,39 @@ export default function Dashboard() {
           </Link>
         </div>
       </Section>
+
+      {/* Emergency contacts */}
+      <Section title="Emergency">
+        <div className="overflow-hidden rounded-2xl border border-slate-700 bg-slate-800/60">
+          {EMERGENCY_CONTACTS.map((c, i) => {
+            const Icon = c.icon;
+            const primaryPhone = c.phone.split(",")[0].trim();
+            return (
+              <a
+                key={c.name}
+                href={`tel:${primaryPhone.replace(/\s+/g, "")}`}
+                className={clsx(
+                  "flex items-center gap-3 px-4 py-3 active:bg-slate-800",
+                  i < EMERGENCY_CONTACTS.length - 1 &&
+                    "border-b border-slate-700"
+                )}
+              >
+                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-red-500/15 text-red-300">
+                  <Icon size={17} />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-slate-100">{c.name}</p>
+                  <p className="text-[11px] text-slate-500">{c.phone}</p>
+                </div>
+                <Phone size={14} className="text-slate-500" />
+              </a>
+            );
+          })}
+        </div>
+      </Section>
+
+      {/* SOS at the BOTTOM for everyone else (default placement). */}
+      {!user?.isSeniorCitizen ? sosButton : null}
     </div>
   );
 }

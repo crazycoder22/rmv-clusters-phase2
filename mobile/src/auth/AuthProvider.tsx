@@ -21,6 +21,7 @@ export type AuthUser = {
   block: number;
   flatNumber: string;
   imageUrl?: string | null;
+  isSeniorCitizen?: boolean;
   roles: string[];
   playerId: string;
 };
@@ -42,6 +43,7 @@ type AuthContextValue = {
   error: { reason: SignInErrorReason; message: string; email?: string } | null;
   signIn: () => Promise<void>;
   signOut: () => Promise<void>;
+  updateUser: (patch: Partial<AuthUser>) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -197,6 +199,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null);
   }, [session]);
 
+  const updateUser = useCallback(
+    async (patch: Partial<AuthUser>) => {
+      setSession((prev) => {
+        if (!prev) return prev;
+        const next: Session = { ...prev, user: { ...prev.user, ...patch } };
+        void Preferences.set({ key: STORAGE_KEY, value: JSON.stringify(next) });
+        return next;
+      });
+    },
+    []
+  );
+
   return (
     <AuthContext.Provider
       value={{
@@ -206,6 +220,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         error,
         signIn,
         signOut,
+        updateUser,
       }}
     >
       {children}
