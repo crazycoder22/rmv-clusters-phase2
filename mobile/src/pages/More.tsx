@@ -201,6 +201,12 @@ export default function MorePage() {
           subtitle="Private 1:1 chat with neighbours"
         />
         <Row
+          to="/residents"
+          icon={Users}
+          title="Resident Directory"
+          subtitle="Find a neighbour & message them"
+        />
+        <Row
           to="/groups"
           icon={Users}
           title="Groups"

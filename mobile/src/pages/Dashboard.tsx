@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ChevronRight,
@@ -43,7 +43,6 @@ const EMERGENCY_CONTACTS: {
   },
 ];
 
-type ResidentResult = { name: string; block: number; flatNumber: string };
 
 type Rsvp = {
   id: string;
@@ -117,11 +116,6 @@ export default function Dashboard() {
   >([]);
   const [habitBusyId, setHabitBusyId] = useState<string | null>(null);
 
-  const [search, setSearch] = useState("");
-  const [results, setResults] = useState<ResidentResult[]>([]);
-  const [searching, setSearching] = useState(false);
-  const [searched, setSearched] = useState(false);
-  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Fetch my registrations + active polls once we have a token.
   useEffect(() => {
@@ -223,32 +217,6 @@ export default function Dashboard() {
       setHabitBusyId(null);
     }
   }
-
-  // Debounced resident search.
-  useEffect(() => {
-    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
-    const q = search.trim();
-    if (!q) {
-      setResults([]);
-      setSearched(false);
-      return;
-    }
-    if (!token) return;
-    searchTimerRef.current = setTimeout(() => {
-      setSearching(true);
-      apiFetch(`/api/residents/search?q=${encodeURIComponent(q)}`, { token })
-        .then((r) => (r.ok ? r.json() : { residents: [] }))
-        .then((data) => {
-          setResults(data.residents ?? []);
-          setSearched(true);
-        })
-        .catch(() => {})
-        .finally(() => setSearching(false));
-    }, 300);
-    return () => {
-      if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
-    };
-  }, [search, token]);
 
   const firstName = useMemo(
     () => user?.name?.split(" ")[0] ?? "friend",
@@ -483,42 +451,15 @@ export default function Dashboard() {
         </section>
       )}
 
-      {/* Resident search */}
-      <section className="mb-5 rounded-2xl border border-slate-700 bg-slate-800/60 p-3">
-        <div className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3">
-          <Search size={16} className="text-slate-500" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Find a resident…"
-            className="flex-1 bg-transparent py-2.5 text-sm text-white placeholder:text-slate-600 focus:outline-none"
-          />
-        </div>
-        {searching && (
-          <p className="mt-3 text-xs text-slate-500">Searching…</p>
-        )}
-        {!searching && searched && results.length === 0 && (
-          <p className="mt-3 text-xs italic text-slate-500">
-            No residents found
-          </p>
-        )}
-        {results.length > 0 && (
-          <div className="mt-3 divide-y divide-slate-700/60 rounded-lg bg-slate-900/60">
-            {results.map((r, i) => (
-              <div
-                key={`${r.block}-${r.flatNumber}-${i}`}
-                className="flex items-center justify-between px-3 py-2 text-sm"
-              >
-                <span className="font-medium text-slate-100">{r.name}</span>
-                <span className="text-xs text-slate-400">
-                  Block {r.block}, {r.flatNumber}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
+      {/* Resident directory shortcut */}
+      <button
+        onClick={() => navigate("/residents")}
+        className="mb-5 flex w-full items-center gap-2 rounded-2xl border border-slate-700 bg-slate-800/60 px-3 py-3 text-left active:bg-slate-700"
+      >
+        <Search size={16} className="text-slate-500" />
+        <span className="flex-1 text-sm text-slate-400">Find a resident…</span>
+        <ChevronRight size={16} className="text-slate-500" />
+      </button>
 
       {/* Emergency */}
       <Section title="Emergency">

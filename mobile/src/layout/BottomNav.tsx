@@ -23,6 +23,7 @@ const MORE_PREFIXES = [
   "/videos",
   "/sos-guidelines",
   "/sos-warriors",
+  "/residents",
   "/issues",
   "/community",
   "/polls",
