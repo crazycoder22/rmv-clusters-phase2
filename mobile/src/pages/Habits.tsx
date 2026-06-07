@@ -551,14 +551,14 @@ function NewHabitForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 gap-2">
         <div>
           <Label>Start</Label>
           <input
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            className="w-full rounded-xl border border-slate-700 bg-slate-900/60 px-2 py-2.5 text-[12px] text-white focus:border-indigo-400 focus:outline-none"
+            className="w-full min-w-0 rounded-xl border border-slate-700 bg-slate-900/60 px-2 py-2.5 text-[12px] text-white focus:border-indigo-400 focus:outline-none"
           />
         </div>
         <div>
@@ -567,19 +567,20 @@ function NewHabitForm({
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
-            className="w-full rounded-xl border border-slate-700 bg-slate-900/60 px-2 py-2.5 text-[12px] text-white focus:border-indigo-400 focus:outline-none"
+            className="w-full min-w-0 rounded-xl border border-slate-700 bg-slate-900/60 px-2 py-2.5 text-[12px] text-white focus:border-indigo-400 focus:outline-none"
           />
         </div>
-        <div>
-          <Label>Mins/day</Label>
-          <input
-            type="number"
-            value={targetMinutes}
-            onChange={(e) => setTargetMinutes(e.target.value)}
-            placeholder="10"
-            className="w-full rounded-xl border border-slate-700 bg-slate-900/60 px-2 py-2.5 text-[12px] text-white placeholder:text-slate-600 focus:border-indigo-400 focus:outline-none"
-          />
-        </div>
+      </div>
+      <div>
+        <Label>Mins/day</Label>
+        <input
+          type="number"
+          inputMode="numeric"
+          value={targetMinutes}
+          onChange={(e) => setTargetMinutes(e.target.value)}
+          placeholder="10"
+          className="w-full min-w-0 rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-2.5 text-sm text-white placeholder:text-slate-600 focus:border-indigo-400 focus:outline-none"
+        />
       </div>
 
       {/* Partner picker */}
