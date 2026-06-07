@@ -577,6 +577,56 @@ export default function Dashboard() {
               <p className="text-[10px] text-slate-500">7 games</p>
             </div>
           </Link>
+          <Link
+            to="/residents"
+            className="flex items-center gap-3 rounded-2xl border border-slate-700 bg-slate-800/60 p-3 active:bg-slate-800"
+          >
+            <span className="text-2xl">👥</span>
+            <div>
+              <p className="text-sm font-semibold text-white">Directory</p>
+              <p className="text-[10px] text-slate-500">Find residents</p>
+            </div>
+          </Link>
+          <Link
+            to="/groups"
+            className="flex items-center gap-3 rounded-2xl border border-slate-700 bg-slate-800/60 p-3 active:bg-slate-800"
+          >
+            <span className="text-2xl">🏸</span>
+            <div>
+              <p className="text-sm font-semibold text-white">Groups</p>
+              <p className="text-[10px] text-slate-500">Join & vote</p>
+            </div>
+          </Link>
+          <Link
+            to="/community"
+            className="flex items-center gap-3 rounded-2xl border border-slate-700 bg-slate-800/60 p-3 active:bg-slate-800"
+          >
+            <span className="text-2xl">💬</span>
+            <div>
+              <p className="text-sm font-semibold text-white">Community</p>
+              <p className="text-[10px] text-slate-500">Posts & feed</p>
+            </div>
+          </Link>
+          <Link
+            to="/parking"
+            className="flex items-center gap-3 rounded-2xl border border-slate-700 bg-slate-800/60 p-3 active:bg-slate-800"
+          >
+            <span className="text-2xl">🚗</span>
+            <div>
+              <p className="text-sm font-semibold text-white">Parking</p>
+              <p className="text-[10px] text-slate-500">Book a slot</p>
+            </div>
+          </Link>
+          <Link
+            to="/guidelines"
+            className="flex items-center gap-3 rounded-2xl border border-slate-700 bg-slate-800/60 p-3 active:bg-slate-800"
+          >
+            <span className="text-2xl">📋</span>
+            <div>
+              <p className="text-sm font-semibold text-white">Guidelines</p>
+              <p className="text-[10px] text-slate-500">Community rules</p>
+            </div>
+          </Link>
         </div>
       </Section>
 
