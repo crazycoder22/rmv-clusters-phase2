@@ -158,8 +158,8 @@ function NewPollModal({ token, groupId, onClose, onCreated }: { token: string | 
         <div className="space-y-3">
           <div><label className="mb-1 block text-[11px] text-slate-400">Title</label><input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Volleyball this Sunday 6pm?" className={inputCls} /></div>
           <div className="space-y-3">
-            <div><label className="mb-1 block text-[11px] text-slate-400">Play time (opt)</label><input type="datetime-local" value={playAt} onChange={(e) => setPlayAt(e.target.value)} className={`${inputCls} min-w-0`} /></div>
-            <div><label className="mb-1 block text-[11px] text-slate-400">Closes (opt)</label><input type="datetime-local" value={closesAt} onChange={(e) => setClosesAt(e.target.value)} className={`${inputCls} min-w-0`} /></div>
+            <div><label className="mb-1 block text-[11px] text-slate-400">Play time (opt)</label><input type="datetime-local" value={playAt} onChange={(e) => setPlayAt(e.target.value)} className={`${inputCls} min-w-0 appearance-none`} /></div>
+            <div><label className="mb-1 block text-[11px] text-slate-400">Closes (opt)</label><input type="datetime-local" value={closesAt} onChange={(e) => setClosesAt(e.target.value)} className={`${inputCls} min-w-0 appearance-none`} /></div>
           </div>
           <div>
             <label className="mb-1 block text-[11px] text-slate-400">Options</label>

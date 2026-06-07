@@ -183,10 +183,10 @@ export default function FoodMenuEdit() {
         </Field>
         <div className="space-y-3">
           <Field label="For date">
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} disabled={isEdit} className={clsx(inputCls, "min-w-0", isEdit && "opacity-60")} />
+            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} disabled={isEdit} className={clsx(inputCls, "min-w-0 appearance-none", isEdit && "opacity-60")} />
           </Field>
           <Field label="Order by (optional)">
-            <input type="datetime-local" value={orderByAt} onChange={(e) => setOrderByAt(e.target.value)} className={clsx(inputCls, "min-w-0")} />
+            <input type="datetime-local" value={orderByAt} onChange={(e) => setOrderByAt(e.target.value)} className={clsx(inputCls, "min-w-0 appearance-none")} />
           </Field>
         </div>
         <Field label="Pickup / delivery info (optional)">

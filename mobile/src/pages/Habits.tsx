@@ -558,7 +558,7 @@ function NewHabitForm({
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            className="w-full min-w-0 rounded-xl border border-slate-700 bg-slate-900/60 px-2 py-2.5 text-[12px] text-white focus:border-indigo-400 focus:outline-none"
+            className="w-full min-w-0 appearance-none rounded-xl border border-slate-700 bg-slate-900/60 px-2 py-2.5 text-[12px] text-white focus:border-indigo-400 focus:outline-none"
           />
         </div>
         <div>
@@ -567,7 +567,7 @@ function NewHabitForm({
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
-            className="w-full min-w-0 rounded-xl border border-slate-700 bg-slate-900/60 px-2 py-2.5 text-[12px] text-white focus:border-indigo-400 focus:outline-none"
+            className="w-full min-w-0 appearance-none rounded-xl border border-slate-700 bg-slate-900/60 px-2 py-2.5 text-[12px] text-white focus:border-indigo-400 focus:outline-none"
           />
         </div>
       </div>
