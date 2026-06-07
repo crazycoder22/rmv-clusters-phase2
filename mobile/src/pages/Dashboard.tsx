@@ -667,6 +667,16 @@ export default function Dashboard() {
             </div>
           </Link>
           <Link
+            to="/domestic-help"
+            className="flex items-center gap-3 rounded-2xl border border-slate-700 bg-slate-800/60 p-3 active:bg-slate-800"
+          >
+            <span className="text-2xl">🧹</span>
+            <div>
+              <p className="text-sm font-semibold text-white">Domestic Help</p>
+              <p className="text-[10px] text-slate-500">Maids, cooks…</p>
+            </div>
+          </Link>
+          <Link
             to="/emergency"
             className="flex items-center gap-3 rounded-2xl border border-red-500/40 bg-red-500/10 p-3 active:bg-red-500/20"
           >

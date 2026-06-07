@@ -1,26 +1,18 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { getAuthedResident } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { canManageDomesticHelp } from "@/lib/roles";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user?.email) {
+  const resident = await getAuthedResident(request);
+  if (!resident) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id } = await params;
-
-  const resident = await prisma.resident.findUnique({
-    where: { email: session.user.email },
-    select: { id: true },
-  });
-  if (!resident) {
-    return NextResponse.json({ error: "Not registered" }, { status: 403 });
-  }
 
   const worker = await prisma.domesticHelp.findUnique({
     where: { id },
@@ -39,30 +31,26 @@ export async function GET(
     return NextResponse.json({ error: "Worker not found" }, { status: 404 });
   }
 
-  // Find current user's review
   const myReview = worker.reviews.find((r) => r.residentId === resident.id) || null;
 
-  return NextResponse.json({ worker, myReview });
+  return NextResponse.json({
+    worker,
+    myReview,
+    isOwner: worker.addedById === resident.id,
+    canManage: canManageDomesticHelp(resident.roles),
+  });
 }
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user?.email) {
+  const resident = await getAuthedResident(request);
+  if (!resident) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id } = await params;
-
-  const resident = await prisma.resident.findUnique({
-    where: { email: session.user.email },
-    select: { id: true },
-  });
-  if (!resident) {
-    return NextResponse.json({ error: "Not registered" }, { status: 403 });
-  }
 
   const worker = await prisma.domesticHelp.findUnique({
     where: { id },
@@ -72,9 +60,8 @@ export async function PATCH(
     return NextResponse.json({ error: "Worker not found" }, { status: 404 });
   }
 
-  // Only the person who added or admin can edit
   const isOwner = worker.addedById === resident.id;
-  const isAdminUser = canManageDomesticHelp(session.user.roles);
+  const isAdminUser = canManageDomesticHelp(resident.roles);
   if (!isOwner && !isAdminUser) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
@@ -89,27 +76,33 @@ export async function PATCH(
   if (description !== undefined) data.description = description?.trim() || null;
   if (availability !== undefined) data.availability = availability?.trim() || null;
 
-  const updated = await prisma.domesticHelp.update({
-    where: { id },
-    data,
-  });
+  const updated = await prisma.domesticHelp.update({ where: { id }, data });
 
   return NextResponse.json({ worker: updated });
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user?.email) {
+  const resident = await getAuthedResident(request);
+  if (!resident) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  if (!canManageDomesticHelp(session.user.roles)) {
+  const { id } = await params;
+
+  const worker = await prisma.domesticHelp.findUnique({
+    where: { id },
+    select: { addedById: true },
+  });
+  if (!worker) {
+    return NextResponse.json({ error: "Worker not found" }, { status: 404 });
+  }
+  const isOwner = worker.addedById === resident.id;
+  if (!isOwner && !canManageDomesticHelp(resident.roles)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { id } = await params;
   await prisma.domesticHelp.delete({ where: { id } });
 
   return NextResponse.json({ success: true });

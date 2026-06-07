@@ -1,14 +1,17 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { getAuthedResident } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user?.email) {
+  const resident = await getAuthedResident(request);
+  if (!resident) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!resident.isApproved) {
+    return NextResponse.json({ error: "Not approved" }, { status: 403 });
   }
 
   const { id } = await params;
@@ -22,14 +25,6 @@ export async function POST(
     );
   }
 
-  const resident = await prisma.resident.findUnique({
-    where: { email: session.user.email },
-    select: { id: true, isApproved: true },
-  });
-  if (!resident || !resident.isApproved) {
-    return NextResponse.json({ error: "Not approved" }, { status: 403 });
-  }
-
   const worker = await prisma.domesticHelp.findUnique({
     where: { id },
     select: { id: true },
@@ -38,7 +33,6 @@ export async function POST(
     return NextResponse.json({ error: "Worker not found" }, { status: 404 });
   }
 
-  // Upsert review + recalculate denormalized fields in a transaction
   const review = await prisma.$transaction(async (tx) => {
     const upserted = await tx.domesticHelpReview.upsert({
       where: {
@@ -59,7 +53,6 @@ export async function POST(
       },
     });
 
-    // Recalculate avg rating and count
     const agg = await tx.domesticHelpReview.aggregate({
       where: { domesticHelpId: id },
       _avg: { rating: true },

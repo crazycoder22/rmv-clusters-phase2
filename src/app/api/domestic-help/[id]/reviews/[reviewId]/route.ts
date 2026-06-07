@@ -1,26 +1,18 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { getAuthedResident } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { canManageDomesticHelp } from "@/lib/roles";
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string; reviewId: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user?.email) {
+  const resident = await getAuthedResident(request);
+  if (!resident) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id, reviewId } = await params;
-
-  const resident = await prisma.resident.findUnique({
-    where: { email: session.user.email },
-    select: { id: true },
-  });
-  if (!resident) {
-    return NextResponse.json({ error: "Not registered" }, { status: 403 });
-  }
 
   const review = await prisma.domesticHelpReview.findUnique({
     where: { id: reviewId },
@@ -30,9 +22,8 @@ export async function DELETE(
     return NextResponse.json({ error: "Review not found" }, { status: 404 });
   }
 
-  // Only the review author or admin can delete
   const isAuthor = review.residentId === resident.id;
-  const isAdminUser = canManageDomesticHelp(session.user.roles);
+  const isAdminUser = canManageDomesticHelp(resident.roles);
   if (!isAuthor && !isAdminUser) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
@@ -40,7 +31,6 @@ export async function DELETE(
   await prisma.$transaction(async (tx) => {
     await tx.domesticHelpReview.delete({ where: { id: reviewId } });
 
-    // Recalculate
     const agg = await tx.domesticHelpReview.aggregate({
       where: { domesticHelpId: id },
       _avg: { rating: true },

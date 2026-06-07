@@ -41,6 +41,9 @@ import MarketplaceDetail from "./pages/MarketplaceDetail";
 import MarketplaceNew from "./pages/MarketplaceNew";
 import MarketplaceMine from "./pages/MarketplaceMine";
 import MarketplaceWishlist from "./pages/MarketplaceWishlist";
+import DomesticHelp from "./pages/DomesticHelp";
+import DomesticHelpDetail from "./pages/DomesticHelpDetail";
+import DomesticHelpNew from "./pages/DomesticHelpNew";
 import Issues from "./pages/Issues";
 import IssueNew from "./pages/IssueNew";
 import IssueDetail from "./pages/IssueDetail";
@@ -159,6 +162,9 @@ function Gate() {
           <Route path="/marketplace/mine" element={<MarketplaceMine />} />
           <Route path="/marketplace/wishlist" element={<MarketplaceWishlist />} />
           <Route path="/marketplace/:id" element={<MarketplaceDetail />} />
+          <Route path="/domestic-help" element={<DomesticHelp />} />
+          <Route path="/domestic-help/new" element={<DomesticHelpNew />} />
+          <Route path="/domestic-help/:id" element={<DomesticHelpDetail />} />
           <Route path="/sos/:id" element={<SosAlert />} />
           <Route path="/amenities" element={<Amenities />} />
           <Route path="/amenities/my-bookings" element={<AmenityMyBookings />} />

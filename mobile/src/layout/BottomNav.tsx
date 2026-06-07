@@ -26,6 +26,7 @@ const MORE_PREFIXES = [
   "/residents",
   "/settings",
   "/marketplace",
+  "/domestic-help",
   "/issues",
   "/community",
   "/polls",

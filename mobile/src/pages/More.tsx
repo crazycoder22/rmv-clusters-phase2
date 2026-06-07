@@ -27,6 +27,7 @@ import {
   Wrench,
   ListChecks,
   ShoppingBag,
+  Sparkles,
   Settings as SettingsIcon,
   type LucideIcon,
 } from "lucide-react";
@@ -288,6 +289,12 @@ export default function MorePage() {
           icon={ShoppingBag}
           title="Marketplace"
           subtitle="Buy, sell, give away & rent within RMV"
+        />
+        <Row
+          to="/domestic-help"
+          icon={Sparkles}
+          title="Domestic Help"
+          subtitle="Maids, cooks, drivers — rated by neighbours"
         />
         <Row
           to="/initiatives"
