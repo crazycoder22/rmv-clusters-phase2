@@ -8,7 +8,6 @@ import {
   Loader2,
   LogOut,
   Phone,
-  Search,
   Shield,
   Siren,
   Target,
@@ -450,16 +449,6 @@ export default function Dashboard() {
           </ul>
         </section>
       )}
-
-      {/* Resident directory shortcut */}
-      <button
-        onClick={() => navigate("/residents")}
-        className="mb-5 flex w-full items-center gap-2 rounded-2xl border border-slate-700 bg-slate-800/60 px-3 py-3 text-left active:bg-slate-700"
-      >
-        <Search size={16} className="text-slate-500" />
-        <span className="flex-1 text-sm text-slate-400">Find a resident…</span>
-        <ChevronRight size={16} className="text-slate-500" />
-      </button>
 
       {/* Emergency */}
       <Section title="Emergency">
