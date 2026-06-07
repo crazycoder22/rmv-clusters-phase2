@@ -10,7 +10,7 @@ import type { Announcement } from "@/types";
 
 const categories = ["all", "maintenance", "event", "sports", "general", "urgent"];
 
-export default function NewsFeed() {
+export default function NewsFeed({ sinceWeeks }: { sinceWeeks?: number } = {}) {
   const [activeCategory, setActiveCategory] = useState("all");
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,10 +32,15 @@ export default function NewsFeed() {
     fetchAnnouncements();
   }, []);
 
-  const filtered =
-    activeCategory === "all"
-      ? announcements
-      : announcements.filter((a) => a.category === activeCategory);
+  // Optional recency window (e.g. dashboard shows only the last `sinceWeeks`).
+  const cutoff =
+    sinceWeeks && sinceWeeks > 0
+      ? Date.now() - sinceWeeks * 7 * 24 * 60 * 60 * 1000
+      : null;
+
+  const filtered = announcements
+    .filter((a) => activeCategory === "all" || a.category === activeCategory)
+    .filter((a) => cutoff === null || new Date(a.date).getTime() >= cutoff);
 
   const sorted = [...filtered].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -72,7 +77,9 @@ export default function NewsFeed() {
       {/* Announcements */}
       {sorted.length === 0 ? (
         <p className="text-center text-gray-500 py-12">
-          No announcements in this category.
+          {cutoff !== null
+            ? "No news in the last few weeks."
+            : "No announcements in this category."}
         </p>
       ) : (
         <div className="space-y-4">

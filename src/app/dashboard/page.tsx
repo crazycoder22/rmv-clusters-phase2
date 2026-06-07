@@ -493,7 +493,7 @@ export default function DashboardPage() {
         <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
           Latest News
         </h2>
-        <NewsFeed />
+        <NewsFeed sinceWeeks={2} />
       </div>
     </div>
   );
