@@ -25,6 +25,7 @@ const MORE_PREFIXES = [
   "/sos-warriors",
   "/residents",
   "/settings",
+  "/marketplace",
   "/issues",
   "/community",
   "/polls",

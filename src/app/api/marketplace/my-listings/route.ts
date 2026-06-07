@@ -1,19 +1,11 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { getAuthedResident } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 
-export async function GET() {
-  const session = await auth();
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const resident = await prisma.resident.findUnique({
-    where: { email: session.user.email },
-    select: { id: true },
-  });
+export async function GET(request: Request) {
+  const resident = await getAuthedResident(request);
   if (!resident) {
-    return NextResponse.json({ error: "Not registered" }, { status: 403 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const listings = await prisma.marketplaceListing.findMany({

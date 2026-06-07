@@ -26,6 +26,7 @@ import {
   Vote,
   Wrench,
   ListChecks,
+  ShoppingBag,
   Settings as SettingsIcon,
   type LucideIcon,
 } from "lucide-react";
@@ -281,6 +282,12 @@ export default function MorePage() {
           icon={CalendarDays}
           title="Amenities"
           subtitle="Book the clubhouse, courts, gym & more"
+        />
+        <Row
+          to="/marketplace"
+          icon={ShoppingBag}
+          title="Marketplace"
+          subtitle="Buy, sell, give away & rent within RMV"
         />
         <Row
           to="/initiatives"

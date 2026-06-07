@@ -1,19 +1,11 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { getAuthedResident } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: Request) {
-  const session = await auth();
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const resident = await prisma.resident.findUnique({
-    where: { email: session.user.email },
-    select: { id: true },
-  });
+  const resident = await getAuthedResident(request);
   if (!resident) {
-    return NextResponse.json({ error: "Not registered" }, { status: 403 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { searchParams } = new URL(request.url);
@@ -58,16 +50,11 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const session = await auth();
-  if (!session?.user?.email) {
+  const resident = await getAuthedResident(request);
+  if (!resident) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
-  const resident = await prisma.resident.findUnique({
-    where: { email: session.user.email },
-    select: { id: true, isApproved: true },
-  });
-  if (!resident || !resident.isApproved) {
+  if (!resident.isApproved) {
     return NextResponse.json({ error: "Not approved" }, { status: 403 });
   }
 
@@ -93,10 +80,7 @@ export async function POST(request: Request) {
     );
   }
   if (!category) {
-    return NextResponse.json(
-      { error: "Category is required" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Category is required" }, { status: 400 });
   }
   if (!listingType) {
     return NextResponse.json(
@@ -132,14 +116,13 @@ export async function POST(request: Request) {
       },
     });
 
-    // Notify category subscribers
     const subscribers = await tx.marketplaceCategorySubscription.findMany({
       where: { category },
       select: { residentId: true },
     });
     const recipientIds = subscribers
       .map((s) => s.residentId)
-      .filter((id) => id !== resident.id);
+      .filter((rid) => rid !== resident.id);
     if (recipientIds.length > 0) {
       await tx.notification.createMany({
         data: recipientIds.map((rid) => ({

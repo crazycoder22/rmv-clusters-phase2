@@ -1,26 +1,18 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { getAuthedResident } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { canManageMarketplace } from "@/lib/roles";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user?.email) {
+  const resident = await getAuthedResident(request);
+  if (!resident) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id } = await params;
-
-  const resident = await prisma.resident.findUnique({
-    where: { email: session.user.email },
-    select: { id: true },
-  });
-  if (!resident) {
-    return NextResponse.json({ error: "Not registered" }, { status: 403 });
-  }
 
   const listing = await prisma.marketplaceListing.findUnique({
     where: { id },
@@ -51,20 +43,12 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user?.email) {
+  const resident = await getAuthedResident(request);
+  if (!resident) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id } = await params;
-
-  const resident = await prisma.resident.findUnique({
-    where: { email: session.user.email },
-    select: { id: true },
-  });
-  if (!resident) {
-    return NextResponse.json({ error: "Not registered" }, { status: 403 });
-  }
 
   const listing = await prisma.marketplaceListing.findUnique({
     where: { id },
@@ -75,7 +59,7 @@ export async function PATCH(
   }
 
   const isOwner = listing.sellerId === resident.id;
-  const isAdminUser = canManageMarketplace(session.user.roles);
+  const isAdminUser = canManageMarketplace(resident.roles);
   if (!isOwner && !isAdminUser) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
@@ -83,8 +67,7 @@ export async function PATCH(
   const body = await request.json();
   const data: Record<string, unknown> = {};
   if (body.title !== undefined) data.title = body.title.trim();
-  if (body.description !== undefined)
-    data.description = body.description.trim();
+  if (body.description !== undefined) data.description = body.description.trim();
   if (body.images !== undefined) data.images = body.images;
   if (body.category !== undefined) data.category = body.category;
   if (body.listingType !== undefined) data.listingType = body.listingType;
@@ -103,23 +86,15 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user?.email) {
+  const resident = await getAuthedResident(request);
+  if (!resident) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id } = await params;
-
-  const resident = await prisma.resident.findUnique({
-    where: { email: session.user.email },
-    select: { id: true },
-  });
-  if (!resident) {
-    return NextResponse.json({ error: "Not registered" }, { status: 403 });
-  }
 
   const listing = await prisma.marketplaceListing.findUnique({
     where: { id },
@@ -130,7 +105,7 @@ export async function DELETE(
   }
 
   const isOwner = listing.sellerId === resident.id;
-  const isAdminUser = canManageMarketplace(session.user.roles);
+  const isAdminUser = canManageMarketplace(resident.roles);
   if (!isOwner && !isAdminUser) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }

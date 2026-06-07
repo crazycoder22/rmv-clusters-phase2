@@ -1,25 +1,17 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { getAuthedResident } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user?.email) {
+  const resident = await getAuthedResident(request);
+  if (!resident) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id } = await params;
-
-  const resident = await prisma.resident.findUnique({
-    where: { email: session.user.email },
-    select: { id: true },
-  });
-  if (!resident) {
-    return NextResponse.json({ error: "Not registered" }, { status: 403 });
-  }
 
   await prisma.marketplaceWishlist.upsert({
     where: {
@@ -33,23 +25,15 @@ export async function POST(
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user?.email) {
+  const resident = await getAuthedResident(request);
+  if (!resident) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id } = await params;
-
-  const resident = await prisma.resident.findUnique({
-    where: { email: session.user.email },
-    select: { id: true },
-  });
-  if (!resident) {
-    return NextResponse.json({ error: "Not registered" }, { status: 403 });
-  }
 
   await prisma.marketplaceWishlist.deleteMany({
     where: { listingId: id, residentId: resident.id },

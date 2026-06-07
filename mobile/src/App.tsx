@@ -36,6 +36,11 @@ import AdminMygateComplaints from "./pages/AdminMygateComplaints";
 import ResidentDirectory from "./pages/ResidentDirectory";
 import Settings from "./pages/Settings";
 import Emergency from "./pages/Emergency";
+import Marketplace from "./pages/Marketplace";
+import MarketplaceDetail from "./pages/MarketplaceDetail";
+import MarketplaceNew from "./pages/MarketplaceNew";
+import MarketplaceMine from "./pages/MarketplaceMine";
+import MarketplaceWishlist from "./pages/MarketplaceWishlist";
 import Issues from "./pages/Issues";
 import IssueNew from "./pages/IssueNew";
 import IssueDetail from "./pages/IssueDetail";
@@ -149,6 +154,11 @@ function Gate() {
           <Route path="/residents" element={<ResidentDirectory />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/emergency" element={<Emergency />} />
+          <Route path="/marketplace" element={<Marketplace />} />
+          <Route path="/marketplace/new" element={<MarketplaceNew />} />
+          <Route path="/marketplace/mine" element={<MarketplaceMine />} />
+          <Route path="/marketplace/wishlist" element={<MarketplaceWishlist />} />
+          <Route path="/marketplace/:id" element={<MarketplaceDetail />} />
           <Route path="/sos/:id" element={<SosAlert />} />
           <Route path="/amenities" element={<Amenities />} />
           <Route path="/amenities/my-bookings" element={<AmenityMyBookings />} />
