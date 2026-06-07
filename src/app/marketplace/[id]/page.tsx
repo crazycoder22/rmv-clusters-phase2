@@ -74,10 +74,17 @@ export default function ListingDetailPage({
     fetch(`/api/marketplace/${id}`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (data) {
-          setListing(data);
+        // API returns { listing, isWishlisted, isOwner } — flatten it for the UI.
+        if (data?.listing) {
+          const count = data.listing._count?.wishlistedBy ?? 0;
+          setListing({
+            ...data.listing,
+            isOwner: data.isOwner,
+            isWishlisted: data.isWishlisted,
+            wishlistCount: count,
+          });
           setWishlisted(data.isWishlisted);
-          setWishlistCount(data.wishlistCount);
+          setWishlistCount(count);
         }
       })
       .catch(() => {})
