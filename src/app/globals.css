@@ -2,6 +2,13 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Never show a page-level horizontal scrollbar. `clip` (not `hidden`) avoids
+   creating a scroll container, so the sticky navbar keeps working. */
+html,
+body {
+  overflow-x: clip;
+}
+
 @theme inline {
   --color-primary-50: #eff6ff;
   --color-primary-100: #dbeafe;

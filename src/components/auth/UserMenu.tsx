@@ -39,7 +39,7 @@ export default function UserMenu() {
             className="rounded-full"
           />
         )}
-        <span>{firstName}</span>
+        <span className="hidden 2xl:inline">{firstName}</span>
         <ChevronDown size={14} />
       </button>
 
