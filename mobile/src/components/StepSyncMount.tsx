@@ -28,6 +28,11 @@ export default function StepSyncMount() {
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
+    // HealthKit is iOS-only (custom Swift plugin). On Android the native
+    // bridge has no "HealthKit" plugin registered, so calling
+    // syncStepsFromHealth() crashes. Skip the whole step-sync chain
+    // until we wire up a Google Fit equivalent.
+    if (Capacitor.getPlatform() !== "ios") return;
     if (!token) return;
 
     let cancelled = false;

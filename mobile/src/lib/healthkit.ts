@@ -29,6 +29,7 @@ const HealthKit = registerPlugin<HealthKitPlugin>("HealthKit");
 /** True only on a real iOS device with HealthKit data available. */
 export async function isHealthKitAvailable(): Promise<boolean> {
   if (!Capacitor.isNativePlatform()) return false;
+  if (Capacitor.getPlatform() !== "ios") return false;
   try {
     const { available } = await HealthKit.isAvailable();
     return available;
@@ -45,6 +46,7 @@ export async function isHealthKitAvailable(): Promise<boolean> {
  */
 export async function requestHealthAuth(): Promise<boolean> {
   if (!Capacitor.isNativePlatform()) return false;
+  if (Capacitor.getPlatform() !== "ios") return false;
   try {
     const { granted } = await HealthKit.requestAuth();
     return granted;
@@ -63,6 +65,7 @@ export async function readStepsByDay(
   endISO: string
 ): Promise<DailyStepBucket[]> {
   if (!Capacitor.isNativePlatform()) return [];
+  if (Capacitor.getPlatform() !== "ios") return [];
   try {
     const { buckets } = await HealthKit.readStepsByDay({ startISO, endISO });
     return buckets ?? [];
@@ -109,6 +112,9 @@ export async function syncStepsFromHealth(
   const { eventId, startISO, endISO, token } = args;
 
   if (!Capacitor.isNativePlatform()) return { ok: false, reason: "web" };
+  // HealthKit is iOS-only — Android has no plugin registered, so a call
+  // would propagate as an unhandled native error. Bail cleanly.
+  if (Capacitor.getPlatform() !== "ios") return { ok: false, reason: "web" };
 
   // Throttle unless forced.
   if (!opts.force) {
