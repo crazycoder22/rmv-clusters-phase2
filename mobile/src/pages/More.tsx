@@ -170,6 +170,14 @@ export default function MorePage() {
               subtitle="Approve, edit flat / phone / type"
             />
           )}
+          {showVisitAdmin && (
+            <Row
+              to="/admin/occupancy"
+              icon={BarChart3}
+              title="Occupancy"
+              subtitle="Owner vs tenant breakdown per block"
+            />
+          )}
           {showEventAdmin && (
             <Row
               to="/admin/sos"

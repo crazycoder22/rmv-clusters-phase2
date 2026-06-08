@@ -267,6 +267,13 @@ export default function Navbar() {
       match: (p) => p.startsWith("/admin/visits"),
     });
   }
+  if (isAdmin(roles)) {
+    residentLinks.push({
+      href: "/admin/occupancy",
+      label: "Occupancy",
+      match: (p) => p.startsWith("/admin/occupancy"),
+    });
+  }
   if (canManageAnnouncements(roles)) {
     residentLinks.push({
       href: "/admin/sos-acceptances",
