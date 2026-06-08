@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'com.github.triplet.play'
 
 // Release signing config — reads from a gitignored keystore.properties
 // file at the android/ root. If the file's missing (e.g. on a fresh
@@ -74,4 +75,31 @@ try {
     }
 } catch(Exception e) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}
+
+// ─── Gradle Play Publisher ────────────────────────────────────────────────
+// Uploads the release AAB straight to Play Console from the CLI. To use:
+//   1. Drop a service-account JSON at android/play-publisher-credentials.json
+//      (gitignored). See README / setup notes in the chat history.
+//   2. Run: ./gradlew publishReleaseBundle
+// The plugin is configured to target the internal-testing track by default,
+// and to NOT publish a release if no credentials file exists yet — keeps
+// fresh clones / CI without secrets from blowing up.
+def playCredsFile = rootProject.file("play-publisher-credentials.json")
+if (playCredsFile.exists()) {
+    play {
+        serviceAccountCredentials.set(playCredsFile)
+        track.set("internal")
+        defaultToAppBundles.set(true)
+        // Mark each upload as a draft until you "Save and publish" it from
+        // Play Console — safer than auto-rolling out. Flip to "completed"
+        // when you trust the pipeline.
+        releaseStatus.set(com.github.triplet.gradle.androidpublisher.ReleaseStatus.DRAFT)
+    }
+} else {
+    logger.lifecycle(
+        "play-publisher-credentials.json not found at android/ root — " +
+        "Gradle Play Publisher disabled. CLI uploads via ./gradlew " +
+        "publishReleaseBundle will be no-ops until the file is added."
+    )
 }

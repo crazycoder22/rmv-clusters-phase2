@@ -71,6 +71,9 @@ prisma/dev.db-journal
 /mobile/android/**/*.keystore
 /mobile/android/**/*.jks
 
+# Play Store CLI deploy — service account JSON, never commit
+/mobile/android/play-publisher-credentials.json
+
 # ─── Local data dumps — resident PII, NEVER commit ──────────────────────────
 # Root-level spreadsheets / CSV exports + scratch DB used during ops work.
 /*.csv
