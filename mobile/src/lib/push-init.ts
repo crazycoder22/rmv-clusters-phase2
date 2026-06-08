@@ -35,6 +35,11 @@ export async function initPushNotifications(
   navigate: NavigateFn
 ): Promise<void> {
   if (!Capacitor.isNativePlatform()) return; // web: bail
+  // Android requires Firebase (google-services.json + FCM setup) which isn't
+  // wired yet. Calling PushNotifications.register() without Firebase crashes
+  // the app at startup. Skip Android until that's set up properly — the rest
+  // of the app (sign-in, sticker form, etc.) continues to work without push.
+  if (Capacitor.getPlatform() !== "ios") return;
   if (registered) return;
   registered = true;
 
@@ -143,6 +148,7 @@ export async function unregisterPushNotifications(
   jwt: string | null
 ): Promise<void> {
   if (!Capacitor.isNativePlatform()) return;
+  if (Capacitor.getPlatform() !== "ios") return; // Android push not wired
   if (!lastRegisteredToken) return;
   try {
     await apiFetch(
