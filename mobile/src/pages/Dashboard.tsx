@@ -245,7 +245,7 @@ export default function Dashboard() {
             <img
               src={user.imageUrl}
               alt=""
-              className="h-10 w-10 rounded-full border border-slate-700 object-cover"
+              className="h-10 w-10 rounded-full border border-slate-200 dark:border-slate-700 object-cover"
             />
           ) : (
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-500/20 text-sm font-semibold text-indigo-300">
@@ -253,7 +253,7 @@ export default function Dashboard() {
             </div>
           )}
           <div>
-            <p className="text-base font-semibold text-white">
+            <p className="text-base font-semibold text-slate-900 dark:text-white">
               Hi, {firstName}
             </p>
             <p className="text-[11px] text-slate-500">
@@ -263,7 +263,7 @@ export default function Dashboard() {
         </div>
         <button
           onClick={() => void signOut()}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-slate-400 active:bg-slate-800"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 dark:text-slate-400 active:bg-slate-100 dark:active:bg-slate-800"
           title="Sign out"
         >
           <LogOut size={18} />
@@ -320,16 +320,16 @@ export default function Dashboard() {
           onClick={() => !sosSending && setSosConfirm(false)}
         >
           <div
-            className="w-full rounded-t-3xl border-t border-slate-700 bg-slate-900 px-5 pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] pt-6"
+            className="w-full rounded-t-3xl border-t border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 px-5 pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] pt-6"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-500/15">
               <Siren size={24} className="text-red-400" />
             </div>
-            <p className="text-center text-lg font-bold text-white">
+            <p className="text-center text-lg font-bold text-slate-900 dark:text-white">
               Send emergency alert?
             </p>
-            <p className="mt-2 text-center text-sm text-slate-400">
+            <p className="mt-2 text-center text-sm text-slate-500 dark:text-slate-400">
               This immediately alerts all SOS warriors with your name, Block{" "}
               {user?.block}, Flat {user?.flatNumber} and phone number so they can
               reach you.
@@ -349,7 +349,7 @@ export default function Dashboard() {
             <button
               onClick={() => setSosConfirm(false)}
               disabled={sosSending}
-              className="mt-2 w-full rounded-2xl px-4 py-3 text-sm font-medium text-slate-400 active:bg-slate-800 disabled:opacity-60"
+              className="mt-2 w-full rounded-2xl px-4 py-3 text-sm font-medium text-slate-500 dark:text-slate-400 active:bg-slate-100 dark:active:bg-slate-800 disabled:opacity-60"
             >
               Cancel
             </button>
@@ -380,7 +380,7 @@ export default function Dashboard() {
                   {e.emoji ?? "🏃"}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="truncate text-sm font-semibold text-white">
+                  <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">
                     {e.title}
                   </p>
                   <p className="text-[11px] text-emerald-100">
@@ -403,9 +403,9 @@ export default function Dashboard() {
 
       {/* Habits to mark today — quick check-off without leaving the home tab. */}
       {habitsToday.length > 0 && (
-        <section className="mb-5 rounded-2xl border border-slate-700 bg-slate-800/60 p-3">
+        <section className="mb-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3">
           <div className="mb-2 flex items-center justify-between">
-            <h2 className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-slate-400">
+            <h2 className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               <Target size={12} /> Mark today
             </h2>
             <Link
@@ -419,14 +419,14 @@ export default function Dashboard() {
             {habitsToday.map((h) => (
               <li
                 key={h.id}
-                className="flex items-center gap-3 rounded-xl bg-slate-900/50 px-3 py-2"
+                className="flex items-center gap-3 rounded-xl bg-slate-100 dark:bg-slate-900/50 px-3 py-2"
               >
                 <button
                   type="button"
                   onClick={() => void markHabitDone(h.id)}
                   disabled={habitBusyId === h.id}
                   aria-label={`Mark ${h.title} done`}
-                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-slate-600 bg-slate-900 text-slate-400 active:bg-slate-800 disabled:opacity-50"
+                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-400 active:bg-slate-100 dark:active:bg-slate-800 disabled:opacity-50"
                 >
                   {habitBusyId === h.id ? (
                     <Loader2 size={15} className="animate-spin" />
@@ -435,7 +435,7 @@ export default function Dashboard() {
                   )}
                 </button>
                 <Link to={`/habits/${h.id}`} className="flex flex-1 min-w-0 items-center gap-2">
-                  <span className="flex-1 truncate text-sm text-white">
+                  <span className="flex-1 truncate text-sm text-slate-900 dark:text-white">
                     {h.emoji ? `${h.emoji} ` : ""}
                     {h.title}
                   </span>
@@ -457,7 +457,7 @@ export default function Dashboard() {
         {regsLoading ? (
           <p className="py-4 text-center text-xs text-slate-500">Loading…</p>
         ) : rsvps.length === 0 && sportsRegs.length === 0 ? (
-          <p className="rounded-2xl border border-slate-700 bg-slate-800/40 px-4 py-5 text-center text-xs text-slate-500">
+          <p className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/40 px-4 py-5 text-center text-xs text-slate-500">
             No upcoming registrations. Check News for events.
           </p>
         ) : (
@@ -466,7 +466,7 @@ export default function Dashboard() {
               <button
                 key={r.id}
                 onClick={() => openLink(`/events/${r.announcementId}/rsvp`)}
-                className="flex w-full items-center justify-between rounded-2xl border border-slate-700 bg-slate-800/60 p-3 text-left active:bg-slate-800"
+                className="flex w-full items-center justify-between rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3 text-left active:bg-slate-100 dark:active:bg-slate-800"
               >
                 <div className="min-w-0 flex-1">
                   <div className="mb-1 flex flex-wrap items-center gap-1.5">
@@ -485,7 +485,7 @@ export default function Dashboard() {
                       {r.paid ? "Paid" : "Unpaid"}
                     </Badge>
                   </div>
-                  <p className="truncate text-sm font-medium text-slate-100">
+                  <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
                     {r.eventTitle}
                   </p>
                   <p className="text-[11px] text-slate-500">
@@ -500,13 +500,13 @@ export default function Dashboard() {
               <button
                 key={sr.id}
                 onClick={() => openLink(`/events/${sr.announcementId}/sports`)}
-                className="flex w-full items-center justify-between rounded-2xl border border-slate-700 bg-slate-800/60 p-3 text-left active:bg-slate-800"
+                className="flex w-full items-center justify-between rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3 text-left active:bg-slate-100 dark:active:bg-slate-800"
               >
                 <div className="min-w-0 flex-1">
                   <Badge className="mb-1 inline-block bg-orange-500/20 text-orange-300">
                     Sports
                   </Badge>
-                  <p className="truncate text-sm font-medium text-slate-100">
+                  <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
                     {sr.eventTitle}
                   </p>
                   <p className="text-[11px] text-slate-500">
@@ -526,7 +526,7 @@ export default function Dashboard() {
       {recentNews.length > 0 && (
         <section className="mb-5">
           <div className="mb-2 flex items-center justify-between">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Latest news
             </h2>
             <Link to="/news" className="text-[11px] font-medium text-indigo-300">
@@ -538,11 +538,11 @@ export default function Dashboard() {
               <Link
                 key={n.id}
                 to="/news"
-                className="flex items-center gap-3 rounded-2xl border border-slate-700 bg-slate-800/60 p-3 active:bg-slate-800"
+                className="flex items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3 active:bg-slate-100 dark:active:bg-slate-800"
               >
                 <span className="text-xl">{n.emoji ?? "📰"}</span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-slate-100">
+                  <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
                     {n.title}
                   </p>
                   <p className="text-[11px] text-slate-500">
@@ -565,10 +565,10 @@ export default function Dashboard() {
               <button
                 key={p.id}
                 onClick={() => openLink(`/polls/${p.id}`)}
-                className="flex w-full items-center justify-between rounded-2xl border border-slate-700 bg-slate-800/60 p-3 text-left active:bg-slate-800"
+                className="flex w-full items-center justify-between rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3 text-left active:bg-slate-100 dark:active:bg-slate-800"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-slate-100">
+                  <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
                     {p.title}
                   </p>
                   <p className="text-[11px] text-slate-500">
@@ -588,91 +588,91 @@ export default function Dashboard() {
         <div className="grid grid-cols-2 gap-2">
           <Link
             to="/news"
-            className="flex items-center gap-3 rounded-2xl border border-slate-700 bg-slate-800/60 p-3 active:bg-slate-800"
+            className="flex items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3 active:bg-slate-100 dark:active:bg-slate-800"
           >
             <span className="text-2xl">📰</span>
             <div>
-              <p className="text-sm font-semibold text-white">News</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">News</p>
               <p className="text-[10px] text-slate-500">Announcements</p>
             </div>
           </Link>
           <Link
             to="/games"
-            className="flex items-center gap-3 rounded-2xl border border-slate-700 bg-slate-800/60 p-3 active:bg-slate-800"
+            className="flex items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3 active:bg-slate-100 dark:active:bg-slate-800"
           >
             <span className="text-2xl">🎮</span>
             <div>
-              <p className="text-sm font-semibold text-white">Games</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">Games</p>
               <p className="text-[10px] text-slate-500">7 games</p>
             </div>
           </Link>
           <Link
             to="/residents"
-            className="flex items-center gap-3 rounded-2xl border border-slate-700 bg-slate-800/60 p-3 active:bg-slate-800"
+            className="flex items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3 active:bg-slate-100 dark:active:bg-slate-800"
           >
             <span className="text-2xl">👥</span>
             <div>
-              <p className="text-sm font-semibold text-white">Directory</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">Directory</p>
               <p className="text-[10px] text-slate-500">Find residents</p>
             </div>
           </Link>
           <Link
             to="/groups"
-            className="flex items-center gap-3 rounded-2xl border border-slate-700 bg-slate-800/60 p-3 active:bg-slate-800"
+            className="flex items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3 active:bg-slate-100 dark:active:bg-slate-800"
           >
             <span className="text-2xl">🏸</span>
             <div>
-              <p className="text-sm font-semibold text-white">Groups</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">Groups</p>
               <p className="text-[10px] text-slate-500">Join & vote</p>
             </div>
           </Link>
           <Link
             to="/community"
-            className="flex items-center gap-3 rounded-2xl border border-slate-700 bg-slate-800/60 p-3 active:bg-slate-800"
+            className="flex items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3 active:bg-slate-100 dark:active:bg-slate-800"
           >
             <span className="text-2xl">💬</span>
             <div>
-              <p className="text-sm font-semibold text-white">Community</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">Community</p>
               <p className="text-[10px] text-slate-500">Posts & feed</p>
             </div>
           </Link>
           <Link
             to="/parking"
-            className="flex items-center gap-3 rounded-2xl border border-slate-700 bg-slate-800/60 p-3 active:bg-slate-800"
+            className="flex items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3 active:bg-slate-100 dark:active:bg-slate-800"
           >
             <span className="text-2xl">🚗</span>
             <div>
-              <p className="text-sm font-semibold text-white">Parking</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">Parking</p>
               <p className="text-[10px] text-slate-500">Book a slot</p>
             </div>
           </Link>
           <Link
             to="/guidelines"
-            className="flex items-center gap-3 rounded-2xl border border-slate-700 bg-slate-800/60 p-3 active:bg-slate-800"
+            className="flex items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3 active:bg-slate-100 dark:active:bg-slate-800"
           >
             <span className="text-2xl">📋</span>
             <div>
-              <p className="text-sm font-semibold text-white">Guidelines</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">Guidelines</p>
               <p className="text-[10px] text-slate-500">Community rules</p>
             </div>
           </Link>
           <Link
             to="/marketplace"
-            className="flex items-center gap-3 rounded-2xl border border-slate-700 bg-slate-800/60 p-3 active:bg-slate-800"
+            className="flex items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3 active:bg-slate-100 dark:active:bg-slate-800"
           >
             <span className="text-2xl">🛒</span>
             <div>
-              <p className="text-sm font-semibold text-white">Marketplace</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">Marketplace</p>
               <p className="text-[10px] text-slate-500">Buy & sell</p>
             </div>
           </Link>
           <Link
             to="/domestic-help"
-            className="flex items-center gap-3 rounded-2xl border border-slate-700 bg-slate-800/60 p-3 active:bg-slate-800"
+            className="flex items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3 active:bg-slate-100 dark:active:bg-slate-800"
           >
             <span className="text-2xl">🧹</span>
             <div>
-              <p className="text-sm font-semibold text-white">Domestic Help</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">Domestic Help</p>
               <p className="text-[10px] text-slate-500">Maids, cooks…</p>
             </div>
           </Link>
@@ -682,8 +682,8 @@ export default function Dashboard() {
           >
             <span className="text-2xl">🚨</span>
             <div>
-              <p className="text-sm font-semibold text-white">Emergency</p>
-              <p className="text-[10px] text-slate-400">Contacts & warriors</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">Emergency</p>
+              <p className="text-[10px] text-slate-500 dark:text-slate-400">Contacts & warriors</p>
             </div>
           </Link>
         </div>

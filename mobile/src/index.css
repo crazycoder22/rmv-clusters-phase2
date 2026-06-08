@@ -1,12 +1,16 @@
 @import "tailwindcss";
 
+/* Class-based dark mode for Tailwind v4: `dark:` applies when a `.dark`
+   ancestor (we toggle it on <html>) is present. Default (no class) = light. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 html,
 body,
 #root {
   height: 100%;
   margin: 0;
-  background: #0f172a;
-  color: #f8fafc;
+  background: #f1f5f9; /* slate-100 — light default */
+  color: #0f172a;
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   /* Native shell: never show a horizontal scrollbar. Any future page that
@@ -14,6 +18,13 @@ body,
      the WebView in a permanently scrolled-right state. */
   overflow-x: hidden;
   overscroll-behavior-x: none;
+}
+
+html.dark,
+html.dark body,
+html.dark #root {
+  background: #0f172a; /* slate-900 — dark */
+  color: #f8fafc;
 }
 
 #root {

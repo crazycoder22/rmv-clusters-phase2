@@ -1,5 +1,6 @@
 import { HashRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider, useAuth } from "./auth/AuthProvider";
+import { ThemeProvider } from "./theme/ThemeProvider";
 import SignIn from "./auth/SignIn";
 import Shell from "./layout/Shell";
 import Dashboard from "./pages/Dashboard";
@@ -104,9 +105,11 @@ import DeepLinksMount from "./components/DeepLinksMount";
 
 export default function App() {
   return (
-    <AuthProvider>
-      <Gate />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <Gate />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
