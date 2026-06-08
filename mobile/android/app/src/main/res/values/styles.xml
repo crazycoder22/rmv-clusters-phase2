@@ -13,6 +13,13 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:background">@null</item>
+        <!-- Android 15 (API 35) enforces edge-to-edge by default, which makes
+             the WebView draw under the system gesture/3-button nav bar and
+             overlap with the app's own bottom nav. Setting fitsSystemWindows
+             tells Android to inset the WebView above the system nav bar so
+             the two don't stack on top of each other. Keep the existing
+             env(safe-area-inset-bottom) padding in CSS as belt-and-braces. -->
+        <item name="android:fitsSystemWindows">true</item>
     </style>
 
 
