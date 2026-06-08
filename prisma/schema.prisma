@@ -15,10 +15,11 @@ model Role {
 }
 
 model Flat {
-  id         String    @id @default(cuid())
-  block      Int       // 1, 2, 3, or 4
-  flatNumber String    // e.g., "001/002", "103"
-  vehicles   Vehicle[]
+  id          String    @id @default(cuid())
+  block       Int       // 1, 2, 3, or 4
+  flatNumber  String    // e.g., "001/002", "103"
+  isBankOwned Boolean   @default(false) // bank-owned (always tenant-occupied) — source of truth
+  vehicles    Vehicle[]
 
   @@unique([block, flatNumber])
   @@index([block])
