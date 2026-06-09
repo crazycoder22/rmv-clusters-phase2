@@ -1,6 +1,21 @@
 import { Link, useLocation } from "react-router-dom";
 import { Gamepad2, Home, MoreHorizontal, Newspaper } from "lucide-react";
+import { Capacitor } from "@capacitor/core";
 import clsx from "clsx";
+
+// On Android 15/16 with Samsung One UI, the WebView draws under the system
+// gesture / 3-button nav bar even with WindowCompat.setDecorFitsSystemWindows
+// flipped in MainActivity — Capacitor's WebView setup runs after onCreate and
+// re-enables edge-to-edge in practice. env(safe-area-inset-bottom) reports
+// zero in that configuration, so the BottomNav lands on top of the system
+// nav. Add an explicit fallback only on Android: 48px clears the standard
+// 3-button nav height on every Samsung device we've tested. iOS keeps the
+// pure env() value because the safe-area inset is honoured there.
+const ANDROID_NAV_BAR_FALLBACK_PX = 48;
+const bottomPadding =
+  Capacitor.getPlatform() === "android"
+    ? `calc(env(safe-area-inset-bottom, 0px) + ${ANDROID_NAV_BAR_FALLBACK_PX}px)`
+    : "env(safe-area-inset-bottom, 0px)";
 
 const GAMES_PREFIXES = [
   "/games",
@@ -62,7 +77,7 @@ export default function BottomNav() {
   return (
     <nav
       className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur dark:border-slate-700 dark:bg-slate-900/95"
-      style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+      style={{ paddingBottom: bottomPadding }}
     >
       <div className="mx-auto flex max-w-md items-stretch">
         <Tab
