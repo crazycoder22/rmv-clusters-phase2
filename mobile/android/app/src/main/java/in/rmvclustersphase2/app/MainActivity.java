@@ -7,6 +7,9 @@ import com.getcapacitor.BridgeActivity;
 public class MainActivity extends BridgeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Register our custom Health Connect (steps) plugin before the bridge
+        // initialises. Capacitor requires registerPlugin() before super.onCreate.
+        registerPlugin(StepHealthPlugin.class);
         super.onCreate(savedInstanceState);
         // Android 15 (API 35) and Android 16 (API 36, our compileSdk)
         // draw apps edge-to-edge by default — the WebView extends behind

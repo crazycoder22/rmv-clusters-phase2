@@ -10,6 +10,8 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:8.13.0'
         classpath 'com.google.gms:google-services:4.4.4'
+        // Kotlin — required for the Health Connect (StepHealth) plugin.
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.25'
         // Gradle Play Publisher — uploads release AABs to Play Console.
         // See mobile/android/app/build.gradle for the `play { ... }` config.
         classpath 'com.github.triplet.gradle:play-publisher:3.10.1'

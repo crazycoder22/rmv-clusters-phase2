@@ -1,5 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'com.github.triplet.play'
+apply plugin: 'org.jetbrains.kotlin.android'
 
 // Release signing config — reads from a gitignored keystore.properties
 // file at the android/ root. If the file's missing (e.g. on a fresh
@@ -46,6 +47,9 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    kotlinOptions {
+        jvmTarget = "21"
+    }
 }
 
 repositories {
@@ -64,6 +68,9 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
+    // Health Connect — daily step reads for the always-on step tracker.
+    implementation "androidx.health.connect:connect-client:1.1.0-alpha10"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3"
 }
 
 apply from: 'capacitor.build.gradle'

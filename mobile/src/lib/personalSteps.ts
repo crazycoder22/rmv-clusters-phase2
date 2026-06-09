@@ -16,6 +16,11 @@ import {
   readStepsByDayMotion,
   type DailyStepBucket,
 } from "./healthkit";
+import {
+  isHealthConnectAvailable,
+  requestHealthConnectAuth,
+  readStepsByDayHealthConnect,
+} from "./healthConnect";
 
 export type StepSource = "apple_health" | "core_motion" | "health_connect";
 
@@ -34,8 +39,7 @@ export async function availableSources(): Promise<StepSource[]> {
     return out;
   }
   if (p === "android") {
-    // Health Connect availability is verified inside its native plugin (Phase C).
-    return ["health_connect"];
+    return (await isHealthConnectAvailable()) ? ["health_connect"] : [];
   }
   return [];
 }
@@ -54,8 +58,8 @@ export async function readDailyStepsBySource(
       // First call triggers the Motion & Fitness prompt natively.
       return readStepsByDayMotion(startISO, endISO);
     case "health_connect":
-      // Android Health Connect bridge lands in Phase C.
-      return [];
+      await requestHealthConnectAuth();
+      return readStepsByDayHealthConnect(startISO, endISO);
     default:
       return [];
   }
