@@ -18,8 +18,8 @@ android {
         applicationId "in.rmvclustersphase2.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 5
-        versionName "1.0.4"
+        versionCode 6
+        versionName "1.0.5"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -91,10 +91,12 @@ if (playCredsFile.exists()) {
         serviceAccountCredentials.set(playCredsFile)
         track.set("internal")
         defaultToAppBundles.set(true)
-        // Mark each upload as a draft until you "Save and publish" it from
-        // Play Console — safer than auto-rolling out. Flip to "completed"
-        // when you trust the pipeline.
-        releaseStatus.set(com.github.triplet.gradle.androidpublisher.ReleaseStatus.DRAFT)
+        // Auto-publish to internal testing as soon as the AAB lands —
+        // internal testers see the update without an extra manual step
+        // in Play Console. The track is "internal" only, so this never
+        // touches production. Flip back to DRAFT if you ever want a
+        // human review step before rollout.
+        releaseStatus.set(com.github.triplet.gradle.androidpublisher.ReleaseStatus.COMPLETED)
     }
 } else {
     logger.lifecycle(
