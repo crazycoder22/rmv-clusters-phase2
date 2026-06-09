@@ -25,6 +25,11 @@ export async function GET(
                   customField: { select: { id: true, label: true } },
                 },
               },
+              challengeGoal: {
+                include: {
+                  partner: { select: { name: true, block: true, flatNumber: true } },
+                },
+              },
             },
             orderBy: { createdAt: "asc" },
           },
@@ -78,6 +83,7 @@ export async function GET(
     const dailyGoal = parseGoal(goalResponse?.value || "0");
     const dailySteps = stepsByParticipant.get(`r-${rsvp.id}`) || [];
     const totalSteps = dailySteps.reduce((sum, d) => sum + d.steps, 0);
+    const cg = rsvp.challengeGoal;
 
     return {
       id: rsvp.id,
@@ -85,6 +91,20 @@ export async function GET(
       block: rsvp.resident.block,
       flatNumber: rsvp.resident.flatNumber,
       paid: rsvp.paid,
+      runs:
+        cg &&
+        (cg.run5kGoal || cg.run10kGoal || cg.run20kGoal ||
+          cg.run5kDone || cg.run10kDone || cg.run20kDone)
+          ? {
+              k5: { goal: cg.run5kGoal, done: cg.run5kDone },
+              k10: { goal: cg.run10kGoal, done: cg.run10kDone },
+              k20: { goal: cg.run20kGoal, done: cg.run20kDone },
+            }
+          : null,
+      partner:
+        cg?.partner && cg.partnerStatus !== "none"
+          ? { name: cg.partner.name, status: cg.partnerStatus }
+          : null,
       fieldResponses: rsvp.fieldResponses.map((fr) => ({
         customFieldId: fr.customFieldId,
         customField: { label: fr.customField.label },

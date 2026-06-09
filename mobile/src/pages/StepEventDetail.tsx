@@ -15,6 +15,7 @@ import {
 import clsx from "clsx";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
+import MyChallengeMobile from "../components/MyChallengeMobile";
 import {
   isHealthKitAvailable,
   syncStepsFromHealth,
@@ -318,6 +319,8 @@ export default function StepEventDetail() {
           />
         </div>
       </section>
+
+      <MyChallengeMobile eventId={event.announcementId} token={token} />
 
       {/* Sync action */}
       <section className="mb-3 space-y-2">

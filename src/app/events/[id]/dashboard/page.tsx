@@ -29,6 +29,12 @@ interface DashboardParticipant {
   averageDailySteps: number;
   bestDay: StepDayEntry | null;
   dailySteps: StepDayEntry[];
+  runs?: {
+    k5: { goal: number; done: number };
+    k10: { goal: number; done: number };
+    k20: { goal: number; done: number };
+  } | null;
+  partner?: { name: string; status: string } | null;
 }
 
 export default function EventDashboardPage({
@@ -570,6 +576,28 @@ function DetailsModal({
               )}
             </div>
           </div>
+
+          {/* Mini Step-Up: running goals + accountability partner */}
+          {(p.runs || p.partner) && (
+            <div className="flex flex-wrap items-center gap-1.5">
+              {p.runs &&
+                ([["5K", "k5"], ["10K", "k10"], ["20K", "k20"]] as const).map(([lbl, key]) => {
+                  const r = p.runs![key];
+                  if (!r.goal && !r.done) return null;
+                  return (
+                    <span key={key} className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 text-[11px] font-medium">
+                      🏃 {lbl} {r.done}/{r.goal}
+                    </span>
+                  );
+                })}
+              {p.partner && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 text-[11px] font-medium">
+                  🤝 {p.partner.name}
+                  {p.partner.status !== "accepted" ? ` (${p.partner.status})` : ""}
+                </span>
+              )}
+            </div>
+          )}
 
           {/* Bar Chart */}
           {p.dailySteps.length > 0 && (
