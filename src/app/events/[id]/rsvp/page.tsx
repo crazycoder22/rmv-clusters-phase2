@@ -103,6 +103,31 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
   const [guestRsvpId, setGuestRsvpId] = useState<string | null>(null);
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
 
+  // Mini Step-Up: optional run goals + accountability partner, captured inline
+  // for step-tracking events (saved to /api/events/[id]/challenge after RSVP).
+  type PartnerLite = { id: string; name: string; block: number | null; flatNumber: string };
+  const [run5k, setRun5k] = useState("");
+  const [run10k, setRun10k] = useState("");
+  const [run20k, setRun20k] = useState("");
+  const [existingDone, setExistingDone] = useState({ d5: 0, d10: 0, d20: 0 });
+  const [partner, setPartner] = useState<PartnerLite | null>(null);
+  const [partnerSearch, setPartnerSearch] = useState("");
+  const [partnerResults, setPartnerResults] = useState<PartnerLite[]>([]);
+  const [partnerPicking, setPartnerPicking] = useState(false);
+
+  // Debounced partner search.
+  useEffect(() => {
+    if (!partnerPicking) return;
+    if (partnerSearch.trim().length < 1) { setPartnerResults([]); return; }
+    const t = setTimeout(async () => {
+      try {
+        const r = await fetch(`/api/residents/search?q=${encodeURIComponent(partnerSearch.trim())}`);
+        if (r.ok) setPartnerResults((await r.json()).residents ?? []);
+      } catch { /* ignore */ }
+    }, 250);
+    return () => clearTimeout(t);
+  }, [partnerSearch, partnerPicking]);
+
   const [feedbackRating, setFeedbackRating] = useState(0);
   const [feedbackComment, setFeedbackComment] = useState("");
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
@@ -153,6 +178,22 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
             const values: Record<string, string> = {};
             for (const fr of data.myRsvp.fieldResponses) values[fr.customFieldId] = fr.value;
             setFieldValues(values);
+          }
+          // Prefill run goals + partner for step challenges.
+          if (data.eventConfig?.stepTrackingEnabled) {
+            try {
+              const chRes = await fetch(`/api/events/${id}/challenge`);
+              if (chRes.ok) {
+                const ch = await chRes.json();
+                if (ch.goal) {
+                  setRun5k(ch.goal.run5kGoal ? String(ch.goal.run5kGoal) : "");
+                  setRun10k(ch.goal.run10kGoal ? String(ch.goal.run10kGoal) : "");
+                  setRun20k(ch.goal.run20kGoal ? String(ch.goal.run20kGoal) : "");
+                  setExistingDone({ d5: ch.goal.run5kDone || 0, d10: ch.goal.run10kDone || 0, d20: ch.goal.run20kDone || 0 });
+                  if (ch.goal.partner) setPartner(ch.goal.partner);
+                }
+              }
+            } catch { /* ignore */ }
           }
         }
 
@@ -219,6 +260,22 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
         const data = await res.json();
         if (!res.ok) { setError(data.error || "Something went wrong"); return; }
         setMyRsvp(data.rsvp);
+        // Save Mini Step-Up run goals + partner (no-op for non-step events).
+        if (eventConfig?.stepTrackingEnabled) {
+          await fetch(`/api/events/${id}/challenge`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              run5kGoal: Number(run5k) || 0,
+              run10kGoal: Number(run10k) || 0,
+              run20kGoal: Number(run20k) || 0,
+              run5kDone: existingDone.d5,
+              run10kDone: existingDone.d10,
+              run20kDone: existingDone.d20,
+              partnerResidentId: partner?.id ?? null,
+            }),
+          }).catch(() => {});
+        }
         setSuccess(myRsvp ? "RSVP updated successfully!" : "RSVP submitted successfully!");
       }
     } catch {
@@ -470,10 +527,10 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
         >
           <div>
             <p className="text-sm font-semibold text-indigo-800 dark:text-indigo-200">
-              🏃 Set your run goals &amp; accountability partner
+              🏃 Open your challenge page
             </p>
             <p className="mt-0.5 text-xs text-indigo-600 dark:text-indigo-300">
-              Add optional 5K / 10K / 20K run goals and pick a partner on your challenge page.
+              Track your steps, update run goals, and manage your accountability partner.
             </p>
           </div>
           <span className="text-xl text-indigo-500">→</span>
@@ -645,6 +702,47 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
             <textarea value={notes} onChange={(e) => setNotes(e.target.value)}
               placeholder={hasFood ? "e.g., No spice, allergies..." : "Any notes or comments..."}
               rows={2} className={inputClass} />
+          </div>
+        )}
+
+        {/* Mini Step-Up: optional run goals + accountability partner (inline) */}
+        {!isGuest && eventConfig?.stepTrackingEnabled && !deadlinePassed && (
+          <div className="mb-6 space-y-4 rounded-lg border border-gray-100 dark:border-gray-700 p-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">🏃 Running goals (optional)</label>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">How many runs you aim to complete. Self-declared on trust; you can update these any time.</p>
+              <div className="grid grid-cols-3 gap-2">
+                {([["5K", run5k, setRun5k], ["10K", run10k, setRun10k], ["20K", run20k, setRun20k]] as const).map(([lbl, val, setter]) => (
+                  <div key={lbl}>
+                    <span className="block text-[11px] text-gray-500 mb-0.5">{lbl} runs</span>
+                    <input inputMode="numeric" value={val} onChange={(e) => setter(e.target.value.replace(/\D/g, ""))} placeholder="0" className={inputClass} />
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">🤝 Accountability partner (optional)</label>
+              {partner ? (
+                <div className="flex items-center justify-between rounded-md border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/40 px-3 py-2">
+                  <span className="text-sm text-gray-800 dark:text-gray-100">{partner.name} <span className="text-xs text-gray-400">B{partner.block ?? "—"}-{partner.flatNumber}</span></span>
+                  <button type="button" onClick={() => { setPartner(null); setPartnerPicking(false); }} className="text-sm text-gray-400 hover:text-red-500">Remove</button>
+                </div>
+              ) : partnerPicking ? (
+                <div>
+                  <input value={partnerSearch} onChange={(e) => setPartnerSearch(e.target.value)} placeholder="Search name / flat…" className={inputClass} />
+                  <div className="mt-1 max-h-40 overflow-y-auto rounded-md border border-gray-100 dark:border-gray-700">
+                    {partnerResults.map((r) => (
+                      <button type="button" key={r.id} onClick={() => { setPartner(r); setPartnerPicking(false); setPartnerSearch(""); setPartnerResults([]); }} className="flex w-full items-center justify-between px-3 py-1.5 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <span className="text-gray-800 dark:text-gray-100">{r.name}</span><span className="text-xs text-gray-400">B{r.block ?? "—"}-{r.flatNumber}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <button type="button" onClick={() => setPartnerPicking(true)} className="text-sm text-primary-600 dark:text-primary-400 hover:underline">+ Choose a partner</button>
+              )}
+              <p className="mt-1 text-xs text-gray-400">Your partner gets a request to confirm.</p>
+            </div>
           </div>
         )}
 
