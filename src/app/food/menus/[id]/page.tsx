@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -75,8 +75,15 @@ export default function FoodMenuDetailPage() {
   const [followBusy, setFollowBusy] = useState(false);
 
   useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
-  }, [status, router]);
+    // Not logged in (e.g. opened a chef's shared WhatsApp link): send straight
+    // to Google sign-in and return to THIS menu afterwards so they can order.
+    // (There is no /login route, so router.push("/login") used to 404.)
+    if (status === "unauthenticated") {
+      signIn("google", {
+        callbackUrl: typeof window !== "undefined" ? window.location.href : "/food",
+      });
+    }
+  }, [status]);
 
   const refresh = useCallback(async () => {
     try {
