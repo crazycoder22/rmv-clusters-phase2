@@ -162,3 +162,116 @@ export async function upsertStepEntries(
 
   return { saved, skipped, deleted };
 }
+
+// ─── Always-on personal step tracking (ResidentDailySteps) ──────────────────
+// Independent of step-challenge events: one row per resident per calendar day.
+
+export interface DailyStepUpsert {
+  /** ISO date YYYY-MM-DD; stored as midnight UTC. */
+  date: string;
+  steps: number;
+}
+
+/**
+ * Upsert a resident's personal daily step counts. Same batching + zero-overwrite
+ * guard semantics as upsertStepEntries, keyed by (residentId, date).
+ */
+export async function upsertDailySteps(
+  residentId: string,
+  entries: DailyStepUpsert[],
+  opts: { source: string; guardZeroOverwrite?: boolean }
+): Promise<{ saved: number; skipped: number; deleted: number }> {
+  const { source, guardZeroOverwrite = true } = opts;
+  const positives = entries.filter((e) => e.steps > 0);
+  const zeros = entries.filter((e) => !e.steps || e.steps <= 0);
+
+  let saved = 0;
+  let skipped = 0;
+  let deleted = 0;
+
+  let zerosToDelete = zeros;
+  if (guardZeroOverwrite && zeros.length > 0) {
+    const checks = await Promise.all(
+      zeros.map(async (e) => {
+        const date = new Date(e.date + "T00:00:00.000Z");
+        const existing = await prisma.residentDailySteps.findUnique({
+          where: { residentId_date: { residentId, date } },
+          select: { steps: true },
+        });
+        if (existing && existing.steps > 0) {
+          skipped++;
+          return null;
+        }
+        return e;
+      })
+    );
+    zerosToDelete = checks.filter((x): x is DailyStepUpsert => x !== null);
+  }
+
+  const BATCH_SIZE = 10;
+  for (let i = 0; i < positives.length; i += BATCH_SIZE) {
+    const batch = positives.slice(i, i + BATCH_SIZE);
+    await prisma.$transaction(
+      batch.map((entry) => {
+        const date = new Date(entry.date + "T00:00:00.000Z");
+        return prisma.residentDailySteps.upsert({
+          where: { residentId_date: { residentId, date } },
+          create: { residentId, date, steps: entry.steps, source },
+          update: { steps: entry.steps, source },
+        });
+      })
+    );
+    saved += batch.length;
+  }
+
+  for (const e of zerosToDelete) {
+    const date = new Date(e.date + "T00:00:00.000Z");
+    const res = await prisma.residentDailySteps.deleteMany({
+      where: { residentId, date },
+    });
+    deleted += res.count;
+  }
+
+  return { saved, skipped, deleted };
+}
+
+export interface DayBucket {
+  date: string; // YYYY-MM-DD
+  steps: number;
+}
+
+/**
+ * Consecutive most-recent days meeting the goal (steps > 0 when no goal set).
+ * Today is given grace: if today hasn't met the goal yet, the streak is measured
+ * up to yesterday rather than reset to 0. A missing day breaks the streak.
+ * `todayIso` lets callers pass an IST-anchored "today" if needed.
+ */
+export function computeStreak(
+  days: DayBucket[],
+  goal: number,
+  todayIso?: string
+): number {
+  const map = new Map(days.map((d) => [d.date, d.steps]));
+  const meets = (steps: number | undefined) =>
+    steps !== undefined && (goal > 0 ? steps >= goal : steps > 0);
+
+  const cursor = todayIso
+    ? new Date(todayIso + "T00:00:00.000Z")
+    : new Date(new Date().toISOString().slice(0, 10) + "T00:00:00.000Z");
+
+  let streak = 0;
+  for (let i = 0; i < 366; i++) {
+    const iso = cursor.toISOString().slice(0, 10);
+    if (meets(map.get(iso))) {
+      streak++;
+    } else if (i === 0) {
+      // Today not met yet — don't break a streak that ran through yesterday.
+      cursor.setUTCDate(cursor.getUTCDate() - 1);
+      continue;
+    } else {
+      break;
+    }
+    cursor.setUTCDate(cursor.getUTCDate() - 1);
+  }
+  return streak;
+}

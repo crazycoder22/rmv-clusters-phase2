@@ -15,12 +15,17 @@ export async function GET(request: Request) {
     flatNumber: me.flatNumber,
     isApproved: me.isApproved,
     isSeniorCitizen: me.isSeniorCitizen,
+    dailyStepGoal: me.dailyStepGoal,
+    stepSource: me.stepSource,
     roles: me.roles,
   });
 }
 
+const VALID_STEP_SOURCES = ["apple_health", "core_motion", "health_connect"];
+
 // PATCH /api/me → update the current resident's own preferences.
-// Currently: { isSeniorCitizen: boolean }.
+// Accepts any of: { isSeniorCitizen: boolean, dailyStepGoal: number,
+// stepSource: "apple_health"|"core_motion"|"health_connect"|null }.
 export async function PATCH(request: Request) {
   const me = await getAuthedResident(request);
   if (!me || !me.isApproved) {
@@ -28,14 +33,26 @@ export async function PATCH(request: Request) {
   }
 
   const body = await request.json().catch(() => null);
-  if (!body || typeof body.isSeniorCitizen !== "boolean") {
-    return NextResponse.json({ error: "isSeniorCitizen (boolean) is required" }, { status: 400 });
+  if (!body || typeof body !== "object") {
+    return NextResponse.json({ error: "Invalid body" }, { status: 400 });
   }
 
-  await prisma.resident.update({
-    where: { id: me.id },
-    data: { isSeniorCitizen: body.isSeniorCitizen },
-  });
+  const data: Record<string, unknown> = {};
+  if (typeof body.isSeniorCitizen === "boolean") {
+    data.isSeniorCitizen = body.isSeniorCitizen;
+  }
+  if (typeof body.dailyStepGoal === "number") {
+    data.dailyStepGoal = Math.max(0, Math.min(200000, Math.round(body.dailyStepGoal)));
+  }
+  if (body.stepSource === null || VALID_STEP_SOURCES.includes(body.stepSource)) {
+    data.stepSource = body.stepSource;
+  }
 
-  return NextResponse.json({ ok: true, isSeniorCitizen: body.isSeniorCitizen });
+  if (Object.keys(data).length === 0) {
+    return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
+  }
+
+  await prisma.resident.update({ where: { id: me.id }, data });
+
+  return NextResponse.json({ ok: true, ...data });
 }

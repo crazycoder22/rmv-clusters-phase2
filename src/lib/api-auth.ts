@@ -12,6 +12,8 @@ export type AuthedResident = {
   residentType: string;
   isApproved: boolean;
   isSeniorCitizen: boolean;
+  dailyStepGoal: number;
+  stepSource: string | null;
   roles: string[];
 };
 
@@ -44,6 +46,8 @@ export async function getAuthedResident(
           residentType: true,
           isApproved: true,
           isSeniorCitizen: true,
+          dailyStepGoal: true,
+          stepSource: true,
           roles: { select: { name: true } },
         },
       });
@@ -58,6 +62,8 @@ export async function getAuthedResident(
         residentType: resident.residentType,
         isApproved: resident.isApproved,
         isSeniorCitizen: resident.isSeniorCitizen,
+        dailyStepGoal: resident.dailyStepGoal,
+        stepSource: resident.stepSource,
         roles: resident.roles.map((r) => r.name),
       };
     } catch {
@@ -80,6 +86,8 @@ export async function getAuthedResident(
       residentType: true,
       isApproved: true,
       isSeniorCitizen: true,
+      dailyStepGoal: true,
+      stepSource: true,
       roles: { select: { name: true } },
     },
   });
@@ -94,6 +102,8 @@ export async function getAuthedResident(
     residentType: resident.residentType,
     isApproved: resident.isApproved,
     isSeniorCitizen: resident.isSeniorCitizen,
+    dailyStepGoal: resident.dailyStepGoal,
+    stepSource: resident.stepSource,
     roles: resident.roles.map((r) => r.name),
   };
 }

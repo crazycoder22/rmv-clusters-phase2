@@ -73,6 +73,8 @@ model Resident {
   isApproved   Boolean  @default(false)
   isSosWarrior Boolean  @default(false)
   isSeniorCitizen Boolean @default(false)
+  dailyStepGoal Int      @default(0) // 0 = no personal step goal set
+  stepSource   String?  // chosen step source: "apple_health" | "core_motion" | "health_connect"
   googleImage  String?
   roles        Role[]
   rsvps                Rsvp[]
@@ -136,8 +138,26 @@ model Resident {
   sosAlertsSent            SosAlert[]              @relation("SosAlertsSent")
   sosResponses             SosResponse[]           @relation("SosResponses")
   amenityBookings          AmenityBooking[]        @relation("AmenityBookingsByBooker")
+  dailySteps               ResidentDailySteps[]
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
+}
+
+// Always-on personal step tracking (independent of step-challenge events).
+// One row per resident per calendar day; `source` records where the count came
+// from. Mirrors StepEntry's "midnight-UTC date" convention.
+model ResidentDailySteps {
+  id         String   @id @default(cuid())
+  residentId String
+  resident   Resident @relation(fields: [residentId], references: [id], onDelete: Cascade)
+  date       DateTime // midnight UTC of the entry's day
+  steps      Int
+  source     String   // "apple_health" | "core_motion" | "health_connect" | "manual"
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([residentId, date])
+  @@index([residentId, date])
 }
 
 model EventConfig {
