@@ -56,6 +56,8 @@
 	<!-- HealthKit read access — required so iOS shows the "OneRMV would
 	     like to access your step count" prompt and lets HKHealthStore
 	     return data. -->
+	<key>NSMotionUsageDescription</key>
+	<string>OneRMV counts your daily steps from the iPhone motion sensor when you choose "iPhone motion" as your step source, to power your personal step tracker.</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>OneRMV reads your step count from Apple Health to track Stepup challenge progress. Data is sent to the community server only when you participate in an active challenge.</string>
 	<!-- We don't actually write to Apple Health, but Apple's static

@@ -101,6 +101,7 @@ import GroupDetail from "./pages/GroupDetail";
 import GroupPollDetail from "./pages/GroupPollDetail";
 import PushNotificationsMount from "./components/PushNotificationsMount";
 import StepSyncMount from "./components/StepSyncMount";
+import PersonalStepSyncMount from "./components/PersonalStepSyncMount";
 import DeepLinksMount from "./components/DeepLinksMount";
 
 export default function App() {
@@ -132,6 +133,7 @@ function Gate() {
     <HashRouter>
       <PushNotificationsMount />
       <StepSyncMount />
+      <PersonalStepSyncMount />
       <DeepLinksMount />
       <Shell>
         <Routes>

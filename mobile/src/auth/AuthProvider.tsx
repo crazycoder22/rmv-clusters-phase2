@@ -22,6 +22,8 @@ export type AuthUser = {
   flatNumber: string;
   imageUrl?: string | null;
   isSeniorCitizen?: boolean;
+  dailyStepGoal?: number;
+  stepSource?: string | null;
   roles: string[];
   playerId: string;
 };

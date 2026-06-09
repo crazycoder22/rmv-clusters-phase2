@@ -13,6 +13,7 @@
 
 import Capacitor
 import HealthKit
+import CoreMotion
 
 @objc(HealthKitPlugin)
 public class HealthKitPlugin: CAPPlugin, CAPBridgedPlugin {
@@ -22,9 +23,12 @@ public class HealthKitPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "isAvailable",     returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "requestAuth",     returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "readStepsByDay",  returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "motionAvailable", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "readStepsByDayMotion", returnType: CAPPluginReturnPromise),
     ]
 
     private let store = HKHealthStore()
+    private let pedometer = CMPedometer()
 
     private var stepType: HKQuantityType {
         // Force-unwrap is fine: HKQuantityType(forIdentifier:) only returns
@@ -134,5 +138,80 @@ public class HealthKitPlugin: CAPPlugin, CAPBridgedPlugin {
         }
 
         store.execute(query)
+    }
+
+    // ── Core Motion (CMPedometer) — the "iPhone motion sensor" source ────────
+    // Phone-only, ~7 days of history, no Apple Health required. First query
+    // triggers the Motion & Fitness permission prompt (NSMotionUsageDescription).
+
+    @objc func motionAvailable(_ call: CAPPluginCall) {
+        call.resolve(["available": CMPedometer.isStepCountingAvailable()])
+    }
+
+    /// Read step counts per calendar day from CMPedometer. Same output shape as
+    /// readStepsByDay: { buckets: [{ date: "yyyy-MM-dd", steps }] }. Days older
+    /// than ~7 days simply return 0 (Core Motion doesn't retain them).
+    @objc func readStepsByDayMotion(_ call: CAPPluginCall) {
+        guard CMPedometer.isStepCountingAvailable() else {
+            call.resolve(["buckets": []])
+            return
+        }
+        guard let startISO = call.getString("startISO"),
+              let endISO   = call.getString("endISO") else {
+            call.reject("startISO and endISO required")
+            return
+        }
+
+        let iso = ISO8601DateFormatter()
+        iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        var s = iso.date(from: startISO)
+        if s == nil { iso.formatOptions = [.withInternetDateTime]; s = iso.date(from: startISO) }
+        var e = iso.date(from: endISO)
+        if e == nil { iso.formatOptions = [.withInternetDateTime]; e = iso.date(from: endISO) }
+        guard let start = s, let end = e else {
+            call.reject("startISO/endISO must be valid ISO-8601 timestamps")
+            return
+        }
+
+        let cal = Calendar.current
+        let dateFmt = DateFormatter()
+        dateFmt.calendar = cal
+        dateFmt.timeZone = cal.timeZone
+        dateFmt.dateFormat = "yyyy-MM-dd"
+
+        // Day-start windows in range (cap 10; CMPedometer retains ~7 days).
+        var dayStarts: [Date] = []
+        var d = cal.startOfDay(for: start)
+        let lastDayStart = cal.startOfDay(for: end)
+        while d <= lastDayStart && dayStarts.count < 10 {
+            dayStarts.append(d)
+            d = cal.date(byAdding: .day, value: 1, to: d) ?? d.addingTimeInterval(86400)
+        }
+        if dayStarts.isEmpty {
+            call.resolve(["buckets": []])
+            return
+        }
+
+        let group = DispatchGroup()
+        let lock = NSLock()
+        var out: [[String: Any]] = []
+
+        for dayStart in dayStarts {
+            let nextMidnight = cal.date(byAdding: .day, value: 1, to: dayStart) ?? dayStart.addingTimeInterval(86400)
+            let to = min(nextMidnight, end)
+            if to <= dayStart { continue }
+            group.enter()
+            pedometer.queryPedometerData(from: dayStart, to: to) { data, _ in
+                let steps = data?.numberOfSteps.doubleValue ?? 0
+                lock.lock()
+                out.append(["date": dateFmt.string(from: dayStart), "steps": steps])
+                lock.unlock()
+                group.leave()
+            }
+        }
+
+        group.notify(queue: .main) {
+            call.resolve(["buckets": out])
+        }
     }
 }

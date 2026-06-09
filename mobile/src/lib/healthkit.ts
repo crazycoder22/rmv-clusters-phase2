@@ -20,6 +20,12 @@ interface HealthKitPlugin {
     startISO: string;
     endISO: string;
   }): Promise<{ buckets: DailyStepBucket[] }>;
+  // Core Motion (CMPedometer) — the "iPhone motion sensor" source.
+  motionAvailable(): Promise<{ available: boolean }>;
+  readStepsByDayMotion(opts: {
+    startISO: string;
+    endISO: string;
+  }): Promise<{ buckets: DailyStepBucket[] }>;
 }
 
 const HealthKit = registerPlugin<HealthKitPlugin>("HealthKit");
@@ -71,6 +77,40 @@ export async function readStepsByDay(
     return buckets ?? [];
   } catch (err) {
     console.warn("[healthkit] readStepsByDay failed", err);
+    return [];
+  }
+}
+
+// ── Core Motion (CMPedometer) source ─────────────────────────────────────
+
+/** True on a real iOS device whose motion coprocessor counts steps. */
+export async function isMotionAvailable(): Promise<boolean> {
+  if (!Capacitor.isNativePlatform()) return false;
+  if (Capacitor.getPlatform() !== "ios") return false;
+  try {
+    const { available } = await HealthKit.motionAvailable();
+    return available;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Read daily step buckets from the iPhone motion sensor (CMPedometer). Phone-
+ * only, ~7 days of history. First call triggers the Motion & Fitness prompt.
+ * Returns [] on web/Android/error.
+ */
+export async function readStepsByDayMotion(
+  startISO: string,
+  endISO: string
+): Promise<DailyStepBucket[]> {
+  if (!Capacitor.isNativePlatform()) return [];
+  if (Capacitor.getPlatform() !== "ios") return [];
+  try {
+    const { buckets } = await HealthKit.readStepsByDayMotion({ startISO, endISO });
+    return buckets ?? [];
+  } catch (err) {
+    console.warn("[healthkit] readStepsByDayMotion failed", err);
     return [];
   }
 }
