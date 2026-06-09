@@ -462,6 +462,24 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
         </div>
       )}
 
+      {/* Step challenge: send registered participants to set run goals + partner */}
+      {myRsvp && eventConfig?.stepTrackingEnabled && (
+        <Link
+          href={`/steps/${id}`}
+          className="mb-6 flex items-center justify-between gap-3 rounded-lg border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/20 p-4 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors"
+        >
+          <div>
+            <p className="text-sm font-semibold text-indigo-800 dark:text-indigo-200">
+              🏃 Set your run goals &amp; accountability partner
+            </p>
+            <p className="mt-0.5 text-xs text-indigo-600 dark:text-indigo-300">
+              Add optional 5K / 10K / 20K run goals and pick a partner on your challenge page.
+            </p>
+          </div>
+          <span className="text-xl text-indigo-500">→</span>
+        </Link>
+      )}
+
       {success && (
         <div className="rounded-md bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-3 mb-6">
           <p className="text-sm text-green-800 dark:text-green-300">{success}</p>
