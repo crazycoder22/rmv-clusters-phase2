@@ -139,6 +139,7 @@ model Resident {
   sosResponses             SosResponse[]           @relation("SosResponses")
   amenityBookings          AmenityBooking[]        @relation("AmenityBookingsByBooker")
   dailySteps               ResidentDailySteps[]
+  stepChallengePartnerOf   StepChallengeGoal[]     @relation("StepChallengePartner")
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 }
@@ -178,6 +179,7 @@ model EventConfig {
   stepTrackingEnabled Boolean   @default(false)
   menuItems      MenuItem[]
   customFields   CustomField[]
+  challengeGoals StepChallengeGoal[]
   rsvps          Rsvp[]
   guestRsvps     GuestRsvp[]
   feedbacks      EventFeedback[]
@@ -213,10 +215,45 @@ model Rsvp {
   attendedAt     DateTime?
   notes          String?
   stepEntries    StepEntry[]
+  challengeGoal  StepChallengeGoal?
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 
   @@unique([eventConfigId, residentId])
+}
+
+// Per-participant extras for a step-challenge event (Mini Step-Up style):
+// optional 5K/10K/20K run goals + self-declared completions, and an optional
+// accountability partner (invite/accept flow mirrors Habits). The daily step
+// goal itself stays in a CustomField/RsvpFieldResponse (parseGoal); this model
+// only holds the genuinely-new run + partner data. 1:1 with an Rsvp.
+enum StepPartnerStatus {
+  none
+  pending
+  accepted
+  declined
+}
+
+model StepChallengeGoal {
+  id            String            @id @default(cuid())
+  eventConfigId String
+  eventConfig   EventConfig       @relation(fields: [eventConfigId], references: [id], onDelete: Cascade)
+  rsvpId        String            @unique
+  rsvp          Rsvp              @relation(fields: [rsvpId], references: [id], onDelete: Cascade)
+  run5kGoal     Int               @default(0)
+  run10kGoal    Int               @default(0)
+  run20kGoal    Int               @default(0)
+  run5kDone     Int               @default(0)
+  run10kDone    Int               @default(0)
+  run20kDone    Int               @default(0)
+  partnerId     String?
+  partner       Resident?         @relation("StepChallengePartner", fields: [partnerId], references: [id])
+  partnerStatus StepPartnerStatus @default(none)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([eventConfigId])
+  @@index([partnerId])
 }
 
 model RsvpItem {
