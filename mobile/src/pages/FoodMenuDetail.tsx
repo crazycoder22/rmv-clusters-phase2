@@ -12,11 +12,14 @@ import {
   Pencil,
   Plus,
   Power,
+  Share2,
   ShoppingCart,
   Trash2,
 } from "lucide-react";
+import { Share } from "@capacitor/share";
 import clsx from "clsx";
 import { apiFetch } from "../lib/api";
+import { API_BASE_URL } from "../config";
 import { useAuth } from "../auth/AuthProvider";
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -237,6 +240,25 @@ export default function FoodMenuDetail() {
   const isChef = menu.role === "chef";
   const myOrders = !isChef ? menu.orders : [];
 
+  async function shareMenu() {
+    if (!menu) return;
+    const url = `${API_BASE_URL}/food/menus/${menu.id}`;
+    const orderBy = menu.orderByAt
+      ? `🕑 Order by ${new Date(menu.orderByAt).toLocaleString("en-GB", {
+          day: "numeric",
+          month: "short",
+          hour: "2-digit",
+          minute: "2-digit",
+        })}\n`
+      : "";
+    const text = `🍱 ${menu.title} — ${menu.chef.name}'s kitchen\n${orderBy}Tap to see the menu & place your order (RMV residents):`;
+    try {
+      await Share.share({ title: menu.title, text, url, dialogTitle: "Share menu" });
+    } catch {
+      // user cancelled or share sheet unavailable — no-op
+    }
+  }
+
   return (
     <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)]">
       <header className="flex items-center gap-2 py-4">
@@ -250,14 +272,24 @@ export default function FoodMenuDetail() {
           </p>
         </div>
         {isChef && (
-          <button
-            type="button"
-            onClick={() => navigate(`/food/menus/${menu.id}/edit`)}
-            aria-label="Edit"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 active:bg-slate-800"
-          >
-            <Pencil size={16} />
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={() => void shareMenu()}
+              aria-label="Share menu"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-green-400 active:bg-slate-800"
+            >
+              <Share2 size={16} />
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate(`/food/menus/${menu.id}/edit`)}
+              aria-label="Edit"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 active:bg-slate-800"
+            >
+              <Pencil size={16} />
+            </button>
+          </>
         )}
       </header>
 

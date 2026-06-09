@@ -15,6 +15,7 @@ import {
   Pencil,
   Plus,
   Power,
+  Share2,
   ShoppingCart,
   Trash2,
 } from "lucide-react";
@@ -201,6 +202,20 @@ export default function FoodMenuDetailPage() {
 
   const isChef = menu.role === "chef";
 
+  function shareMenu() {
+    if (!menu) return;
+    const url = `${window.location.origin}/food/menus/${menu.id}`;
+    const text = [
+      `🍱 ${menu.title} — ${menu.chef.name}'s kitchen`,
+      menu.orderByAt ? `🕑 Order by ${fmtDateTime(menu.orderByAt)}` : null,
+      "Tap to see the menu & place your order (RMV residents):",
+      url,
+    ]
+      .filter(Boolean)
+      .join("\n");
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
@@ -214,9 +229,18 @@ export default function FoodMenuDetailPage() {
             </p>
           </div>
           {isChef && (
-            <Link href={`/food/menus/${menu.id}/edit`} className="inline-flex items-center gap-1 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-800">
-              <Pencil size={14} /> Edit
-            </Link>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={shareMenu}
+                className="inline-flex items-center gap-1 text-sm text-green-700 dark:text-green-400 hover:text-green-800 border border-green-200 dark:border-green-800 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-800"
+              >
+                <Share2 size={14} /> Share
+              </button>
+              <Link href={`/food/menus/${menu.id}/edit`} className="inline-flex items-center gap-1 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-800">
+                <Pencil size={14} /> Edit
+              </Link>
+            </div>
           )}
         </div>
 
