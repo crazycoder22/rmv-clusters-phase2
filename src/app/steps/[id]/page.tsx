@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSession } from "next-auth/react";
+import MyChallenge from "./MyChallenge";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Flame, Target, Check, Trophy, Pencil } from "lucide-react";
@@ -125,6 +126,8 @@ export default function StepEventPage() {
           <Stat value={daysMet} label="days met" icon={Check} color="text-green-600" />
           <Stat value={goal} label="daily goal" icon={Target} color="text-blue-600" />
         </div>
+
+        <MyChallenge eventId={event.announcementId} />
 
         <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mt-6 mb-2">Daily steps</h2>
         <div className="space-y-1.5">
