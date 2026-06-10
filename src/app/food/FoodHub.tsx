@@ -9,7 +9,6 @@ import {
   ChefHat,
   ShoppingBag,
   ShoppingBasket,
-  Store,
   Plus,
   Clock,
 } from "lucide-react";
@@ -47,25 +46,21 @@ interface MyOrder {
   items: { name: string; price: number; unit: string | null; qty: number }[];
 }
 
-type Tab = "order" | "kitchen" | "orders";
+type Tab = "order" | "kitchen" | "bazaar" | "orders";
 
-/** How an order line reads: "3 kg Apples" (market) | "2× Dosa" (kitchen). */
+/** "3 kg Apples" (market) | "2× Dosa" (kitchen). */
 function lineText(i: { qty: number; name: string; unit: string | null }): string {
   return i.unit ? `${i.qty} ${unitLabel(i.unit)} ${i.name}` : `${i.qty}× ${i.name}`;
 }
 
-export default function FoodHub({ kind = "KITCHEN" }: { kind?: FoodKind }) {
-  const L = KIND_LABELS[kind];
-  const isMarket = kind === "MARKET";
-  const SectionIcon = isMarket ? ShoppingBasket : UtensilsCrossed;
-  const StallIcon = isMarket ? Store : ChefHat;
-
+export default function FoodHub() {
   const { status } = useSession();
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("order");
 
   const [browse, setBrowse] = useState<MenuCard[]>([]);
-  const [mine, setMine] = useState<MenuCard[]>([]);
+  const [mineKitchen, setMineKitchen] = useState<MenuCard[]>([]);
+  const [mineBazaar, setMineBazaar] = useState<MenuCard[]>([]);
   const [orders, setOrders] = useState<MyOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -77,18 +72,20 @@ export default function FoodHub({ kind = "KITCHEN" }: { kind?: FoodKind }) {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const [b, m, o] = await Promise.all([
-        fetch(`/api/food/menus?kind=${kind}`),
-        fetch(`/api/food/menus?mine=chef&kind=${kind}`),
+      const [b, k, z, o] = await Promise.all([
+        fetch("/api/food/menus?kind=ALL"),
+        fetch("/api/food/menus?mine=chef&kind=KITCHEN"),
+        fetch("/api/food/menus?mine=chef&kind=MARKET"),
         fetch("/api/food/orders"),
       ]);
       if (b.ok) setBrowse((await b.json()).menus ?? []);
-      if (m.ok) setMine((await m.json()).menus ?? []);
+      if (k.ok) setMineKitchen((await k.json()).menus ?? []);
+      if (z.ok) setMineBazaar((await z.json()).menus ?? []);
       if (o.ok) setOrders((await o.json()).orders ?? []);
     } finally {
       setLoading(false);
     }
-  }, [kind]);
+  }, []);
 
   useEffect(() => {
     void refresh();
@@ -112,8 +109,14 @@ export default function FoodHub({ kind = "KITCHEN" }: { kind?: FoodKind }) {
   }
 
   const browseOthers = browse.filter((m) => !m.chef.isMe);
-  // The orders endpoint returns every kind; show only this section's.
-  const sectionOrders = orders.filter((o) => asKind(o.kind) === kind);
+
+  // The "New" button on the selling tabs points to that kind's create form.
+  const createCta =
+    tab === "kitchen"
+      ? { href: KIND_LABELS.KITCHEN.createPath, label: KIND_LABELS.KITCHEN.newCta }
+      : tab === "bazaar"
+        ? { href: KIND_LABELS.MARKET.createPath, label: KIND_LABELS.MARKET.newCta }
+        : null;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -122,29 +125,32 @@ export default function FoodHub({ kind = "KITCHEN" }: { kind?: FoodKind }) {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-              <SectionIcon className={isMarket ? "text-emerald-500" : "text-orange-500"} /> {L.section}
+              <UtensilsCrossed className="text-orange-500" /> Food &amp; Bazaar
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-              {isMarket ? "Fresh produce & goods from neighbours" : "Home kitchens in the community"}
+              Home kitchens &amp; fresh produce from the community
             </p>
           </div>
-          {tab === "kitchen" && (
+          {createCta && (
             <Link
-              href={`${L.sectionPath}/menus/new`}
+              href={createCta.href}
               className="inline-flex items-center gap-1.5 bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700"
             >
-              <Plus size={16} /> {L.newCta}
+              <Plus size={16} /> {createCta.label}
             </Link>
           )}
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 mb-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-1 w-fit">
-          <TabBtn active={tab === "order"} onClick={() => setTab("order")} icon={SectionIcon}>
+        <div className="flex flex-wrap gap-1 mb-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-1 w-fit">
+          <TabBtn active={tab === "order"} onClick={() => setTab("order")} icon={ShoppingBag}>
             Order
           </TabBtn>
-          <TabBtn active={tab === "kitchen"} onClick={() => setTab("kitchen")} icon={StallIcon}>
-            My {L.stall}
+          <TabBtn active={tab === "kitchen"} onClick={() => setTab("kitchen")} icon={ChefHat}>
+            My Kitchen
+          </TabBtn>
+          <TabBtn active={tab === "bazaar"} onClick={() => setTab("bazaar")} icon={ShoppingBasket}>
+            My Bazaar
           </TabBtn>
           <TabBtn active={tab === "orders"} onClick={() => setTab("orders")} icon={ShoppingBag}>
             My orders
@@ -159,46 +165,46 @@ export default function FoodHub({ kind = "KITCHEN" }: { kind?: FoodKind }) {
           <>
             {tab === "order" &&
               (browseOthers.length === 0 ? (
-                <Empty
-                  icon={SectionIcon}
-                  text={isMarket ? "No stalls open right now. Check back soon!" : "No open menus right now. Check back at meal times!"}
-                />
+                <Empty icon={ShoppingBag} text="Nothing open right now. Check back soon!" />
               ) : (
                 <div className="grid gap-3 sm:grid-cols-2">
                   {browseOthers.map((m) => (
-                    <MenuCardView key={m.id} menu={m} L={L} />
+                    <MenuCardView key={m.id} menu={m} />
                   ))}
                 </div>
               ))}
 
             {tab === "kitchen" &&
-              (mine.length === 0 ? (
-                <Empty
-                  icon={StallIcon}
-                  text={
-                    isMarket
-                      ? `You haven't listed any goods yet. Click “${L.newCta}” to sell to the community!`
-                      : `You haven't published a menu yet. Click “${L.newCta}” to cook for the community!`
-                  }
-                />
+              (mineKitchen.length === 0 ? (
+                <Empty icon={ChefHat} text="You haven't published a menu yet. Click “New menu” to cook for the community!" />
               ) : (
                 <div className="grid gap-3 sm:grid-cols-2">
-                  {mine.map((m) => (
-                    <MenuCardView key={m.id} menu={m} L={L} chefView />
+                  {mineKitchen.map((m) => (
+                    <MenuCardView key={m.id} menu={m} chefView />
+                  ))}
+                </div>
+              ))}
+
+            {tab === "bazaar" &&
+              (mineBazaar.length === 0 ? (
+                <Empty icon={ShoppingBasket} text="You haven't listed any goods yet. Click “New stall” to sell produce by the unit!" />
+              ) : (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {mineBazaar.map((m) => (
+                    <MenuCardView key={m.id} menu={m} chefView />
                   ))}
                 </div>
               ))}
 
             {tab === "orders" &&
-              (sectionOrders.length === 0 ? (
+              (orders.length === 0 ? (
                 <Empty icon={ShoppingBag} text="No orders yet. Browse the Order tab to get started." />
               ) : (
                 <div className="space-y-3">
-                  {sectionOrders.map((o) => (
+                  {orders.map((o) => (
                     <OrderCardView
                       key={o.id}
                       order={o}
-                      L={L}
                       busy={busyId === o.id}
                       onMarkPaid={() => markPaid(o.id)}
                     />
@@ -213,8 +219,6 @@ export default function FoodHub({ kind = "KITCHEN" }: { kind?: FoodKind }) {
 }
 
 // ── Sub-components ─────────────────────────────────────────────────────────
-
-type Labels = (typeof KIND_LABELS)[FoodKind];
 
 function TabBtn({
   active,
@@ -241,14 +245,19 @@ function TabBtn({
   );
 }
 
-function MenuCardView({ menu, L, chefView }: { menu: MenuCard; L: Labels; chefView?: boolean }) {
+function MenuCardView({ menu, chefView }: { menu: MenuCard; chefView?: boolean }) {
+  const L = KIND_LABELS[asKind(menu.kind)];
+  const isMarket = menu.kind === "MARKET";
   return (
     <Link
       href={`${L.sectionPath}/menus/${menu.id}`}
       className="block bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition"
     >
       <div className="flex items-start justify-between gap-2">
-        <h3 className="font-semibold text-gray-900 dark:text-gray-100">{menu.title}</h3>
+        <h3 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-1.5">
+          {isMarket ? <ShoppingBasket size={15} className="text-emerald-500 shrink-0" /> : <ChefHat size={15} className="text-orange-500 shrink-0" />}
+          {menu.title}
+        </h3>
         <StatusBadge status={menu.status} orderable={menu.orderable} />
       </div>
       <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -274,15 +283,14 @@ function MenuCardView({ menu, L, chefView }: { menu: MenuCard; L: Labels; chefVi
 
 function OrderCardView({
   order,
-  L,
   busy,
   onMarkPaid,
 }: {
   order: MyOrder;
-  L: Labels;
   busy: boolean;
   onMarkPaid: () => void;
 }) {
+  const L = KIND_LABELS[asKind(order.kind)];
   return (
     <div
       className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 ${

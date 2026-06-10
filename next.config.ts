@@ -19,6 +19,15 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Bazaar merged under Food (one section). Keep old shared /bazaar links working.
+  async redirects() {
+    return [
+      { source: "/bazaar", destination: "/food", permanent: true },
+      { source: "/bazaar/menus/:id", destination: "/food/menus/:id", permanent: true },
+      { source: "/bazaar/menus/:id/edit", destination: "/food/menus/:id/edit", permanent: true },
+      { source: "/bazaar/menus/new", destination: "/food/stalls/new", permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;

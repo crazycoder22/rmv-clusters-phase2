@@ -20,11 +20,16 @@ interface DishDraft {
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-export default function MenuForm({ menuId, kind = "KITCHEN" }: { menuId?: string; kind?: FoodKind }) {
+export default function MenuForm({ menuId, kind: kindProp = "KITCHEN" }: { menuId?: string; kind?: FoodKind }) {
   const isEdit = !!menuId;
+  const router = useRouter();
+  // In create mode the kind comes from the prop (which "New" button). In edit
+  // mode it's whatever the loaded menu is, so a single /food edit route serves
+  // both kitchens and stalls.
+  const [loadedKind, setLoadedKind] = useState<FoodKind | null>(null);
+  const kind: FoodKind = isEdit ? (loadedKind ?? kindProp) : kindProp;
   const isMarket = kind === "MARKET";
   const L = KIND_LABELS[kind];
-  const router = useRouter();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -47,6 +52,8 @@ export default function MenuForm({ menuId, kind = "KITCHEN" }: { menuId?: string
         return;
       }
       const m = await res.json();
+      const mk = m.kind === "MARKET";
+      setLoadedKind(mk ? "MARKET" : "KITCHEN");
       setTitle(m.title);
       setDescription(m.description ?? "");
       setDate(new Date(m.date).toISOString().slice(0, 10));
@@ -58,7 +65,7 @@ export default function MenuForm({ menuId, kind = "KITCHEN" }: { menuId?: string
           name: d.name,
           description: d.description ?? "",
           price: String(d.price),
-          unit: d.unit ?? (isMarket ? "kg" : null),
+          unit: d.unit ?? (mk ? "kg" : null),
           imageUrl: d.imageUrl,
           soldOut: d.soldOut,
         }))

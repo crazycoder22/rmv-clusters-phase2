@@ -31,9 +31,13 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 // ── Page ───────────────────────────────────────────────────────────────────
 
-export default function FoodMenuEdit({ kind = "KITCHEN" }: { kind?: FoodKind }) {
+export default function FoodMenuEdit({ kind: kindProp = "KITCHEN" }: { kind?: FoodKind }) {
   const { id } = useParams<{ id: string }>();
   const isEdit = !!id && id !== "new";
+  // Create mode → kind from the prop (which create route). Edit mode → kind of
+  // the loaded menu, so one /food edit route serves kitchens and stalls.
+  const [loadedKind, setLoadedKind] = useState<FoodKind | null>(null);
+  const kind: FoodKind = isEdit ? (loadedKind ?? kindProp) : kindProp;
   const isMarket = kind === "MARKET";
   const L = KIND_LABELS[kind];
   const { token } = useAuth();
@@ -61,6 +65,8 @@ export default function FoodMenuEdit({ kind = "KITCHEN" }: { kind?: FoodKind }) 
         return;
       }
       const m = await res.json();
+      const mk = m.kind === "MARKET";
+      setLoadedKind(mk ? "MARKET" : "KITCHEN");
       setTitle(m.title);
       setDescription(m.description ?? "");
       setDate(new Date(m.date).toISOString().slice(0, 10));
@@ -72,7 +78,7 @@ export default function FoodMenuEdit({ kind = "KITCHEN" }: { kind?: FoodKind }) 
           name: d.name,
           description: d.description ?? "",
           price: String(d.price),
-          unit: d.unit ?? (isMarket ? "kg" : null),
+          unit: d.unit ?? (mk ? "kg" : null),
           imageUrl: d.imageUrl,
           soldOut: d.soldOut,
         }))

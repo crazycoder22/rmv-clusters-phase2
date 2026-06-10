@@ -39,9 +39,9 @@ function routeDeepLink(path: string, navigate: NavigateFn): void {
 
   if (path === "/food") { navigate("/food"); return; }
   if (path.startsWith("/food/")) { navigate(path); return; }
-
-  if (path === "/bazaar") { navigate("/bazaar"); return; }
-  if (path.startsWith("/bazaar/")) { navigate(path); return; }
+  // Legacy Bazaar links (before it merged under Food) → unified hub.
+  if (path === "/bazaar") { navigate("/food"); return; }
+  if (path.startsWith("/bazaar/menus/")) { navigate(path.replace("/bazaar/", "/food/")); return; }
 
   if (path === "/initiatives") { navigate("/initiatives"); return; }
   if (path.startsWith("/initiatives/")) { navigate(path); return; }

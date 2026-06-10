@@ -18,7 +18,6 @@ import {
   MessageCircle,
   MessagesSquare,
   ShieldCheck,
-  ShoppingBasket,
   Target,
   TrendingUp,
   UtensilsCrossed,
@@ -272,14 +271,8 @@ export default function MorePage() {
         <Row
           to="/food"
           icon={UtensilsCrossed}
-          title="Food"
-          subtitle="Home kitchens — order or sell food"
-        />
-        <Row
-          to="/bazaar"
-          icon={ShoppingBasket}
-          title="Bazaar"
-          subtitle="Buy & sell produce & goods by the unit"
+          title="Food & Bazaar"
+          subtitle="Home kitchens & produce — order or sell"
         />
         <Row
           to="/parking"

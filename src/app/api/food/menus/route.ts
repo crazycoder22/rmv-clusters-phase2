@@ -17,12 +17,14 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const mine = searchParams.get("mine") === "chef";
-  // KITCHEN (food) vs MARKET (Bazaar) — keeps the two browse lists separate.
-  const kind = asKind(searchParams.get("kind"));
+  // kind=ALL → both KITCHEN (food) + MARKET (Bazaar) in one list (the unified
+  // "Order" / "My orders" browse). Otherwise scope to a single kind.
+  const kindParam = searchParams.get("kind");
+  const kindFilter = kindParam && kindParam !== "ALL" ? { kind: asKind(kindParam) } : {};
 
   const where = mine
-    ? { chefId: me.id, kind, status: { not: "ARCHIVED" as const } }
-    : { status: "OPEN" as const, kind };
+    ? { chefId: me.id, ...kindFilter, status: { not: "ARCHIVED" as const } }
+    : { status: "OPEN" as const, ...kindFilter };
 
   const menus = await prisma.foodMenu.findMany({
     where,

@@ -9,8 +9,6 @@ import {
   Plus,
   ShoppingBag,
   ShoppingBasket,
-  Store,
-  UtensilsCrossed,
 } from "lucide-react";
 import clsx from "clsx";
 import { apiFetch } from "../lib/api";
@@ -51,8 +49,7 @@ interface MyOrder {
   items: { name: string; price: number; unit: string | null; qty: number }[];
 }
 
-type Tab = "order" | "kitchen" | "orders";
-type Labels = (typeof KIND_LABELS)[FoodKind];
+type Tab = "order" | "kitchen" | "bazaar" | "orders";
 
 /** "3 kg Apples" (market) | "2× Dosa" (kitchen). */
 function lineText(i: { qty: number; name: string; unit: string | null }): string {
@@ -61,18 +58,14 @@ function lineText(i: { qty: number; name: string; unit: string | null }): string
 
 // ── Page ───────────────────────────────────────────────────────────────────
 
-export default function Food({ kind = "KITCHEN" }: { kind?: FoodKind }) {
-  const L = KIND_LABELS[kind];
-  const isMarket = kind === "MARKET";
-  const SectionIcon = isMarket ? ShoppingBasket : UtensilsCrossed;
-  const StallIcon = isMarket ? Store : ChefHat;
-
+export default function Food() {
   const { token } = useAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("order");
 
   const [browse, setBrowse] = useState<MenuCard[]>([]);
-  const [mine, setMine] = useState<MenuCard[]>([]);
+  const [mineKitchen, setMineKitchen] = useState<MenuCard[]>([]);
+  const [mineBazaar, setMineBazaar] = useState<MenuCard[]>([]);
   const [orders, setOrders] = useState<MyOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -81,13 +74,15 @@ export default function Food({ kind = "KITCHEN" }: { kind?: FoodKind }) {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const [b, m, o] = await Promise.all([
-        apiFetch(`/api/food/menus?kind=${kind}`, { token }),
-        apiFetch(`/api/food/menus?mine=chef&kind=${kind}`, { token }),
+      const [b, k, z, o] = await Promise.all([
+        apiFetch("/api/food/menus?kind=ALL", { token }),
+        apiFetch("/api/food/menus?mine=chef&kind=KITCHEN", { token }),
+        apiFetch("/api/food/menus?mine=chef&kind=MARKET", { token }),
         apiFetch("/api/food/orders", { token }),
       ]);
       if (b.ok) setBrowse((await b.json()).menus ?? []);
-      if (m.ok) setMine((await m.json()).menus ?? []);
+      if (k.ok) setMineKitchen((await k.json()).menus ?? []);
+      if (z.ok) setMineBazaar((await z.json()).menus ?? []);
       if (o.ok) setOrders((await o.json()).orders ?? []);
       setError(null);
     } catch {
@@ -95,7 +90,7 @@ export default function Food({ kind = "KITCHEN" }: { kind?: FoodKind }) {
     } finally {
       setLoading(false);
     }
-  }, [token, kind]);
+  }, [token]);
 
   useEffect(() => {
     void refresh();
@@ -119,10 +114,13 @@ export default function Food({ kind = "KITCHEN" }: { kind?: FoodKind }) {
     }
   }
 
-  // Browse list excludes my own listings (those live under "My kitchen/stall").
   const browseOthers = browse.filter((m) => !m.chef.isMe);
-  // The orders endpoint returns every kind; show only this section's.
-  const sectionOrders = orders.filter((o) => asKind(o.kind) === kind);
+  const createCta =
+    tab === "kitchen"
+      ? { path: KIND_LABELS.KITCHEN.createPath, label: "Menu" }
+      : tab === "bazaar"
+        ? { path: KIND_LABELS.MARKET.createPath, label: "Stall" }
+        : null;
 
   return (
     <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)]">
@@ -134,33 +132,36 @@ export default function Food({ kind = "KITCHEN" }: { kind?: FoodKind }) {
           <ArrowLeft size={20} />
         </Link>
         <div className="flex-1 min-w-0">
-          <h1 className="text-lg font-semibold text-white">{L.section}</h1>
+          <h1 className="text-lg font-semibold text-white">Food &amp; Bazaar</h1>
           <p className="truncate text-[11px] text-slate-500">
-            {isMarket ? "Fresh produce & goods from neighbours" : "Home kitchens in the community"}
+            Home kitchens &amp; fresh produce from the community
           </p>
         </div>
-        {tab === "kitchen" && (
+        {createCta && (
           <button
             type="button"
-            onClick={() => navigate(`${L.sectionPath}/menus/new`)}
+            onClick={() => navigate(createCta.path)}
             className="flex h-9 items-center gap-1 rounded-full bg-indigo-500 px-3 text-sm font-medium text-white active:bg-indigo-600"
           >
             <Plus size={14} />
-            {isMarket ? "Stall" : "Menu"}
+            {createCta.label}
           </button>
         )}
       </header>
 
       {/* Tabs */}
       <div className="mb-4 flex rounded-xl bg-slate-800 p-0.5">
-        <TabButton active={tab === "order"} onClick={() => setTab("order")} icon={SectionIcon}>
+        <TabButton active={tab === "order"} onClick={() => setTab("order")} icon={ShoppingBag}>
           Order
         </TabButton>
-        <TabButton active={tab === "kitchen"} onClick={() => setTab("kitchen")} icon={StallIcon}>
-          My {L.stall}
+        <TabButton active={tab === "kitchen"} onClick={() => setTab("kitchen")} icon={ChefHat}>
+          Kitchen
+        </TabButton>
+        <TabButton active={tab === "bazaar"} onClick={() => setTab("bazaar")} icon={ShoppingBasket}>
+          Bazaar
         </TabButton>
         <TabButton active={tab === "orders"} onClick={() => setTab("orders")} icon={ShoppingBag}>
-          My orders
+          Orders
         </TabButton>
       </div>
 
@@ -178,41 +179,49 @@ export default function Food({ kind = "KITCHEN" }: { kind?: FoodKind }) {
         <div className="flex-1 pb-4">
           {tab === "order" && (
             browseOthers.length === 0 ? (
-              <Empty icon={SectionIcon} text={isMarket ? "No stalls open right now. Check back soon!" : "No open menus right now. Check back at meal times!"} />
+              <Empty icon={ShoppingBag} text="Nothing open right now. Check back soon!" />
             ) : (
               <ul className="space-y-2">
                 {browseOthers.map((m) => (
-                  <MenuRow key={m.id} menu={m} L={L} StallIcon={StallIcon} isMarket={isMarket} />
+                  <MenuRow key={m.id} menu={m} />
                 ))}
               </ul>
             )
           )}
 
           {tab === "kitchen" && (
-            mine.length === 0 ? (
-              <Empty
-                icon={StallIcon}
-                text={isMarket ? "You haven't listed any goods yet. Tap “Stall” to sell to the community!" : "You haven't published a menu yet. Tap “Menu” to cook for the community!"}
-              />
+            mineKitchen.length === 0 ? (
+              <Empty icon={ChefHat} text="You haven't published a menu yet. Tap “Menu” to cook for the community!" />
             ) : (
               <ul className="space-y-2">
-                {mine.map((m) => (
-                  <MenuRow key={m.id} menu={m} L={L} StallIcon={StallIcon} isMarket={isMarket} chefView />
+                {mineKitchen.map((m) => (
+                  <MenuRow key={m.id} menu={m} chefView />
+                ))}
+              </ul>
+            )
+          )}
+
+          {tab === "bazaar" && (
+            mineBazaar.length === 0 ? (
+              <Empty icon={ShoppingBasket} text="You haven't listed any goods yet. Tap “Stall” to sell produce by the unit!" />
+            ) : (
+              <ul className="space-y-2">
+                {mineBazaar.map((m) => (
+                  <MenuRow key={m.id} menu={m} chefView />
                 ))}
               </ul>
             )
           )}
 
           {tab === "orders" && (
-            sectionOrders.length === 0 ? (
+            orders.length === 0 ? (
               <Empty icon={ShoppingBag} text="No orders yet. Browse the Order tab to get started." />
             ) : (
               <ul className="space-y-2">
-                {sectionOrders.map((o) => (
+                {orders.map((o) => (
                   <OrderRow
                     key={o.id}
                     order={o}
-                    L={L}
                     busy={busyId === o.id}
                     onMarkPaid={() => markPaid(o.id)}
                   />
@@ -254,7 +263,10 @@ function TabButton({
   );
 }
 
-function MenuRow({ menu, L, StallIcon, isMarket, chefView }: { menu: MenuCard; L: Labels; StallIcon: typeof ChefHat; isMarket: boolean; chefView?: boolean }) {
+function MenuRow({ menu, chefView }: { menu: MenuCard; chefView?: boolean }) {
+  const L = KIND_LABELS[asKind(menu.kind)];
+  const isMarket = menu.kind === "MARKET";
+  const Icon = isMarket ? ShoppingBasket : ChefHat;
   return (
     <Link
       to={`${L.sectionPath}/menus/${menu.id}`}
@@ -266,7 +278,7 @@ function MenuRow({ menu, L, StallIcon, isMarket, chefView }: { menu: MenuCard; L
       )}
     >
       <div className={clsx("flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full", isMarket ? "bg-emerald-500/20 text-emerald-300" : "bg-orange-500/20 text-orange-300")}>
-        <StallIcon size={16} />
+        <Icon size={16} />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline justify-between gap-2">
@@ -300,15 +312,14 @@ function MenuRow({ menu, L, StallIcon, isMarket, chefView }: { menu: MenuCard; L
 
 function OrderRow({
   order,
-  L,
   busy,
   onMarkPaid,
 }: {
   order: MyOrder;
-  L: Labels;
   busy: boolean;
   onMarkPaid: () => void;
 }) {
+  const L = KIND_LABELS[asKind(order.kind)];
   const itemLine = order.items.map(lineText).join(", ");
   return (
     <li

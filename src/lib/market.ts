@@ -31,11 +31,15 @@ export function formatUnitPrice(price: number, unit: string | null | undefined):
 }
 
 // One label map drives all kind-aware copy across web + mobile.
+// Bazaar lives *under* Food now (tabs in one hub), so both kinds share the
+// "/food" section path; only the create route differs (kitchen vs stall).
+// Detail + edit are kind-agnostic URLs (the page derives kind from the menu).
 export const KIND_LABELS: Record<
   FoodKind,
   {
     section: string;
     sectionPath: string;
+    createPath: string;
     seller: string;
     sellerCap: string;
     stall: string;
@@ -53,6 +57,7 @@ export const KIND_LABELS: Record<
   KITCHEN: {
     section: "Food",
     sectionPath: "/food",
+    createPath: "/food/menus/new",
     seller: "chef",
     sellerCap: "Chef",
     stall: "kitchen",
@@ -67,8 +72,9 @@ export const KIND_LABELS: Record<
     pushOrderTitle: "🧾 New food order",
   },
   MARKET: {
-    section: "Bazaar",
-    sectionPath: "/bazaar",
+    section: "Food",
+    sectionPath: "/food",
+    createPath: "/food/stalls/new",
     seller: "seller",
     sellerCap: "Seller",
     stall: "stall",

@@ -30,6 +30,7 @@ export const KIND_LABELS: Record<
   {
     section: string;
     sectionPath: string;
+    createPath: string;
     seller: string;
     sellerCap: string;
     stall: string;
@@ -44,6 +45,7 @@ export const KIND_LABELS: Record<
   KITCHEN: {
     section: "Food",
     sectionPath: "/food",
+    createPath: "/food/menus/new",
     seller: "chef",
     sellerCap: "Chef",
     stall: "kitchen",
@@ -55,8 +57,9 @@ export const KIND_LABELS: Record<
     publishCta: "Publish menu",
   },
   MARKET: {
-    section: "Bazaar",
-    sectionPath: "/bazaar",
+    section: "Food",
+    sectionPath: "/food",
+    createPath: "/food/stalls/new",
     seller: "seller",
     sellerCap: "Seller",
     stall: "stall",
