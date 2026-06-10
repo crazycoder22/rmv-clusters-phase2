@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import Script from "next/script";
@@ -420,6 +420,26 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
         <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">Event Not Found</h1>
         <p className="text-gray-500 dark:text-gray-400 mb-4">{error || "This event does not have RSVP enabled."}</p>
         <Link href="/news" className="text-primary-600 dark:text-primary-400 hover:text-primary-700 font-medium">Back to News</Link>
+      </div>
+    );
+  }
+
+  // Step challenges are resident-only: the leaderboard, run goals, and partner
+  // are all tied to a resident account, so a guest RSVP makes no sense. Send
+  // guests to log in (and bring them back here) instead of the guest form.
+  if (isGuest && eventConfig?.stepTrackingEnabled) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-16 text-center">
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">{announcement.title}</h1>
+        <p className="text-gray-500 dark:text-gray-400 mb-6">
+          Please log in with your resident account to register for this step challenge.
+        </p>
+        <button
+          onClick={() => signIn("google", { callbackUrl: typeof window !== "undefined" ? window.location.href : `/events/${id}/rsvp` })}
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors"
+        >
+          Log in to register
+        </button>
       </div>
     );
   }
