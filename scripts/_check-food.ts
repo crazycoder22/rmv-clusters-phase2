@@ -33,7 +33,8 @@ async function main() {
     for (const o of m.orders) {
       const pay = o.chefPaid ? "✅ received" : o.buyerPaid ? "🟡 claimed" : "⬜ unpaid";
       const lines = o.items.map((li) => `${li.qty}× ${li.nameSnapshot}`).join(", ");
-      console.log(`     - ${o.buyer.name}: ₹${o.totalAmount} [${o.status}] ${pay} — ${lines}`);
+      const who = o.buyer?.name ?? `${o.manualBuyerName ?? "Offline"} (offline)`;
+      console.log(`     - ${who}: ₹${o.totalAmount} [${o.status}] ${pay} — ${lines}`);
     }
     console.log("");
   }

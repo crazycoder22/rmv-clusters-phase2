@@ -91,6 +91,9 @@ export async function GET(
       chefPaid: o.chefPaid,
       chefPaidAt: o.chefPaidAt,
       createdAt: o.createdAt,
+      // Offline orders the chef logged manually (no buyer account).
+      manual: !o.buyerId,
+      manualBuyerName: o.manualBuyerName,
       items: o.items.map((li) => ({
         name: li.nameSnapshot,
         price: li.priceSnapshot,

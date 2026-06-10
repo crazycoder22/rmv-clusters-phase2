@@ -48,6 +48,8 @@ interface Order {
   chefPaid: boolean;
   items: OrderLine[];
   buyer?: { name: string; block: number; flatNumber: string; phone: string };
+  manual?: boolean;
+  manualBuyerName?: string | null;
 }
 interface MenuDetailData {
   id: string;
@@ -85,6 +87,14 @@ export default function MenuDetail({ section = "KITCHEN" }: { section?: FoodKind
   const [placing, setPlacing] = useState(false);
   const [busyOrderId, setBusyOrderId] = useState<string | null>(null);
   const [followBusy, setFollowBusy] = useState(false);
+
+  // Offline ("manual") order the chef logs on a buyer's behalf.
+  const [showManual, setShowManual] = useState(false);
+  const [mName, setMName] = useState("");
+  const [mCart, setMCart] = useState<Record<string, number>>({});
+  const [mPaid, setMPaid] = useState(false);
+  const [mBusy, setMBusy] = useState(false);
+  const [mErr, setMErr] = useState<string | null>(null);
 
   const kind: FoodKind = menu?.kind ?? section;
   const L = KIND_LABELS[kind];
@@ -168,6 +178,41 @@ export default function MenuDetail({ section = "KITCHEN" }: { section?: FoodKind
       if (res.ok) await refresh();
     } finally {
       setBusyOrderId(null);
+    }
+  }
+
+  const mCount = Object.values(mCart).reduce((s, q) => s + q, 0);
+  const mTotal = menu ? menu.items.reduce((s, d) => s + (mCart[d.id] ?? 0) * d.price, 0) : 0;
+  function setMQty(dishId: string, delta: number) {
+    setMCart((prev) => {
+      const next = Math.max(0, (prev[dishId] ?? 0) + delta);
+      const copy = { ...prev };
+      if (next === 0) delete copy[dishId];
+      else copy[dishId] = next;
+      return copy;
+    });
+  }
+  async function addManualOrder() {
+    if (!menu) return;
+    setMErr(null);
+    if (!mName.trim()) { setMErr("Enter the buyer's name"); return; }
+    if (mCount === 0) { setMErr("Add at least one item"); return; }
+    setMBusy(true);
+    try {
+      const items = Object.entries(mCart).map(([menuItemId, qty]) => ({ menuItemId, qty }));
+      const res = await api(`/api/food/menus/${menu.id}/manual-orders`, "POST", {
+        buyerName: mName.trim(),
+        items,
+        paid: mPaid,
+      });
+      if (!res.ok) {
+        setMErr((await res.json().catch(() => null))?.error ?? "Could not add order");
+        return;
+      }
+      setMName(""); setMCart({}); setMPaid(false); setShowManual(false);
+      await refresh();
+    } finally {
+      setMBusy(false);
     }
   }
 
@@ -332,7 +377,60 @@ export default function MenuDetail({ section = "KITCHEN" }: { section?: FoodKind
               ))}
             </div>
 
-            <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mt-6 mb-2">Orders ({menu.orders.length})</h2>
+            <div className="flex items-center justify-between mt-6 mb-2">
+              <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Orders ({menu.orders.length})</h2>
+              <button
+                type="button"
+                onClick={() => setShowManual((s) => !s)}
+                className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700"
+              >
+                <Plus size={14} /> Add offline order
+              </button>
+            </div>
+
+            {showManual && (
+              <div className="mb-3 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/10 p-4 space-y-3">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Log an order that came in over WhatsApp / phone so everything stays in one place.
+                </p>
+                <input
+                  value={mName}
+                  onChange={(e) => setMName(e.target.value)}
+                  placeholder="Buyer's name (e.g. Mrs. Sharma, B2-301)"
+                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800"
+                />
+                <div className="space-y-1.5">
+                  {menu.items.map((d) => (
+                    <div key={d.id} className="flex items-center gap-2">
+                      <span className="flex-1 text-sm text-gray-800 dark:text-gray-200">{d.name} <span className="text-gray-400">· {formatUnitPrice(d.price, d.unit)}</span></span>
+                      <div className="flex items-center gap-1.5">
+                        {(mCart[d.id] ?? 0) > 0 && (
+                          <>
+                            <button type="button" onClick={() => setMQty(d.id, -1)} className="h-7 w-7 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700"><Minus size={13} /></button>
+                            <span className="w-5 text-center text-sm font-bold">{mCart[d.id]}</span>
+                          </>
+                        )}
+                        <button type="button" onClick={() => setMQty(d.id, 1)} className="h-7 w-7 flex items-center justify-center rounded-full bg-blue-600 text-white"><Plus size={13} /></button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                  <input type="checkbox" checked={mPaid} onChange={(e) => setMPaid(e.target.checked)} className="rounded" />
+                  Already paid
+                </label>
+                {mErr && <p className="text-xs text-red-600">{mErr}</p>}
+                <button
+                  type="button"
+                  onClick={addManualOrder}
+                  disabled={mBusy}
+                  className="w-full bg-blue-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {mBusy ? "Adding…" : `Add order${mCount > 0 ? ` · ₹${mTotal}` : ""}`}
+                </button>
+              </div>
+            )}
+
             {menu.orders.length === 0 ? (
               <p className="bg-white dark:bg-gray-800 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg py-8 text-center text-sm text-gray-500 dark:text-gray-400">No orders yet.</p>
             ) : (
@@ -442,7 +540,14 @@ function ChefOrderCard({ order, busy, onAction }: { order: Order; busy: boolean;
     <div className={`bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 ${order.status === "CANCELLED" ? "opacity-60" : ""}`}>
       <div className="flex items-start justify-between gap-2">
         <span className="font-semibold text-gray-900 dark:text-gray-100">
-          {order.buyer ? `${order.buyer.name} · ${order.buyer.block}-${order.buyer.flatNumber}` : "Order"}
+          {order.manual
+            ? order.manualBuyerName || "Offline order"
+            : order.buyer
+              ? `${order.buyer.name} · ${order.buyer.block}-${order.buyer.flatNumber}`
+              : "Order"}
+          {order.manual && (
+            <span className="ml-2 align-middle text-[10px] font-semibold text-amber-700 bg-amber-100 dark:bg-amber-900/40 dark:text-amber-300 rounded-full px-1.5 py-0.5">offline</span>
+          )}
         </span>
         <span className="font-bold text-gray-900 dark:text-gray-100">₹{order.totalAmount}</span>
       </div>
@@ -452,9 +557,14 @@ function ChefOrderCard({ order, busy, onAction }: { order: Order; busy: boolean;
         <span className={`text-xs font-semibold rounded-full px-2 py-0.5 ${order.status === "CONFIRMED" ? "text-green-700 bg-green-100" : order.status === "CANCELLED" ? "text-red-700 bg-red-100" : "text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700"}`}>{order.status}</span>
         {order.chefPaid ? (
           <span className="inline-flex items-center gap-2">
-            <span className="text-xs font-semibold text-green-600">Received ✓</span>
+            <span className="text-xs font-semibold text-green-600">{order.manual ? "Paid ✓" : "Received ✓"}</span>
             <button type="button" onClick={() => onAction("unconfirm_paid")} disabled={busy} className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600">undo</button>
           </span>
+        ) : order.manual ? (
+          // No buyer to claim payment — the chef marks the offline order paid.
+          order.status !== "CANCELLED" ? (
+            <button type="button" onClick={() => onAction("confirm_paid")} disabled={busy} className="text-xs font-semibold bg-green-600 text-white rounded-md px-3 py-1 hover:bg-green-700 disabled:opacity-50">Mark paid</button>
+          ) : null
         ) : order.buyerPaid ? (
           <button type="button" onClick={() => onAction("confirm_paid")} disabled={busy} className="text-xs font-semibold bg-green-600 text-white rounded-md px-3 py-1 hover:bg-green-700 disabled:opacity-50">Confirm received</button>
         ) : (

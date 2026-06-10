@@ -53,8 +53,11 @@ export async function PATCH(
   });
   if (!order) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const isBuyer = order.buyerId === me.id;
+  const isBuyer = !!order.buyerId && order.buyerId === me.id;
   const isChef = order.menu.chefId === me.id;
+  // Offline orders the chef logged manually have no buyer account — the chef
+  // owns the whole payment lifecycle for those.
+  const isManual = !order.buyerId;
   if (!isBuyer && !isChef) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
@@ -85,18 +88,29 @@ export async function PATCH(
 
     case "confirm_paid":
       if (!isChef) return forbidden();
-      // Can only confirm a payment the buyer has claimed.
-      where = { id, buyerPaid: true, chefPaid: false, status: { not: "CANCELLED" } };
-      data = { chefPaid: true, chefPaidAt: now, status: "CONFIRMED" };
-      pushTo = order.buyerId;
-      pushTitle = "✅ Payment received";
-      pushBody = `Your payment for "${order.menu.title}" was confirmed`;
+      if (isManual) {
+        // No buyer claim step — the chef marks the offline order settled.
+        where = { id, chefPaid: false, status: { not: "CANCELLED" } };
+        data = { buyerPaid: true, buyerPaidAt: now, chefPaid: true, chefPaidAt: now, status: "CONFIRMED" };
+      } else {
+        // Can only confirm a payment the buyer has claimed.
+        where = { id, buyerPaid: true, chefPaid: false, status: { not: "CANCELLED" } };
+        data = { chefPaid: true, chefPaidAt: now, status: "CONFIRMED" };
+        pushTo = order.buyerId;
+        pushTitle = "✅ Payment received";
+        pushBody = `Your payment for "${order.menu.title}" was confirmed`;
+      }
       break;
 
     case "unconfirm_paid":
       if (!isChef) return forbidden();
-      where = { id, chefPaid: true };
-      data = { chefPaid: false, chefPaidAt: null };
+      if (isManual) {
+        where = { id, chefPaid: true };
+        data = { buyerPaid: false, buyerPaidAt: null, chefPaid: false, chefPaidAt: null, status: "PLACED" };
+      } else {
+        where = { id, chefPaid: true };
+        data = { chefPaid: false, chefPaidAt: null };
+      }
       break;
 
     case "cancel":

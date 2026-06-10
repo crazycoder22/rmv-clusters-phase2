@@ -58,6 +58,8 @@ interface Order {
   createdAt: string;
   items: OrderLine[];
   buyer?: { name: string; block: number; flatNumber: string; phone: string };
+  manual?: boolean;
+  manualBuyerName?: string | null;
 }
 
 interface MenuDetail {
@@ -92,6 +94,14 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
   const [placing, setPlacing] = useState(false);
   const [busyOrderId, setBusyOrderId] = useState<string | null>(null);
   const [followBusy, setFollowBusy] = useState(false);
+
+  // Offline ("manual") order the chef logs on a buyer's behalf.
+  const [showManual, setShowManual] = useState(false);
+  const [mName, setMName] = useState("");
+  const [mCart, setMCart] = useState<Record<string, number>>({});
+  const [mPaid, setMPaid] = useState(false);
+  const [mBusy, setMBusy] = useState(false);
+  const [mErr, setMErr] = useState<string | null>(null);
 
   const kind: FoodKind = menu?.kind ?? section;
   const L = KIND_LABELS[kind];
@@ -175,6 +185,41 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
       if (res.ok) await refresh();
     } finally {
       setBusyOrderId(null);
+    }
+  }
+
+  const mCount = Object.values(mCart).reduce((s, q) => s + q, 0);
+  const mTotal = menu ? menu.items.reduce((s, d) => s + (mCart[d.id] ?? 0) * d.price, 0) : 0;
+  function setMQty(dishId: string, delta: number) {
+    setMCart((prev) => {
+      const next = Math.max(0, (prev[dishId] ?? 0) + delta);
+      const copy = { ...prev };
+      if (next === 0) delete copy[dishId];
+      else copy[dishId] = next;
+      return copy;
+    });
+  }
+  async function addManualOrder() {
+    if (!menu) return;
+    setMErr(null);
+    if (!mName.trim()) { setMErr("Enter the buyer's name"); return; }
+    if (mCount === 0) { setMErr("Add at least one item"); return; }
+    setMBusy(true);
+    try {
+      const items = Object.entries(mCart).map(([menuItemId, qty]) => ({ menuItemId, qty }));
+      const res = await apiFetch(`/api/food/menus/${menu.id}/manual-orders`, {
+        method: "POST",
+        token,
+        body: JSON.stringify({ buyerName: mName.trim(), items, paid: mPaid }),
+      });
+      if (!res.ok) {
+        setMErr((await res.json().catch(() => null))?.error ?? "Could not add order");
+        return;
+      }
+      setMName(""); setMCart({}); setMPaid(false); setShowManual(false);
+      await refresh();
+    } finally {
+      setMBusy(false);
     }
   }
 
@@ -409,9 +454,62 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
 
           {/* Orders */}
           <section className="pb-4">
-            <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
-              Orders ({menu.orders.length})
-            </h2>
+            <div className="mb-2 flex items-center justify-between">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                Orders ({menu.orders.length})
+              </h2>
+              <button
+                type="button"
+                onClick={() => setShowManual((s) => !s)}
+                className="inline-flex items-center gap-1 text-[12px] font-medium text-indigo-300 active:text-indigo-200"
+              >
+                <Plus size={13} /> Offline order
+              </button>
+            </div>
+
+            {showManual && (
+              <div className="mb-3 space-y-2.5 rounded-2xl border border-indigo-700/40 bg-indigo-900/10 p-3">
+                <p className="text-[11px] text-slate-400">
+                  Log a WhatsApp / phone order so everything stays in one place.
+                </p>
+                <input
+                  value={mName}
+                  onChange={(e) => setMName(e.target.value)}
+                  placeholder="Buyer's name (e.g. Mrs. Sharma B2-301)"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none"
+                />
+                <div className="space-y-1.5">
+                  {menu.items.map((d) => (
+                    <div key={d.id} className="flex items-center gap-2">
+                      <span className="flex-1 text-[13px] text-slate-200">{d.name} <span className="text-slate-500">· {formatUnitPrice(d.price, d.unit)}</span></span>
+                      <div className="flex items-center gap-1.5">
+                        {(mCart[d.id] ?? 0) > 0 && (
+                          <>
+                            <button type="button" onClick={() => setMQty(d.id, -1)} className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-700 text-white active:bg-slate-600"><Minus size={13} /></button>
+                            <span className="w-5 text-center text-sm font-bold tabular-nums text-white">{mCart[d.id]}</span>
+                          </>
+                        )}
+                        <button type="button" onClick={() => setMQty(d.id, 1)} className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-500 text-white active:bg-indigo-600"><Plus size={13} /></button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <label className="flex items-center gap-2 text-[13px] text-slate-300">
+                  <input type="checkbox" checked={mPaid} onChange={(e) => setMPaid(e.target.checked)} />
+                  Already paid
+                </label>
+                {mErr && <p className="text-[11px] text-red-300">{mErr}</p>}
+                <button
+                  type="button"
+                  onClick={() => void addManualOrder()}
+                  disabled={mBusy}
+                  className="w-full rounded-xl bg-indigo-500 py-2.5 text-sm font-semibold text-white active:bg-indigo-600 disabled:opacity-50"
+                >
+                  {mBusy ? "Adding…" : `Add order${mCount > 0 ? ` · ₹${mTotal}` : ""}`}
+                </button>
+              </div>
+            )}
+
             {menu.orders.length === 0 ? (
               <p className="rounded-2xl border border-dashed border-slate-700 px-4 py-6 text-center text-[11px] text-slate-500">
                 No orders yet.
@@ -560,7 +658,14 @@ function ChefOrderCard({
     <li className={clsx("rounded-2xl border p-3", order.status === "CANCELLED" ? "border-slate-700 bg-slate-800/30 opacity-70" : "border-slate-700 bg-slate-800/60")}>
       <div className="flex items-baseline justify-between gap-2">
         <span className="truncate text-sm font-semibold text-white">
-          {order.buyer ? `${order.buyer.name} · B${order.buyer.block}-${order.buyer.flatNumber}` : "Order"}
+          {order.manual
+            ? order.manualBuyerName || "Offline order"
+            : order.buyer
+              ? `${order.buyer.name} · B${order.buyer.block}-${order.buyer.flatNumber}`
+              : "Order"}
+          {order.manual && (
+            <span className="ml-1.5 rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-bold text-amber-200">OFFLINE</span>
+          )}
         </span>
         <span className="shrink-0 text-sm font-bold tabular-nums text-white">₹{order.totalAmount}</span>
       </div>
@@ -572,9 +677,15 @@ function ChefOrderCard({
         <span className={clsx("rounded-full px-2 py-0.5 text-[10px] font-bold", order.status === "CONFIRMED" ? "bg-emerald-500/20 text-emerald-300" : order.status === "CANCELLED" ? "bg-red-500/20 text-red-300" : "bg-slate-700 text-slate-300")}>{order.status}</span>
         {order.chefPaid ? (
           <span className="inline-flex items-center gap-2">
-            <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-300">RECEIVED ✓</span>
+            <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-300">{order.manual ? "PAID ✓" : "RECEIVED ✓"}</span>
             <button type="button" onClick={onUnconfirm} disabled={busy} className="text-[10px] text-slate-500 active:text-slate-300">undo</button>
           </span>
+        ) : order.manual ? (
+          order.status !== "CANCELLED" ? (
+            <button type="button" onClick={onConfirm} disabled={busy} className="rounded-full bg-emerald-500 px-2.5 py-0.5 text-[10px] font-bold text-white active:bg-emerald-600 disabled:opacity-50">
+              {busy ? "…" : "Mark paid"}
+            </button>
+          ) : null
         ) : order.buyerPaid ? (
           <button type="button" onClick={onConfirm} disabled={busy} className="rounded-full bg-emerald-500 px-2.5 py-0.5 text-[10px] font-bold text-white active:bg-emerald-600 disabled:opacity-50">
             {busy ? "…" : "Confirm received"}

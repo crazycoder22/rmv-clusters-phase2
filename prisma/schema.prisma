@@ -1942,8 +1942,12 @@ model FoodOrder {
   id          String          @id @default(cuid())
   menuId      String
   menu        FoodMenu        @relation(fields: [menuId], references: [id], onDelete: Cascade)
-  buyerId     String
-  buyer       Resident        @relation("FoodOrdersByBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
+  // buyerId is null for "offline" orders the chef/seller logs manually (e.g. a
+  // WhatsApp/phone order from someone who doesn't use the app) — manualBuyerName
+  // holds who it's for in that case.
+  buyerId         String?
+  buyer           Resident?   @relation("FoodOrdersByBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
+  manualBuyerName String?     // free-text buyer for offline/manual orders
   status      FoodOrderStatus @default(PLACED)
   note        String?
   totalAmount Float           // server-computed snapshot at order time
