@@ -2,6 +2,32 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { verifyMobileJwt } from "@/lib/mobile-auth";
 
+// How stale lastSeenAt must be before we write again — keeps usage tracking to
+// at most one DB write per resident per window (no write storm on every call).
+const SEEN_THROTTLE_MS = 15 * 60 * 1000;
+
+// Fire-and-forget: stamp the resident's last activity + platform, throttled.
+// Never blocks the request or throws.
+function touchLastSeen(
+  id: string,
+  platform: string,
+  prevSeenAt: Date | null,
+  prevPlatform: string | null
+): void {
+  const stale = !prevSeenAt || Date.now() - prevSeenAt.getTime() > SEEN_THROTTLE_MS;
+  if (!stale && prevPlatform === platform) return;
+  void prisma.resident
+    .update({ where: { id }, data: { lastSeenAt: new Date(), lastPlatform: platform } })
+    .catch(() => {});
+}
+
+// "ios" | "android" from the app's X-Client-Platform header; "app" if a bearer
+// token didn't send one; "web" for cookie sessions.
+function bearerPlatform(request: Request): string {
+  const p = (request.headers.get("x-client-platform") || "").toLowerCase();
+  return p === "ios" || p === "android" ? p : "app";
+}
+
 export type AuthedResident = {
   id: string;
   email: string;
@@ -48,10 +74,13 @@ export async function getAuthedResident(
           isSeniorCitizen: true,
           dailyStepGoal: true,
           stepSource: true,
+          lastSeenAt: true,
+          lastPlatform: true,
           roles: { select: { name: true } },
         },
       });
       if (!resident) return null;
+      touchLastSeen(resident.id, bearerPlatform(request), resident.lastSeenAt, resident.lastPlatform);
       return {
         id: resident.id,
         email: resident.email,
@@ -88,10 +117,13 @@ export async function getAuthedResident(
       isSeniorCitizen: true,
       dailyStepGoal: true,
       stepSource: true,
+      lastSeenAt: true,
+      lastPlatform: true,
       roles: { select: { name: true } },
     },
   });
   if (!resident) return null;
+  touchLastSeen(resident.id, "web", resident.lastSeenAt, resident.lastPlatform);
   return {
     id: resident.id,
     email: resident.email,

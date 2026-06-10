@@ -274,6 +274,11 @@ export default function Navbar() {
       label: "Occupancy",
       match: (p) => p.startsWith("/admin/occupancy"),
     });
+    residentLinks.push({
+      href: "/admin/usage",
+      label: "Usage",
+      match: (p) => p.startsWith("/admin/usage"),
+    });
   }
   if (canManageAnnouncements(roles)) {
     residentLinks.push({

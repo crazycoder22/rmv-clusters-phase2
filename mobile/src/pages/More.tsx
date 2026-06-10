@@ -179,6 +179,14 @@ export default function MorePage() {
               subtitle="Owner vs tenant breakdown per block"
             />
           )}
+          {showVisitAdmin && (
+            <Row
+              to="/admin/usage"
+              icon={TrendingUp}
+              title="App & Website Usage"
+              subtitle="Who's active, by platform"
+            />
+          )}
           {showEventAdmin && (
             <Row
               to="/admin/sos"
