@@ -157,12 +157,12 @@ export default function MenuForm({ menuId, kind: kindProp = "KITCHEN" }: { menuI
           <Field label="Description (optional)">
             <input value={description} onChange={(e) => setDescription(e.target.value)} placeholder={isMarket ? "A line about your goods" : "A line about today's food"} className={inputCls} />
           </Field>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Field label="For date">
-              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} disabled={isEdit} className={inputCls} />
+              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} disabled={isEdit} className={`${inputCls} min-w-0`} />
             </Field>
             <Field label="Order by (optional)">
-              <input type="datetime-local" value={orderByAt} onChange={(e) => setOrderByAt(e.target.value)} className={inputCls} />
+              <input type="datetime-local" value={orderByAt} onChange={(e) => setOrderByAt(e.target.value)} className={`${inputCls} min-w-0`} />
             </Field>
           </div>
           <Field label="Pickup / delivery info (optional)">
@@ -254,7 +254,9 @@ function DishRow({ dish, isMarket, itemLabel, onChange, onRemove }: { dish: Dish
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div>
+    // min-w-0 so the field can shrink inside a grid cell (native date inputs
+    // have a wide intrinsic min-width that would otherwise overflow/overlap).
+    <div className="min-w-0">
       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{label}</label>
       {children}
     </div>
