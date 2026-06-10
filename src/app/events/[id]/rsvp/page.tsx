@@ -114,6 +114,12 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
   const [partnerSearch, setPartnerSearch] = useState("");
   const [partnerResults, setPartnerResults] = useState<PartnerLite[]>([]);
   const [partnerPicking, setPartnerPicking] = useState(false);
+  // If someone named me as their partner, surface the request right here so
+  // it can't be missed (also shown on the challenge page).
+  const [incomingInvite, setIncomingInvite] = useState<
+    { from: { id: string; name: string; block: number | null; flatNumber: string } } | null
+  >(null);
+  const [inviteResponding, setInviteResponding] = useState(false);
 
   // Debounced partner search.
   useEffect(() => {
@@ -179,22 +185,26 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
             for (const fr of data.myRsvp.fieldResponses) values[fr.customFieldId] = fr.value;
             setFieldValues(values);
           }
-          // Prefill run goals + partner for step challenges.
-          if (data.eventConfig?.stepTrackingEnabled) {
-            try {
-              const chRes = await fetch(`/api/events/${id}/challenge`);
-              if (chRes.ok) {
-                const ch = await chRes.json();
-                if (ch.goal) {
-                  setRun5k(ch.goal.run5kGoal ? String(ch.goal.run5kGoal) : "");
-                  setRun10k(ch.goal.run10kGoal ? String(ch.goal.run10kGoal) : "");
-                  setRun20k(ch.goal.run20kGoal ? String(ch.goal.run20kGoal) : "");
-                  setExistingDone({ d5: ch.goal.run5kDone || 0, d10: ch.goal.run10kDone || 0, d20: ch.goal.run20kDone || 0 });
-                  if (ch.goal.partner) setPartner(ch.goal.partner);
-                }
+        }
+
+        // Step challenges: pull my challenge state — run-goal/partner prefill
+        // plus any incoming partner invite. Runs for every logged-in user, not
+        // just registered ones, so a chosen partner can see/accept the request.
+        if (data.eventConfig?.stepTrackingEnabled && status === "authenticated") {
+          try {
+            const chRes = await fetch(`/api/events/${id}/challenge`);
+            if (chRes.ok) {
+              const ch = await chRes.json();
+              if (ch.goal) {
+                setRun5k(ch.goal.run5kGoal ? String(ch.goal.run5kGoal) : "");
+                setRun10k(ch.goal.run10kGoal ? String(ch.goal.run10kGoal) : "");
+                setRun20k(ch.goal.run20kGoal ? String(ch.goal.run20kGoal) : "");
+                setExistingDone({ d5: ch.goal.run5kDone || 0, d10: ch.goal.run10kDone || 0, d20: ch.goal.run20kDone || 0 });
+                if (ch.goal.partner) setPartner(ch.goal.partner);
               }
-            } catch { /* ignore */ }
-          }
+              setIncomingInvite(ch.incomingInvite ?? null);
+            }
+          } catch { /* ignore */ }
         }
 
         if (data.eventConfig?.enableFeedback) {
@@ -375,6 +385,20 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
     finally { setCancelling(false); }
   };
 
+  const respondInvite = async (action: "accept" | "decline") => {
+    setInviteResponding(true);
+    try {
+      await fetch(`/api/events/${id}/challenge/partner-response`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
+      setIncomingInvite(null);
+      setSuccess(action === "accept" ? "You're now an accountability partner!" : "Partner request declined.");
+    } catch { setError("Network error. Please try again."); }
+    finally { setInviteResponding(false); }
+  };
+
   const handleFeedbackSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (feedbackRating === 0) { setFeedbackError("Please select a rating"); return; }
@@ -499,6 +523,26 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
         </div>
         <p className="text-gray-600 dark:text-gray-400 mt-3 text-sm">{announcement.summary}</p>
       </div>
+
+      {/* Incoming accountability-partner invite */}
+      {incomingInvite && (
+        <div className="rounded-lg border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/20 p-4 mb-6">
+          <p className="text-sm text-gray-800 dark:text-gray-100">
+            🤝 <span className="font-semibold">{incomingInvite.from.name}</span>
+            <span className="text-gray-500 dark:text-gray-400"> (B{incomingInvite.from.block ?? "—"}-{incomingInvite.from.flatNumber})</span> asked you to be their accountability partner.
+          </p>
+          <div className="mt-3 flex gap-2">
+            <button type="button" disabled={inviteResponding} onClick={() => respondInvite("accept")}
+              className="rounded-lg bg-indigo-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 transition-colors">
+              Accept
+            </button>
+            <button type="button" disabled={inviteResponding} onClick={() => respondInvite("decline")}
+              className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-60 transition-colors">
+              Decline
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Deadline banner */}
       <div className={`rounded-lg p-3 mb-6 text-sm ${
