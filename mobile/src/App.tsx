@@ -36,6 +36,7 @@ import AdminAmenityApprovals from "./pages/AdminAmenityApprovals";
 import AdminMygateComplaints from "./pages/AdminMygateComplaints";
 import ResidentDirectory from "./pages/ResidentDirectory";
 import Settings from "./pages/Settings";
+import Rewards from "./pages/Rewards";
 import Emergency from "./pages/Emergency";
 import Marketplace from "./pages/Marketplace";
 import MarketplaceDetail from "./pages/MarketplaceDetail";
@@ -162,6 +163,7 @@ function Gate() {
           <Route path="/sos-warriors" element={<SosWarriors />} />
           <Route path="/residents" element={<ResidentDirectory />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/rewards" element={<Rewards />} />
           <Route path="/emergency" element={<Emergency />} />
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/marketplace/new" element={<MarketplaceNew />} />

@@ -7,6 +7,7 @@ import {
   CalendarDays,
   Car,
   ChevronRight,
+  Coins,
   Crown,
   Dices,
   HelpCircle,
@@ -261,6 +262,12 @@ export default function MorePage() {
           icon={Activity}
           title="My steps"
           subtitle="Daily activity from Apple Health"
+        />
+        <Row
+          to="/rewards"
+          icon={Coins}
+          title="My rewards"
+          subtitle="Coins & medals you've won"
         />
         <Row
           to="/habits"

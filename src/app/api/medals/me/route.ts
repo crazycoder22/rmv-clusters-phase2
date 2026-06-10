@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getAuthedResident } from "@/lib/api-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -17,27 +17,12 @@ export const dynamic = "force-dynamic";
 //
 // Returns zeros for residents with no awards (instead of 404) so the chip
 // can decide whether to render based on the totals.
-export async function GET() {
-  const session = await auth();
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const me = await prisma.resident.findUnique({
-    where: { email: session.user.email },
-    select: { id: true },
-  });
+export async function GET(request: Request) {
+  // Dual auth: Bearer JWT (mobile app) or NextAuth cookie (web). Same handler
+  // serves the navbar chip, the web /me/awards page, and the mobile Rewards page.
+  const me = await getAuthedResident(request);
   if (!me) {
-    // Not a registered resident → return empty rather than erroring; the
-    // chip just won't render.
-    return NextResponse.json({
-      goldCount: 0,
-      silverCount: 0,
-      bronzeCount: 0,
-      totalMedals: 0,
-      totalCoins: 0,
-      recent: [],
-    });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   // One pass: fetch all awards (community size means this is small).

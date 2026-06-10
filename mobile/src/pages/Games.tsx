@@ -1,16 +1,44 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Brain } from "lucide-react";
+import { Brain, Coins } from "lucide-react";
+import { apiFetch } from "../lib/api";
+import { useAuth } from "../auth/AuthProvider";
 
 export default function Games() {
+  const { token } = useAuth();
+  const [coins, setCoins] = useState<number | null>(null);
+
+  // Coins are won in games → show the running balance with a tap to Rewards.
+  useEffect(() => {
+    if (!token) return;
+    let cancelled = false;
+    apiFetch("/api/medals/me", { token })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (!cancelled && d) setCoins(d.totalCoins ?? 0); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [token]);
+
   return (
     <div className="flex flex-1 flex-col px-4 pt-[max(2rem,env(safe-area-inset-top,0px))]">
-      <header className="mb-5">
-        <h1 className="text-2xl font-semibold tracking-tight text-white">
-          Games
-        </h1>
-        <p className="mt-0.5 text-xs text-slate-400">
-          Community games — play solo or together.
-        </p>
+      <header className="mb-5 flex items-start justify-between gap-2">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-white">
+            Games
+          </h1>
+          <p className="mt-0.5 text-xs text-slate-400">
+            Community games — play solo or together.
+          </p>
+        </div>
+        {coins !== null && (
+          <Link
+            to="/rewards"
+            className="flex shrink-0 items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/15 px-2.5 py-1.5 text-sm font-semibold text-amber-300 active:bg-amber-500/25"
+          >
+            <Coins size={15} />
+            <span className="tabular-nums">{coins.toLocaleString("en-IN")}</span>
+          </Link>
+        )}
       </header>
 
       <div className="grid gap-3">

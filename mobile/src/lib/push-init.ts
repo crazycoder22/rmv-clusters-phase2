@@ -84,7 +84,7 @@ export async function initPushNotifications(
           if (type === "announcement") {
             navigate("/news");
           } else if (type === "medal") {
-            navigate("/more"); // medals list lives under More → admin
+            navigate("/rewards"); // "you won a medal! +N coins" → my Rewards page
           } else if (type === "issue" && data?.id) {
             navigate(`/issues/${data.id}`);
           } else if (type?.startsWith("habit")) {

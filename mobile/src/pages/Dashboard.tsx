@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   ChevronRight,
   Circle,
+  Coins,
   Flame,
   Loader2,
   LogOut,
@@ -97,6 +98,7 @@ export default function Dashboard() {
     }[]
   >([]);
   const [habitBusyId, setHabitBusyId] = useState<string | null>(null);
+  const [coins, setCoins] = useState(0);
 
 
   // Fetch my registrations + active polls once we have a token.
@@ -154,6 +156,13 @@ export default function Dashboard() {
             h.active && !h.todayDone
         );
         setHabitsToday(pending);
+      })
+      .catch(() => {});
+
+    apiFetch("/api/medals/me", { token })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!cancelled && data) setCoins(data.totalCoins ?? 0);
       })
       .catch(() => {});
 
@@ -261,13 +270,24 @@ export default function Dashboard() {
             </p>
           </div>
         </div>
-        <button
-          onClick={() => void signOut()}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 dark:text-slate-400 active:bg-slate-100 dark:active:bg-slate-800"
-          title="Sign out"
-        >
-          <LogOut size={18} />
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Coins earned from games / competitions → tap for the Rewards page. */}
+          <button
+            onClick={() => navigate("/rewards")}
+            className="flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/15 px-2.5 py-1.5 text-sm font-semibold text-amber-300 active:bg-amber-500/25"
+            title="My rewards"
+          >
+            <Coins size={15} />
+            <span className="tabular-nums">{coins.toLocaleString("en-IN")}</span>
+          </button>
+          <button
+            onClick={() => void signOut()}
+            className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 dark:text-slate-400 active:bg-slate-100 dark:active:bg-slate-800"
+            title="Sign out"
+          >
+            <LogOut size={18} />
+          </button>
+        </div>
       </header>
 
       {/* Active-SOS banner — warriors see any live alert; senders see their own. */}
