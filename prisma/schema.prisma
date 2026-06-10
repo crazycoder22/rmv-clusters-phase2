@@ -1826,6 +1826,13 @@ enum FoodOrderStatus {
   CANCELLED
 }
 
+// What a "menu" represents. KITCHEN = home-cooked food ("My Kitchen"); MARKET =
+// sell-by-unit produce & goods ("Bazaar"). Same engine, kind-aware UI + copy.
+enum FoodMenuKind {
+  KITCHEN
+  MARKET
+}
+
 // ── Parking (temporary slot sharing) ─────────────────────────────────────────
 
 enum ParkingBookingStatus {
@@ -1903,6 +1910,7 @@ model FoodMenu {
   orderByAt   DateTime?      // optional order deadline
   pickupInfo  String?        // e.g. "Pickup from B2-304 after 12:30"
   status      FoodMenuStatus @default(OPEN)
+  kind        FoodMenuKind   @default(KITCHEN) // KITCHEN (food) | MARKET (produce/goods)
   items       FoodMenuItem[]
   orders      FoodOrder[]
   createdAt   DateTime       @default(now())
@@ -1911,6 +1919,7 @@ model FoodMenu {
   @@index([chefId])
   @@index([date])
   @@index([status])
+  @@index([kind])
 }
 
 model FoodMenuItem {
@@ -1919,7 +1928,8 @@ model FoodMenuItem {
   menu        FoodMenu        @relation(fields: [menuId], references: [id], onDelete: Cascade)
   name        String
   description String?
-  price       Float
+  price       Float                           // per-plate (KITCHEN) | per-unit (MARKET)
+  unit        String?                         // MARKET selling unit ("kg", "dozen"…); null for KITCHEN
   imageUrl    String?
   soldOut     Boolean         @default(false)
   sortOrder   Int             @default(0)
@@ -1961,6 +1971,7 @@ model FoodOrderItem {
   menuItem      FoodMenuItem? @relation(fields: [menuItemId], references: [id], onDelete: SetNull)
   nameSnapshot  String
   priceSnapshot Float
+  unitSnapshot  String?       // MARKET unit captured at order time ("kg"…); null for KITCHEN
   qty           Int
 
   @@index([orderId])

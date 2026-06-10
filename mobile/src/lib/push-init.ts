@@ -116,6 +116,15 @@ export async function initPushNotifications(
             navigate("/admin/amenities/approvals");
           } else if (type === "amenity_booking" && data?.id) {
             navigate(`/amenities/booking/${data.id}`);
+          } else if (type === "food_menu" || type === "food_order") {
+            // data.id is the menu id (publish) or the ordered menu id.
+            navigate(data?.id ? `/food/menus/${data.id}` : "/food");
+          } else if (type === "food_order_update") {
+            navigate("/food");
+          } else if (type === "market_menu" || type === "market_order") {
+            navigate(data?.id ? `/bazaar/menus/${data.id}` : "/bazaar");
+          } else if (type === "market_order_update") {
+            navigate("/bazaar");
           } else {
             navigate("/");
           }

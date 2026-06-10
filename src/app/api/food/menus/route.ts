@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getAuthedResident } from "@/lib/api-auth";
 import { sendPushToResidents } from "@/lib/push";
 import { round2, MAX_OPEN_MENUS, isMenuOrderable } from "@/lib/food";
+import { asKind, KIND_LABELS, MARKET_UNIT_VALUES } from "@/lib/market";
 import { ymdToInstant, isValidYmd } from "@/lib/habits";
 
 export const dynamic = "force-dynamic";
@@ -16,16 +17,18 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const mine = searchParams.get("mine") === "chef";
+  // KITCHEN (food) vs MARKET (Bazaar) — keeps the two browse lists separate.
+  const kind = asKind(searchParams.get("kind"));
 
   const where = mine
-    ? { chefId: me.id, status: { not: "ARCHIVED" as const } }
-    : { status: "OPEN" as const };
+    ? { chefId: me.id, kind, status: { not: "ARCHIVED" as const } }
+    : { status: "OPEN" as const, kind };
 
   const menus = await prisma.foodMenu.findMany({
     where,
     include: {
       chef: { select: { id: true, name: true, block: true, flatNumber: true } },
-      items: { orderBy: { sortOrder: "asc" }, select: { id: true, price: true, soldOut: true } },
+      items: { orderBy: { sortOrder: "asc" }, select: { id: true, price: true, unit: true, soldOut: true } },
       _count: { select: { orders: true } },
       // Whether *I* already ordered from this menu (browse list affordance).
       orders: mine
@@ -37,7 +40,12 @@ export async function GET(request: Request) {
 
   const now = new Date();
   return NextResponse.json({
-    menus: menus.map((m) => ({
+    menus: menus.map((m) => {
+      // Cheapest item drives the "from ₹X" card label (and its unit for MARKET).
+      const cheapest = m.items.length
+        ? m.items.reduce((a, b) => (a.price <= b.price ? a : b))
+        : null;
+      return {
       id: m.id,
       title: m.title,
       description: m.description,
@@ -45,11 +53,11 @@ export async function GET(request: Request) {
       orderByAt: m.orderByAt,
       pickupInfo: m.pickupInfo,
       status: m.status,
+      kind: m.kind,
       orderable: isMenuOrderable(m.status, m.orderByAt, now),
       itemCount: m.items.length,
-      minPrice: m.items.length
-        ? Math.min(...m.items.map((i) => i.price))
-        : 0,
+      minPrice: cheapest ? cheapest.price : 0,
+      minPriceUnit: cheapest?.unit ?? null,
       orderCount: m._count.orders,
       iOrdered: mine ? undefined : (m.orders?.length ?? 0) > 0,
       chef: {
@@ -59,7 +67,8 @@ export async function GET(request: Request) {
         flatNumber: m.chef.flatNumber,
         isMe: m.chef.id === me.id,
       },
-    })),
+    };
+    }),
   });
 }
 
@@ -74,19 +83,23 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
   if (!body) return NextResponse.json({ error: "Invalid body" }, { status: 400 });
 
-  const { title, description, date, orderByAt, pickupInfo, items } = body as {
+  const { title, description, date, orderByAt, pickupInfo, items, kind: rawKind } = body as {
     title?: string;
     description?: string | null;
     date?: string;
     orderByAt?: string | null;
     pickupInfo?: string | null;
+    kind?: string;
     items?: Array<{
       name?: string;
       description?: string | null;
       price?: number;
+      unit?: string | null;
       imageUrl?: string | null;
     }>;
   };
+  const kind = asKind(rawKind);
+  const isMarket = kind === "MARKET";
 
   if (!title?.trim()) {
     return NextResponse.json({ error: "Title is required" }, { status: 400 });
@@ -99,7 +112,7 @@ export async function POST(request: Request) {
   }
   if (!Array.isArray(items) || items.length === 0) {
     return NextResponse.json(
-      { error: "Add at least one dish" },
+      { error: isMarket ? "Add at least one item" : "Add at least one dish" },
       { status: 400 }
     );
   }
@@ -108,15 +121,23 @@ export async function POST(request: Request) {
       name: (it.name ?? "").trim(),
       description: it.description?.trim() || null,
       price: round2(Number(it.price)),
+      // MARKET items carry a selling unit; KITCHEN items never do.
+      unit: isMarket ? (it.unit?.trim() || null) : null,
       imageUrl: it.imageUrl?.trim() || null,
       sortOrder: idx,
     }))
     .filter((it) => it.name);
   if (cleanItems.length === 0) {
-    return NextResponse.json({ error: "Dishes need names" }, { status: 400 });
+    return NextResponse.json(
+      { error: isMarket ? "Items need names" : "Dishes need names" },
+      { status: 400 }
+    );
   }
   if (cleanItems.some((it) => !Number.isFinite(it.price) || it.price < 0)) {
-    return NextResponse.json({ error: "Invalid dish price" }, { status: 400 });
+    return NextResponse.json({ error: "Invalid price" }, { status: 400 });
+  }
+  if (isMarket && cleanItems.some((it) => !it.unit || !MARKET_UNIT_VALUES.includes(it.unit))) {
+    return NextResponse.json({ error: "Pick a selling unit for each item" }, { status: 400 });
   }
 
   // Active-menu cap.
@@ -133,6 +154,7 @@ export async function POST(request: Request) {
   const menu = await prisma.foodMenu.create({
     data: {
       chefId: me.id,
+      kind,
       title: title.trim(),
       description: description?.trim() || null,
       date: ymdToInstant(date),
@@ -154,10 +176,11 @@ export async function POST(request: Request) {
     });
     const ids = residents.map((r) => r.id);
     if (ids.length > 0) {
+      const L = KIND_LABELS[kind];
       await sendPushToResidents(ids, {
-        title: `🍲 ${me.name} published a menu`,
+        title: `${L.pushPublishEmoji} ${me.name} ${L.pushPublishVerb}`,
         body: menu.title,
-        data: { type: "food_menu", id: menu.id },
+        data: { type: isMarket ? "market_menu" : "food_menu", id: menu.id },
       });
     }
   } catch (err) {

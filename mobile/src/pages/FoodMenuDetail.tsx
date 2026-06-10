@@ -14,6 +14,7 @@ import {
   Power,
   Share2,
   ShoppingCart,
+  Store,
   Trash2,
 } from "lucide-react";
 import { Share } from "@capacitor/share";
@@ -21,6 +22,7 @@ import clsx from "clsx";
 import { apiFetch } from "../lib/api";
 import { API_BASE_URL } from "../config";
 import { useAuth } from "../auth/AuthProvider";
+import { type FoodKind, KIND_LABELS, formatUnitPrice, unitLabel } from "../lib/market";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -29,6 +31,7 @@ interface Dish {
   name: string;
   description: string | null;
   price: number;
+  unit: string | null;
   imageUrl: string | null;
   soldOut: boolean;
 }
@@ -36,7 +39,13 @@ interface Dish {
 interface OrderLine {
   name: string;
   price: number;
+  unit: string | null;
   qty: number;
+}
+
+/** "3 kg Apples" (market) | "2× Dosa" (kitchen). */
+function lineText(i: { qty: number; name: string; unit: string | null }): string {
+  return i.unit ? `${i.qty} ${unitLabel(i.unit)} ${i.name}` : `${i.qty}× ${i.name}`;
 }
 
 interface Order {
@@ -59,6 +68,7 @@ interface MenuDetail {
   orderByAt: string | null;
   pickupInfo: string | null;
   status: "OPEN" | "CLOSED" | "ARCHIVED";
+  kind: FoodKind;
   orderable: boolean;
   role: "chef" | "buyer";
   chef: { id: string; name: string; block: number; flatNumber: string; phone: string | null; isMe: boolean; following: boolean };
@@ -68,7 +78,8 @@ interface MenuDetail {
 
 // ── Page ───────────────────────────────────────────────────────────────────
 
-export default function FoodMenuDetail() {
+// `section` is the route's kind; once the menu loads we trust menu.kind.
+export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: FoodKind }) {
   const { id = "" } = useParams<{ id: string }>();
   const { token } = useAuth();
   const navigate = useNavigate();
@@ -81,6 +92,10 @@ export default function FoodMenuDetail() {
   const [placing, setPlacing] = useState(false);
   const [busyOrderId, setBusyOrderId] = useState<string | null>(null);
   const [followBusy, setFollowBusy] = useState(false);
+
+  const kind: FoodKind = menu?.kind ?? section;
+  const L = KIND_LABELS[kind];
+  const isMarket = kind === "MARKET";
 
   const refresh = useCallback(async () => {
     try {
@@ -202,7 +217,7 @@ export default function FoodMenuDetail() {
       method: "DELETE",
       token,
     });
-    if (res.ok) navigate("/food", { replace: true });
+    if (res.ok) navigate(L.sectionPath, { replace: true });
   }
 
   async function toggleSoldOut(dish: Dish) {
@@ -226,10 +241,10 @@ export default function FoodMenuDetail() {
     return (
       <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)]">
         <header className="flex items-center gap-2 py-4">
-          <Link to="/food" className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 active:bg-slate-800">
+          <Link to={L.sectionPath} className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 active:bg-slate-800">
             <ArrowLeft size={20} />
           </Link>
-          <h1 className="text-lg font-semibold text-white">Menu</h1>
+          <h1 className="text-lg font-semibold text-white">{L.section}</h1>
         </header>
         <p className="rounded-xl border border-red-700/60 bg-red-900/20 px-4 py-3 text-xs text-red-200">{error}</p>
       </div>
@@ -239,10 +254,11 @@ export default function FoodMenuDetail() {
 
   const isChef = menu.role === "chef";
   const myOrders = !isChef ? menu.orders : [];
+  const EmptyIcon = isMarket ? Store : ChefHat;
 
   async function shareMenu() {
     if (!menu) return;
-    const url = `${API_BASE_URL}/food/menus/${menu.id}`;
+    const url = `${API_BASE_URL}${L.sectionPath}/menus/${menu.id}`;
     const orderBy = menu.orderByAt
       ? `🕑 Order by ${new Date(menu.orderByAt).toLocaleString("en-GB", {
           day: "numeric",
@@ -251,9 +267,15 @@ export default function FoodMenuDetail() {
           minute: "2-digit",
         })}\n`
       : "";
-    const text = `🍱 ${menu.title} — ${menu.chef.name}'s kitchen\n${orderBy}Tap to see the menu & place your order (RMV residents):`;
+    const headline = isMarket
+      ? `🛒 ${menu.title} — ${menu.chef.name}'s stall`
+      : `🍱 ${menu.title} — ${menu.chef.name}'s kitchen`;
+    const cta = isMarket
+      ? "Tap to see what's on offer & place your order (RMV residents):"
+      : "Tap to see the menu & place your order (RMV residents):";
+    const text = `${headline}\n${orderBy}${cta}`;
     try {
-      await Share.share({ title: menu.title, text, url, dialogTitle: "Share menu" });
+      await Share.share({ title: menu.title, text, url, dialogTitle: `Share ${L.listing}` });
     } catch {
       // user cancelled or share sheet unavailable — no-op
     }
@@ -262,13 +284,13 @@ export default function FoodMenuDetail() {
   return (
     <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)]">
       <header className="flex items-center gap-2 py-4">
-        <Link to="/food" className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 active:bg-slate-800">
+        <Link to={L.sectionPath} className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 active:bg-slate-800">
           <ArrowLeft size={20} />
         </Link>
         <div className="flex-1 min-w-0">
           <h1 className="truncate text-lg font-semibold text-white">{menu.title}</h1>
           <p className="truncate text-[11px] text-slate-500">
-            {isChef ? "Your menu" : `by ${menu.chef.name} · B${menu.chef.block} · ${menu.chef.flatNumber}`}
+            {isChef ? `Your ${L.listing}` : `by ${menu.chef.name} · B${menu.chef.block} · ${menu.chef.flatNumber}`}
           </p>
         </div>
         {isChef && (
@@ -283,7 +305,7 @@ export default function FoodMenuDetail() {
             </button>
             <button
               type="button"
-              onClick={() => navigate(`/food/menus/${menu.id}/edit`)}
+              onClick={() => navigate(`${L.sectionPath}/menus/${menu.id}/edit`)}
               aria-label="Edit"
               className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 active:bg-slate-800"
             >
@@ -345,26 +367,26 @@ export default function FoodMenuDetail() {
           <div className="mb-3 flex gap-2">
             {menu.status === "OPEN" ? (
               <button type="button" onClick={() => setMenuStatus("CLOSED")} className="flex flex-1 items-center justify-center gap-1 rounded-xl border border-slate-700 bg-slate-800 py-2 text-[12px] font-semibold text-amber-200 active:bg-slate-700">
-                <Power size={13} /> Close menu
+                <Power size={13} /> Close {L.listing}
               </button>
             ) : (
               <button type="button" onClick={() => setMenuStatus("OPEN")} className="flex flex-1 items-center justify-center gap-1 rounded-xl bg-emerald-500 py-2 text-[12px] font-semibold text-white active:bg-emerald-600">
-                <Power size={13} /> Reopen menu
+                <Power size={13} /> Reopen {L.listing}
               </button>
             )}
-            <button type="button" onClick={deleteMenu} aria-label="Delete menu" className="flex h-9 w-10 items-center justify-center rounded-xl border border-slate-700 bg-slate-800 text-slate-400 active:bg-slate-700 active:text-red-300">
+            <button type="button" onClick={deleteMenu} aria-label="Delete" className="flex h-9 w-10 items-center justify-center rounded-xl border border-slate-700 bg-slate-800 text-slate-400 active:bg-slate-700 active:text-red-300">
               <Trash2 size={15} />
             </button>
           </div>
 
           {/* Dishes with sold-out toggles */}
           <section className="mb-4">
-            <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Dishes</h2>
+            <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">{L.itemPlural}</h2>
             <ul className="space-y-1.5">
               {menu.items.map((d) => (
                 <li key={d.id} className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-800/60 px-3 py-2">
                   <span className="flex-1 truncate text-sm text-white">{d.name}</span>
-                  <span className="text-[12px] tabular-nums text-slate-300">₹{d.price}</span>
+                  <span className="text-[12px] tabular-nums text-slate-300">{formatUnitPrice(d.price, d.unit)}</span>
                   <button
                     type="button"
                     onClick={() => toggleSoldOut(d)}
@@ -421,7 +443,7 @@ export default function FoodMenuDetail() {
                       <span className="text-sm font-bold tabular-nums text-white">₹{o.totalAmount}</span>
                     </div>
                     <p className="mt-0.5 text-[11px] text-slate-400">
-                      {o.items.map((i) => `${i.qty}× ${i.name}`).join(", ")}
+                      {o.items.map(lineText).join(", ")}
                     </p>
                     <div className="mt-2">
                       {o.chefPaid ? (
@@ -449,7 +471,7 @@ export default function FoodMenuDetail() {
           {menu.orderable ? (
             <>
               <section className="mb-3">
-                <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Menu</h2>
+                <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">{isMarket ? "On offer" : "Menu"}</h2>
                 <ul className="space-y-2">
                   {menu.items.map((d) => (
                     <li key={d.id} className={clsx("flex gap-3 rounded-2xl border border-slate-700 bg-slate-800/60 p-2", d.soldOut && "opacity-50")}>
@@ -460,7 +482,7 @@ export default function FoodMenuDetail() {
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-white">{d.name}</p>
                         {d.description && <p className="mt-0.5 line-clamp-2 text-[11px] text-slate-400">{d.description}</p>}
-                        <p className="mt-0.5 text-[12px] font-semibold text-slate-200">₹{d.price}</p>
+                        <p className="mt-0.5 text-[12px] font-semibold text-slate-200">{formatUnitPrice(d.price, d.unit)}</p>
                       </div>
                       {d.soldOut ? (
                         <span className="self-center rounded-full bg-red-500/20 px-2 py-0.5 text-[10px] font-bold text-red-300">SOLD OUT</span>
@@ -485,7 +507,7 @@ export default function FoodMenuDetail() {
                   <textarea
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
-                    placeholder="Note for the chef (optional) — e.g. less spicy"
+                    placeholder={isMarket ? "Note for the seller (optional)" : "Note for the chef (optional) — e.g. less spicy"}
                     rows={2}
                     className="w-full resize-none rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none"
                   />
@@ -504,8 +526,8 @@ export default function FoodMenuDetail() {
             </>
           ) : (
             <div className="rounded-2xl border border-dashed border-slate-700 px-4 py-6 text-center text-sm text-slate-500">
-              <ChefHat size={24} className="mx-auto mb-2 text-slate-600" />
-              This menu isn't taking orders right now.
+              <EmptyIcon size={24} className="mx-auto mb-2 text-slate-600" />
+              This {L.listing} isn't taking orders right now.
             </div>
           )}
         </>
@@ -538,7 +560,7 @@ function ChefOrderCard({
         <span className="shrink-0 text-sm font-bold tabular-nums text-white">₹{order.totalAmount}</span>
       </div>
       <p className="mt-0.5 text-[11px] text-slate-400">
-        {order.items.map((i) => `${i.qty}× ${i.name}`).join(", ")}
+        {order.items.map(lineText).join(", ")}
       </p>
       {order.note && <p className="mt-1 rounded-lg bg-slate-900/50 px-2 py-1 text-[11px] italic text-slate-400">“{order.note}”</p>}
       <div className="mt-2 flex flex-wrap items-center gap-1.5">

@@ -13,6 +13,7 @@ import clsx from "clsx";
 import { apiFetch } from "../lib/api";
 import { API_BASE_URL } from "../config";
 import { useAuth } from "../auth/AuthProvider";
+import { type FoodKind, KIND_LABELS, MARKET_UNITS, MARKET_UNIT_VALUES } from "../lib/market";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -21,15 +22,20 @@ interface DishDraft {
   name: string;
   description: string;
   price: string;
+  unit: string | null;
   imageUrl: string | null;
   soldOut?: boolean;
 }
 
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
 // ── Page ───────────────────────────────────────────────────────────────────
 
-export default function FoodMenuEdit() {
+export default function FoodMenuEdit({ kind = "KITCHEN" }: { kind?: FoodKind }) {
   const { id } = useParams<{ id: string }>();
   const isEdit = !!id && id !== "new";
+  const isMarket = kind === "MARKET";
+  const L = KIND_LABELS[kind];
   const { token } = useAuth();
   const navigate = useNavigate();
 
@@ -39,7 +45,7 @@ export default function FoodMenuEdit() {
   const [orderByAt, setOrderByAt] = useState(""); // datetime-local string
   const [pickupInfo, setPickupInfo] = useState("");
   const [dishes, setDishes] = useState<DishDraft[]>([
-    { name: "", description: "", price: "", imageUrl: null },
+    { name: "", description: "", price: "", unit: isMarket ? "kg" : null, imageUrl: null },
   ]);
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
@@ -61,11 +67,12 @@ export default function FoodMenuEdit() {
       setOrderByAt(m.orderByAt ? toLocalInput(m.orderByAt) : "");
       setPickupInfo(m.pickupInfo ?? "");
       setDishes(
-        (m.items ?? []).map((d: { id: string; name: string; description: string | null; price: number; imageUrl: string | null; soldOut: boolean }) => ({
+        (m.items ?? []).map((d: { id: string; name: string; description: string | null; price: number; unit: string | null; imageUrl: string | null; soldOut: boolean }) => ({
           id: d.id,
           name: d.name,
           description: d.description ?? "",
           price: String(d.price),
+          unit: d.unit ?? (isMarket ? "kg" : null),
           imageUrl: d.imageUrl,
           soldOut: d.soldOut,
         }))
@@ -83,7 +90,7 @@ export default function FoodMenuEdit() {
     setDishes((prev) => prev.map((d, idx) => (idx === i ? { ...d, ...patch } : d)));
   }
   function addDish() {
-    setDishes((prev) => [...prev, { name: "", description: "", price: "", imageUrl: null }]);
+    setDishes((prev) => [...prev, { name: "", description: "", price: "", unit: isMarket ? "kg" : null, imageUrl: null }]);
   }
   function removeDish(i: number) {
     setDishes((prev) => prev.filter((_, idx) => idx !== i));
@@ -92,7 +99,7 @@ export default function FoodMenuEdit() {
   async function save() {
     setErr(null);
     if (!title.trim()) {
-      setErr("Give your menu a title");
+      setErr(`Give your ${L.listing} a title`);
       return;
     }
     const cleanDishes = dishes
@@ -101,12 +108,17 @@ export default function FoodMenuEdit() {
         name: d.name.trim(),
         description: d.description.trim() || null,
         price: parseFloat(d.price) || 0,
+        unit: isMarket ? d.unit : null,
         imageUrl: d.imageUrl,
         soldOut: d.soldOut,
       }))
       .filter((d) => d.name);
     if (cleanDishes.length === 0) {
-      setErr("Add at least one dish with a name");
+      setErr(`Add at least one ${L.item} with a name`);
+      return;
+    }
+    if (isMarket && cleanDishes.some((d) => !d.unit || !MARKET_UNIT_VALUES.includes(d.unit))) {
+      setErr("Pick a selling unit for each item");
       return;
     }
     setSaving(true);
@@ -127,7 +139,7 @@ export default function FoodMenuEdit() {
           setErr((await res.json().catch(() => null))?.error ?? "Could not save");
           return;
         }
-        navigate(`/food/menus/${id}`, { replace: true });
+        navigate(`${L.sectionPath}/menus/${id}`, { replace: true });
       } else {
         const res = await apiFetch("/api/food/menus", {
           method: "POST",
@@ -136,6 +148,7 @@ export default function FoodMenuEdit() {
             title: title.trim(),
             description: description.trim() || null,
             date,
+            kind,
             orderByAt: orderByAt ? new Date(orderByAt).toISOString() : null,
             pickupInfo: pickupInfo.trim() || null,
             items: cleanDishes,
@@ -146,7 +159,7 @@ export default function FoodMenuEdit() {
           return;
         }
         const data = await res.json();
-        navigate(`/food/menus/${data.id}`, { replace: true });
+        navigate(`${L.sectionPath}/menus/${data.id}`, { replace: true });
       }
     } catch {
       setErr("Network error");
@@ -166,20 +179,20 @@ export default function FoodMenuEdit() {
   return (
     <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)]">
       <header className="flex items-center gap-2 py-4">
-        <Link to={isEdit ? `/food/menus/${id}` : "/food"} className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 active:bg-slate-800">
+        <Link to={isEdit ? `${L.sectionPath}/menus/${id}` : L.sectionPath} className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 active:bg-slate-800">
           <ArrowLeft size={20} />
         </Link>
         <h1 className="text-lg font-semibold text-white">
-          {isEdit ? "Edit menu" : "New menu"}
+          {isEdit ? `Edit ${L.listing}` : L.newCta}
         </h1>
       </header>
 
       <div className="flex-1 space-y-3 pb-4">
-        <Field label="Menu title">
-          <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Today's Lunch — South Indian" className={inputCls} />
+        <Field label={`${cap(L.listing)} title`}>
+          <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={isMarket ? "e.g. Fresh from my terrace garden" : "e.g. Today's Lunch — South Indian"} className={inputCls} />
         </Field>
         <Field label="Description (optional)">
-          <input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="A line about today's food" className={inputCls} />
+          <input value={description} onChange={(e) => setDescription(e.target.value)} placeholder={isMarket ? "A line about your goods" : "A line about today's food"} className={inputCls} />
         </Field>
         <div className="space-y-3">
           <Field label="For date">
@@ -193,22 +206,24 @@ export default function FoodMenuEdit() {
           <input value={pickupInfo} onChange={(e) => setPickupInfo(e.target.value)} placeholder="e.g. Pickup from B2-304 after 12:30" className={inputCls} />
         </Field>
 
-        {/* Dishes */}
+        {/* Items */}
         <div>
-          <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400">Dishes</p>
+          <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400">{cap(L.itemPlural)}</p>
           <div className="space-y-2">
             {dishes.map((d, i) => (
               <DishRow
                 key={i}
                 dish={d}
                 token={token}
+                isMarket={isMarket}
+                itemLabel={L.item}
                 onChange={(patch) => updateDish(i, patch)}
                 onRemove={dishes.length > 1 ? () => removeDish(i) : undefined}
               />
             ))}
           </div>
           <button type="button" onClick={addDish} className="mt-2 flex w-full items-center justify-center gap-1 rounded-xl border border-dashed border-slate-700 py-2.5 text-[12px] font-medium text-slate-300 active:bg-slate-800">
-            <Plus size={14} /> Add another dish
+            <Plus size={14} /> Add another {L.item}
           </button>
         </div>
 
@@ -216,7 +231,7 @@ export default function FoodMenuEdit() {
 
         <button type="button" onClick={save} disabled={saving} className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-500 py-3 text-sm font-semibold text-white active:bg-indigo-600 disabled:opacity-50">
           {saving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
-          {isEdit ? "Save menu" : "Publish menu"}
+          {isEdit ? `Save ${L.listing}` : L.publishCta}
         </button>
       </div>
     </div>
@@ -228,11 +243,15 @@ export default function FoodMenuEdit() {
 function DishRow({
   dish,
   token,
+  isMarket,
+  itemLabel,
   onChange,
   onRemove,
 }: {
   dish: DishDraft;
   token: string | null;
+  isMarket: boolean;
+  itemLabel: string;
   onChange: (patch: Partial<DishDraft>) => void;
   onRemove?: () => void;
 }) {
@@ -277,14 +296,24 @@ function DishRow({
         )}
         <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void upload(f); e.target.value = ""; }} />
         <div className="flex flex-1 flex-col gap-1.5">
-          <input value={dish.name} onChange={(e) => onChange({ name: e.target.value })} placeholder="Dish name" className={inputCls} />
+          <input value={dish.name} onChange={(e) => onChange({ name: e.target.value })} placeholder={`${cap(itemLabel)} name`} className={inputCls} />
           <div className="flex items-center gap-1.5">
             <span className="text-sm text-slate-400">₹</span>
             <input type="number" value={dish.price} onChange={(e) => onChange({ price: e.target.value })} placeholder="Price" className={inputCls} />
+            {isMarket && (
+              <>
+                <span className="text-slate-500">/</span>
+                <select value={dish.unit ?? "kg"} onChange={(e) => onChange({ unit: e.target.value })} className={clsx(inputCls, "w-24 appearance-none")}>
+                  {MARKET_UNITS.map((u) => (
+                    <option key={u.value} value={u.value}>{u.label}</option>
+                  ))}
+                </select>
+              </>
+            )}
           </div>
         </div>
         {onRemove && (
-          <button type="button" onClick={onRemove} aria-label="Remove dish" className="flex h-7 w-7 flex-shrink-0 items-center justify-center self-start rounded-full text-slate-500 active:bg-slate-800 active:text-red-300">
+          <button type="button" onClick={onRemove} aria-label="Remove item" className="flex h-7 w-7 flex-shrink-0 items-center justify-center self-start rounded-full text-slate-500 active:bg-slate-800 active:text-red-300">
             <Trash2 size={14} />
           </button>
         )}

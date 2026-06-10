@@ -17,6 +17,7 @@ export async function GET(request: Request) {
         select: {
           id: true,
           title: true,
+          kind: true,
           pickupInfo: true,
           chef: { select: { name: true, block: true, flatNumber: true, phone: true } },
         },
@@ -31,6 +32,7 @@ export async function GET(request: Request) {
       id: o.id,
       menuId: o.menu.id,
       menuTitle: o.menu.title,
+      kind: o.menu.kind,
       pickupInfo: o.menu.pickupInfo,
       chef: o.menu.chef,
       status: o.status,
@@ -42,6 +44,7 @@ export async function GET(request: Request) {
       items: o.items.map((li) => ({
         name: li.nameSnapshot,
         price: li.priceSnapshot,
+        unit: li.unitSnapshot,
         qty: li.qty,
       })),
     })),

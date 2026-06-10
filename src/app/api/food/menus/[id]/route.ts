@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getAuthedResident } from "@/lib/api-auth";
 import { isAdmin } from "@/lib/roles";
 import { round2, isMenuOrderable } from "@/lib/food";
+import { MARKET_UNIT_VALUES } from "@/lib/market";
 
 export const dynamic = "force-dynamic";
 
@@ -58,6 +59,7 @@ export async function GET(
     orderByAt: menu.orderByAt,
     pickupInfo: menu.pickupInfo,
     status: menu.status,
+    kind: menu.kind,
     orderable: isMenuOrderable(menu.status, menu.orderByAt),
     role: isChef ? "chef" : "buyer",
     chef: {
@@ -75,6 +77,7 @@ export async function GET(
       name: it.name,
       description: it.description,
       price: it.price,
+      unit: it.unit,
       imageUrl: it.imageUrl,
       soldOut: it.soldOut,
     })),
@@ -91,6 +94,7 @@ export async function GET(
       items: o.items.map((li) => ({
         name: li.nameSnapshot,
         price: li.priceSnapshot,
+        unit: li.unitSnapshot,
         qty: li.qty,
       })),
       // buyer object only present for chef view
@@ -146,6 +150,15 @@ export async function PATCH(
   // Per-dish edits (price / soldOut / add). Kept simple: caller sends the
   // dishes it wants to upsert; we don't bulk-delete here to avoid nuking
   // dishes referenced by orders.
+  const isMarket = menu.kind === "MARKET";
+  // Normalise a unit for a MARKET item; null otherwise. Falls back to a default
+  // so an existing market item never loses its unit on a partial edit.
+  const cleanUnit = (raw: unknown): string | null => {
+    if (!isMarket) return null;
+    const u = typeof raw === "string" ? raw.trim() : "";
+    return MARKET_UNIT_VALUES.includes(u) ? u : null;
+  };
+
   if (Array.isArray(body.items)) {
     for (let idx = 0; idx < body.items.length; idx++) {
       const it = body.items[idx] as {
@@ -153,9 +166,11 @@ export async function PATCH(
         name?: string;
         description?: string | null;
         price?: number;
+        unit?: string | null;
         imageUrl?: string | null;
         soldOut?: boolean;
       };
+      const unit = cleanUnit(it.unit);
       if (it.id) {
         await prisma.foodMenuItem.updateMany({
           where: { id: it.id, menuId: id },
@@ -165,6 +180,7 @@ export async function PATCH(
               ? { description: it.description?.trim() || null }
               : {}),
             ...(it.price !== undefined ? { price: round2(Number(it.price)) } : {}),
+            ...(isMarket && it.unit !== undefined ? { unit } : {}),
             ...(it.imageUrl !== undefined
               ? { imageUrl: it.imageUrl?.trim() || null }
               : {}),
@@ -179,6 +195,7 @@ export async function PATCH(
             name: it.name.trim(),
             description: it.description?.trim() || null,
             price: round2(Number(it.price) || 0),
+            unit,
             imageUrl: it.imageUrl?.trim() || null,
             sortOrder: idx,
           },

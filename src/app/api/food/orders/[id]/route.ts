@@ -48,7 +48,7 @@ export async function PATCH(
     select: {
       id: true,
       buyerId: true,
-      menu: { select: { chefId: true, title: true } },
+      menu: { select: { chefId: true, title: true, kind: true } },
     },
   });
   if (!order) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -125,9 +125,12 @@ export async function PATCH(
       await sendPushToResidents([pushTo], {
         title: pushTitle,
         body: pushBody,
-        // No id → mobile routes to /food (the buyer's orders / chef's kitchen
-        // tabs), which is the right landing spot for an order status change.
-        data: { type: "food_order_update" },
+        // No id → mobile routes to the section's orders/stall tabs, the right
+        // landing spot for an order status change. Branch by kind so a Bazaar
+        // order lands on /bazaar, a Kitchen order on /food.
+        data: {
+          type: order.menu.kind === "MARKET" ? "market_order_update" : "food_order_update",
+        },
       });
     } catch (err) {
       console.error("[food order update push] failed:", err);

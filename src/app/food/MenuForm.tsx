@@ -4,19 +4,26 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ImagePlus, Plus, Trash2, X } from "lucide-react";
+import { type FoodKind, KIND_LABELS, MARKET_UNITS, MARKET_UNIT_VALUES } from "@/lib/market";
 
-// Shared create/edit form. Pass menuId to edit an existing menu.
+// Shared create/edit form. Pass menuId to edit an existing menu, and kind to
+// drive labels (KITCHEN = dishes/menu | MARKET = items/stall with a unit).
 interface DishDraft {
   id?: string;
   name: string;
   description: string;
   price: string;
+  unit: string | null;
   imageUrl: string | null;
   soldOut?: boolean;
 }
 
-export default function MenuForm({ menuId }: { menuId?: string }) {
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+export default function MenuForm({ menuId, kind = "KITCHEN" }: { menuId?: string; kind?: FoodKind }) {
   const isEdit = !!menuId;
+  const isMarket = kind === "MARKET";
+  const L = KIND_LABELS[kind];
   const router = useRouter();
 
   const [title, setTitle] = useState("");
@@ -24,8 +31,8 @@ export default function MenuForm({ menuId }: { menuId?: string }) {
   const [date, setDate] = useState(todayIso());
   const [orderByAt, setOrderByAt] = useState("");
   const [pickupInfo, setPickupInfo] = useState("");
-  const [dishes, setDishes] = useState<DishDraft[]>([
-    { name: "", description: "", price: "", imageUrl: null },
+  const [dishes, setDishes] = useState<DishDraft[]>(() => [
+    { name: "", description: "", price: "", unit: isMarket ? "kg" : null, imageUrl: null },
   ]);
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
@@ -46,11 +53,12 @@ export default function MenuForm({ menuId }: { menuId?: string }) {
       setOrderByAt(m.orderByAt ? toLocalInput(m.orderByAt) : "");
       setPickupInfo(m.pickupInfo ?? "");
       setDishes(
-        (m.items ?? []).map((d: { id: string; name: string; description: string | null; price: number; imageUrl: string | null; soldOut: boolean }) => ({
+        (m.items ?? []).map((d: { id: string; name: string; description: string | null; price: number; unit: string | null; imageUrl: string | null; soldOut: boolean }) => ({
           id: d.id,
           name: d.name,
           description: d.description ?? "",
           price: String(d.price),
+          unit: d.unit ?? (isMarket ? "kg" : null),
           imageUrl: d.imageUrl,
           soldOut: d.soldOut,
         }))
@@ -71,7 +79,7 @@ export default function MenuForm({ menuId }: { menuId?: string }) {
   async function save() {
     setErr(null);
     if (!title.trim()) {
-      setErr("Give your menu a title");
+      setErr(`Give your ${L.listing} a title`);
       return;
     }
     const cleanDishes = dishes
@@ -80,12 +88,17 @@ export default function MenuForm({ menuId }: { menuId?: string }) {
         name: d.name.trim(),
         description: d.description.trim() || null,
         price: parseFloat(d.price) || 0,
+        unit: isMarket ? d.unit : null,
         imageUrl: d.imageUrl,
         soldOut: d.soldOut,
       }))
       .filter((d) => d.name);
     if (cleanDishes.length === 0) {
-      setErr("Add at least one dish with a name");
+      setErr(`Add at least one ${L.item} with a name`);
+      return;
+    }
+    if (isMarket && cleanDishes.some((d) => !d.unit || !MARKET_UNIT_VALUES.includes(d.unit))) {
+      setErr("Pick a selling unit for each item");
       return;
     }
     setSaving(true);
@@ -96,7 +109,7 @@ export default function MenuForm({ menuId }: { menuId?: string }) {
         pickupInfo: pickupInfo.trim() || null,
         orderByAt: orderByAt ? new Date(orderByAt).toISOString() : null,
         items: cleanDishes,
-        ...(isEdit ? {} : { date }),
+        ...(isEdit ? {} : { date, kind }),
       };
       const res = await fetch(isEdit ? `/api/food/menus/${menuId}` : "/api/food/menus", {
         method: isEdit ? "PATCH" : "POST",
@@ -108,7 +121,7 @@ export default function MenuForm({ menuId }: { menuId?: string }) {
         return;
       }
       const data = await res.json().catch(() => ({}));
-      router.push(`/food/menus/${isEdit ? menuId : data.id}`);
+      router.push(`${L.sectionPath}/menus/${isEdit ? menuId : data.id}`);
     } finally {
       setSaving(false);
     }
@@ -125,17 +138,17 @@ export default function MenuForm({ menuId }: { menuId?: string }) {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
-        <Link href={isEdit ? `/food/menus/${menuId}` : "/food"} className="inline-flex items-center gap-1 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900">
+        <Link href={isEdit ? `${L.sectionPath}/menus/${menuId}` : L.sectionPath} className="inline-flex items-center gap-1 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900">
           <ArrowLeft size={16} /> Back
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-3 mb-6">{isEdit ? "Edit menu" : "New menu"}</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-3 mb-6">{isEdit ? `Edit ${L.listing}` : L.newCta}</h1>
 
         <div className="space-y-4">
-          <Field label="Menu title">
-            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Today's Lunch — South Indian" className={inputCls} />
+          <Field label={`${cap(L.listing)} title`}>
+            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={isMarket ? "e.g. Fresh from my terrace garden" : "e.g. Today's Lunch — South Indian"} className={inputCls} />
           </Field>
           <Field label="Description (optional)">
-            <input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="A line about today's food" className={inputCls} />
+            <input value={description} onChange={(e) => setDescription(e.target.value)} placeholder={isMarket ? "A line about your goods" : "A line about today's food"} className={inputCls} />
           </Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="For date">
@@ -150,21 +163,21 @@ export default function MenuForm({ menuId }: { menuId?: string }) {
           </Field>
 
           <div>
-            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Dishes</p>
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{cap(L.itemPlural)}</p>
             <div className="space-y-3">
               {dishes.map((d, i) => (
-                <DishRow key={i} dish={d} onChange={(p) => updateDish(i, p)} onRemove={dishes.length > 1 ? () => setDishes((prev) => prev.filter((_, idx) => idx !== i)) : undefined} />
+                <DishRow key={i} dish={d} isMarket={isMarket} itemLabel={L.item} onChange={(p) => updateDish(i, p)} onRemove={dishes.length > 1 ? () => setDishes((prev) => prev.filter((_, idx) => idx !== i)) : undefined} />
               ))}
             </div>
-            <button type="button" onClick={() => setDishes((p) => [...p, { name: "", description: "", price: "", imageUrl: null }])} className="mt-3 w-full inline-flex items-center justify-center gap-1 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg py-2.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-              <Plus size={15} /> Add another dish
+            <button type="button" onClick={() => setDishes((p) => [...p, { name: "", description: "", price: "", unit: isMarket ? "kg" : null, imageUrl: null }])} className="mt-3 w-full inline-flex items-center justify-center gap-1 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg py-2.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+              <Plus size={15} /> Add another {L.item}
             </button>
           </div>
 
           {err && <p className="bg-red-50 dark:bg-red-900/30 border border-red-200 text-red-700 rounded-lg px-3 py-2 text-sm">{err}</p>}
 
           <button type="button" onClick={save} disabled={saving} className="w-full bg-blue-600 text-white rounded-lg py-3 font-medium hover:bg-blue-700 disabled:opacity-50">
-            {saving ? "Saving…" : isEdit ? "Save menu" : "Publish menu"}
+            {saving ? "Saving…" : isEdit ? `Save ${L.listing}` : L.publishCta}
           </button>
         </div>
       </div>
@@ -172,7 +185,7 @@ export default function MenuForm({ menuId }: { menuId?: string }) {
   );
 }
 
-function DishRow({ dish, onChange, onRemove }: { dish: DishDraft; onChange: (p: Partial<DishDraft>) => void; onRemove?: () => void }) {
+function DishRow({ dish, isMarket, itemLabel, onChange, onRemove }: { dish: DishDraft; isMarket: boolean; itemLabel: string; onChange: (p: Partial<DishDraft>) => void; onRemove?: () => void }) {
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
 
@@ -207,10 +220,20 @@ function DishRow({ dish, onChange, onRemove }: { dish: DishDraft; onChange: (p: 
         )}
         <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void upload(f); e.target.value = ""; }} />
         <div className="flex-1 space-y-2">
-          <input value={dish.name} onChange={(e) => onChange({ name: e.target.value })} placeholder="Dish name" className={inputCls} />
+          <input value={dish.name} onChange={(e) => onChange({ name: e.target.value })} placeholder={`${cap(itemLabel)} name`} className={inputCls} />
           <div className="flex items-center gap-2">
             <span className="text-gray-500 dark:text-gray-400">₹</span>
             <input type="number" value={dish.price} onChange={(e) => onChange({ price: e.target.value })} placeholder="Price" className={inputCls} />
+            {isMarket && (
+              <>
+                <span className="text-gray-400 dark:text-gray-500">/</span>
+                <select value={dish.unit ?? "kg"} onChange={(e) => onChange({ unit: e.target.value })} className={`${inputCls} w-28`}>
+                  {MARKET_UNITS.map((u) => (
+                    <option key={u.value} value={u.value}>{u.label}</option>
+                  ))}
+                </select>
+              </>
+            )}
           </div>
         </div>
         {onRemove && (

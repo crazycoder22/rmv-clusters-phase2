@@ -83,6 +83,9 @@ import HabitDetail from "./pages/HabitDetail";
 import Food from "./pages/Food";
 import FoodMenuDetail from "./pages/FoodMenuDetail";
 import FoodMenuEdit from "./pages/FoodMenuEdit";
+import Bazaar from "./pages/Bazaar";
+import BazaarMenuDetail from "./pages/BazaarMenuDetail";
+import BazaarMenuEdit from "./pages/BazaarMenuEdit";
 import Parking from "./pages/Parking";
 import Vehicles from "./pages/Vehicles";
 import ParkingSlotDetail from "./pages/ParkingSlotDetail";
@@ -231,6 +234,10 @@ function Gate() {
           <Route path="/food/menus/new" element={<FoodMenuEdit />} />
           <Route path="/food/menus/:id/edit" element={<FoodMenuEdit />} />
           <Route path="/food/menus/:id" element={<FoodMenuDetail />} />
+          <Route path="/bazaar" element={<Bazaar />} />
+          <Route path="/bazaar/menus/new" element={<BazaarMenuEdit />} />
+          <Route path="/bazaar/menus/:id/edit" element={<BazaarMenuEdit />} />
+          <Route path="/bazaar/menus/:id" element={<BazaarMenuDetail />} />
           <Route path="/initiatives" element={<Initiatives />} />
           <Route path="/initiatives/new" element={<InitiativeForm />} />
           <Route path="/initiatives/:id/edit" element={<InitiativeForm />} />

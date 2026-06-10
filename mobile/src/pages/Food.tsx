@@ -8,11 +8,14 @@ import {
   Loader2,
   Plus,
   ShoppingBag,
+  ShoppingBasket,
+  Store,
   UtensilsCrossed,
 } from "lucide-react";
 import clsx from "clsx";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
+import { type FoodKind, KIND_LABELS, formatUnitPrice, unitLabel, asKind } from "../lib/market";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -24,9 +27,11 @@ interface MenuCard {
   orderByAt: string | null;
   pickupInfo: string | null;
   status: "OPEN" | "CLOSED" | "ARCHIVED";
+  kind: FoodKind;
   orderable: boolean;
   itemCount: number;
   minPrice: number;
+  minPriceUnit: string | null;
   orderCount: number;
   iOrdered?: boolean;
   chef: { id: string; name: string; block: number; flatNumber: string; isMe: boolean };
@@ -36,20 +41,32 @@ interface MyOrder {
   id: string;
   menuId: string;
   menuTitle: string;
+  kind: FoodKind;
   chef: { name: string; block: number; flatNumber: string };
   status: "PLACED" | "CONFIRMED" | "CANCELLED";
   totalAmount: number;
   buyerPaid: boolean;
   chefPaid: boolean;
   createdAt: string;
-  items: { name: string; price: number; qty: number }[];
+  items: { name: string; price: number; unit: string | null; qty: number }[];
 }
 
 type Tab = "order" | "kitchen" | "orders";
+type Labels = (typeof KIND_LABELS)[FoodKind];
+
+/** "3 kg Apples" (market) | "2× Dosa" (kitchen). */
+function lineText(i: { qty: number; name: string; unit: string | null }): string {
+  return i.unit ? `${i.qty} ${unitLabel(i.unit)} ${i.name}` : `${i.qty}× ${i.name}`;
+}
 
 // ── Page ───────────────────────────────────────────────────────────────────
 
-export default function Food() {
+export default function Food({ kind = "KITCHEN" }: { kind?: FoodKind }) {
+  const L = KIND_LABELS[kind];
+  const isMarket = kind === "MARKET";
+  const SectionIcon = isMarket ? ShoppingBasket : UtensilsCrossed;
+  const StallIcon = isMarket ? Store : ChefHat;
+
   const { token } = useAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("order");
@@ -65,8 +82,8 @@ export default function Food() {
     setLoading(true);
     try {
       const [b, m, o] = await Promise.all([
-        apiFetch("/api/food/menus", { token }),
-        apiFetch("/api/food/menus?mine=chef", { token }),
+        apiFetch(`/api/food/menus?kind=${kind}`, { token }),
+        apiFetch(`/api/food/menus?mine=chef&kind=${kind}`, { token }),
         apiFetch("/api/food/orders", { token }),
       ]);
       if (b.ok) setBrowse((await b.json()).menus ?? []);
@@ -78,7 +95,7 @@ export default function Food() {
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [token, kind]);
 
   useEffect(() => {
     void refresh();
@@ -102,8 +119,10 @@ export default function Food() {
     }
   }
 
-  // Browse list excludes my own menus (those live under "My kitchen").
+  // Browse list excludes my own listings (those live under "My kitchen/stall").
   const browseOthers = browse.filter((m) => !m.chef.isMe);
+  // The orders endpoint returns every kind; show only this section's.
+  const sectionOrders = orders.filter((o) => asKind(o.kind) === kind);
 
   return (
     <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)]">
@@ -115,30 +134,30 @@ export default function Food() {
           <ArrowLeft size={20} />
         </Link>
         <div className="flex-1 min-w-0">
-          <h1 className="text-lg font-semibold text-white">Food</h1>
+          <h1 className="text-lg font-semibold text-white">{L.section}</h1>
           <p className="truncate text-[11px] text-slate-500">
-            Home kitchens in the community
+            {isMarket ? "Fresh produce & goods from neighbours" : "Home kitchens in the community"}
           </p>
         </div>
         {tab === "kitchen" && (
           <button
             type="button"
-            onClick={() => navigate("/food/menus/new")}
+            onClick={() => navigate(`${L.sectionPath}/menus/new`)}
             className="flex h-9 items-center gap-1 rounded-full bg-indigo-500 px-3 text-sm font-medium text-white active:bg-indigo-600"
           >
             <Plus size={14} />
-            Menu
+            {isMarket ? "Stall" : "Menu"}
           </button>
         )}
       </header>
 
       {/* Tabs */}
       <div className="mb-4 flex rounded-xl bg-slate-800 p-0.5">
-        <TabButton active={tab === "order"} onClick={() => setTab("order")} icon={UtensilsCrossed}>
+        <TabButton active={tab === "order"} onClick={() => setTab("order")} icon={SectionIcon}>
           Order
         </TabButton>
-        <TabButton active={tab === "kitchen"} onClick={() => setTab("kitchen")} icon={ChefHat}>
-          My kitchen
+        <TabButton active={tab === "kitchen"} onClick={() => setTab("kitchen")} icon={StallIcon}>
+          My {L.stall}
         </TabButton>
         <TabButton active={tab === "orders"} onClick={() => setTab("orders")} icon={ShoppingBag}>
           My orders
@@ -159,11 +178,11 @@ export default function Food() {
         <div className="flex-1 pb-4">
           {tab === "order" && (
             browseOthers.length === 0 ? (
-              <Empty icon={UtensilsCrossed} text="No open menus right now. Check back at meal times!" />
+              <Empty icon={SectionIcon} text={isMarket ? "No stalls open right now. Check back soon!" : "No open menus right now. Check back at meal times!"} />
             ) : (
               <ul className="space-y-2">
                 {browseOthers.map((m) => (
-                  <MenuRow key={m.id} menu={m} />
+                  <MenuRow key={m.id} menu={m} L={L} StallIcon={StallIcon} isMarket={isMarket} />
                 ))}
               </ul>
             )
@@ -172,27 +191,28 @@ export default function Food() {
           {tab === "kitchen" && (
             mine.length === 0 ? (
               <Empty
-                icon={ChefHat}
-                text="You haven't published a menu yet. Tap “Menu” to cook for the community!"
+                icon={StallIcon}
+                text={isMarket ? "You haven't listed any goods yet. Tap “Stall” to sell to the community!" : "You haven't published a menu yet. Tap “Menu” to cook for the community!"}
               />
             ) : (
               <ul className="space-y-2">
                 {mine.map((m) => (
-                  <MenuRow key={m.id} menu={m} chefView />
+                  <MenuRow key={m.id} menu={m} L={L} StallIcon={StallIcon} isMarket={isMarket} chefView />
                 ))}
               </ul>
             )
           )}
 
           {tab === "orders" && (
-            orders.length === 0 ? (
+            sectionOrders.length === 0 ? (
               <Empty icon={ShoppingBag} text="No orders yet. Browse the Order tab to get started." />
             ) : (
               <ul className="space-y-2">
-                {orders.map((o) => (
+                {sectionOrders.map((o) => (
                   <OrderRow
                     key={o.id}
                     order={o}
+                    L={L}
                     busy={busyId === o.id}
                     onMarkPaid={() => markPaid(o.id)}
                   />
@@ -234,10 +254,10 @@ function TabButton({
   );
 }
 
-function MenuRow({ menu, chefView }: { menu: MenuCard; chefView?: boolean }) {
+function MenuRow({ menu, L, StallIcon, isMarket, chefView }: { menu: MenuCard; L: Labels; StallIcon: typeof ChefHat; isMarket: boolean; chefView?: boolean }) {
   return (
     <Link
-      to={`/food/menus/${menu.id}`}
+      to={`${L.sectionPath}/menus/${menu.id}`}
       className={clsx(
         "flex items-start gap-3 rounded-2xl border p-3 active:bg-slate-800",
         menu.orderable
@@ -245,8 +265,8 @@ function MenuRow({ menu, chefView }: { menu: MenuCard; chefView?: boolean }) {
           : "border-slate-700 bg-slate-800/30"
       )}
     >
-      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-orange-500/20 text-orange-300">
-        <ChefHat size={16} />
+      <div className={clsx("flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full", isMarket ? "bg-emerald-500/20 text-emerald-300" : "bg-orange-500/20 text-orange-300")}>
+        <StallIcon size={16} />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline justify-between gap-2">
@@ -257,8 +277,8 @@ function MenuRow({ menu, chefView }: { menu: MenuCard; chefView?: boolean }) {
           {chefView
             ? `${menu.orderCount} order${menu.orderCount !== 1 ? "s" : ""}`
             : `by ${menu.chef.name} · B${menu.chef.block}`}
-          {menu.itemCount > 0 && ` · ${menu.itemCount} dish${menu.itemCount !== 1 ? "es" : ""}`}
-          {menu.minPrice > 0 && ` · from ₹${menu.minPrice}`}
+          {menu.itemCount > 0 && ` · ${menu.itemCount} ${menu.itemCount !== 1 ? L.itemPlural : L.item}`}
+          {menu.minPrice > 0 && ` · from ${formatUnitPrice(menu.minPrice, menu.minPriceUnit)}`}
         </p>
         <div className="mt-1 flex flex-wrap items-center gap-x-2 text-[10px] text-slate-500">
           {menu.orderByAt && (
@@ -280,14 +300,16 @@ function MenuRow({ menu, chefView }: { menu: MenuCard; chefView?: boolean }) {
 
 function OrderRow({
   order,
+  L,
   busy,
   onMarkPaid,
 }: {
   order: MyOrder;
+  L: Labels;
   busy: boolean;
   onMarkPaid: () => void;
 }) {
-  const itemLine = order.items.map((i) => `${i.qty}× ${i.name}`).join(", ");
+  const itemLine = order.items.map(lineText).join(", ");
   return (
     <li
       className={clsx(
@@ -298,7 +320,7 @@ function OrderRow({
       )}
     >
       <div className="flex items-baseline justify-between gap-2">
-        <Link to={`/food/menus/${order.menuId}`} className="truncate text-sm font-semibold text-white active:underline">
+        <Link to={`${L.sectionPath}/menus/${order.menuId}`} className="truncate text-sm font-semibold text-white active:underline">
           {order.menuTitle}
         </Link>
         <span className="shrink-0 text-sm font-bold tabular-nums text-white">
