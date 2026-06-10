@@ -231,15 +231,23 @@ export default function MenuDetail({ section = "KITCHEN" }: { section?: FoodKind
     const headline = isMarket
       ? `🛒 ${menu.title} — ${menu.chef.name}'s stall`
       : `🍱 ${menu.title} — ${menu.chef.name}'s kitchen`;
+    // Full item list + prices so residents who don't use the app can read
+    // everything in the message and order offline (just reply / call).
+    const itemLines = menu.items.map(
+      (d) => `• ${d.name} — ${formatUnitPrice(d.price, d.unit)}${d.soldOut ? " (sold out)" : ""}`
+    );
     const text = [
       headline,
       menu.orderByAt ? `🕑 Order by ${fmtDateTime(menu.orderByAt)}` : null,
-      isMarket
-        ? "Tap to see what's on offer & place your order (RMV residents):"
-        : "Tap to see the menu & place your order (RMV residents):",
+      menu.pickupInfo ? `📍 ${menu.pickupInfo}` : null,
+      "",
+      isMarket ? "On offer:" : "Menu:",
+      ...itemLines,
+      "",
+      "💬 Reply to this message to order, or tap the link to order online (RMV residents):",
       url,
     ]
-      .filter(Boolean)
+      .filter((l) => l !== null)
       .join("\n");
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
   }

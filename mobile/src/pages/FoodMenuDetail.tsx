@@ -270,10 +270,15 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
     const headline = isMarket
       ? `🛒 ${menu.title} — ${menu.chef.name}'s stall`
       : `🍱 ${menu.title} — ${menu.chef.name}'s kitchen`;
-    const cta = isMarket
-      ? "Tap to see what's on offer & place your order (RMV residents):"
-      : "Tap to see the menu & place your order (RMV residents):";
-    const text = `${headline}\n${orderBy}${cta}`;
+    const pickup = menu.pickupInfo ? `📍 ${menu.pickupInfo}\n` : "";
+    // Full item list + prices so residents who don't use the app can read
+    // everything in the message and order offline (just reply / call).
+    const itemLines = menu.items
+      .map((d) => `• ${d.name} — ${formatUnitPrice(d.price, d.unit)}${d.soldOut ? " (sold out)" : ""}`)
+      .join("\n");
+    const heading = isMarket ? "On offer:" : "Menu:";
+    const cta = "💬 Reply to this message to order, or tap the link to order online (RMV residents):";
+    const text = `${headline}\n${orderBy}${pickup}\n${heading}\n${itemLines}\n\n${cta}`;
     try {
       await Share.share({ title: menu.title, text, url, dialogTitle: `Share ${L.listing}` });
     } catch {
