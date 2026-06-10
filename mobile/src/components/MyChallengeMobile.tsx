@@ -81,7 +81,10 @@ export default function MyChallengeMobile({ eventId, token }: { eventId: string;
     await load();
   }
 
-  if (loading || !data?.registered) return null;
+  if (loading) return null;
+  // Render even when not registered, so a chosen partner who hasn't joined the
+  // challenge yet still sees the invite and can accept/decline it.
+  if (!data || (!data.registered && !data.incomingInvite)) return null;
 
   return (
     <section className="mb-3 space-y-2">
@@ -95,6 +98,7 @@ export default function MyChallengeMobile({ eventId, token }: { eventId: string;
         </div>
       )}
 
+      {data.registered && (<>
       <div className="rounded-2xl border border-slate-700 bg-slate-800/60 p-3">
         <h3 className="flex items-center gap-1.5 text-sm font-semibold text-white"><Footprints size={15} className="text-emerald-400" /> Running goals <span className="text-[11px] font-normal text-slate-500">optional</span></h3>
         <div className="mt-2 space-y-2">
@@ -137,6 +141,7 @@ export default function MyChallengeMobile({ eventId, token }: { eventId: string;
       <button onClick={() => void save()} disabled={saving} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-600 py-2.5 text-sm font-semibold text-white disabled:opacity-60">
         {saving && <Loader2 size={15} className="animate-spin" />} Save my goals
       </button>
+      </>)}
     </section>
   );
 }

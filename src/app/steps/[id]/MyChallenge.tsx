@@ -94,7 +94,9 @@ export default function MyChallenge({ eventId }: { eventId: string }) {
   }
 
   if (loading) return null;
-  if (!data?.registered) return null;
+  // Render even when not registered, so a chosen partner who hasn't joined the
+  // challenge yet still sees the invite and can accept/decline it.
+  if (!data || (!data.registered && !data.incomingInvite)) return null;
 
   const cardCls = "rounded-xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 p-4";
 
@@ -113,6 +115,7 @@ export default function MyChallenge({ eventId }: { eventId: string }) {
         </div>
       )}
 
+      {data.registered && (<>
       {/* Run goals */}
       <div className={cardCls}>
         <h3 className="flex items-center gap-1.5 text-sm font-semibold text-gray-900 dark:text-gray-100"><Footprints size={15} className="text-emerald-500" /> Running goals <span className="text-xs font-normal text-gray-400">(optional)</span></h3>
@@ -163,6 +166,7 @@ export default function MyChallenge({ eventId }: { eventId: string }) {
       <button onClick={() => void save()} disabled={saving} className="w-full rounded-xl bg-indigo-600 py-2.5 text-sm font-semibold text-white disabled:opacity-60 inline-flex items-center justify-center gap-2">
         {saving && <Loader2 size={15} className="animate-spin" />} Save my goals
       </button>
+      </>)}
     </div>
   );
 }
