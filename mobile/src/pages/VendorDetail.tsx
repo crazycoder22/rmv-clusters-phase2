@@ -37,7 +37,7 @@ export default function VendorDetail() {
   async function del() {
     if (!v || !confirm(`Remove "${v.name}" from Food Vendors?`)) return;
     const res = await apiFetch(`/api/vendors/${v.id}`, { method: "DELETE", token });
-    if (res.ok) navigate("/vendors", { replace: true });
+    if (res.ok) navigate("/food", { replace: true });
   }
 
   async function share() {
@@ -51,7 +51,7 @@ export default function VendorDetail() {
   if (error || !v) {
     return (
       <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)]">
-        <button onClick={() => navigate("/vendors")} className="flex items-center gap-1 py-4 text-sm text-slate-400"><ArrowLeft size={16} /> Food Vendors</button>
+        <button onClick={() => navigate("/food")} className="flex items-center gap-1 py-4 text-sm text-slate-400"><ArrowLeft size={16} /> Food &amp; Bazaar</button>
         <p className="rounded-xl border border-red-700/60 bg-red-900/20 px-4 py-3 text-xs text-red-200">{error ?? "Not found"}</p>
       </div>
     );
@@ -69,7 +69,7 @@ export default function VendorDetail() {
   return (
     <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)] pb-8">
       <header className="flex items-center gap-2 py-4">
-        <Link to="/vendors" className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 active:bg-slate-800"><ArrowLeft size={20} /></Link>
+        <Link to="/food" className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 active:bg-slate-800"><ArrowLeft size={20} /></Link>
         <h1 className="flex-1 truncate text-lg font-semibold text-white">{v.name}</h1>
         {v.canEdit && (
           <>

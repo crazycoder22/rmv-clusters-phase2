@@ -46,7 +46,6 @@ import MarketplaceWishlist from "./pages/MarketplaceWishlist";
 import DomesticHelp from "./pages/DomesticHelp";
 import DomesticHelpDetail from "./pages/DomesticHelpDetail";
 import DomesticHelpNew from "./pages/DomesticHelpNew";
-import Vendors from "./pages/Vendors";
 import VendorDetail from "./pages/VendorDetail";
 import VendorEdit from "./pages/VendorEdit";
 import AdminOccupancy from "./pages/AdminOccupancy";
@@ -177,7 +176,6 @@ function Gate() {
           <Route path="/domestic-help" element={<DomesticHelp />} />
           <Route path="/domestic-help/new" element={<DomesticHelpNew />} />
           <Route path="/domestic-help/:id" element={<DomesticHelpDetail />} />
-          <Route path="/vendors" element={<Vendors />} />
           <Route path="/vendors/new" element={<VendorEdit />} />
           <Route path="/vendors/:id" element={<VendorDetail />} />
           <Route path="/vendors/:id/edit" element={<VendorEdit />} />

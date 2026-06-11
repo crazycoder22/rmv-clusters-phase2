@@ -29,7 +29,6 @@ import {
   ListChecks,
   ShoppingBag,
   Sparkles,
-  Store,
   Settings as SettingsIcon,
   type LucideIcon,
 } from "lucide-react";
@@ -118,8 +117,7 @@ export default function MorePage() {
           { to: "/my-steps", icon: Activity, title: "My steps", subtitle: "Daily activity from Apple Health" },
           { to: "/rewards", icon: Coins, title: "My rewards", subtitle: "Coins & medals you've won" },
           { to: "/habits", icon: Target, title: "Habits", subtitle: "Build routines with an accountability partner" },
-          { to: "/food", icon: UtensilsCrossed, title: "Food & Bazaar", subtitle: "Home kitchens & produce — order or sell" },
-          { to: "/vendors", icon: Store, title: "Food Vendors", subtitle: "Outside kitchens — menus & rates" },
+          { to: "/food", icon: UtensilsCrossed, title: "Food & Bazaar", subtitle: "Home kitchens, produce & outside vendors" },
           { to: "/parking", icon: Car, title: "Parking", subtitle: "Book a neighbour's slot by the hour" },
           { to: "/vehicles", icon: Car, title: "My Vehicles", subtitle: "View your registered vehicles" },
           { to: "/amenities", icon: CalendarDays, title: "Amenities", subtitle: "Book the clubhouse, courts, gym & more" },

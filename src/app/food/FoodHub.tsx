@@ -11,8 +11,12 @@ import {
   ShoppingBasket,
   Plus,
   Clock,
+  Store,
+  MessageCircle,
+  Truck,
 } from "lucide-react";
 import { type FoodKind, KIND_LABELS, formatUnitPrice, unitLabel, asKind } from "@/lib/market";
+import { waOrderLink } from "@/lib/vendors";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -47,7 +51,18 @@ interface MyOrder {
   items: { name: string; price: number; unit: string | null; qty: number }[];
 }
 
-type Tab = "order" | "kitchen" | "bazaar" | "orders";
+interface VendorCard {
+  id: string;
+  name: string;
+  phone: string;
+  deliveryInfo: string | null;
+  photoUrl: string | null;
+  itemCount: number;
+  minPrice: number;
+  sections: string[];
+}
+
+type Tab = "order" | "vendors" | "kitchen" | "bazaar" | "orders";
 
 /** "3 kg Apples" (market) | "2× Dosa" (kitchen). */
 function lineText(i: { qty: number; name: string; unit: string | null }): string {
@@ -62,6 +77,7 @@ export default function FoodHub() {
   const [browse, setBrowse] = useState<MenuCard[]>([]);
   const [mineKitchen, setMineKitchen] = useState<MenuCard[]>([]);
   const [mineBazaar, setMineBazaar] = useState<MenuCard[]>([]);
+  const [vendors, setVendors] = useState<VendorCard[]>([]);
   const [orders, setOrders] = useState<MyOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -70,19 +86,27 @@ export default function FoodHub() {
     if (status === "unauthenticated") router.push("/login");
   }, [status, router]);
 
+  // Deep-link a tab via ?tab= (e.g. coming from a vendor detail back-link).
+  useEffect(() => {
+    const t = new URLSearchParams(window.location.search).get("tab");
+    if (t === "vendors" || t === "kitchen" || t === "bazaar" || t === "orders" || t === "order") setTab(t);
+  }, []);
+
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const [b, k, z, o] = await Promise.all([
+      const [b, k, z, o, vn] = await Promise.all([
         fetch("/api/food/menus?kind=ALL"),
         fetch("/api/food/menus?mine=chef&kind=KITCHEN"),
         fetch("/api/food/menus?mine=chef&kind=MARKET"),
         fetch("/api/food/orders"),
+        fetch("/api/vendors"),
       ]);
       if (b.ok) setBrowse((await b.json()).menus ?? []);
       if (k.ok) setMineKitchen((await k.json()).menus ?? []);
       if (z.ok) setMineBazaar((await z.json()).menus ?? []);
       if (o.ok) setOrders((await o.json()).orders ?? []);
+      if (vn.ok) setVendors((await vn.json()).vendors ?? []);
     } finally {
       setLoading(false);
     }
@@ -117,7 +141,9 @@ export default function FoodHub() {
       ? { href: KIND_LABELS.KITCHEN.createPath, label: KIND_LABELS.KITCHEN.newCta }
       : tab === "bazaar"
         ? { href: KIND_LABELS.MARKET.createPath, label: KIND_LABELS.MARKET.newCta }
-        : null;
+        : tab === "vendors"
+          ? { href: "/vendors/new", label: "Add vendor" }
+          : null;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -147,6 +173,9 @@ export default function FoodHub() {
           <TabBtn active={tab === "order"} onClick={() => setTab("order")} icon={ShoppingBag}>
             Order
           </TabBtn>
+          <TabBtn active={tab === "vendors"} onClick={() => setTab("vendors")} icon={Store}>
+            Vendors
+          </TabBtn>
           <TabBtn active={tab === "kitchen"} onClick={() => setTab("kitchen")} icon={ChefHat}>
             My Kitchen
           </TabBtn>
@@ -171,6 +200,17 @@ export default function FoodHub() {
                 <div className="grid gap-3 sm:grid-cols-2">
                   {browseOthers.map((m) => (
                     <MenuCardView key={m.id} menu={m} />
+                  ))}
+                </div>
+              ))}
+
+            {tab === "vendors" &&
+              (vendors.length === 0 ? (
+                <Empty icon={Store} text="No outside vendors yet. Know a caterer? Tap “Add vendor”." />
+              ) : (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {vendors.map((v) => (
+                    <VendorHubCard key={v.id} v={v} />
                   ))}
                 </div>
               ))}
@@ -243,6 +283,39 @@ function TabBtn({
       <Icon size={15} />
       {children}
     </button>
+  );
+}
+
+function VendorHubCard({ v }: { v: VendorCard }) {
+  const order = waOrderLink(v.phone, v.name);
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition flex flex-col">
+      <Link href={`/vendors/${v.id}`} className="block">
+        {v.photoUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={v.photoUrl} alt="" className="w-full h-32 object-cover" />
+        )}
+        <div className="p-4">
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-1.5">
+            <Store size={15} className="text-amber-500 shrink-0" /> {v.name}
+          </h3>
+          <div className="flex flex-wrap items-center gap-1.5 mt-1">
+            {v.sections.map((s) => (
+              <span key={s} className={`text-[10px] font-semibold rounded-full px-1.5 py-0.5 ${s.toLowerCase().startsWith("veg") ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300" : s.toLowerCase().startsWith("non") ? "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300" : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300"}`}>{s}</span>
+            ))}
+          </div>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            {v.itemCount} item{v.itemCount !== 1 ? "s" : ""}{v.minPrice > 0 && ` · from ${formatUnitPrice(v.minPrice, null)}`}
+          </p>
+          {v.deliveryInfo && <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 inline-flex items-center gap-1"><Truck size={12} /> {v.deliveryInfo}</p>}
+        </div>
+      </Link>
+      {order && (
+        <a href={order} target="_blank" rel="noopener noreferrer" className="mt-auto flex items-center justify-center gap-1.5 border-t border-gray-100 dark:border-gray-700 py-2.5 text-sm font-medium text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20">
+          <MessageCircle size={15} /> Order on WhatsApp
+        </a>
+      )}
+    </div>
   );
 }
 

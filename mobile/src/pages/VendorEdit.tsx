@@ -89,7 +89,7 @@ export default function VendorEdit() {
   return (
     <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)]">
       <header className="flex items-center gap-2 py-4">
-        <button onClick={() => navigate(isEdit ? `/vendors/${id}` : "/vendors")} className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 active:bg-slate-800"><ArrowLeft size={20} /></button>
+        <button onClick={() => navigate(isEdit ? `/vendors/${id}` : "/food")} className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 active:bg-slate-800"><ArrowLeft size={20} /></button>
         <h1 className="text-lg font-semibold text-white">{isEdit ? "Edit vendor" : "Add a food vendor"}</h1>
       </header>
 

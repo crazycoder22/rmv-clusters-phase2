@@ -6,14 +6,18 @@ import {
   ChevronRight,
   Clock,
   Loader2,
+  MessageCircle,
   Plus,
   ShoppingBag,
   ShoppingBasket,
+  Store,
+  Truck,
 } from "lucide-react";
 import clsx from "clsx";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
 import { type FoodKind, KIND_LABELS, formatUnitPrice, unitLabel, asKind } from "../lib/market";
+import { waOrderLink } from "../lib/vendors";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -50,7 +54,18 @@ interface MyOrder {
   items: { name: string; price: number; unit: string | null; qty: number }[];
 }
 
-type Tab = "order" | "kitchen" | "bazaar" | "orders";
+interface VendorCard {
+  id: string;
+  name: string;
+  phone: string;
+  deliveryInfo: string | null;
+  photoUrl: string | null;
+  itemCount: number;
+  minPrice: number;
+  sections: string[];
+}
+
+type Tab = "order" | "vendors" | "kitchen" | "bazaar" | "orders";
 
 /** "3 kg Apples" (market) | "2× Dosa" (kitchen). */
 function lineText(i: { qty: number; name: string; unit: string | null }): string {
@@ -67,6 +82,7 @@ export default function Food() {
   const [browse, setBrowse] = useState<MenuCard[]>([]);
   const [mineKitchen, setMineKitchen] = useState<MenuCard[]>([]);
   const [mineBazaar, setMineBazaar] = useState<MenuCard[]>([]);
+  const [vendors, setVendors] = useState<VendorCard[]>([]);
   const [orders, setOrders] = useState<MyOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -75,16 +91,18 @@ export default function Food() {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const [b, k, z, o] = await Promise.all([
+      const [b, k, z, o, vn] = await Promise.all([
         apiFetch("/api/food/menus?kind=ALL", { token }),
         apiFetch("/api/food/menus?mine=chef&kind=KITCHEN", { token }),
         apiFetch("/api/food/menus?mine=chef&kind=MARKET", { token }),
         apiFetch("/api/food/orders", { token }),
+        apiFetch("/api/vendors", { token }),
       ]);
       if (b.ok) setBrowse((await b.json()).menus ?? []);
       if (k.ok) setMineKitchen((await k.json()).menus ?? []);
       if (z.ok) setMineBazaar((await z.json()).menus ?? []);
       if (o.ok) setOrders((await o.json()).orders ?? []);
+      if (vn.ok) setVendors((await vn.json()).vendors ?? []);
       setError(null);
     } catch {
       setError("Network error");
@@ -121,7 +139,9 @@ export default function Food() {
       ? { path: KIND_LABELS.KITCHEN.createPath, label: "Menu" }
       : tab === "bazaar"
         ? { path: KIND_LABELS.MARKET.createPath, label: "Stall" }
-        : null;
+        : tab === "vendors"
+          ? { path: "/vendors/new", label: "Vendor" }
+          : null;
 
   return (
     <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)]">
@@ -155,6 +175,9 @@ export default function Food() {
         <TabButton active={tab === "order"} onClick={() => setTab("order")} icon={ShoppingBag}>
           Order
         </TabButton>
+        <TabButton active={tab === "vendors"} onClick={() => setTab("vendors")} icon={Store}>
+          Vendors
+        </TabButton>
         <TabButton active={tab === "kitchen"} onClick={() => setTab("kitchen")} icon={ChefHat}>
           Kitchen
         </TabButton>
@@ -185,6 +208,18 @@ export default function Food() {
               <ul className="space-y-2">
                 {browseOthers.map((m) => (
                   <MenuRow key={m.id} menu={m} />
+                ))}
+              </ul>
+            )
+          )}
+
+          {tab === "vendors" && (
+            vendors.length === 0 ? (
+              <Empty icon={Store} text="No outside vendors yet. Know a caterer? Tap “Vendor” to add one." />
+            ) : (
+              <ul className="space-y-2">
+                {vendors.map((v) => (
+                  <VendorRow key={v.id} v={v} onNavigate={(p) => navigate(p)} />
                 ))}
               </ul>
             )
@@ -254,13 +289,45 @@ function TabButton({
       type="button"
       onClick={onClick}
       className={clsx(
-        "flex flex-1 items-center justify-center gap-1 rounded-lg py-2 text-[12px] font-medium",
+        "flex flex-1 items-center justify-center gap-0.5 whitespace-nowrap rounded-lg px-0.5 py-2 text-[10.5px] font-medium",
         active ? "bg-slate-700 text-white" : "text-slate-400"
       )}
     >
-      <Icon size={13} />
+      <Icon size={12} className="shrink-0" />
       {children}
     </button>
+  );
+}
+
+function VendorRow({ v, onNavigate }: { v: VendorCard; onNavigate: (path: string) => void }) {
+  const order = waOrderLink(v.phone, v.name);
+  return (
+    <li className="overflow-hidden rounded-2xl border border-slate-700 bg-slate-800/60">
+      <button type="button" onClick={() => onNavigate(`/vendors/${v.id}`)} className="block w-full text-left active:bg-slate-700">
+        {v.photoUrl && <img src={v.photoUrl} alt="" className="h-28 w-full object-cover" />}
+        <div className="flex items-center gap-3 px-4 py-3">
+          {!v.photoUrl && <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-amber-300"><Store size={18} /></div>}
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold text-white">{v.name}</p>
+            <div className="mt-1 flex flex-wrap items-center gap-1">
+              {v.sections.map((s) => {
+                const l = s.toLowerCase();
+                const cls = l.startsWith("veg") ? "bg-emerald-500/20 text-emerald-300" : l.startsWith("non") ? "bg-red-500/20 text-red-300" : "bg-slate-600/40 text-slate-300";
+                return <span key={s} className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${cls}`}>{s}</span>;
+              })}
+              <span className="text-[11px] text-slate-500">{v.itemCount} item{v.itemCount !== 1 ? "s" : ""}{v.minPrice > 0 && ` · from ${formatUnitPrice(v.minPrice, null)}`}</span>
+            </div>
+            {v.deliveryInfo && <p className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-slate-500"><Truck size={11} /> {v.deliveryInfo}</p>}
+          </div>
+          <ChevronRight size={16} className="shrink-0 text-slate-500" />
+        </div>
+      </button>
+      {order && (
+        <a href={order} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-1.5 border-t border-slate-700 py-2.5 text-[13px] font-medium text-emerald-300 active:bg-slate-700">
+          <MessageCircle size={15} /> Order on WhatsApp
+        </a>
+      )}
+    </li>
   );
 }
 

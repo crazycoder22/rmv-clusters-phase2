@@ -50,7 +50,7 @@ export default function VendorDetailPage() {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <div className="max-w-3xl mx-auto px-4 py-8">
-          <Link href="/vendors" className="inline-flex items-center gap-1 text-sm text-gray-600 dark:text-gray-300"><ArrowLeft size={16} /> Food Vendors</Link>
+          <Link href="/food?tab=vendors" className="inline-flex items-center gap-1 text-sm text-gray-600 dark:text-gray-300"><ArrowLeft size={16} /> Food &amp; Bazaar</Link>
           <p className="bg-red-50 dark:bg-red-900/30 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm mt-4">{error ?? "Not found"}</p>
         </div>
       </div>
