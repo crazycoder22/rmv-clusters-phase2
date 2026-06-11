@@ -703,6 +703,16 @@ export default function Dashboard() {
             </div>
           </Link>
           <Link
+            to="/vendors"
+            className="flex items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3 active:bg-slate-100 dark:active:bg-slate-800"
+          >
+            <span className="text-2xl">🍽️</span>
+            <div>
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">Food Vendors</p>
+              <p className="text-[10px] text-slate-500">Menus & rates</p>
+            </div>
+          </Link>
+          <Link
             to="/emergency"
             className="flex items-center gap-3 rounded-2xl border border-red-500/40 bg-red-500/10 p-3 active:bg-red-500/20"
           >

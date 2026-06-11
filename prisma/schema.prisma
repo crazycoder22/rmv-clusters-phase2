@@ -108,6 +108,7 @@ model Resident {
   pollVotes                PollVote[]
   domesticHelpAdded        DomesticHelp[]       @relation("DomesticHelpAdded")
   domesticHelpReviews      DomesticHelpReview[] @relation("DomesticHelpReviews")
+  foodVendorsAdded         FoodVendor[]         @relation("FoodVendorsAdded")
   marketplaceListings      MarketplaceListing[]               @relation("MarketplaceListings")
   marketplaceWishlist      MarketplaceWishlist[]               @relation("MarketplaceWishlist")
   marketplaceCategorySubs  MarketplaceCategorySubscription[]   @relation("MarketplaceCategorySubscriptions")
@@ -1078,6 +1079,44 @@ model DomesticHelpReview {
 }
 
 // ─── End Domestic Help Directory ──────────────────────────────────────────
+
+// ─── Food Vendors (external vendors, WhatsApp ordering) ───────────────────
+
+model FoodVendor {
+  id           String           @id @default(cuid())
+  name         String
+  phone        String                              // WhatsApp / call number
+  description  String?
+  notes        String?                             // freeform: "Veg sold by weight, min ½ kg"
+  deliveryInfo String?                             // e.g. "Delivery 10am–1pm"
+  photoUrl     String?
+  forDate      DateTime?                           // optional: a dated special menu
+  active       Boolean          @default(true)
+  addedById    String
+  addedBy      Resident         @relation("FoodVendorsAdded", fields: [addedById], references: [id])
+  items        FoodVendorItem[]
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@index([addedById])
+  @@index([active])
+}
+
+model FoodVendorItem {
+  id        String     @id @default(cuid())
+  vendorId  String
+  vendor    FoodVendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  name      String
+  price     Float
+  unit      String?                                // MARKET_UNITS value (kg/piece/…); null = flat ₹
+  section   String?                                // "Veg" | "Non-veg" | "Sweets" | …
+  note      String?                                // "25 pieces", etc.
+  sortOrder Int        @default(0)
+
+  @@index([vendorId])
+}
+
+// ─── End Food Vendors ─────────────────────────────────────────────────────
 
 // ─── Marketplace ──────────────────────────────────────────────────────────
 

@@ -164,6 +164,13 @@ export function canManageDomesticHelp(
   return isAdmin(roles);
 }
 
+/** Check if user can manage any food-vendor listing (admin moderation) */
+export function canManageVendors(
+  roles: UserRole[] | string[] | null | undefined
+): boolean {
+  return isAdmin(roles);
+}
+
 /** Check if user can manage polls (COMMUNITY_ADMIN, ADMIN, SUPERADMIN) */
 export function canManagePolls(
   roles: UserRole[] | string[] | null | undefined
