@@ -309,6 +309,12 @@ export default function MenuDetail({ section = "KITCHEN" }: { section?: FoodKind
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
   }
 
+  // Share the consolidated order list — for handing off to a delivery helper.
+  function shareOrderList() {
+    if (!menu) return;
+    window.open(`https://wa.me/?text=${encodeURIComponent(buildOrderListText(menu))}`, "_blank");
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
@@ -399,15 +405,26 @@ export default function MenuDetail({ section = "KITCHEN" }: { section?: FoodKind
               ))}
             </div>
 
-            <div className="flex items-center justify-between mt-6 mb-2">
+            <div className="flex items-center justify-between mt-6 mb-2 gap-2">
               <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Orders ({menu.orders.length})</h2>
-              <button
-                type="button"
-                onClick={() => setShowManual((s) => !s)}
-                className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700"
-              >
-                <Plus size={14} /> Add offline order
-              </button>
+              <div className="flex items-center gap-3">
+                {menu.orders.some((o) => o.status !== "CANCELLED") && (
+                  <button
+                    type="button"
+                    onClick={shareOrderList}
+                    className="inline-flex items-center gap-1 text-xs font-medium text-green-700 dark:text-green-400 hover:text-green-800"
+                  >
+                    <Share2 size={14} /> Share list
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setShowManual((s) => !s)}
+                  className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700"
+                >
+                  <Plus size={14} /> Add offline order
+                </button>
+              </div>
             </div>
 
             {showManual && (
@@ -732,6 +749,29 @@ function BackLink({ L }: { L: (typeof KIND_LABELS)[FoodKind] }) {
       <ArrowLeft size={16} /> Back to {L.section}
     </Link>
   );
+}
+
+// WhatsApp-ready delivery/packing list of every active order on a listing.
+// Mirrored in mobile/src/pages/FoodMenuDetail.tsx.
+function buildOrderListText(menu: MenuDetailData): string {
+  const isMarket = menu.kind === "MARKET";
+  const active = menu.orders.filter((o) => o.status !== "CANCELLED");
+  const lines: string[] = [`${isMarket ? "🛒" : "🍱"} Order list — ${menu.title}`];
+  if (menu.pickupInfo) lines.push(`📍 ${menu.pickupInfo}`);
+  lines.push("");
+  active.forEach((o, i) => {
+    const who = o.buyer
+      ? `${o.buyer.name} (B${o.buyer.block}-${o.buyer.flatNumber})`
+      : `${o.manualBuyerName ?? "Offline"} (offline)`;
+    const pay = o.chefPaid ? "✅ paid" : o.buyerPaid ? "⏳ paid (unconfirmed)" : "❌ unpaid";
+    lines.push(`${i + 1}. ${who}`);
+    lines.push(`   ${o.items.map(lineText).join(", ")} · ₹${o.totalAmount} · ${pay}`);
+    if (o.buyer?.phone) lines.push(`   📞 ${o.buyer.phone}`);
+    if (o.note) lines.push(`   📝 ${o.note}`);
+  });
+  const total = active.reduce((s, o) => s + o.totalAmount, 0);
+  lines.push("", `Total: ${active.length} order${active.length !== 1 ? "s" : ""} · ₹${total}`);
+  return lines.join("\n");
 }
 
 function fmtDateTime(iso: string): string {

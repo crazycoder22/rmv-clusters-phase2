@@ -343,6 +343,20 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
     }
   }
 
+  // Share the consolidated order list — for handing off to a delivery helper.
+  async function shareOrderList() {
+    if (!menu) return;
+    try {
+      await Share.share({
+        title: `Orders — ${menu.title}`,
+        text: buildOrderListText(menu),
+        dialogTitle: "Share order list",
+      });
+    } catch {
+      // user cancelled or share sheet unavailable — no-op
+    }
+  }
+
   return (
     <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)]">
       <header className="flex items-center gap-2 py-4">
@@ -476,17 +490,28 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
 
           {/* Orders */}
           <section className="pb-4">
-            <div className="mb-2 flex items-center justify-between">
+            <div className="mb-2 flex items-center justify-between gap-2">
               <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                 Orders ({menu.orders.length})
               </h2>
-              <button
-                type="button"
-                onClick={() => setShowManual((s) => !s)}
-                className="inline-flex items-center gap-1 text-[12px] font-medium text-indigo-300 active:text-indigo-200"
-              >
-                <Plus size={13} /> Offline order
-              </button>
+              <div className="flex items-center gap-3">
+                {menu.orders.some((o) => o.status !== "CANCELLED") && (
+                  <button
+                    type="button"
+                    onClick={() => void shareOrderList()}
+                    className="inline-flex items-center gap-1 text-[12px] font-medium text-emerald-300 active:text-emerald-200"
+                  >
+                    <Share2 size={13} /> Share list
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setShowManual((s) => !s)}
+                  className="inline-flex items-center gap-1 text-[12px] font-medium text-indigo-300 active:text-indigo-200"
+                >
+                  <Plus size={13} /> Offline order
+                </button>
+              </div>
             </div>
 
             {showManual && (
@@ -854,6 +879,29 @@ function ChefOrderCard({
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
+
+// WhatsApp-ready delivery/packing list of every active order on a listing.
+// Mirrored in src/app/food/MenuDetail.tsx.
+function buildOrderListText(menu: MenuDetail): string {
+  const isMarket = menu.kind === "MARKET";
+  const active = menu.orders.filter((o) => o.status !== "CANCELLED");
+  const lines: string[] = [`${isMarket ? "🛒" : "🍱"} Order list — ${menu.title}`];
+  if (menu.pickupInfo) lines.push(`📍 ${menu.pickupInfo}`);
+  lines.push("");
+  active.forEach((o, i) => {
+    const who = o.buyer
+      ? `${o.buyer.name} (B${o.buyer.block}-${o.buyer.flatNumber})`
+      : `${o.manualBuyerName ?? "Offline"} (offline)`;
+    const pay = o.chefPaid ? "✅ paid" : o.buyerPaid ? "⏳ paid (unconfirmed)" : "❌ unpaid";
+    lines.push(`${i + 1}. ${who}`);
+    lines.push(`   ${o.items.map(lineText).join(", ")} · ₹${o.totalAmount} · ${pay}`);
+    if (o.buyer?.phone) lines.push(`   📞 ${o.buyer.phone}`);
+    if (o.note) lines.push(`   📝 ${o.note}`);
+  });
+  const total = active.reduce((s, o) => s + o.totalAmount, 0);
+  lines.push("", `Total: ${active.length} order${active.length !== 1 ? "s" : ""} · ₹${total}`);
+  return lines.join("\n");
+}
 
 function fmtDateTime(iso: string): string {
   return new Date(iso).toLocaleString("en-IN", {
