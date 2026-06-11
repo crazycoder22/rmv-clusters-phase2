@@ -4,8 +4,9 @@ import { QRCodeSVG } from "qrcode.react";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
 import {
-  ArrowLeft, MapPin, IndianRupee, Clock, Car, Pencil, Trash2, Ban, Info,
+  ArrowLeft, MapPin, IndianRupee, Clock, Car, Pencil, Trash2, Ban, Info, Share2,
 } from "lucide-react";
+import { Share } from "@capacitor/share";
 
 const MIN_BOOKING_MINUTES = 30;
 const WEB_BASE = "https://onermv.app";
@@ -263,6 +264,23 @@ function PayBox({ slot }: { slot: SlotDetail }) {
   );
 }
 
+// WhatsApp-ready listing blurb. Mirrored in src/app/parking/[id]/page.tsx.
+function buildShareText(slot: SlotDetail, url: string): string {
+  const rate = `💰 ₹${slot.hourlyRate}/hr${slot.monthlyRate != null ? ` · ₹${slot.monthlyRate}/month` : ""}`;
+  return [
+    `🅿️ Parking slot available — ${slot.label}`,
+    slot.location ? `📍 ${slot.location}` : null,
+    rate,
+    slot.description ? `📝 ${slot.description}` : null,
+    `By ${slot.owner.name} · Block ${slot.owner.block ?? "—"}, ${slot.owner.flatNumber}`,
+    "",
+    "Book it here (RMV residents):",
+    url,
+  ]
+    .filter((l) => l !== null)
+    .join("\n");
+}
+
 function OwnerPanel({ slot, onChange, navigate, token }: { slot: SlotDetail; onChange: () => void; navigate: (p: string) => void; token: string | null }) {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [showBlock, setShowBlock] = useState(false);
@@ -284,6 +302,18 @@ function OwnerPanel({ slot, onChange, navigate, token }: { slot: SlotDetail; onC
     if (res.ok) navigate("/parking");
   }
 
+  async function shareSlot() {
+    try {
+      await Share.share({
+        title: slot.label,
+        text: buildShareText(slot, bookingUrl),
+        dialogTitle: "Share parking slot",
+      });
+    } catch {
+      // user cancelled or share sheet unavailable — no-op
+    }
+  }
+
   return (
     <div className="mt-6 space-y-5">
       <div className="rounded-2xl border border-slate-700 bg-slate-800/60 p-5 text-center">
@@ -293,6 +323,9 @@ function OwnerPanel({ slot, onChange, navigate, token }: { slot: SlotDetail; onC
           <QRCodeSVG value={bookingUrl} size={170} />
         </div>
         <p className="mt-3 break-all text-[10px] text-slate-500">{bookingUrl}</p>
+        <button onClick={() => void shareSlot()} className="mt-3 inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white active:bg-emerald-600">
+          <Share2 size={15} /> Share on WhatsApp
+        </button>
       </div>
 
       <div className="flex gap-2">

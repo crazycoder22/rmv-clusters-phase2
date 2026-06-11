@@ -8,7 +8,7 @@ import QRCodeLib from "qrcode";
 import { QRCodeSVG } from "qrcode.react";
 import {
   ArrowLeft, MapPin, IndianRupee, Clock, Car, Pencil, Trash2,
-  Download, Ban, Info, Printer,
+  Download, Ban, Info, Printer, Share2,
 } from "lucide-react";
 import { computePrice, formatDuration, monthsCeilYmd, MIN_BOOKING_MINUTES } from "@/lib/parking";
 
@@ -298,6 +298,10 @@ function OwnerPanel({ slot, onChange }: { slot: SlotDetail; onChange: () => void
     } catch { /* ignore */ }
   }
 
+  function shareSlot() {
+    window.open(`https://wa.me/?text=${encodeURIComponent(buildShareText(slot, bookingUrl))}`, "_blank");
+  }
+
   return (
     <div className="mt-6 space-y-6">
       {/* QR */}
@@ -309,7 +313,10 @@ function OwnerPanel({ slot, onChange }: { slot: SlotDetail; onChange: () => void
             <QRCodeSVG value={bookingUrl} size={180} />
           </div>
         )}
-        <div className="mt-3 flex items-center gap-2 flex-wrap">
+        <div className="mt-3 flex items-center gap-2 flex-wrap justify-center">
+          <button type="button" onClick={shareSlot} className="inline-flex items-center gap-1.5 bg-green-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-green-700">
+            <Share2 size={15} /> Share on WhatsApp
+          </button>
           <button type="button" onClick={downloadQr} className="inline-flex items-center gap-1.5 bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-800">
             <Download size={15} /> Download QR
           </button>
@@ -424,6 +431,23 @@ function Centered({ children }: { children: React.ReactNode }) {
   return <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">{children}</div>;
 }
 const inputCls = "w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500";
+// WhatsApp-ready listing blurb. Mirrored in mobile/src/pages/ParkingSlotDetail.tsx.
+function buildShareText(slot: SlotDetail, url: string): string {
+  const rate = `💰 ₹${slot.hourlyRate}/hr${slot.monthlyRate != null ? ` · ₹${slot.monthlyRate}/month` : ""}`;
+  return [
+    `🅿️ Parking slot available — ${slot.label}`,
+    slot.location ? `📍 ${slot.location}` : null,
+    rate,
+    slot.description ? `📝 ${slot.description}` : null,
+    `By ${slot.owner.name} · Block ${slot.owner.block ?? "—"}, ${slot.owner.flatNumber}`,
+    "",
+    "Book it here (RMV residents):",
+    url,
+  ]
+    .filter((l) => l !== null)
+    .join("\n");
+}
+
 function fmtRange(startIso: string, endIso: string): string {
   const s = new Date(startIso), e = new Date(endIso);
   const sameDay = s.toDateString() === e.toDateString();
