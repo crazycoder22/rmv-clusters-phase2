@@ -25,7 +25,7 @@ import clsx from "clsx";
 import { apiFetch } from "../lib/api";
 import { API_BASE_URL } from "../config";
 import { useAuth } from "../auth/AuthProvider";
-import { type FoodKind, KIND_LABELS, formatUnitPrice, unitLabel } from "../lib/market";
+import { type FoodKind, KIND_LABELS, formatUnitPrice, unitLabel, waNumber } from "../lib/market";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -334,10 +334,20 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
       .map((d) => `• ${d.name} — ${formatUnitPrice(d.price, d.unit)}${d.soldOut ? " (sold out)" : ""}`)
       .join("\n");
     const heading = isMarket ? "On offer:" : "Menu:";
-    const cta = "💬 Reply to this message to order, or tap the link to order online (RMV residents):";
-    const text = `${headline}\n${orderBy}${pickup}\n${heading}\n${itemLines}\n\n${cta}`;
+    const cta = "🛒 Tap the link to order online (RMV residents):";
+    // Tap-to-WhatsApp link straight to the chef, with a pre-filled message.
+    const wa = waNumber(menu.chef.phone);
+    const firstName = menu.chef.name.split(" ")[0];
+    const dm = wa
+      ? `\n💬 Or WhatsApp ${firstName} to order: https://wa.me/${wa}?text=${encodeURIComponent(
+          `Hi ${firstName}! I'd like to order from your ${L.stall} "${menu.title}".`
+        )}`
+      : "";
+    // url + dm are embedded in `text` (so both links render in WhatsApp); don't
+    // also pass `url` separately or the order link would appear twice.
+    const text = `${headline}\n${orderBy}${pickup}\n${heading}\n${itemLines}\n\n${cta}\n${url}${dm}`;
     try {
-      await Share.share({ title: menu.title, text, url, dialogTitle: `Share ${L.listing}` });
+      await Share.share({ title: menu.title, text, dialogTitle: `Share ${L.listing}` });
     } catch {
       // user cancelled or share sheet unavailable — no-op
     }

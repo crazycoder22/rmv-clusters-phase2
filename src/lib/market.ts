@@ -94,3 +94,17 @@ export const KIND_LABELS: Record<
 export function asKind(raw: unknown): FoodKind {
   return raw === "MARKET" ? "MARKET" : "KITCHEN";
 }
+
+/**
+ * Normalise an Indian phone number to wa.me digits (with country code), so a
+ * `https://wa.me/<n>` link opens a WhatsApp chat. Returns null if unusable.
+ */
+export function waNumber(phone: string | null | undefined): string | null {
+  if (!phone) return null;
+  const d = phone.replace(/\D/g, "");
+  if (d.length === 10) return "91" + d;                       // bare 10-digit
+  if (d.length === 11 && d.startsWith("0")) return "91" + d.slice(1); // 0-prefixed
+  if (d.length === 12 && d.startsWith("91")) return d;        // already 91XXXXXXXXXX
+  if (d.length >= 11 && d.length <= 13) return d;             // some other country code
+  return null;
+}

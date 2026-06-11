@@ -88,8 +88,10 @@ export async function GET(
       name: menu.chef.name,
       block: menu.chef.block,
       flatNumber: menu.chef.flatNumber,
-      // Phone only exposed to buyers so they can coordinate pickup/payment.
-      phone: canManage ? null : menu.chef.phone,
+      // Buyers see the chef's phone to coordinate; the owner/co-manager also
+      // gets it so the "Share" message can embed a tap-to-WhatsApp link to the
+      // chef (the chef is choosing to publish their own number to take orders).
+      phone: menu.chef.phone,
       isMe: isOwner,
       following,
     },

@@ -23,7 +23,7 @@ import {
   UserPlus,
   X,
 } from "lucide-react";
-import { type FoodKind, KIND_LABELS, formatUnitPrice, unitLabel } from "@/lib/market";
+import { type FoodKind, KIND_LABELS, formatUnitPrice, unitLabel, waNumber } from "@/lib/market";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -293,6 +293,14 @@ export default function MenuDetail({ section = "KITCHEN" }: { section?: FoodKind
     const itemLines = menu.items.map(
       (d) => `• ${d.name} — ${formatUnitPrice(d.price, d.unit)}${d.soldOut ? " (sold out)" : ""}`
     );
+    // Tap-to-WhatsApp link straight to the chef, with a pre-filled message.
+    const wa = waNumber(menu.chef.phone);
+    const firstName = menu.chef.name.split(" ")[0];
+    const dmLine = wa
+      ? `💬 Or WhatsApp ${firstName} to order: https://wa.me/${wa}?text=${encodeURIComponent(
+          `Hi ${firstName}! I'd like to order from your ${L.stall} "${menu.title}".`
+        )}`
+      : null;
     const text = [
       headline,
       menu.orderByAt ? `🕑 Order by ${fmtDateTime(menu.orderByAt)}` : null,
@@ -301,8 +309,9 @@ export default function MenuDetail({ section = "KITCHEN" }: { section?: FoodKind
       isMarket ? "On offer:" : "Menu:",
       ...itemLines,
       "",
-      "💬 Reply to this message to order, or tap the link to order online (RMV residents):",
+      "🛒 Tap the link to order online (RMV residents):",
       url,
+      dmLine,
     ]
       .filter((l) => l !== null)
       .join("\n");
