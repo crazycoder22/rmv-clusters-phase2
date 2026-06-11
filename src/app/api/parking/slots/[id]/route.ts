@@ -66,6 +66,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     active: slot.active,
     payInfo: slot.payInfo,
     payQrUrl: slot.payQrUrl,
+    photoUrl: slot.photoUrl,
     owner: {
       id: slot.owner.id,
       name: slot.owner.name,
@@ -105,6 +106,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if ("description" in body) data.description = typeof body.description === "string" ? body.description.trim() || null : null;
   if ("payInfo" in body) data.payInfo = typeof body.payInfo === "string" ? body.payInfo.trim() || null : null;
   if ("payQrUrl" in body) data.payQrUrl = typeof body.payQrUrl === "string" ? body.payQrUrl.trim() || null : null;
+  if ("photoUrl" in body) data.photoUrl = typeof body.photoUrl === "string" ? body.photoUrl.trim() || null : null;
   if (typeof body.active === "boolean") data.active = body.active;
   if ("hourlyRate" in body) {
     const rc = validateRate(body.hourlyRate);

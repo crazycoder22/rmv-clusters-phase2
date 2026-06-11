@@ -9,7 +9,7 @@ const MAX_RATE = 1000;
 
 interface SlotDetail {
   label: string; location: string | null; description: string | null;
-  hourlyRate: number; monthlyRate: number | null; payInfo: string | null; payQrUrl: string | null; active: boolean;
+  hourlyRate: number; monthlyRate: number | null; payInfo: string | null; payQrUrl: string | null; photoUrl: string | null; active: boolean;
   owner: { isMe: boolean };
 }
 
@@ -26,12 +26,15 @@ export default function ParkingSlotEdit() {
   const [monthlyRate, setMonthlyRate] = useState("");
   const [payInfo, setPayInfo] = useState("");
   const [payQrUrl, setPayQrUrl] = useState<string | null>(null);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [active, setActive] = useState(true);
   const [loading, setLoading] = useState(editing);
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [photoUploading, setPhotoUploading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const photoRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -48,6 +51,7 @@ export default function ParkingSlotEdit() {
           setMonthlyRate(d.monthlyRate != null ? String(d.monthlyRate) : "");
           setPayInfo(d.payInfo ?? "");
           setPayQrUrl(d.payQrUrl ?? null);
+          setPhotoUrl(d.photoUrl ?? null);
           setActive(d.active);
         }
       } finally {
@@ -77,6 +81,27 @@ export default function ParkingSlotEdit() {
     }
   }
 
+  async function uploadPhoto(file: File) {
+    setPhotoUploading(true);
+    setErr(null);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch(`${API_BASE_URL}/api/upload`, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        body: fd,
+      });
+      const data = await res.json().catch(() => null);
+      if (res.ok && data?.url) setPhotoUrl(data.url);
+      else setErr("Could not upload image");
+    } catch {
+      setErr("Could not upload image");
+    } finally {
+      setPhotoUploading(false);
+    }
+  }
+
   async function submit() {
     setErr(null);
     if (!label.trim()) { setErr("Give the slot a name/number"); return; }
@@ -92,6 +117,7 @@ export default function ParkingSlotEdit() {
         monthlyRate: monthlyRate.trim() === "" ? null : parseFloat(monthlyRate),
         payInfo: payInfo.trim() || null,
         payQrUrl,
+        photoUrl,
         active,
       };
       const res = await apiFetch(editing ? `/api/parking/slots/${id}` : "/api/parking/slots", {
@@ -141,6 +167,21 @@ export default function ParkingSlotEdit() {
         <Field label="Notes" optional>
           <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="compact cars only, covered" rows={2} className={inputCls} />
         </Field>
+
+        <Field label="Slot photo" optional>
+          {photoUrl ? (
+            <div className="relative inline-block">
+              <img src={photoUrl} alt="Parking slot" className="h-40 w-full max-w-xs rounded-lg border border-slate-700 object-cover" />
+              <button onClick={() => setPhotoUrl(null)} className="absolute -right-2 -top-2 rounded-full bg-slate-700 p-1 text-white"><X size={12} /></button>
+            </div>
+          ) : (
+            <button onClick={() => photoRef.current?.click()} disabled={photoUploading} className="flex items-center gap-1.5 rounded-lg border border-dashed border-slate-700 px-4 py-2 text-sm text-slate-400">
+              <Upload size={15} /> {photoUploading ? "Uploading…" : "Upload slot photo"}
+            </button>
+          )}
+          <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void uploadPhoto(f); e.target.value = ""; }} />
+        </Field>
+        <p className="-mt-2 text-[11px] text-slate-500">A photo of the spot helps bookers recognise it.</p>
 
         <div className="space-y-4 border-t border-slate-800 pt-2">
           <Field label="Your payment handle (UPI ID / phone)" optional>

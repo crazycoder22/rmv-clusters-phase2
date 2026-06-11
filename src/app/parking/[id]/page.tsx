@@ -23,7 +23,7 @@ interface Booking {
 }
 interface SlotDetail {
   id: string; label: string; location: string | null; description: string | null;
-  hourlyRate: number; monthlyRate: number | null; active: boolean; payInfo: string | null; payQrUrl: string | null;
+  hourlyRate: number; monthlyRate: number | null; active: boolean; payInfo: string | null; payQrUrl: string | null; photoUrl: string | null;
   owner: { id: string; name: string; block: number | null; flatNumber: string; isMe: boolean };
   busy: BusyWindow[];
   myBookings: Booking[];
@@ -74,6 +74,10 @@ export default function ParkingSlotPage() {
           </div>
         </div>
         {slot.description && <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">{slot.description}</p>}
+        {slot.photoUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={slot.photoUrl} alt={`Parking slot ${slot.label}`} className="mt-3 w-full max-h-72 object-cover rounded-lg border border-gray-200 dark:border-gray-700" />
+        )}
         {!slot.owner.isMe && <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Owner: {slot.owner.name} · Block {slot.owner.block ?? "—"}, {slot.owner.flatNumber}</p>}
 
         {/* Busy windows */}

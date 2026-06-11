@@ -14,6 +14,7 @@ interface SlotCard {
   hourlyRate: number;
   monthlyRate: number | null;
   active: boolean;
+  photoUrl: string | null;
   hasPayInfo: boolean;
   owner: { id: string; name: string; block: number | null; flatNumber: string; isMe: boolean };
   busyNow: boolean;
@@ -202,7 +203,9 @@ function TabBtn({ active, onClick, children }: { active: boolean; onClick: () =>
 
 function SlotRow({ slot, ownerView, onClick }: { slot: SlotCard; ownerView?: boolean; onClick: () => void }) {
   return (
-    <button onClick={onClick} className="w-full rounded-2xl border border-slate-700 bg-slate-800/60 p-3 text-left active:bg-slate-800">
+    <button onClick={onClick} className="w-full overflow-hidden rounded-2xl border border-slate-700 bg-slate-800/60 text-left active:bg-slate-800">
+      {slot.photoUrl && <img src={slot.photoUrl} alt="" className="h-28 w-full object-cover" />}
+      <div className="p-3">
       <div className="flex items-start justify-between gap-2">
         <h3 className="text-sm font-semibold text-white">{slot.label}</h3>
         {ownerView ? (
@@ -221,6 +224,7 @@ function SlotRow({ slot, ownerView, onClick }: { slot: SlotCard; ownerView?: boo
         {slot.monthlyRate != null && <span className="flex items-center text-[11px] font-medium text-purple-300"><IndianRupee size={10} />{slot.monthlyRate}/mo</span>}
         {!ownerView && <span className="text-[11px] text-slate-500">{slot.owner.name} · B{slot.owner.block ?? "—"}</span>}
         {ownerView && slot.upcomingCount > 0 && <span className="text-[11px] text-blue-400">{slot.upcomingCount} upcoming</span>}
+      </div>
       </div>
     </button>
   );

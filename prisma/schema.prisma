@@ -1863,6 +1863,7 @@ model ParkingSlot {
   monthlyRate Float?                       // ₹ per month (optional add-on; null = monthly not offered)
   payInfo     String?                      // owner's UPI id / phone for payment
   payQrUrl    String?                      // uploaded UPI QR image
+  photoUrl    String?                      // uploaded photo of the slot (helps bookers identify it)
   active      Boolean  @default(true)      // owner can pause the listing
   bookings    ParkingBooking[]
   blocks      ParkingBlock[]

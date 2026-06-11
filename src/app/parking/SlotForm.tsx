@@ -19,12 +19,15 @@ export default function SlotForm({ slotId }: { slotId?: string }) {
   const [monthlyRate, setMonthlyRate] = useState("");
   const [payInfo, setPayInfo] = useState("");
   const [payQrUrl, setPayQrUrl] = useState<string | null>(null);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [active, setActive] = useState(true);
   const [loading, setLoading] = useState(editing);
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [photoUploading, setPhotoUploading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const photoRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { if (status === "unauthenticated") router.push("/login"); }, [status, router]);
 
@@ -43,6 +46,7 @@ export default function SlotForm({ slotId }: { slotId?: string }) {
           setMonthlyRate(d.monthlyRate != null ? String(d.monthlyRate) : "");
           setPayInfo(d.payInfo ?? "");
           setPayQrUrl(d.payQrUrl ?? null);
+          setPhotoUrl(d.photoUrl ?? null);
           setActive(d.active);
         }
       } finally { setLoading(false); }
@@ -62,6 +66,19 @@ export default function SlotForm({ slotId }: { slotId?: string }) {
     } finally { setUploading(false); }
   }
 
+  async function uploadPhoto(file: File) {
+    setPhotoUploading(true);
+    setErr(null);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
+      const d = await res.json().catch(() => null);
+      if (res.ok && d?.url) setPhotoUrl(d.url);
+      else setErr("Could not upload image");
+    } finally { setPhotoUploading(false); }
+  }
+
   async function submit() {
     setErr(null);
     if (!label.trim()) { setErr("Give the slot a name/number"); return; }
@@ -78,6 +95,7 @@ export default function SlotForm({ slotId }: { slotId?: string }) {
         monthlyRate: monthlyRate.trim() === "" ? null : parseFloat(monthlyRate),
         payInfo: payInfo.trim() || null,
         payQrUrl,
+        photoUrl,
         active,
       };
       const res = editing
@@ -122,6 +140,22 @@ export default function SlotForm({ slotId }: { slotId?: string }) {
           <Field label="Notes" optional>
             <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="e.g. compact cars only, covered" rows={2} className={inputCls} />
           </Field>
+
+          <Field label="Slot photo" optional>
+            {photoUrl ? (
+              <div className="relative inline-block">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={photoUrl} alt="Parking slot" className="h-40 w-full max-w-xs object-cover bg-gray-100 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700" />
+                <button type="button" onClick={() => setPhotoUrl(null)} className="absolute -top-2 -right-2 bg-gray-900 text-white rounded-full p-1"><X size={12} /></button>
+              </div>
+            ) : (
+              <button type="button" onClick={() => photoRef.current?.click()} disabled={photoUploading} className="inline-flex items-center gap-1.5 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                <Upload size={15} /> {photoUploading ? "Uploading…" : "Upload slot photo"}
+              </button>
+            )}
+            <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void uploadPhoto(f); }} />
+          </Field>
+          <p className="-mt-2 text-xs text-gray-400 dark:text-gray-500">A photo of the spot helps bookers recognise it.</p>
 
           <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
             <Field label="Your payment handle (UPI ID / phone)" optional>

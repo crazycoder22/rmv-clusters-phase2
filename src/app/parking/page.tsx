@@ -14,6 +14,7 @@ interface SlotCard {
   hourlyRate: number;
   monthlyRate: number | null;
   active: boolean;
+  photoUrl: string | null;
   hasPayInfo: boolean;
   owner: { id: string; name: string; block: number | null; flatNumber: string; isMe: boolean };
   busyNow: boolean;
@@ -204,7 +205,12 @@ function TabBtn({ active, onClick, icon: Icon, children }: { active: boolean; on
 
 function SlotCardView({ slot, ownerView }: { slot: SlotCard; ownerView?: boolean }) {
   return (
-    <Link href={`/parking/${slot.id}`} className="block bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition">
+    <Link href={`/parking/${slot.id}`} className="block bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition">
+      {slot.photoUrl && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={slot.photoUrl} alt="" className="w-full h-32 object-cover" />
+      )}
+      <div className="p-4">
       <div className="flex items-start justify-between gap-2">
         <h3 className="font-semibold text-gray-900 dark:text-gray-100">{slot.label}</h3>
         {ownerView ? (
@@ -225,6 +231,7 @@ function SlotCardView({ slot, ownerView }: { slot: SlotCard; ownerView?: boolean
         {slot.monthlyRate != null && <span className="inline-flex items-center text-xs font-medium text-purple-600 dark:text-purple-400"><IndianRupee size={11} />{slot.monthlyRate}/mo</span>}
         {!ownerView && <span className="text-xs text-gray-400 dark:text-gray-500">by {slot.owner.name} · Block {slot.owner.block ?? "—"}</span>}
         {ownerView && slot.upcomingCount > 0 && <span className="text-xs text-blue-600 font-medium">{slot.upcomingCount} upcoming</span>}
+      </div>
       </div>
     </Link>
   );

@@ -44,6 +44,7 @@ export async function GET(request: Request) {
       hourlyRate: s.hourlyRate,
       monthlyRate: s.monthlyRate,
       active: s.active,
+      photoUrl: s.photoUrl,
       hasPayInfo: !!(s.payInfo || s.payQrUrl),
       owner: {
         id: s.owner.id,
@@ -108,6 +109,7 @@ export async function POST(request: Request) {
       monthlyRate,
       payInfo: typeof body.payInfo === "string" ? body.payInfo.trim() || null : null,
       payQrUrl: typeof body.payQrUrl === "string" ? body.payQrUrl.trim() || null : null,
+      photoUrl: typeof body.photoUrl === "string" ? body.photoUrl.trim() || null : null,
       active: body.active === false ? false : true,
     },
   });
