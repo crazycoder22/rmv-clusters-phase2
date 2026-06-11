@@ -23,6 +23,7 @@
 
 import apn from "apn";
 import { prisma } from "@/lib/prisma";
+import { sendPushFcm } from "@/lib/push-fcm";
 
 let cachedProvider: apn.Provider | null = null;
 let cachedProviderEnv: string | null = null;
@@ -187,17 +188,52 @@ export async function sendPushToResidents(
     ? { residentId: { in: residentIds } }
     : { resident: { isApproved: true } };
 
-  const tokens = await prisma.deviceToken.findMany({
+  // Fetch token + platform so we can dispatch each device through the right
+  // transport: iOS via APNs, Android via FCM. (Web tokens currently nowhere
+  // — would need Web Push setup; ignored here.)
+  const rows = await prisma.deviceToken.findMany({
     where,
-    select: { token: true },
+    select: { token: true, platform: true },
   });
 
-  if (tokens.length === 0) {
+  if (rows.length === 0) {
     return { sent: 0, failed: 0, invalidTokens: [] };
   }
 
-  return sendPush(
-    tokens.map((t) => t.token),
-    opts
-  );
+  const iosTokens: string[] = [];
+  const androidTokens: string[] = [];
+  for (const r of rows) {
+    if (r.platform === "android") androidTokens.push(r.token);
+    else if (r.platform === "ios") iosTokens.push(r.token);
+    // Other platforms (e.g. "web") fall through — no transport wired yet.
+  }
+
+  // Fire both transports in parallel — each silently no-ops if its env
+  // vars aren't set, so an APNs-only deploy still works unchanged.
+  const [iosRes, androidRes] = await Promise.all([
+    iosTokens.length > 0
+      ? sendPush(iosTokens, opts)
+      : Promise.resolve({ sent: 0, failed: 0, invalidTokens: [] } as PushResult),
+    androidTokens.length > 0
+      ? sendPushFcm(androidTokens, opts)
+      : Promise.resolve({ sent: 0, failed: 0, invalidTokens: [] }),
+  ]);
+
+  // Prune any Android tokens FCM reported as dead — APNs pruning already
+  // happens inside sendPush().
+  if (androidRes.invalidTokens.length > 0) {
+    try {
+      await prisma.deviceToken.deleteMany({
+        where: { token: { in: androidRes.invalidTokens } },
+      });
+    } catch (err) {
+      console.error("[push] failed to prune invalid FCM tokens:", err);
+    }
+  }
+
+  return {
+    sent: iosRes.sent + androidRes.sent,
+    failed: iosRes.failed + androidRes.failed,
+    invalidTokens: [...iosRes.invalidTokens, ...androidRes.invalidTokens],
+  };
 }

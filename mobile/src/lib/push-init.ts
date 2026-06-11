@@ -35,13 +35,12 @@ export async function initPushNotifications(
   navigate: NavigateFn
 ): Promise<void> {
   if (!Capacitor.isNativePlatform()) return; // web: bail
-  // Android requires Firebase (google-services.json + FCM setup) which isn't
-  // wired yet. Calling PushNotifications.register() without Firebase crashes
-  // the app at startup. Skip Android until that's set up properly — the rest
-  // of the app (sign-in, sticker form, etc.) continues to work without push.
-  if (Capacitor.getPlatform() !== "ios") return;
   if (registered) return;
   registered = true;
+  // Track which platform we're on once — it's stable for the lifetime of
+  // the process. iOS goes to APNs, Android to FCM (Firebase) — backend
+  // looks at this string when deciding which transport to use.
+  const platform = Capacitor.getPlatform(); // "ios" | "android"
 
   // Install event listeners FIRST. If we register before they're wired up,
   // we'd miss the initial 'registration' callback on a cold start.
@@ -57,7 +56,7 @@ export async function initPushNotifications(
         await apiFetch("/api/push/register", {
           method: "POST",
           token: jwt,
-          body: JSON.stringify({ token: value, platform: "ios" }),
+          body: JSON.stringify({ token: value, platform }),
         });
       } catch (err) {
         console.warn("[push] failed to upload device token", err);
@@ -158,7 +157,6 @@ export async function unregisterPushNotifications(
   jwt: string | null
 ): Promise<void> {
   if (!Capacitor.isNativePlatform()) return;
-  if (Capacitor.getPlatform() !== "ios") return; // Android push not wired
   if (!lastRegisteredToken) return;
   try {
     await apiFetch(
