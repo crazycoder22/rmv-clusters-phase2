@@ -9,7 +9,7 @@ const MAX_RATE = 1000;
 
 interface SlotDetail {
   label: string; location: string | null; description: string | null;
-  hourlyRate: number; payInfo: string | null; payQrUrl: string | null; active: boolean;
+  hourlyRate: number; monthlyRate: number | null; payInfo: string | null; payQrUrl: string | null; active: boolean;
   owner: { isMe: boolean };
 }
 
@@ -23,6 +23,7 @@ export default function ParkingSlotEdit() {
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
   const [hourlyRate, setHourlyRate] = useState("");
+  const [monthlyRate, setMonthlyRate] = useState("");
   const [payInfo, setPayInfo] = useState("");
   const [payQrUrl, setPayQrUrl] = useState<string | null>(null);
   const [active, setActive] = useState(true);
@@ -44,6 +45,7 @@ export default function ParkingSlotEdit() {
           setLocation(d.location ?? "");
           setDescription(d.description ?? "");
           setHourlyRate(String(d.hourlyRate ?? ""));
+          setMonthlyRate(d.monthlyRate != null ? String(d.monthlyRate) : "");
           setPayInfo(d.payInfo ?? "");
           setPayQrUrl(d.payQrUrl ?? null);
           setActive(d.active);
@@ -87,6 +89,7 @@ export default function ParkingSlotEdit() {
         location: location.trim() || null,
         description: description.trim() || null,
         hourlyRate: rate,
+        monthlyRate: monthlyRate.trim() === "" ? null : parseFloat(monthlyRate),
         payInfo: payInfo.trim() || null,
         payQrUrl,
         active,
@@ -120,12 +123,21 @@ export default function ParkingSlotEdit() {
         <Field label="Location / directions" optional>
           <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Near lift lobby B" className={inputCls} />
         </Field>
-        <Field label="Hourly rate">
-          <div className="relative">
-            <IndianRupee size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-            <input type="number" inputMode="decimal" value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} placeholder="30" className={`${inputCls} pl-8`} />
-          </div>
-        </Field>
+        <div className="grid grid-cols-2 gap-2">
+          <Field label="Hourly rate">
+            <div className="relative">
+              <IndianRupee size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+              <input type="number" inputMode="decimal" value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} placeholder="30" className={`${inputCls} pl-8`} />
+            </div>
+          </Field>
+          <Field label="Monthly rate" optional>
+            <div className="relative">
+              <IndianRupee size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+              <input type="number" inputMode="decimal" value={monthlyRate} onChange={(e) => setMonthlyRate(e.target.value)} placeholder="3000" className={`${inputCls} pl-8`} />
+            </div>
+          </Field>
+        </div>
+        <p className="-mt-2 text-[11px] text-slate-500">Add a monthly rate to also offer this slot for monthly rental.</p>
         <Field label="Notes" optional>
           <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="compact cars only, covered" rows={2} className={inputCls} />
         </Field>

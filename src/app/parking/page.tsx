@@ -12,11 +12,13 @@ interface SlotCard {
   location: string | null;
   description: string | null;
   hourlyRate: number;
+  monthlyRate: number | null;
   active: boolean;
   hasPayInfo: boolean;
   owner: { id: string; name: string; block: number | null; flatNumber: string; isMe: boolean };
   busyNow: boolean;
   busyUntil: string | null;
+  busyOngoing?: boolean;
   upcomingCount: number;
 }
 interface BookerBooking {
@@ -209,6 +211,8 @@ function SlotCardView({ slot, ownerView }: { slot: SlotCard; ownerView?: boolean
           <span className={`shrink-0 text-xs font-semibold rounded-full px-2 py-0.5 ${slot.active ? "text-green-700 bg-green-100" : "text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700"}`}>
             {slot.active ? "Listed" : "Paused"}
           </span>
+        ) : slot.busyOngoing ? (
+          <span className="shrink-0 text-xs font-semibold text-purple-700 bg-purple-100 dark:bg-purple-900/30 dark:text-purple-300 rounded-full px-2 py-0.5">Rented monthly</span>
         ) : slot.busyNow ? (
           <span className="shrink-0 text-xs font-semibold text-amber-700 bg-amber-100 rounded-full px-2 py-0.5">Busy now</span>
         ) : (
@@ -218,6 +222,7 @@ function SlotCardView({ slot, ownerView }: { slot: SlotCard; ownerView?: boolean
       {slot.location && <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 inline-flex items-center gap-1"><MapPin size={12} /> {slot.location}</p>}
       <div className="flex items-center gap-3 mt-2 text-sm">
         <span className="inline-flex items-center font-semibold text-gray-900 dark:text-gray-100"><IndianRupee size={13} />{slot.hourlyRate}/hr</span>
+        {slot.monthlyRate != null && <span className="inline-flex items-center text-xs font-medium text-purple-600 dark:text-purple-400"><IndianRupee size={11} />{slot.monthlyRate}/mo</span>}
         {!ownerView && <span className="text-xs text-gray-400 dark:text-gray-500">by {slot.owner.name} · Block {slot.owner.block ?? "—"}</span>}
         {ownerView && slot.upcomingCount > 0 && <span className="text-xs text-blue-600 font-medium">{slot.upcomingCount} upcoming</span>}
       </div>

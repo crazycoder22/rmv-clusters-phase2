@@ -10,19 +10,20 @@ import {
   ArrowLeft, MapPin, IndianRupee, Clock, Car, Pencil, Trash2,
   Download, Ban, Info, Printer,
 } from "lucide-react";
-import { computePrice, formatDuration, MIN_BOOKING_MINUTES } from "@/lib/parking";
+import { computePrice, formatDuration, monthsCeilYmd, MIN_BOOKING_MINUTES } from "@/lib/parking";
 
-interface BusyWindow { startAt: string; endAt: string; kind: "booking" | "block" }
+interface BusyWindow { startAt: string; endAt: string; kind: "booking" | "block"; mode?: string; ongoing?: boolean }
 interface Booking {
   id: string; startAt: string; endAt: string; status: string;
+  mode?: string; openEnded?: boolean; monthlyRate?: number | null;
   vehicleNumber: string | null; note: string | null;
-  totalAmount: number; hourlyRate: number;
+  totalAmount: number; hourlyRate: number | null;
   bookerPaid: boolean; ownerConfirmedPaid: boolean;
   booker: { id: string; name: string; block: number | null; flatNumber: string } | null;
 }
 interface SlotDetail {
   id: string; label: string; location: string | null; description: string | null;
-  hourlyRate: number; active: boolean; payInfo: string | null; payQrUrl: string | null;
+  hourlyRate: number; monthlyRate: number | null; active: boolean; payInfo: string | null; payQrUrl: string | null;
   owner: { id: string; name: string; block: number | null; flatNumber: string; isMe: boolean };
   busy: BusyWindow[];
   myBookings: Booking[];
@@ -65,7 +66,12 @@ export default function ParkingSlotPage() {
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2"><Car className="text-blue-600" /> {slot.label}</h1>
             {slot.location && <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 inline-flex items-center gap-1"><MapPin size={13} /> {slot.location}</p>}
           </div>
-          <span className="inline-flex items-center font-bold text-gray-900 dark:text-gray-100 text-lg"><IndianRupee size={16} />{slot.hourlyRate}<span className="text-sm font-normal text-gray-400 dark:text-gray-500">/hr</span></span>
+          <div className="text-right">
+            <span className="inline-flex items-center font-bold text-gray-900 dark:text-gray-100 text-lg"><IndianRupee size={16} />{slot.hourlyRate}<span className="text-sm font-normal text-gray-400 dark:text-gray-500">/hr</span></span>
+            {slot.monthlyRate != null && (
+              <span className="block text-sm font-semibold text-gray-700 dark:text-gray-300">₹{slot.monthlyRate}<span className="font-normal text-gray-400 dark:text-gray-500">/month</span></span>
+            )}
+          </div>
         </div>
         {slot.description && <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">{slot.description}</p>}
         {!slot.owner.isMe && <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Owner: {slot.owner.name} · Block {slot.owner.block ?? "—"}, {slot.owner.flatNumber}</p>}
@@ -78,7 +84,8 @@ export default function ParkingSlotPage() {
               {slot.busy.map((w, i) => (
                 <div key={i} className="flex items-center gap-2 text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2">
                   <Clock size={13} className="text-gray-400 dark:text-gray-500" />
-                  <span className="text-gray-700 dark:text-gray-300">{fmtRange(w.startAt, w.endAt)}</span>
+                  <span className="text-gray-700 dark:text-gray-300">{fmtBusy(w)}</span>
+                  {w.mode === "MONTHLY" && <span className="text-xs font-medium text-purple-600 dark:text-purple-400">monthly</span>}
                   {w.kind === "block" && <span className="text-xs text-gray-400 dark:text-gray-500">(owner)</span>}
                 </div>
               ))}
@@ -99,8 +106,12 @@ export default function ParkingSlotPage() {
 // ── Booker view ──────────────────────────────────────────────────────────────
 
 function BookerPanel({ slot, onBooked }: { slot: SlotDetail; onBooked: () => void }) {
+  const canMonthly = slot.monthlyRate != null;
+  const [mode, setMode] = useState<"HOURLY" | "MONTHLY">("HOURLY");
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
+  const [mStart, setMStart] = useState(""); // monthly start date (YYYY-MM-DD)
+  const [mEnd, setMEnd] = useState(""); // monthly end date (optional)
   const [vehicle, setVehicle] = useState("");
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
@@ -114,20 +125,29 @@ function BookerPanel({ slot, onBooked }: { slot: SlotDetail; onBooked: () => voi
     return { amount: computePrice(slot.hourlyRate, s, e), dur: formatDuration(s, e) };
   }, [start, end, slot.hourlyRate]);
 
+  // Monthly summary label.
+  const monthly = useMemo(() => {
+    if (!canMonthly || !mStart) return null;
+    if (mEnd && mEnd < mStart) return { label: "End date must be after the start", invalid: true };
+    const months = mEnd ? monthsCeilYmd(mStart, mEnd) : null;
+    return {
+      label: mEnd ? `₹${slot.monthlyRate}/month · ${months} month${months !== 1 ? "s" : ""}` : `₹${slot.monthlyRate}/month · ongoing`,
+      invalid: false,
+    };
+  }, [canMonthly, mStart, mEnd, slot.monthlyRate]);
+
   async function book() {
     setErr(null);
-    if (!start || !end) { setErr("Pick a start and end time"); return; }
     setBusy(true);
     try {
+      const body =
+        mode === "MONTHLY"
+          ? { mode: "MONTHLY", startAt: mStart, endAt: mEnd || undefined, vehicleNumber: vehicle.trim() || null, note: note.trim() || null }
+          : { startAt: start ? new Date(start).toISOString() : "", endAt: end ? new Date(end).toISOString() : "", vehicleNumber: vehicle.trim() || null, note: note.trim() || null };
       const res = await fetch(`/api/parking/slots/${slot.id}/bookings`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          startAt: new Date(start).toISOString(),
-          endAt: new Date(end).toISOString(),
-          vehicleNumber: vehicle.trim() || null,
-          note: note.trim() || null,
-        }),
+        body: JSON.stringify(body),
       });
       const d = await res.json().catch(() => null);
       if (!res.ok) { setErr(d?.error ?? "Could not book"); return; }
@@ -137,6 +157,7 @@ function BookerPanel({ slot, onBooked }: { slot: SlotDetail; onBooked: () => voi
   }
 
   const activeBooking = slot.myBookings.find((b) => b.status === "BOOKED");
+  const canSubmit = mode === "MONTHLY" ? !!mStart && !monthly?.invalid : !!price;
 
   return (
     <div className="mt-6">
@@ -144,7 +165,7 @@ function BookerPanel({ slot, onBooked }: { slot: SlotDetail; onBooked: () => voi
       {activeBooking && (
         <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 rounded-lg p-4 mb-5">
           <p className="font-semibold text-green-800">You have this slot booked</p>
-          <p className="text-sm text-gray-700 dark:text-gray-300 mt-0.5">{fmtRange(activeBooking.startAt, activeBooking.endAt)} · ₹{activeBooking.totalAmount}</p>
+          <p className="text-sm text-gray-700 dark:text-gray-300 mt-0.5">{bookingLine(activeBooking)}</p>
           <PayBox slot={slot} />
         </div>
       )}
@@ -160,16 +181,43 @@ function BookerPanel({ slot, onBooked }: { slot: SlotDetail; onBooked: () => voi
       ) : (
         <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5 space-y-4">
           <h2 className="font-semibold text-gray-900 dark:text-gray-100">Book this slot</h2>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">From</label>
-              <input type="datetime-local" value={start} onChange={(e) => setStart(e.target.value)} className={inputCls} />
+
+          {/* Hourly / Monthly toggle (monthly only if offered) */}
+          {canMonthly && (
+            <div className="flex rounded-lg bg-gray-100 dark:bg-gray-700 p-0.5 text-sm">
+              {(["HOURLY", "MONTHLY"] as const).map((m) => (
+                <button key={m} type="button" onClick={() => setMode(m)}
+                  className={`flex-1 rounded-md py-1.5 font-medium ${mode === m ? "bg-white dark:bg-gray-800 shadow text-gray-900 dark:text-gray-100" : "text-gray-500 dark:text-gray-400"}`}>
+                  {m === "HOURLY" ? "Hourly" : "Monthly"}
+                </button>
+              ))}
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Until</label>
-              <input type="datetime-local" value={end} onChange={(e) => setEnd(e.target.value)} className={inputCls} />
+          )}
+
+          {mode === "HOURLY" ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="min-w-0">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">From</label>
+                <input type="datetime-local" value={start} onChange={(e) => setStart(e.target.value)} className={`${inputCls} min-w-0`} />
+              </div>
+              <div className="min-w-0">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Until</label>
+                <input type="datetime-local" value={end} onChange={(e) => setEnd(e.target.value)} className={`${inputCls} min-w-0`} />
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="min-w-0">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Start date</label>
+                <input type="date" value={mStart} onChange={(e) => setMStart(e.target.value)} className={`${inputCls} min-w-0`} />
+              </div>
+              <div className="min-w-0">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">End date <span className="text-gray-400 dark:text-gray-500 font-normal">(optional)</span></label>
+                <input type="date" value={mEnd} min={mStart || undefined} onChange={(e) => setMEnd(e.target.value)} className={`${inputCls} min-w-0`} />
+              </div>
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Vehicle number <span className="text-gray-400 dark:text-gray-500 font-normal">(optional)</span></label>
             <input value={vehicle} onChange={(e) => setVehicle(e.target.value.toUpperCase())} placeholder="KA 01 AB 1234" className={inputCls} />
@@ -179,16 +227,25 @@ function BookerPanel({ slot, onBooked }: { slot: SlotDetail; onBooked: () => voi
             <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. visitor for flat 302" className={inputCls} />
           </div>
 
-          {price && (
+          {mode === "HOURLY" && price && (
             <div className="flex items-center justify-between bg-blue-50 dark:bg-blue-900/30 border border-blue-100 rounded-lg px-4 py-2.5">
               <span className="text-sm text-gray-600 dark:text-gray-300">{price.dur} × ₹{slot.hourlyRate}/hr</span>
               <span className="font-bold text-gray-900 dark:text-gray-100">₹{price.amount}</span>
             </div>
           )}
-          <p className="text-xs text-gray-400 dark:text-gray-500">Minimum {MIN_BOOKING_MINUTES} minutes. Payment is offline — you&apos;ll see the owner&apos;s payment details after booking.</p>
+          {mode === "MONTHLY" && monthly && (
+            <div className={`rounded-lg px-4 py-2.5 text-sm ${monthly.invalid ? "bg-red-50 dark:bg-red-900/30 text-red-700" : "bg-purple-50 dark:bg-purple-900/20 text-purple-800 dark:text-purple-300"}`}>
+              {monthly.label}
+              {!monthly.invalid && !mEnd && <span className="block text-xs mt-0.5 text-gray-500 dark:text-gray-400">No end date → reserves the slot until you cancel.</span>}
+            </div>
+          )}
+
+          <p className="text-xs text-gray-400 dark:text-gray-500">
+            {mode === "HOURLY" ? `Minimum ${MIN_BOOKING_MINUTES} minutes. ` : ""}Payment is offline — you&apos;ll see the owner&apos;s payment details after booking.
+          </p>
           {err && <p className="bg-red-50 dark:bg-red-900/30 border border-red-200 text-red-700 rounded-lg px-3 py-2 text-sm">{err}</p>}
-          <button type="button" onClick={book} disabled={busy || !price} className="w-full bg-blue-600 text-white rounded-lg py-2.5 font-medium hover:bg-blue-700 disabled:opacity-50">
-            {busy ? "Booking…" : price ? `Book for ₹${price.amount}` : "Book this slot"}
+          <button type="button" onClick={book} disabled={busy || !canSubmit} className="w-full bg-blue-600 text-white rounded-lg py-2.5 font-medium hover:bg-blue-700 disabled:opacity-50">
+            {busy ? "Booking…" : mode === "MONTHLY" ? "Book monthly" : price ? `Book for ₹${price.amount}` : "Book this slot"}
           </button>
         </div>
       )}
@@ -282,9 +339,9 @@ function OwnerPanel({ slot, onChange }: { slot: SlotDetail; onChange: () => void
           <div className="space-y-2">
             {slot.ownerBookings.map((b) => (
               <div key={b.id} className={`bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 ${b.status === "CANCELLED" ? "opacity-60" : ""}`}>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{fmtRange(b.startAt, b.endAt)}</span>
-                  <span className="font-bold text-gray-900 dark:text-gray-100">₹{b.totalAmount}</span>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{b.mode === "MONTHLY" ? bookingLine(b) : fmtRange(b.startAt, b.endAt)}</span>
+                  {b.mode !== "MONTHLY" && <span className="font-bold text-gray-900 dark:text-gray-100">₹{b.totalAmount}</span>}
                 </div>
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{b.booker?.name} · Block {b.booker?.block ?? "—"}{b.vehicleNumber ? ` · ${b.vehicleNumber}` : ""}</p>
                 {b.status === "BOOKED" && (
@@ -370,4 +427,25 @@ function fmtRange(startIso: string, endIso: string): string {
   const st = s.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
   const et = e.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
   return sameDay ? `${d}, ${st} – ${et}` : `${d} ${st} → ${e.toLocaleDateString("en-IN", { day: "numeric", month: "short" })} ${et}`;
+}
+function dateOnly(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+}
+// Monthly endAt is an exclusive instant (midnight of the day after) → show the inclusive date.
+function inclusiveEnd(endIso: string): string {
+  return dateOnly(new Date(new Date(endIso).getTime() - 86_400_000).toISOString());
+}
+function fmtBusy(w: BusyWindow): string {
+  if (w.ongoing) return `From ${dateOnly(w.startAt)} · ongoing`;
+  if (w.mode === "MONTHLY") return `${dateOnly(w.startAt)} → ${inclusiveEnd(w.endAt)}`;
+  return fmtRange(w.startAt, w.endAt);
+}
+function bookingLine(b: Booking): string {
+  if (b.mode === "MONTHLY") {
+    const from = dateOnly(b.startAt);
+    return b.openEnded
+      ? `Monthly · ₹${b.monthlyRate}/mo · from ${from} · ongoing`
+      : `Monthly · ₹${b.monthlyRate}/mo · ${from} → ${inclusiveEnd(b.endAt)}`;
+  }
+  return `${fmtRange(b.startAt, b.endAt)} · ₹${b.totalAmount}`;
 }

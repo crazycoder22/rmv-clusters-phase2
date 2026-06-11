@@ -69,6 +69,109 @@ export function validateRate(raw: unknown): { ok: boolean; rate?: number; error?
   return { ok: true, rate: round2(rate) };
 }
 
+// ── Monthly rentals ──────────────────────────────────────────────────────────
+
+// Open-ended monthly bookings store this far-future endAt so the existing
+// half-open overlap query keeps blocking everything from the start date on.
+export const SENTINEL_END = new Date("9999-12-31T00:00:00.000Z");
+export const MAX_MONTHS = 36; // cap on a fixed-term monthly booking
+export const MAX_MONTHLY_RATE = 100000; // ₹/month sanity ceiling
+
+export function isOpenEnded(end: Date): boolean {
+  return end.getTime() === SENTINEL_END.getTime();
+}
+
+/** Validate a monthly rate on slot create/edit (optional add-on). */
+export function validateMonthlyRate(raw: unknown): { ok: boolean; rate?: number; error?: string } {
+  const rate = typeof raw === "number" ? raw : parseFloat(String(raw));
+  if (isNaN(rate) || rate <= 0) return { ok: false, error: "Enter a valid monthly rate" };
+  if (rate > MAX_MONTHLY_RATE) return { ok: false, error: `Monthly rate can't exceed ₹${MAX_MONTHLY_RATE}` };
+  return { ok: true, rate: round2(rate) };
+}
+
+/**
+ * Whole months between two civil dates, rounded up (offline/informational).
+ * Matches: Jun 5 → Jul 20 = 2 months; Jul 1 → Jul 31 = 1 month.
+ */
+export function monthsCeilYmd(startYmd: string, endYmd: string): number {
+  const [sy, sm, sd] = startYmd.split("-").map(Number);
+  const [ey, em, ed] = endYmd.split("-").map(Number);
+  let months = (ey - sy) * 12 + (em - sm);
+  if (ed >= sd) months += 1;
+  return Math.max(1, months);
+}
+
+export interface MonthlyWindowResult {
+  ok: boolean;
+  startYmd?: string;
+  endYmd?: string | null;
+  start?: Date;
+  end?: Date;
+  openEnded?: boolean;
+  error?: string;
+}
+
+/**
+ * Parse + validate a monthly booking window. `startInput` is a "YYYY-MM-DD"
+ * date; `endInput` is an optional "YYYY-MM-DD" (omit/empty → open-ended).
+ * IST instants: start = midnight of the start date; end = midnight of the day
+ * AFTER endYmd (half-open, so the end date is inclusive) or SENTINEL_END.
+ */
+export function validateMonthlyWindow(
+  startInput: unknown,
+  endInput: unknown,
+  now: Date
+): MonthlyWindowResult {
+  if (!isYmd(startInput)) return { ok: false, error: "Pick a start date" };
+  const startYmd = startInput;
+  const start = istMidnight(startYmd);
+  if (start.getTime() < istMidnight(toIstYmd(now)).getTime()) {
+    return { ok: false, error: "Start date can't be in the past" };
+  }
+
+  const hasEnd = typeof endInput === "string" && endInput.trim() !== "";
+  if (!hasEnd) {
+    return { ok: true, startYmd, endYmd: null, start, end: SENTINEL_END, openEnded: true };
+  }
+  if (!isYmd(endInput)) return { ok: false, error: "Invalid end date" };
+  const endYmd = endInput;
+  if (istMidnight(endYmd).getTime() < start.getTime()) {
+    return { ok: false, error: "End date must be on or after the start date" };
+  }
+  if (monthsCeilYmd(startYmd, endYmd) > MAX_MONTHS) {
+    return { ok: false, error: `A monthly booking can't exceed ${MAX_MONTHS} months` };
+  }
+  // Inclusive end date → half-open instant is midnight of the next day.
+  const end = new Date(istMidnight(endYmd).getTime() + 24 * 3_600_000);
+  return { ok: true, startYmd, endYmd, start, end, openEnded: false };
+}
+
+/** Total for a monthly booking (informational; billing is offline). */
+export function computeMonthlyTotal(
+  monthlyRate: number,
+  startYmd: string,
+  endYmd: string | null
+): number {
+  if (!endYmd) return round2(monthlyRate); // open-ended → one month shown
+  return round2(monthlyRate * monthsCeilYmd(startYmd, endYmd));
+}
+
+// "YYYY-MM-DD" → midnight IST instant (mirrors src/lib/habits ymdToInstant).
+function istMidnight(s: string): Date {
+  return new Date(`${s}T00:00:00+05:30`);
+}
+function isYmd(v: unknown): v is string {
+  return typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);
+}
+function toIstYmd(d: Date): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(d);
+}
+
 /** Human label for a duration, e.g. "2h 30m". */
 export function formatDuration(start: Date, end: Date): string {
   const totalMin = Math.round((end.getTime() - start.getTime()) / 60_000);

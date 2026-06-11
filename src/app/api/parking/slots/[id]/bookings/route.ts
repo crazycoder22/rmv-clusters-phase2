@@ -2,7 +2,14 @@ import { NextResponse } from "next/server";
 import { getAuthedResident } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { sendPushToResidents } from "@/lib/push";
-import { validateWindow, computePrice, formatDuration } from "@/lib/parking";
+import {
+  validateWindow,
+  validateMonthlyWindow,
+  computePrice,
+  computeMonthlyTotal,
+  monthsCeilYmd,
+  formatDuration,
+} from "@/lib/parking";
 
 class BookingError extends Error {
   status: number;
@@ -27,29 +34,53 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  const win = validateWindow(body.startAt, body.endAt, new Date());
-  if (!win.ok) return NextResponse.json({ error: win.error }, { status: 400 });
-  const { start, end } = win as { start: Date; end: Date };
+  // Hourly (default) or monthly. Monthly takes a start date + optional end date.
+  const mode: "HOURLY" | "MONTHLY" = body.mode === "MONTHLY" ? "MONTHLY" : "HOURLY";
+  let start: Date;
+  let end: Date;
+  let openEnded = false;
+  let startYmd: string | null = null;
+  let endYmd: string | null = null;
+  if (mode === "MONTHLY") {
+    const mw = validateMonthlyWindow(body.startAt, body.endAt, new Date());
+    if (!mw.ok) return NextResponse.json({ error: mw.error }, { status: 400 });
+    start = mw.start!;
+    end = mw.end!;
+    openEnded = mw.openEnded!;
+    startYmd = mw.startYmd!;
+    endYmd = mw.endYmd ?? null;
+  } else {
+    const win = validateWindow(body.startAt, body.endAt, new Date());
+    if (!win.ok) return NextResponse.json({ error: win.error }, { status: 400 });
+    start = win.start!;
+    end = win.end!;
+  }
 
   const vehicleNumber =
     typeof body.vehicleNumber === "string" ? body.vehicleNumber.trim().toUpperCase() || null : null;
   const note = typeof body.note === "string" ? body.note.trim() || null : null;
 
   try {
-    const { booking, ownerId, slotLabel } = await prisma.$transaction(async (tx) => {
+    const { booking, ownerId, slotLabel, monthlyRateSnapshot } = await prisma.$transaction(async (tx) => {
       // Serialize bookings for this slot: lock the row for the txn's lifetime.
       await tx.$queryRaw`SELECT id FROM parking_slots WHERE id = ${id} FOR UPDATE`;
 
       const slot = await tx.parkingSlot.findUnique({
         where: { id },
-        select: { id: true, ownerId: true, active: true, hourlyRate: true, label: true },
+        select: { id: true, ownerId: true, active: true, hourlyRate: true, monthlyRate: true, label: true },
       });
       if (!slot) throw new BookingError(404, "Slot not found");
       if (!slot.active) throw new BookingError(409, "This slot isn't available for booking right now");
       if (slot.ownerId === me.id) {
         throw new BookingError(400, "You own this slot — use “Block time” to reserve it for yourself");
       }
+      if (mode === "MONTHLY" && slot.monthlyRate == null) {
+        throw new BookingError(409, "This slot isn't offered for monthly rental");
+      }
 
+      // Overlap check is identical for both modes — a monthly window (or an
+      // open-ended sentinel-ended booking) is just a long interval, so it both
+      // clashes with and blocks hourly + monthly bookings.
       const clash = await tx.parkingBooking.count({
         where: { slotId: id, status: "BOOKED", startAt: { lt: end }, endAt: { gt: start } },
       });
@@ -60,7 +91,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       });
       if (blocked > 0) throw new BookingError(409, "The owner has blocked that time. Pick another window.");
 
-      const total = computePrice(slot.hourlyRate, start, end);
+      const total =
+        mode === "MONTHLY"
+          ? computeMonthlyTotal(slot.monthlyRate!, startYmd!, endYmd)
+          : computePrice(slot.hourlyRate, start, end);
       const created = await tx.parkingBooking.create({
         data: {
           slotId: id,
@@ -70,17 +104,24 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
           vehicleNumber,
           note,
           status: "BOOKED",
-          hourlyRateSnapshot: slot.hourlyRate,
+          mode,
+          openEnded,
+          hourlyRateSnapshot: mode === "MONTHLY" ? null : slot.hourlyRate,
+          monthlyRateSnapshot: mode === "MONTHLY" ? slot.monthlyRate : null,
           totalAmount: total,
         },
       });
-      return { booking: created, ownerId: slot.ownerId, slotLabel: slot.label };
+      return { booking: created, ownerId: slot.ownerId, slotLabel: slot.label, monthlyRateSnapshot: slot.monthlyRate };
     });
 
     // Notify the owner (best-effort).
+    const pushBody =
+      mode === "MONTHLY"
+        ? `${me.name} booked ${slotLabel} monthly · ₹${monthlyRateSnapshot}/mo · from ${startYmd}${openEnded ? " · ongoing" : ` · ${monthsCeilYmd(startYmd!, endYmd!)} mo`}`
+        : `${me.name} booked ${slotLabel} · ${formatDuration(start, end)} · ₹${booking.totalAmount}`;
     sendPushToResidents([ownerId], {
       title: "New parking booking",
-      body: `${me.name} booked ${slotLabel} · ${formatDuration(start, end)} · ₹${booking.totalAmount}`,
+      body: pushBody,
       data: { type: "parking_booked", id },
     }).catch(() => {});
 

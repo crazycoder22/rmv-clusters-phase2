@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthedResident } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
-import { validateRate } from "@/lib/parking";
+import { validateRate, validateMonthlyRate, SENTINEL_END } from "@/lib/parking";
 
 const MAX_SLOTS_PER_OWNER = 10;
 
@@ -34,12 +34,15 @@ export async function GET(request: Request) {
     const current = s.bookings.find(
       (b) => b.startAt.getTime() <= now.getTime() && b.endAt.getTime() > now.getTime()
     );
+    // An open-ended monthly booking ends at the far-future sentinel → "ongoing".
+    const ongoing = current ? current.endAt.getTime() === SENTINEL_END.getTime() : false;
     return {
       id: s.id,
       label: s.label,
       location: s.location,
       description: s.description,
       hourlyRate: s.hourlyRate,
+      monthlyRate: s.monthlyRate,
       active: s.active,
       hasPayInfo: !!(s.payInfo || s.payQrUrl),
       owner: {
@@ -50,7 +53,8 @@ export async function GET(request: Request) {
         isMe: s.owner.id === me.id,
       },
       busyNow: !!current,
-      busyUntil: current ? current.endAt.toISOString() : null,
+      busyUntil: current && !ongoing ? current.endAt.toISOString() : null,
+      busyOngoing: ongoing,
       upcomingCount: s.bookings.length,
     };
   });
@@ -78,6 +82,14 @@ export async function POST(request: Request) {
   const rateCheck = validateRate(body.hourlyRate);
   if (!rateCheck.ok) return NextResponse.json({ error: rateCheck.error }, { status: 400 });
 
+  // Monthly rate is an optional add-on.
+  let monthlyRate: number | null = null;
+  if (body.monthlyRate != null && String(body.monthlyRate).trim() !== "") {
+    const mc = validateMonthlyRate(body.monthlyRate);
+    if (!mc.ok) return NextResponse.json({ error: mc.error }, { status: 400 });
+    monthlyRate = mc.rate!;
+  }
+
   const count = await prisma.parkingSlot.count({ where: { ownerId: me.id } });
   if (count >= MAX_SLOTS_PER_OWNER) {
     return NextResponse.json(
@@ -93,6 +105,7 @@ export async function POST(request: Request) {
       location: typeof body.location === "string" ? body.location.trim() || null : null,
       description: typeof body.description === "string" ? body.description.trim() || null : null,
       hourlyRate: rateCheck.rate!,
+      monthlyRate,
       payInfo: typeof body.payInfo === "string" ? body.payInfo.trim() || null : null,
       payQrUrl: typeof body.payQrUrl === "string" ? body.payQrUrl.trim() || null : null,
       active: body.active === false ? false : true,

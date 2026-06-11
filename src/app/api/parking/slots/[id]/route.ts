@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthedResident } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
-import { validateRate } from "@/lib/parking";
+import { validateRate, validateMonthlyRate, SENTINEL_END } from "@/lib/parking";
 
 // GET /api/parking/slots/[id] → slot detail.
 // Owner sees every booking + booker contact. Others see anonymized busy
@@ -34,8 +34,20 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const busy = [
     ...slot.bookings
       .filter((b) => b.status === "BOOKED" && b.endAt.getTime() > now.getTime())
-      .map((b) => ({ startAt: b.startAt.toISOString(), endAt: b.endAt.toISOString(), kind: "booking" as const })),
-    ...slot.blocks.map((bl) => ({ startAt: bl.startAt.toISOString(), endAt: bl.endAt.toISOString(), kind: "block" as const })),
+      .map((b) => ({
+        startAt: b.startAt.toISOString(),
+        endAt: b.endAt.toISOString(),
+        kind: "booking" as const,
+        mode: b.mode,
+        ongoing: b.endAt.getTime() === SENTINEL_END.getTime(),
+      })),
+    ...slot.blocks.map((bl) => ({
+      startAt: bl.startAt.toISOString(),
+      endAt: bl.endAt.toISOString(),
+      kind: "block" as const,
+      mode: "HOURLY" as const,
+      ongoing: false,
+    })),
   ].sort((a, b) => a.startAt.localeCompare(b.startAt));
 
   const myBookings = slot.bookings
@@ -50,6 +62,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     location: slot.location,
     description: slot.description,
     hourlyRate: slot.hourlyRate,
+    monthlyRate: slot.monthlyRate,
     active: slot.active,
     payInfo: slot.payInfo,
     payQrUrl: slot.payQrUrl,
@@ -98,6 +111,16 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     if (!rc.ok) return NextResponse.json({ error: rc.error }, { status: 400 });
     data.hourlyRate = rc.rate;
   }
+  if ("monthlyRate" in body) {
+    // null / empty → clear (monthly no longer offered).
+    if (body.monthlyRate == null || String(body.monthlyRate).trim() === "") {
+      data.monthlyRate = null;
+    } else {
+      const mc = validateMonthlyRate(body.monthlyRate);
+      if (!mc.ok) return NextResponse.json({ error: mc.error }, { status: 400 });
+      data.monthlyRate = mc.rate;
+    }
+  }
 
   await prisma.parkingSlot.update({ where: { id }, data });
   return NextResponse.json({ ok: true });
@@ -133,10 +156,13 @@ function serializeBooking(
     startAt: Date;
     endAt: Date;
     status: string;
+    mode: string;
+    openEnded: boolean;
     vehicleNumber: string | null;
     note: string | null;
     totalAmount: number;
-    hourlyRateSnapshot: number;
+    hourlyRateSnapshot: number | null;
+    monthlyRateSnapshot: number | null;
     bookerPaid: boolean;
     ownerConfirmedPaid: boolean;
     booker: { id: string; name: string; block: number | null; flatNumber: string };
@@ -148,10 +174,13 @@ function serializeBooking(
     startAt: b.startAt.toISOString(),
     endAt: b.endAt.toISOString(),
     status: b.status,
+    mode: b.mode,
+    openEnded: b.openEnded,
     vehicleNumber: b.vehicleNumber,
     note: b.note,
     totalAmount: b.totalAmount,
     hourlyRate: b.hourlyRateSnapshot,
+    monthlyRate: b.monthlyRateSnapshot,
     bookerPaid: b.bookerPaid,
     ownerConfirmedPaid: b.ownerConfirmedPaid,
     booker: withBooker

@@ -12,11 +12,13 @@ interface SlotCard {
   location: string | null;
   description: string | null;
   hourlyRate: number;
+  monthlyRate: number | null;
   active: boolean;
   hasPayInfo: boolean;
   owner: { id: string; name: string; block: number | null; flatNumber: string; isMe: boolean };
   busyNow: boolean;
   busyUntil: string | null;
+  busyOngoing?: boolean;
   upcomingCount: number;
 }
 interface BookerBooking {
@@ -26,6 +28,9 @@ interface BookerBooking {
   startAt: string;
   endAt: string;
   status: "BOOKED" | "CANCELLED" | "COMPLETED";
+  mode?: string;
+  openEnded?: boolean;
+  monthlyRate?: number | null;
   vehicleNumber: string | null;
   totalAmount: number;
   bookerPaid: boolean;
@@ -38,6 +43,9 @@ interface OwnerBooking {
   startAt: string;
   endAt: string;
   status: "BOOKED" | "CANCELLED" | "COMPLETED";
+  mode?: string;
+  openEnded?: boolean;
+  monthlyRate?: number | null;
   vehicleNumber: string | null;
   totalAmount: number;
   bookerPaid: boolean;
@@ -199,6 +207,8 @@ function SlotRow({ slot, ownerView, onClick }: { slot: SlotCard; ownerView?: boo
         <h3 className="text-sm font-semibold text-white">{slot.label}</h3>
         {ownerView ? (
           <Badge color={slot.active ? "green" : "slate"}>{slot.active ? "Listed" : "Paused"}</Badge>
+        ) : slot.busyOngoing ? (
+          <Badge color="purple">Rented monthly</Badge>
         ) : slot.busyNow ? (
           <Badge color="amber">Busy now</Badge>
         ) : (
@@ -208,6 +218,7 @@ function SlotRow({ slot, ownerView, onClick }: { slot: SlotCard; ownerView?: boo
       {slot.location && <p className="mt-1 flex items-center gap-1 text-[11px] text-slate-400"><MapPin size={11} /> {slot.location}</p>}
       <div className="mt-1.5 flex items-center gap-3 text-[12px]">
         <span className="flex items-center font-semibold text-white"><IndianRupee size={12} />{slot.hourlyRate}/hr</span>
+        {slot.monthlyRate != null && <span className="flex items-center text-[11px] font-medium text-purple-300"><IndianRupee size={10} />{slot.monthlyRate}/mo</span>}
         {!ownerView && <span className="text-[11px] text-slate-500">{slot.owner.name} · B{slot.owner.block ?? "—"}</span>}
         {ownerView && slot.upcomingCount > 0 && <span className="text-[11px] text-blue-400">{slot.upcomingCount} upcoming</span>}
       </div>
@@ -221,9 +232,9 @@ function BookerRow({ b, busy, onOpen, onPay, onCancel }: { b: BookerBooking; bus
     <div className={`rounded-2xl border border-slate-700 bg-slate-800/60 p-3 ${b.status === "CANCELLED" ? "opacity-60" : ""}`}>
       <div className="flex items-start justify-between gap-2">
         <button onClick={onOpen} className="text-left text-sm font-semibold text-white active:underline">{b.slotLabel}</button>
-        <span className="text-sm font-bold tabular-nums text-white">₹{b.totalAmount}</span>
+        <span className="text-sm font-bold tabular-nums text-white">{b.mode === "MONTHLY" ? `₹${b.monthlyRate}/mo` : `₹${b.totalAmount}`}</span>
       </div>
-      <p className="mt-0.5 text-[11px] text-slate-400">{fmtRange(b.startAt, b.endAt)}</p>
+      <p className="mt-0.5 text-[11px] text-slate-400">{bookingDates(b)}</p>
       {b.vehicleNumber && <p className="mt-0.5 text-[10px] text-slate-500">{b.vehicleNumber}</p>}
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
         <StatusPill status={b.status} />
@@ -243,9 +254,9 @@ function OwnerRow({ b, busy, onOpen, onConfirm, onCancel }: { b: OwnerBooking; b
     <div className={`rounded-2xl border border-slate-700 bg-slate-800/60 p-3 ${b.status === "CANCELLED" ? "opacity-60" : ""}`}>
       <div className="flex items-start justify-between gap-2">
         <button onClick={onOpen} className="text-left text-sm font-semibold text-white active:underline">{b.slotLabel}</button>
-        <span className="text-sm font-bold tabular-nums text-white">₹{b.totalAmount}</span>
+        <span className="text-sm font-bold tabular-nums text-white">{b.mode === "MONTHLY" ? `₹${b.monthlyRate}/mo` : `₹${b.totalAmount}`}</span>
       </div>
-      <p className="mt-0.5 text-[11px] text-slate-400">{fmtRange(b.startAt, b.endAt)}</p>
+      <p className="mt-0.5 text-[11px] text-slate-400">{bookingDates(b)}</p>
       <p className="mt-0.5 text-[10px] text-slate-500">{b.booker.name} · B{b.booker.block ?? "—"}, {b.booker.flatNumber}{b.vehicleNumber ? ` · ${b.vehicleNumber}` : ""}</p>
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
         <StatusPill status={b.status} />
@@ -259,8 +270,12 @@ function OwnerRow({ b, busy, onOpen, onConfirm, onCancel }: { b: OwnerBooking; b
   );
 }
 
-function Badge({ color, children }: { color: "green" | "amber" | "slate"; children: React.ReactNode }) {
-  const cls = color === "green" ? "text-emerald-300 bg-emerald-500/20" : color === "amber" ? "text-amber-200 bg-amber-500/20" : "text-slate-300 bg-slate-700";
+function Badge({ color, children }: { color: "green" | "amber" | "slate" | "purple"; children: React.ReactNode }) {
+  const cls =
+    color === "green" ? "text-emerald-300 bg-emerald-500/20"
+    : color === "amber" ? "text-amber-200 bg-amber-500/20"
+    : color === "purple" ? "text-purple-200 bg-purple-500/20"
+    : "text-slate-300 bg-slate-700";
   return <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold ${cls}`}>{children}</span>;
 }
 function StatusPill({ status }: { status: string }) {
@@ -282,4 +297,14 @@ function fmtRange(startIso: string, endIso: string): string {
   const st = s.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
   const et = e.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
   return sameDay ? `${d}, ${st} – ${et}` : `${d} ${st} → ${e.toLocaleDateString("en-IN", { day: "numeric", month: "short" })} ${et}`;
+}
+// Date label for a booking row — hourly shows the time range, monthly the dates.
+function bookingDates(b: { mode?: string; openEnded?: boolean; startAt: string; endAt: string }): string {
+  if (b.mode === "MONTHLY") {
+    const from = new Date(b.startAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+    if (b.openEnded) return `Monthly · from ${from} · ongoing`;
+    const to = new Date(new Date(b.endAt).getTime() - 86_400_000).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+    return `Monthly · ${from} → ${to}`;
+  }
+  return fmtRange(b.startAt, b.endAt);
 }
