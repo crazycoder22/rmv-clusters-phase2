@@ -2,6 +2,24 @@
 
 export const MAX_OPEN_MENUS = 5; // per chef, bounds push-spam + payload
 export const MAX_QTY_PER_ITEM = 50;
+export const MAX_COMANAGERS = 5; // nominated co-managers per listing
+
+/**
+ * Whether a resident is a nominated co-manager of a listing. Works with the
+ * prisma client or a transaction client (anything with `foodMenuManager`).
+ * The owner (chefId) is NOT a co-manager — callers OR this with the owner check.
+ */
+export async function isMenuManager(
+  client: { foodMenuManager: { findUnique: (args: { where: { menuId_residentId: { menuId: string; residentId: string } }; select: { id: true } }) => Promise<{ id: string } | null> } },
+  menuId: string,
+  residentId: string
+): Promise<boolean> {
+  const row = await client.foodMenuManager.findUnique({
+    where: { menuId_residentId: { menuId, residentId } },
+    select: { id: true },
+  });
+  return !!row;
+}
 
 /** Round a money value to 2 decimals (Float columns can drift). */
 export function round2(n: number): number {

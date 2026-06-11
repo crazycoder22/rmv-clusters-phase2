@@ -32,6 +32,7 @@ interface MenuCard {
   minPriceUnit: string | null;
   orderCount: number;
   iOrdered?: boolean;
+  coManaging?: boolean;
   chef: { id: string; name: string; block: number; flatNumber: string; isMe: boolean };
 }
 
@@ -283,7 +284,12 @@ function MenuRow({ menu, chefView }: { menu: MenuCard; chefView?: boolean }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline justify-between gap-2">
           <h3 className="truncate text-sm font-semibold text-white">{menu.title}</h3>
-          <StatusBadge status={menu.status} orderable={menu.orderable} />
+          <div className="flex shrink-0 items-center gap-1.5">
+            {chefView && menu.coManaging && (
+              <span className="rounded-full bg-purple-500/20 px-1.5 py-0.5 text-[9px] font-bold text-purple-300">CO-MANAGING</span>
+            )}
+            <StatusBadge status={menu.status} orderable={menu.orderable} />
+          </div>
         </div>
         <p className="mt-0.5 truncate text-[11px] text-slate-400">
           {chefView

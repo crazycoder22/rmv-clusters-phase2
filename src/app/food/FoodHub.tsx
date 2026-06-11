@@ -30,6 +30,7 @@ interface MenuCard {
   minPriceUnit: string | null;
   orderCount: number;
   iOrdered?: boolean;
+  coManaging?: boolean;
   chef: { id: string; name: string; block: number; flatNumber: string; isMe: boolean };
 }
 
@@ -258,7 +259,12 @@ function MenuCardView({ menu, chefView }: { menu: MenuCard; chefView?: boolean }
           {isMarket ? <ShoppingBasket size={15} className="text-emerald-500 shrink-0" /> : <ChefHat size={15} className="text-orange-500 shrink-0" />}
           {menu.title}
         </h3>
-        <StatusBadge status={menu.status} orderable={menu.orderable} />
+        <div className="flex items-center gap-1.5 shrink-0">
+          {chefView && menu.coManaging && (
+            <span className="text-[10px] font-semibold text-purple-700 bg-purple-100 dark:bg-purple-900/40 dark:text-purple-300 rounded-full px-1.5 py-0.5">co-managing</span>
+          )}
+          <StatusBadge status={menu.status} orderable={menu.orderable} />
+        </div>
       </div>
       <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
         {chefView

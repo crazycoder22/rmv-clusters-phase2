@@ -19,6 +19,9 @@ import {
   Share2,
   ShoppingCart,
   Trash2,
+  Users,
+  UserPlus,
+  X,
 } from "lucide-react";
 import { type FoodKind, KIND_LABELS, formatUnitPrice, unitLabel } from "@/lib/market";
 
@@ -60,10 +63,17 @@ interface MenuDetailData {
   status: "OPEN" | "CLOSED" | "ARCHIVED";
   kind: FoodKind;
   orderable: boolean;
-  role: "chef" | "buyer";
+  role: "chef" | "comanager" | "buyer";
+  managers?: Manager[];
   chef: { id: string; name: string; block: number; flatNumber: string; phone: string | null; isMe: boolean; following: boolean };
   items: Dish[];
   orders: Order[];
+}
+interface Manager {
+  id: string;
+  name: string;
+  block: number;
+  flatNumber: string;
 }
 
 /** How an order line reads: "3 kg Apples" (market) | "2× Dosa" (kitchen). */
@@ -266,7 +276,9 @@ export default function MenuDetail({ section = "KITCHEN" }: { section?: FoodKind
   }
   if (!menu) return null;
 
-  const isChef = menu.role === "chef";
+  const isOwner = menu.role === "chef";
+  // Owner + nominated co-managers both see the management view.
+  const canManage = menu.role === "chef" || menu.role === "comanager";
   const isMarket = kind === "MARKET";
   const EmptyIcon = isMarket ? Store : ChefHat;
 
@@ -306,10 +318,14 @@ export default function MenuDetail({ section = "KITCHEN" }: { section?: FoodKind
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{menu.title}</h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-              {isChef ? `Your ${L.listing}` : `by ${menu.chef.name} · Block ${menu.chef.block}, ${menu.chef.flatNumber}`}
+              {isOwner
+                ? `Your ${L.listing}`
+                : canManage
+                  ? `Co-managing ${menu.chef.name}'s ${L.listing}`
+                  : `by ${menu.chef.name} · Block ${menu.chef.block}, ${menu.chef.flatNumber}`}
             </p>
           </div>
-          {isChef && (
+          {canManage && (
             <div className="flex items-center gap-2">
               <button
                 type="button"
@@ -333,12 +349,12 @@ export default function MenuDetail({ section = "KITCHEN" }: { section?: FoodKind
             <span className="inline-flex items-center gap-1"><Clock size={14} /> Order by {fmtDateTime(menu.orderByAt)}</span>
           )}
           {menu.pickupInfo && <span>📍 {menu.pickupInfo}</span>}
-          {!isChef && menu.chef.phone && (
+          {!canManage && menu.chef.phone && (
             <a href={`tel:${menu.chef.phone}`} className="inline-flex items-center gap-1 text-blue-600"><Phone size={14} /> {menu.chef.phone}</a>
           )}
         </div>
 
-        {!isChef && (
+        {!canManage && (
           <button
             type="button"
             onClick={toggleFollow}
@@ -352,8 +368,8 @@ export default function MenuDetail({ section = "KITCHEN" }: { section?: FoodKind
           </button>
         )}
 
-        {/* ── SELLER VIEW ── */}
-        {isChef && (
+        {/* ── SELLER VIEW (owner + co-managers) ── */}
+        {canManage && (
           <>
             <div className="flex gap-2 mt-5">
               {menu.status === "OPEN" ? (
@@ -361,8 +377,14 @@ export default function MenuDetail({ section = "KITCHEN" }: { section?: FoodKind
               ) : (
                 <button type="button" onClick={() => setMenuStatus("OPEN")} className="inline-flex items-center gap-1 bg-green-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-green-700"><Power size={15} /> Reopen {L.listing}</button>
               )}
-              <button type="button" onClick={deleteMenu} className="inline-flex items-center gap-1 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 rounded-lg px-3 py-2 text-sm hover:text-red-600 hover:bg-gray-50 dark:hover:bg-gray-700"><Trash2 size={15} /></button>
+              {/* Delete stays owner-only. */}
+              {isOwner && (
+                <button type="button" onClick={deleteMenu} className="inline-flex items-center gap-1 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 rounded-lg px-3 py-2 text-sm hover:text-red-600 hover:bg-gray-50 dark:hover:bg-gray-700"><Trash2 size={15} /></button>
+              )}
             </div>
+
+            {/* Co-managers — owner-only management. */}
+            {isOwner && <CoManagers menuId={menu.id} L={L} managers={menu.managers ?? []} onChange={refresh} />}
 
             <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mt-6 mb-2">{L.itemPlural}</h2>
             <div className="space-y-2">
@@ -444,7 +466,7 @@ export default function MenuDetail({ section = "KITCHEN" }: { section?: FoodKind
         )}
 
         {/* ── BUYER VIEW ── */}
-        {!isChef && (
+        {!canManage && (
           <>
             {menu.orders.length > 0 && (
               <>
@@ -531,6 +553,125 @@ export default function MenuDetail({ section = "KITCHEN" }: { section?: FoodKind
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+// Owner-only: nominate other residents to help run this listing.
+function CoManagers({
+  menuId,
+  L,
+  managers,
+  onChange,
+}: {
+  menuId: string;
+  L: (typeof KIND_LABELS)[FoodKind];
+  managers: Manager[];
+  onChange: () => Promise<void> | void;
+}) {
+  const [adding, setAdding] = useState(false);
+  const [q, setQ] = useState("");
+  const [results, setResults] = useState<Manager[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  // Debounced resident search.
+  useEffect(() => {
+    if (!adding) return;
+    const term = q.trim();
+    if (term.length < 2) { setResults([]); return; }
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/residents/search?q=${encodeURIComponent(term)}`);
+        if (res.ok) {
+          const data = await res.json();
+          const existing = new Set(managers.map((m) => m.id));
+          setResults((data.residents ?? []).filter((r: Manager) => !existing.has(r.id)));
+        }
+      } catch { /* ignore */ }
+    }, 250);
+    return () => clearTimeout(t);
+  }, [q, adding, managers]);
+
+  async function add(residentId: string) {
+    setBusy(true);
+    setErr(null);
+    try {
+      const res = await fetch(`/api/food/menus/${menuId}/managers`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ residentId }),
+      });
+      if (!res.ok) {
+        setErr((await res.json().catch(() => null))?.error ?? "Could not add");
+        return;
+      }
+      setQ(""); setResults([]); setAdding(false);
+      await onChange();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function remove(residentId: string) {
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/food/menus/${menuId}/managers?residentId=${encodeURIComponent(residentId)}`, { method: "DELETE" });
+      if (res.ok) await onChange();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="mt-5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+      <div className="flex items-center justify-between">
+        <h2 className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-700 dark:text-gray-200">
+          <Users size={15} /> Co-managers
+        </h2>
+        {!adding && (
+          <button type="button" onClick={() => setAdding(true)} className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700">
+            <UserPlus size={14} /> Add
+          </button>
+        )}
+      </div>
+      <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+        Co-managers can edit {L.itemPlural} and manage orders for this {L.listing}. They can&apos;t delete it or change co-managers.
+      </p>
+
+      {managers.length > 0 && (
+        <div className="mt-3 space-y-1.5">
+          {managers.map((m) => (
+            <div key={m.id} className="flex items-center justify-between rounded-lg bg-gray-50 dark:bg-gray-900 px-3 py-2">
+              <span className="text-sm text-gray-800 dark:text-gray-200">{m.name} <span className="text-gray-400">· {m.block}-{m.flatNumber}</span></span>
+              <button type="button" onClick={() => remove(m.id)} disabled={busy} className="text-gray-400 hover:text-red-600 disabled:opacity-50"><X size={15} /></button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {adding && (
+        <div className="mt-3 space-y-2">
+          <input
+            autoFocus
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search a resident by name…"
+            className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-900"
+          />
+          {err && <p className="text-xs text-red-600">{err}</p>}
+          {results.length > 0 && (
+            <div className="rounded-lg border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-700 overflow-hidden">
+              {results.map((r) => (
+                <button key={r.id} type="button" onClick={() => add(r.id)} disabled={busy} className="w-full text-left px-3 py-2 text-sm text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50">
+                  {r.name} <span className="text-gray-400">· {r.block}-{r.flatNumber}</span>
+                </button>
+              ))}
+            </div>
+          )}
+          <button type="button" onClick={() => { setAdding(false); setQ(""); setResults([]); setErr(null); }} className="text-xs text-gray-400 hover:text-gray-600">Cancel</button>
+        </div>
+      )}
     </div>
   );
 }

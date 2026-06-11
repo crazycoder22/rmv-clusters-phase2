@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthedResident } from "@/lib/api-auth";
 import { sendPushToResidents } from "@/lib/push";
-import { validateCart, round2, isMenuOrderable } from "@/lib/food";
+import { validateCart, round2, isMenuOrderable, isMenuManager } from "@/lib/food";
 import { KIND_LABELS, asKind } from "@/lib/market";
 
 export const dynamic = "force-dynamic";
@@ -42,8 +42,9 @@ export async function POST(
         select: { id: true, chefId: true, status: true, orderByAt: true, title: true, kind: true },
       });
       if (!menu) return { error: "Menu not found", code: 404 };
-      if (menu.chefId === me.id) {
-        return { error: "You can't order from your own menu", code: 400 };
+      // Owner and nominated co-managers run the listing — they can't order from it.
+      if (menu.chefId === me.id || (await isMenuManager(tx, menuId, me.id))) {
+        return { error: "You can't order from a listing you manage", code: 400 };
       }
       if (!isMenuOrderable(menu.status, menu.orderByAt)) {
         return { error: "This menu is no longer taking orders", code: 409 };

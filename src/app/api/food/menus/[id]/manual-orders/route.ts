@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthedResident } from "@/lib/api-auth";
-import { validateCart, round2 } from "@/lib/food";
+import { validateCart, round2, isMenuManager } from "@/lib/food";
 
 export const dynamic = "force-dynamic";
 
@@ -41,8 +41,10 @@ export async function POST(
         select: { id: true, chefId: true, status: true },
       });
       if (!menu) return { error: "Not found", code: 404 };
-      // Only the owner can log orders against their own menu/stall.
-      if (menu.chefId !== me.id) return { error: "Not allowed", code: 403 };
+      // Owner or a nominated co-manager can log offline orders.
+      if (menu.chefId !== me.id && !(await isMenuManager(tx, menuId, me.id))) {
+        return { error: "Not allowed", code: 403 };
+      }
       if (menu.status === "ARCHIVED") return { error: "This listing is archived", code: 409 };
 
       const ids = cart.lines.map((l) => l.menuItemId);

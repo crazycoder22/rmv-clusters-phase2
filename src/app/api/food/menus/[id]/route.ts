@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthedResident } from "@/lib/api-auth";
 import { isAdmin } from "@/lib/roles";
-import { round2, isMenuOrderable } from "@/lib/food";
+import { round2, isMenuOrderable, isMenuManager } from "@/lib/food";
 import { MARKET_UNIT_VALUES } from "@/lib/market";
 
 export const dynamic = "force-dynamic";
@@ -30,10 +30,13 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const isChef = menu.chefId === me.id;
+  const isOwner = menu.chefId === me.id;
+  const isManager = !isOwner && (await isMenuManager(prisma, id, me.id));
+  // Owner + nominated co-managers see the management view (all orders, edit).
+  const canManage = isOwner || isManager;
 
   // Whether the caller (a buyer) follows this chef — drives the Follow toggle.
-  const following = isChef
+  const following = canManage
     ? false
     : (await prisma.chefFollow.count({
         where: { chefId: menu.chefId, followerId: me.id },
@@ -41,15 +44,31 @@ export async function GET(
 
   // Orders — scoped by role.
   const orders = await prisma.foodOrder.findMany({
-    where: isChef ? { menuId: id } : { menuId: id, buyerId: me.id },
+    where: canManage ? { menuId: id } : { menuId: id, buyerId: me.id },
     include: {
       items: true,
-      buyer: isChef
+      buyer: canManage
         ? { select: { id: true, name: true, block: true, flatNumber: true, phone: true } }
         : false,
     },
     orderBy: { createdAt: "desc" },
   });
+
+  // Co-managers list — only the owner manages it, but co-managers can see it.
+  const managers = canManage
+    ? (
+        await prisma.foodMenuManager.findMany({
+          where: { menuId: id },
+          include: { resident: { select: { id: true, name: true, block: true, flatNumber: true } } },
+          orderBy: { createdAt: "asc" },
+        })
+      ).map((m) => ({
+        id: m.resident.id,
+        name: m.resident.name,
+        block: m.resident.block,
+        flatNumber: m.resident.flatNumber,
+      }))
+    : [];
 
   return NextResponse.json({
     id: menu.id,
@@ -61,15 +80,17 @@ export async function GET(
     status: menu.status,
     kind: menu.kind,
     orderable: isMenuOrderable(menu.status, menu.orderByAt),
-    role: isChef ? "chef" : "buyer",
+    role: isOwner ? "chef" : isManager ? "comanager" : "buyer",
+    // Co-managers (owner-only writes); empty for buyers.
+    managers,
     chef: {
       id: menu.chef.id,
       name: menu.chef.name,
       block: menu.chef.block,
       flatNumber: menu.chef.flatNumber,
       // Phone only exposed to buyers so they can coordinate pickup/payment.
-      phone: isChef ? null : menu.chef.phone,
-      isMe: isChef,
+      phone: canManage ? null : menu.chef.phone,
+      isMe: isOwner,
       following,
     },
     items: menu.items.map((it) => ({
@@ -100,9 +121,9 @@ export async function GET(
         unit: li.unitSnapshot,
         qty: li.qty,
       })),
-      // buyer object only present for chef view
+      // buyer object only present for the management view
       buyer:
-        isChef && "buyer" in o && o.buyer
+        canManage && "buyer" in o && o.buyer
           ? {
               name: o.buyer.name,
               block: o.buyer.block,
@@ -129,7 +150,10 @@ export async function PATCH(
 
   const { id } = await params;
   const menu = await prisma.foodMenu.findUnique({ where: { id } });
-  if (!menu || menu.chefId !== me.id) {
+  if (!menu) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  // Owner OR a nominated co-manager may edit items / details.
+  const canManage = menu.chefId === me.id || (await isMenuManager(prisma, id, me.id));
+  if (!canManage) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 

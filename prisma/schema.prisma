@@ -119,6 +119,7 @@ model Resident {
   habitsPartnered          Habit[]          @relation("HabitsPartnered")
   foodMenusByChef          FoodMenu[]       @relation("FoodMenusByChef")
   foodOrdersByBuyer        FoodOrder[]      @relation("FoodOrdersByBuyer")
+  foodMenusCoManaged       FoodMenuManager[] @relation("FoodMenuCoManaged")
   chefFollowers            ChefFollow[]     @relation("ChefFollowers")
   chefFollowing            ChefFollow[]     @relation("ChefFollowing")
   parkingSlotsOwned     ParkingSlot[]    @relation("ParkingSlotsOwned")
@@ -1927,6 +1928,7 @@ model FoodMenu {
   kind        FoodMenuKind   @default(KITCHEN) // KITCHEN (food) | MARKET (produce/goods)
   items       FoodMenuItem[]
   orders      FoodOrder[]
+  managers    FoodMenuManager[]
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
@@ -1934,6 +1936,20 @@ model FoodMenu {
   @@index([date])
   @@index([status])
   @@index([kind])
+}
+
+// A resident the owner nominated to help run a listing (edit items, manage orders).
+model FoodMenuManager {
+  id         String   @id @default(cuid())
+  menuId     String
+  menu       FoodMenu @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  residentId String
+  resident   Resident @relation("FoodMenuCoManaged", fields: [residentId], references: [id], onDelete: Cascade)
+  addedById  String?  // owner who nominated (audit; plain scalar, no relation)
+  createdAt  DateTime @default(now())
+
+  @@unique([menuId, residentId])
+  @@index([residentId])
 }
 
 model FoodMenuItem {

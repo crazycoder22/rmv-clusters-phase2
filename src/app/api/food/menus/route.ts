@@ -23,7 +23,12 @@ export async function GET(request: Request) {
   const kindFilter = kindParam && kindParam !== "ALL" ? { kind: asKind(kindParam) } : {};
 
   const where = mine
-    ? { chefId: me.id, ...kindFilter, status: { not: "ARCHIVED" as const } }
+    ? {
+        ...kindFilter,
+        status: { not: "ARCHIVED" as const },
+        // Listings I own OR ones I've been nominated to co-manage.
+        OR: [{ chefId: me.id }, { managers: { some: { residentId: me.id } } }],
+      }
     : { status: "OPEN" as const, ...kindFilter };
 
   const menus = await prisma.foodMenu.findMany({
@@ -62,6 +67,8 @@ export async function GET(request: Request) {
       minPriceUnit: cheapest?.unit ?? null,
       orderCount: m._count.orders,
       iOrdered: mine ? undefined : (m.orders?.length ?? 0) > 0,
+      // In the "mine" tab, flag listings I co-manage (don't own).
+      coManaging: mine ? m.chef.id !== me.id : undefined,
       chef: {
         id: m.chef.id,
         name: m.chef.name,

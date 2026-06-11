@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthedResident } from "@/lib/api-auth";
 import { sendPushToResidents } from "@/lib/push";
+import { isMenuManager } from "@/lib/food";
 
 export const dynamic = "force-dynamic";
 
@@ -48,13 +49,16 @@ export async function PATCH(
     select: {
       id: true,
       buyerId: true,
+      menuId: true,
       menu: { select: { chefId: true, title: true, kind: true } },
     },
   });
   if (!order) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const isBuyer = !!order.buyerId && order.buyerId === me.id;
-  const isChef = order.menu.chefId === me.id;
+  // The "chef side" of an order is the owner OR a nominated co-manager.
+  const isChef =
+    order.menu.chefId === me.id || (await isMenuManager(prisma, order.menuId, me.id));
   // Offline orders the chef logged manually have no buyer account — the chef
   // owns the whole payment lifecycle for those.
   const isManual = !order.buyerId;

@@ -16,6 +16,9 @@ import {
   ShoppingCart,
   Store,
   Trash2,
+  Users,
+  UserPlus,
+  X,
 } from "lucide-react";
 import { Share } from "@capacitor/share";
 import clsx from "clsx";
@@ -72,10 +75,17 @@ interface MenuDetail {
   status: "OPEN" | "CLOSED" | "ARCHIVED";
   kind: FoodKind;
   orderable: boolean;
-  role: "chef" | "buyer";
+  role: "chef" | "comanager" | "buyer";
+  managers?: Manager[];
   chef: { id: string; name: string; block: number; flatNumber: string; phone: string | null; isMe: boolean; following: boolean };
   items: Dish[];
   orders: Order[];
+}
+interface Manager {
+  id: string;
+  name: string;
+  block: number;
+  flatNumber: string;
 }
 
 // ── Page ───────────────────────────────────────────────────────────────────
@@ -297,8 +307,10 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
   }
   if (!menu) return null;
 
-  const isChef = menu.role === "chef";
-  const myOrders = !isChef ? menu.orders : [];
+  const isOwner = menu.role === "chef";
+  // Owner + nominated co-managers both see the management view.
+  const canManage = menu.role === "chef" || menu.role === "comanager";
+  const myOrders = !canManage ? menu.orders : [];
   const EmptyIcon = isMarket ? Store : ChefHat;
 
   async function shareMenu() {
@@ -340,10 +352,14 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
         <div className="flex-1 min-w-0">
           <h1 className="truncate text-lg font-semibold text-white">{menu.title}</h1>
           <p className="truncate text-[11px] text-slate-500">
-            {isChef ? `Your ${L.listing}` : `by ${menu.chef.name} · B${menu.chef.block} · ${menu.chef.flatNumber}`}
+            {isOwner
+              ? `Your ${L.listing}`
+              : canManage
+                ? `Co-managing ${menu.chef.name}'s ${L.listing}`
+                : `by ${menu.chef.name} · B${menu.chef.block} · ${menu.chef.flatNumber}`}
           </p>
         </div>
-        {isChef && (
+        {canManage && (
           <>
             <button
               type="button"
@@ -377,7 +393,7 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
           </span>
         )}
         {menu.pickupInfo && <span>📍 {menu.pickupInfo}</span>}
-        {!isChef && menu.chef.phone && (
+        {!canManage && menu.chef.phone && (
           <a href={`tel:${menu.chef.phone}`} className="inline-flex items-center gap-1 text-indigo-300">
             <Phone size={11} /> {menu.chef.phone}
           </a>
@@ -386,7 +402,7 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
 
       {/* Follow toggle — buyers can follow a chef to get a push when they
           publish a new menu. */}
-      {!isChef && (
+      {!canManage && (
         <button
           type="button"
           onClick={toggleFollow}
@@ -411,8 +427,8 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
         </button>
       )}
 
-      {/* ── CHEF VIEW: status controls + orders ── */}
-      {isChef && (
+      {/* ── CHEF VIEW (owner + co-managers): status controls + orders ── */}
+      {canManage && (
         <>
           <div className="mb-3 flex gap-2">
             {menu.status === "OPEN" ? (
@@ -424,10 +440,16 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
                 <Power size={13} /> Reopen {L.listing}
               </button>
             )}
-            <button type="button" onClick={deleteMenu} aria-label="Delete" className="flex h-9 w-10 items-center justify-center rounded-xl border border-slate-700 bg-slate-800 text-slate-400 active:bg-slate-700 active:text-red-300">
-              <Trash2 size={15} />
-            </button>
+            {/* Delete stays owner-only. */}
+            {isOwner && (
+              <button type="button" onClick={deleteMenu} aria-label="Delete" className="flex h-9 w-10 items-center justify-center rounded-xl border border-slate-700 bg-slate-800 text-slate-400 active:bg-slate-700 active:text-red-300">
+                <Trash2 size={15} />
+              </button>
+            )}
           </div>
+
+          {/* Co-managers — owner-only management. */}
+          {isOwner && <CoManagers menuId={menu.id} L={L} managers={menu.managers ?? []} token={token} onChange={refresh} />}
 
           {/* Dishes with sold-out toggles */}
           <section className="mb-4">
@@ -533,7 +555,7 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
       )}
 
       {/* ── BUYER VIEW: my existing orders + order form ── */}
-      {!isChef && (
+      {!canManage && (
         <>
           {myOrders.length > 0 && (
             <section className="mb-4">
@@ -634,6 +656,129 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
             </div>
           )}
         </>
+      )}
+    </div>
+  );
+}
+
+// ── Co-managers (owner-only) ────────────────────────────────────────────────
+
+function CoManagers({
+  menuId,
+  L,
+  managers,
+  token,
+  onChange,
+}: {
+  menuId: string;
+  L: (typeof KIND_LABELS)[FoodKind];
+  managers: Manager[];
+  token: string | null;
+  onChange: () => Promise<void> | void;
+}) {
+  const [adding, setAdding] = useState(false);
+  const [q, setQ] = useState("");
+  const [results, setResults] = useState<Manager[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!adding) return;
+    const term = q.trim();
+    if (term.length < 2) { setResults([]); return; }
+    const t = setTimeout(async () => {
+      try {
+        const res = await apiFetch(`/api/residents/search?q=${encodeURIComponent(term)}`, { token });
+        if (res.ok) {
+          const data = await res.json();
+          const existing = new Set(managers.map((m) => m.id));
+          setResults((data.residents ?? []).filter((r: Manager) => !existing.has(r.id)));
+        }
+      } catch { /* ignore */ }
+    }, 250);
+    return () => clearTimeout(t);
+  }, [q, adding, managers, token]);
+
+  async function add(residentId: string) {
+    setBusy(true);
+    setErr(null);
+    try {
+      const res = await apiFetch(`/api/food/menus/${menuId}/managers`, {
+        method: "POST",
+        token,
+        body: JSON.stringify({ residentId }),
+      });
+      if (!res.ok) {
+        setErr((await res.json().catch(() => null))?.error ?? "Could not add");
+        return;
+      }
+      setQ(""); setResults([]); setAdding(false);
+      await onChange();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function remove(residentId: string) {
+    setBusy(true);
+    try {
+      const res = await apiFetch(`/api/food/menus/${menuId}/managers?residentId=${encodeURIComponent(residentId)}`, { method: "DELETE", token });
+      if (res.ok) await onChange();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="mb-4 rounded-2xl border border-slate-700 bg-slate-800/40 p-3">
+      <div className="flex items-center justify-between">
+        <h2 className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400">
+          <Users size={13} /> Co-managers
+        </h2>
+        {!adding && (
+          <button type="button" onClick={() => setAdding(true)} className="inline-flex items-center gap-1 text-[12px] font-medium text-indigo-300 active:text-indigo-200">
+            <UserPlus size={13} /> Add
+          </button>
+        )}
+      </div>
+      <p className="mt-1 text-[11px] text-slate-500">
+        They can edit {L.itemPlural} and manage orders. They can&apos;t delete it or change co-managers.
+      </p>
+
+      {managers.length > 0 && (
+        <ul className="mt-2 space-y-1.5">
+          {managers.map((m) => (
+            <li key={m.id} className="flex items-center justify-between rounded-xl bg-slate-900/60 px-3 py-2">
+              <span className="text-[13px] text-slate-200">{m.name} <span className="text-slate-500">· B{m.block}-{m.flatNumber}</span></span>
+              <button type="button" onClick={() => remove(m.id)} disabled={busy} className="text-slate-500 active:text-red-300 disabled:opacity-50"><X size={15} /></button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {adding && (
+        <div className="mt-2 space-y-2">
+          <input
+            autoFocus
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search a resident by name…"
+            className="w-full rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none"
+          />
+          {err && <p className="text-[11px] text-red-300">{err}</p>}
+          {results.length > 0 && (
+            <ul className="overflow-hidden rounded-xl border border-slate-700">
+              {results.map((r) => (
+                <li key={r.id}>
+                  <button type="button" onClick={() => add(r.id)} disabled={busy} className="w-full px-3 py-2 text-left text-[13px] text-slate-200 active:bg-slate-700 disabled:opacity-50">
+                    {r.name} <span className="text-slate-500">· B{r.block}-{r.flatNumber}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <button type="button" onClick={() => { setAdding(false); setQ(""); setResults([]); setErr(null); }} className="text-[11px] text-slate-500 active:text-slate-300">Cancel</button>
+        </div>
       )}
     </div>
   );
