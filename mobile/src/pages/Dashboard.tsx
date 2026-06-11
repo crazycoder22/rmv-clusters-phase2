@@ -383,13 +383,21 @@ export default function Dashboard() {
         <section className="mb-5">
           {stepEvents.map((e) => {
             const today = new Date();
+            const start = new Date(e.startDate);
             const end = new Date(e.endDate);
-            const daysLeft = Math.max(
-              0,
-              Math.ceil(
-                (end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-              )
-            );
+            const DAY = 1000 * 60 * 60 * 24;
+            // Before the challenge starts, count down to kickoff; once live,
+            // count days remaining to the end.
+            const notStarted = today.getTime() < start.getTime();
+            const daysToStart = Math.ceil((start.getTime() - today.getTime()) / DAY);
+            const daysLeft = Math.max(0, Math.ceil((end.getTime() - today.getTime()) / DAY));
+            const statusText = notStarted
+              ? daysToStart <= 1
+                ? "Starts tomorrow"
+                : `Starts in ${daysToStart} days`
+              : daysLeft > 0
+                ? `${daysLeft} day${daysLeft !== 1 ? "s" : ""} left`
+                : "Finished — view results";
             return (
               <Link
                 key={e.announcementId}
@@ -404,9 +412,7 @@ export default function Dashboard() {
                     {e.title}
                   </p>
                   <p className="text-[11px] text-emerald-100">
-                    {daysLeft > 0
-                      ? `${daysLeft} day${daysLeft !== 1 ? "s" : ""} left`
-                      : "Finished — view results"}
+                    {statusText}
                     {e.dailyGoal > 0 &&
                       ` · ${e.dailyGoal.toLocaleString()} daily goal`}
                   </p>
