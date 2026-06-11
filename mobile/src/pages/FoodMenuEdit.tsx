@@ -7,6 +7,8 @@ import {
   Loader2,
   Plus,
   Trash2,
+  UserPlus,
+  Users,
   X,
 } from "lucide-react";
 import clsx from "clsx";
@@ -25,6 +27,13 @@ interface DishDraft {
   unit: string | null;
   imageUrl: string | null;
   soldOut?: boolean;
+}
+
+interface Manager {
+  id: string;
+  name: string;
+  block: number;
+  flatNumber: string;
 }
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -51,6 +60,7 @@ export default function FoodMenuEdit({ kind: kindProp = "KITCHEN" }: { kind?: Fo
   const [dishes, setDishes] = useState<DishDraft[]>([
     { name: "", description: "", price: "", unit: isMarket ? "kg" : null, imageUrl: null },
   ]);
+  const [managers, setManagers] = useState<Manager[]>([]);
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -158,6 +168,7 @@ export default function FoodMenuEdit({ kind: kindProp = "KITCHEN" }: { kind?: Fo
             orderByAt: orderByAt ? new Date(orderByAt).toISOString() : null,
             pickupInfo: pickupInfo.trim() || null,
             items: cleanDishes,
+            managerIds: managers.map((m) => m.id),
           }),
         });
         if (!res.ok) {
@@ -233,6 +244,9 @@ export default function FoodMenuEdit({ kind: kindProp = "KITCHEN" }: { kind?: Fo
           </button>
         </div>
 
+        {/* Co-managers — only on create (added from the detail page once it exists). */}
+        {!isEdit && <ManagersField L={L} managers={managers} setManagers={setManagers} token={token} />}
+
         {err && <p className="rounded-lg border border-red-700/60 bg-red-900/20 px-3 py-2 text-[11px] text-red-200">{err}</p>}
 
         <button type="button" onClick={save} disabled={saving} className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-500 py-3 text-sm font-semibold text-white active:bg-indigo-600 disabled:opacity-50">
@@ -240,6 +254,74 @@ export default function FoodMenuEdit({ kind: kindProp = "KITCHEN" }: { kind?: Fo
           {isEdit ? `Save ${L.listing}` : L.publishCta}
         </button>
       </div>
+    </div>
+  );
+}
+
+// ── Co-managers picker (create form) ────────────────────────────────────────
+
+function ManagersField({
+  L,
+  managers,
+  setManagers,
+  token,
+}: {
+  L: (typeof KIND_LABELS)[FoodKind];
+  managers: Manager[];
+  setManagers: (m: Manager[]) => void;
+  token: string | null;
+}) {
+  const [q, setQ] = useState("");
+  const [results, setResults] = useState<Manager[]>([]);
+
+  useEffect(() => {
+    const term = q.trim();
+    if (term.length < 2) { setResults([]); return; }
+    const t = setTimeout(async () => {
+      try {
+        const res = await apiFetch(`/api/residents/search?q=${encodeURIComponent(term)}`, { token });
+        if (res.ok) {
+          const data = await res.json();
+          const picked = new Set(managers.map((m) => m.id));
+          setResults((data.residents ?? []).filter((r: Manager) => !picked.has(r.id)));
+        }
+      } catch { /* ignore */ }
+    }, 250);
+    return () => clearTimeout(t);
+  }, [q, managers, token]);
+
+  return (
+    <div className="border-t border-slate-800 pt-3">
+      <p className="mb-1 inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+        <Users size={12} /> Co-managers (optional)
+      </p>
+      <p className="mb-2 text-[11px] text-slate-500">
+        Residents who can help run this {L.listing} — edit {L.itemPlural} and manage orders. You stay the owner.
+      </p>
+
+      {managers.length > 0 && (
+        <ul className="mb-2 space-y-1.5">
+          {managers.map((m) => (
+            <li key={m.id} className="flex items-center justify-between rounded-xl bg-slate-900/60 px-3 py-2">
+              <span className="text-[13px] text-slate-200">{m.name} <span className="text-slate-500">· B{m.block}-{m.flatNumber}</span></span>
+              <button type="button" onClick={() => setManagers(managers.filter((x) => x.id !== m.id))} className="text-slate-500 active:text-red-300"><X size={15} /></button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search a resident by name…" className={inputCls} />
+      {results.length > 0 && (
+        <ul className="mt-1.5 overflow-hidden rounded-xl border border-slate-700">
+          {results.map((r) => (
+            <li key={r.id}>
+              <button type="button" onClick={() => { setManagers([...managers, r]); setQ(""); setResults([]); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-slate-200 active:bg-slate-700">
+                <UserPlus size={13} className="text-slate-500" /> {r.name} <span className="text-slate-500">· B{r.block}-{r.flatNumber}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

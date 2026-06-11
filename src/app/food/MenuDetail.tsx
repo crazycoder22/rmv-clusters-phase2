@@ -383,8 +383,8 @@ export default function MenuDetail({ section = "KITCHEN" }: { section?: FoodKind
               )}
             </div>
 
-            {/* Co-managers — owner-only management. */}
-            {isOwner && <CoManagers menuId={menu.id} L={L} managers={menu.managers ?? []} onChange={refresh} />}
+            {/* Co-managers — owner + co-managers can add; only the owner removes. */}
+            <CoManagers menuId={menu.id} L={L} managers={menu.managers ?? []} canRemove={isOwner} onChange={refresh} />
 
             <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mt-6 mb-2">{L.itemPlural}</h2>
             <div className="space-y-2">
@@ -562,11 +562,13 @@ function CoManagers({
   menuId,
   L,
   managers,
+  canRemove,
   onChange,
 }: {
   menuId: string;
   L: (typeof KIND_LABELS)[FoodKind];
   managers: Manager[];
+  canRemove: boolean;
   onChange: () => Promise<void> | void;
 }) {
   const [adding, setAdding] = useState(false);
@@ -636,7 +638,7 @@ function CoManagers({
         )}
       </div>
       <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-        Co-managers can edit {L.itemPlural} and manage orders for this {L.listing}. They can&apos;t delete it or change co-managers.
+        Co-managers can edit {L.itemPlural}, manage orders, and add other co-managers. Only the owner can remove them or delete the {L.listing}.
       </p>
 
       {managers.length > 0 && (
@@ -644,7 +646,9 @@ function CoManagers({
           {managers.map((m) => (
             <div key={m.id} className="flex items-center justify-between rounded-lg bg-gray-50 dark:bg-gray-900 px-3 py-2">
               <span className="text-sm text-gray-800 dark:text-gray-200">{m.name} <span className="text-gray-400">· {m.block}-{m.flatNumber}</span></span>
-              <button type="button" onClick={() => remove(m.id)} disabled={busy} className="text-gray-400 hover:text-red-600 disabled:opacity-50"><X size={15} /></button>
+              {canRemove && (
+                <button type="button" onClick={() => remove(m.id)} disabled={busy} className="text-gray-400 hover:text-red-600 disabled:opacity-50"><X size={15} /></button>
+              )}
             </div>
           ))}
         </div>

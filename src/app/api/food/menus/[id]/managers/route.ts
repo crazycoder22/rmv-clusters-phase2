@@ -65,14 +65,19 @@ export async function POST(
   const { id } = await params;
   const menu = await loadMenu(id);
   if (!menu) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  // Only the owner manages co-managers.
-  if (menu.chefId !== me.id) return NextResponse.json({ error: "Not allowed" }, { status: 403 });
+  // The owner OR an existing co-manager can nominate another co-manager.
+  if (menu.chefId !== me.id && !(await isMenuManager(prisma, id, me.id))) {
+    return NextResponse.json({ error: "Not allowed" }, { status: 403 });
+  }
 
   const body = await request.json().catch(() => null);
   const residentId = typeof body?.residentId === "string" ? body.residentId : "";
   if (!residentId) return NextResponse.json({ error: "Pick a resident" }, { status: 400 });
   if (residentId === me.id) {
-    return NextResponse.json({ error: "You already own this listing" }, { status: 400 });
+    return NextResponse.json({ error: "You already manage this listing" }, { status: 400 });
+  }
+  if (residentId === menu.chefId) {
+    return NextResponse.json({ error: "They already own this listing" }, { status: 400 });
   }
 
   const resident = await prisma.resident.findUnique({

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthedResident } from "@/lib/api-auth";
 import { sendPushToResidents } from "@/lib/push";
-import { round2, MAX_OPEN_MENUS, isMenuOrderable } from "@/lib/food";
+import { round2, MAX_OPEN_MENUS, MAX_COMANAGERS, isMenuOrderable } from "@/lib/food";
 import { asKind, KIND_LABELS, MARKET_UNIT_VALUES } from "@/lib/market";
 import { ymdToInstant, isValidYmd } from "@/lib/habits";
 
@@ -92,13 +92,14 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
   if (!body) return NextResponse.json({ error: "Invalid body" }, { status: 400 });
 
-  const { title, description, date, orderByAt, pickupInfo, items, kind: rawKind } = body as {
+  const { title, description, date, orderByAt, pickupInfo, items, kind: rawKind, managerIds } = body as {
     title?: string;
     description?: string | null;
     date?: string;
     orderByAt?: string | null;
     pickupInfo?: string | null;
     kind?: string;
+    managerIds?: string[];
     items?: Array<{
       name?: string;
       description?: string | null;
@@ -172,6 +173,38 @@ export async function POST(request: Request) {
       items: { create: cleanItems },
     },
   });
+
+  // Optional co-managers nominated up-front on the create form. Validate each
+  // (approved resident, not the owner), dedupe, cap, then notify them.
+  if (Array.isArray(managerIds) && managerIds.length > 0) {
+    try {
+      const wanted = [...new Set(managerIds.filter((x) => typeof x === "string" && x && x !== me.id))].slice(
+        0,
+        MAX_COMANAGERS
+      );
+      if (wanted.length > 0) {
+        const valid = await prisma.resident.findMany({
+          where: { id: { in: wanted }, isApproved: true },
+          select: { id: true },
+        });
+        const validIds = valid.map((r) => r.id);
+        if (validIds.length > 0) {
+          await prisma.foodMenuManager.createMany({
+            data: validIds.map((residentId) => ({ menuId: menu.id, residentId, addedById: me.id })),
+            skipDuplicates: true,
+          });
+          const L = KIND_LABELS[kind];
+          await sendPushToResidents(validIds, {
+            title: `🧑‍🍳 You're a co-manager`,
+            body: `${me.name} added you to help run the ${L.stall} "${menu.title}"`,
+            data: { type: isMarket ? "market_menu" : "food_menu", id: menu.id },
+          });
+        }
+      }
+    } catch (err) {
+      console.error("[food create co-managers] failed:", err);
+    }
+  }
 
   // Push on publish. For launch we broadcast to ALL approved residents
   // (minus the chef) so the feature gets discovered; once residents start

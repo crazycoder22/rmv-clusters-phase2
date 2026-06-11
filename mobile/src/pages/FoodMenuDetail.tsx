@@ -448,8 +448,8 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
             )}
           </div>
 
-          {/* Co-managers — owner-only management. */}
-          {isOwner && <CoManagers menuId={menu.id} L={L} managers={menu.managers ?? []} token={token} onChange={refresh} />}
+          {/* Co-managers — owner + co-managers can add; only the owner removes. */}
+          <CoManagers menuId={menu.id} L={L} managers={menu.managers ?? []} canRemove={isOwner} token={token} onChange={refresh} />
 
           {/* Dishes with sold-out toggles */}
           <section className="mb-4">
@@ -667,12 +667,14 @@ function CoManagers({
   menuId,
   L,
   managers,
+  canRemove,
   token,
   onChange,
 }: {
   menuId: string;
   L: (typeof KIND_LABELS)[FoodKind];
   managers: Manager[];
+  canRemove: boolean;
   token: string | null;
   onChange: () => Promise<void> | void;
 }) {
@@ -742,7 +744,7 @@ function CoManagers({
         )}
       </div>
       <p className="mt-1 text-[11px] text-slate-500">
-        They can edit {L.itemPlural} and manage orders. They can&apos;t delete it or change co-managers.
+        They can edit {L.itemPlural}, manage orders, and add other co-managers. Only the owner can remove them or delete it.
       </p>
 
       {managers.length > 0 && (
@@ -750,7 +752,9 @@ function CoManagers({
           {managers.map((m) => (
             <li key={m.id} className="flex items-center justify-between rounded-xl bg-slate-900/60 px-3 py-2">
               <span className="text-[13px] text-slate-200">{m.name} <span className="text-slate-500">· B{m.block}-{m.flatNumber}</span></span>
-              <button type="button" onClick={() => remove(m.id)} disabled={busy} className="text-slate-500 active:text-red-300 disabled:opacity-50"><X size={15} /></button>
+              {canRemove && (
+                <button type="button" onClick={() => remove(m.id)} disabled={busy} className="text-slate-500 active:text-red-300 disabled:opacity-50"><X size={15} /></button>
+              )}
             </li>
           ))}
         </ul>

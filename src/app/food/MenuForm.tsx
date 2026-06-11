@@ -3,8 +3,15 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ImagePlus, Plus, Trash2, X } from "lucide-react";
+import { ArrowLeft, ImagePlus, Plus, Trash2, UserPlus, Users, X } from "lucide-react";
 import { type FoodKind, KIND_LABELS, MARKET_UNITS, MARKET_UNIT_VALUES } from "@/lib/market";
+
+interface Manager {
+  id: string;
+  name: string;
+  block: number;
+  flatNumber: string;
+}
 
 // Shared create/edit form. Pass menuId to edit an existing menu, and kind to
 // drive labels (KITCHEN = dishes/menu | MARKET = items/stall with a unit).
@@ -39,6 +46,7 @@ export default function MenuForm({ menuId, kind: kindProp = "KITCHEN" }: { menuI
   const [dishes, setDishes] = useState<DishDraft[]>(() => [
     { name: "", description: "", price: "", unit: isMarket ? "kg" : null, imageUrl: null },
   ]);
+  const [managers, setManagers] = useState<Manager[]>([]);
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -116,7 +124,7 @@ export default function MenuForm({ menuId, kind: kindProp = "KITCHEN" }: { menuI
         pickupInfo: pickupInfo.trim() || null,
         orderByAt: orderByAt ? new Date(orderByAt).toISOString() : null,
         items: cleanDishes,
-        ...(isEdit ? {} : { date, kind }),
+        ...(isEdit ? {} : { date, kind, managerIds: managers.map((m) => m.id) }),
       };
       const res = await fetch(isEdit ? `/api/food/menus/${menuId}` : "/api/food/menus", {
         method: isEdit ? "PATCH" : "POST",
@@ -181,6 +189,10 @@ export default function MenuForm({ menuId, kind: kindProp = "KITCHEN" }: { menuI
             </button>
           </div>
 
+          {/* Co-managers can only be added once the listing exists in edit mode
+              (from its detail page), so we only offer this on create. */}
+          {!isEdit && <ManagersField L={L} managers={managers} setManagers={setManagers} />}
+
           {err && <p className="bg-red-50 dark:bg-red-900/30 border border-red-200 text-red-700 rounded-lg px-3 py-2 text-sm">{err}</p>}
 
           <button type="button" onClick={save} disabled={saving} className="w-full bg-blue-600 text-white rounded-lg py-3 font-medium hover:bg-blue-700 disabled:opacity-50">
@@ -188,6 +200,75 @@ export default function MenuForm({ menuId, kind: kindProp = "KITCHEN" }: { menuI
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+// Optional co-managers picked up-front on the create form. Holds them in local
+// state only; the menu POST creates the rows + notifies them on publish.
+function ManagersField({
+  L,
+  managers,
+  setManagers,
+}: {
+  L: (typeof KIND_LABELS)[FoodKind];
+  managers: Manager[];
+  setManagers: (m: Manager[]) => void;
+}) {
+  const [q, setQ] = useState("");
+  const [results, setResults] = useState<Manager[]>([]);
+
+  useEffect(() => {
+    const term = q.trim();
+    if (term.length < 2) { setResults([]); return; }
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/residents/search?q=${encodeURIComponent(term)}`);
+        if (res.ok) {
+          const data = await res.json();
+          const picked = new Set(managers.map((m) => m.id));
+          setResults((data.residents ?? []).filter((r: Manager) => !picked.has(r.id)));
+        }
+      } catch { /* ignore */ }
+    }, 250);
+    return () => clearTimeout(t);
+  }, [q, managers]);
+
+  return (
+    <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+      <p className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <Users size={15} /> Co-managers <span className="text-gray-400 font-normal">(optional)</span>
+      </p>
+      <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">
+        Residents who can help run this {L.listing} — edit {L.itemPlural} and manage orders. You stay the owner.
+      </p>
+
+      {managers.length > 0 && (
+        <div className="space-y-1.5 mb-2">
+          {managers.map((m) => (
+            <div key={m.id} className="flex items-center justify-between rounded-lg bg-gray-50 dark:bg-gray-900 px-3 py-2">
+              <span className="text-sm text-gray-800 dark:text-gray-200">{m.name} <span className="text-gray-400">· {m.block}-{m.flatNumber}</span></span>
+              <button type="button" onClick={() => setManagers(managers.filter((x) => x.id !== m.id))} className="text-gray-400 hover:text-red-600"><X size={15} /></button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search a resident by name…" className={inputCls} />
+      {results.length > 0 && (
+        <div className="mt-1.5 rounded-lg border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-700 overflow-hidden">
+          {results.map((r) => (
+            <button
+              key={r.id}
+              type="button"
+              onClick={() => { setManagers([...managers, r]); setQ(""); setResults([]); }}
+              className="w-full flex items-center gap-2 px-3 py-2 text-left text-sm text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+            >
+              <UserPlus size={14} className="text-gray-400" /> {r.name} <span className="text-gray-400">· {r.block}-{r.flatNumber}</span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
