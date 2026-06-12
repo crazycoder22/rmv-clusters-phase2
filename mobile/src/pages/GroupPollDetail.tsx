@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, Clock, Bell, Trash2, X, CheckCircle2, Circle, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
 
@@ -61,64 +62,87 @@ export default function GroupPollDetail() {
     if (res.ok) navigate(`/groups/${groupId}`);
   }
 
-  if (loading) return <Centered><Loader2 size={22} className="animate-spin text-slate-500" /></Centered>;
-  if (error || !data) return <Centered><div className="text-center"><p className="mb-3 text-red-400">{error ?? "Not found"}</p><button onClick={() => navigate(`/groups/${groupId}`)} className="text-sm text-blue-400">← Group</button></div></Centered>;
+  if (loading) return <Centered><Loader2 size={22} className="animate-spin" style={{ color: "var(--text-3)" }} /></Centered>;
+  if (error || !data) return <Centered><div className="text-center"><p className="mb-3" style={{ color: "var(--danger)" }}>{error ?? "Not found"}</p><button onClick={() => navigate(`/groups/${groupId}`)} className="text-sm" style={{ color: "var(--accent)" }}>← Group</button></div></Centered>;
 
   const totalVotes = data.options.reduce((s, o) => s + o.voteCount, 0);
 
   return (
-    <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)] pb-6">
-      <button onClick={() => navigate(`/groups/${groupId}`)} className="flex items-center gap-1 py-4 text-sm text-slate-400"><ArrowLeft size={16} /> {data.groupName}</button>
+    <div
+      className="one-surface flex flex-1 flex-col px-[18px] pt-[env(safe-area-inset-top,0px)] pb-6"
+      style={{ background: "var(--bg)", color: "var(--text)" }}
+    >
+      <button onClick={() => navigate(`/groups/${groupId}`)} className="flex items-center gap-1.5 py-3 text-[15px] font-semibold" style={{ color: "var(--text-2)" }}>
+        <Icon name="arrow_back" size={20} style={{ color: "var(--text-2)" }} /> {data.groupName}
+      </button>
 
-      <h1 className="text-xl font-bold text-white">{data.title}</h1>
-      <p className="mt-1 text-[11px] text-slate-500">by {data.author}</p>
-      {data.playAt && <p className="mt-2 inline-flex items-center gap-1.5 text-sm text-slate-300"><Calendar size={14} className="text-blue-400" /> {fmtDateTime(data.playAt)}</p>}
+      <h1 className="text-[22px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>{data.title}</h1>
+      <p className="mt-1 text-[12px]" style={{ color: "var(--text-3)" }}>by {data.author}</p>
+      {data.playAt && (
+        <p className="mt-2 inline-flex items-center gap-1.5 text-[14px]" style={{ color: "var(--text)" }}>
+          <Icon name="calendar_today" size={15} style={{ color: "var(--carblue)" }} /> {fmtDateTime(data.playAt)}
+        </p>
+      )}
 
       {data.isOpen ? (
-        <div className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300"><Clock size={14} /> Voting open{data.closesAt ? ` until ${fmtDateTime(data.closesAt)}` : ""}</div>
+        <div className="mt-3 inline-flex items-center gap-1.5 rounded-[11px] px-3.5 py-2.5 text-[14px] font-semibold" style={{ background: "var(--success-soft)", border: "1px solid var(--success-line)", color: "var(--success)" }}>
+          <Icon name="schedule" size={15} style={{ color: "var(--success)" }} /> Voting open{data.closesAt ? ` until ${fmtDateTime(data.closesAt)}` : ""}
+        </div>
       ) : (
-        <div className={`mt-3 rounded-lg border px-3 py-2 text-sm ${data.outcome === "GAME_ON" ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : data.outcome === "CANCELLED" ? "border-red-500/30 bg-red-500/10 text-red-300" : "border-slate-700 bg-slate-800/60 text-slate-300"}`}>
-          <p className="font-semibold">{data.outcome === "GAME_ON" ? "🟢 Game is ON" : data.outcome === "CANCELLED" ? "🔴 Cancelled" : "Voting closed"}</p>
+        <div
+          className="mt-3 rounded-[11px] px-3.5 py-2.5 text-[14px]"
+          style={data.outcome === "GAME_ON"
+            ? { background: "var(--success-soft)", border: "1px solid var(--success-line)", color: "var(--success)" }
+            : data.outcome === "CANCELLED"
+              ? { background: "var(--danger-soft)", border: "1px solid color-mix(in srgb, var(--danger) 40%, transparent)", color: "var(--danger)" }
+              : { background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-2)" }}
+        >
+          <p className="font-bold">{data.outcome === "GAME_ON" ? "🟢 Game is ON" : data.outcome === "CANCELLED" ? "🔴 Cancelled" : "Voting closed"}</p>
           {data.closeNote && <p className="mt-0.5">{data.closeNote}</p>}
         </div>
       )}
 
-      <div className="mt-6 space-y-2">
+      <div className="mt-6 space-y-2.5">
         {data.options.map((o) => {
           const selected = data.myOptionId === o.id;
           const pct = totalVotes ? Math.round((o.voteCount / totalVotes) * 100) : 0;
           return (
             <button key={o.id} onClick={() => vote(o.id)} disabled={voting || !data.isOpen || !data.isMember}
-              className={`w-full rounded-lg border p-3 text-left ${selected ? "border-blue-500 bg-blue-500/10" : "border-slate-700 bg-slate-800/60"}`}>
+              className="w-full rounded-[13px] p-3.5 text-left"
+              style={selected
+                ? { background: "var(--accent-soft)", border: "1px solid var(--accent)" }
+                : { background: "var(--surface)", border: "1px solid var(--border)" }}>
               <div className="flex items-center justify-between">
-                <span className="flex items-center gap-2 text-sm font-medium text-white">
-                  {selected ? <CheckCircle2 size={18} className="text-blue-400" /> : <Circle size={18} className="text-slate-600" />}
+                <span className="flex items-center gap-2 text-[15px] font-semibold" style={{ color: "var(--text)" }}>
+                  <Icon name={selected ? "check_circle" : "radio_button_unchecked"} size={18} fill={selected} style={{ color: selected ? "var(--accent)" : "var(--text-3)" }} />
                   {o.text}
                 </span>
-                <span className="text-sm font-semibold text-slate-300">{o.voteCount}</span>
+                <span className="text-[15px] font-bold" style={{ color: "var(--text-2)" }}>{o.voteCount}</span>
               </div>
               {o.voters.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-1 pl-7">
-                  {o.voters.map((vr) => <span key={vr.residentId} className="rounded-full bg-slate-700 px-1.5 py-0.5 text-[11px] text-slate-300">{vr.name.split(" ")[0]}</span>)}
+                <div className="mt-2 flex flex-wrap gap-1.5 pl-7">
+                  {o.voters.map((vr) => <span key={vr.residentId} className="rounded-full px-2 py-0.5 text-[12px]" style={{ background: "var(--surface-3)", color: "var(--text-2)" }}>{vr.name.split(" ")[0]}</span>)}
                 </div>
               )}
-              <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-800"><div className={`h-full rounded-full ${selected ? "bg-blue-500" : "bg-blue-400/50"}`} style={{ width: `${pct}%` }} /></div>
+              <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full" style={{ background: "var(--surface-3)" }}>
+                <div className="h-full rounded-full" style={{ width: `${pct}%`, background: selected ? "var(--accent)" : "var(--accent-strong)", opacity: selected ? 1 : 0.5 }} />
+              </div>
             </button>
           );
         })}
       </div>
 
-      <p className="mt-3 text-[11px] text-slate-500">{totalVotes} total vote{totalVotes !== 1 ? "s" : ""}{data.isOpen && data.isMember ? " · tap to vote (changeable)" : ""}{!data.isMember && data.isOpen ? " · join the group to vote" : ""}</p>
+      <p className="mt-3 text-[13px]" style={{ color: "var(--text-3)" }}>{totalVotes} total vote{totalVotes !== 1 ? "s" : ""}{data.isOpen && data.isMember ? " · tap to vote (changeable)" : ""}{!data.isMember && data.isOpen ? " · join the group to vote" : ""}</p>
 
       {data.canManage && (
         <div className="mt-6 flex flex-wrap items-center gap-2">
           {data.isOpen && (
             <>
-              <button onClick={remind} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-300 active:bg-slate-800"><Bell size={15} /> Reminder</button>
-              <button onClick={() => setCloseOpen(true)} className="inline-flex items-center gap-1.5 rounded-lg bg-amber-500 px-4 py-2 text-sm font-medium text-white active:bg-amber-600">Close poll</button>
+              <button onClick={remind} className="inline-flex items-center gap-1.5 rounded-[11px] px-4 py-2.5 text-[14px] font-bold" style={{ background: "var(--surface-2)", border: "1px solid var(--border-strong)", color: "var(--text)" }}><Icon name="notifications" size={15} style={{ color: "var(--text)" }} /> Reminder</button>
+              <button onClick={() => setCloseOpen(true)} className="inline-flex items-center gap-1.5 rounded-[11px] px-4 py-2.5 text-[14px] font-bold text-white active:opacity-90" style={{ background: "var(--warning)" }}>Close poll</button>
             </>
           )}
-          <button onClick={deletePoll} className="ml-auto inline-flex items-center gap-1.5 text-sm text-slate-500"><Trash2 size={15} /> Delete</button>
+          <button onClick={deletePoll} className="ml-auto inline-flex items-center gap-1.5 text-[14px] font-semibold" style={{ color: "var(--text-3)" }}><Icon name="delete" size={15} style={{ color: "var(--text-3)" }} /> Delete</button>
         </div>
       )}
 
@@ -144,21 +168,28 @@ function CloseModal({ token, groupId, pollId, onClose, onDone }: { token: string
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
-      <div className="w-full max-w-sm rounded-2xl border border-slate-700 bg-slate-900 p-5">
-        <div className="mb-4 flex items-center justify-between"><h3 className="font-bold text-white">Close poll</h3><button onClick={onClose} className="text-slate-400"><X size={18} /></button></div>
-        <p className="mb-3 text-sm text-slate-300">All members get a notification with the outcome + note.</p>
-        <div className="grid grid-cols-2 gap-2">
-          <button onClick={() => setOutcome("GAME_ON")} className={`rounded-lg border py-3 text-sm font-semibold ${outcome === "GAME_ON" ? "border-emerald-500 bg-emerald-500/10 text-emerald-300" : "border-slate-700 text-slate-300"}`}>🟢 Game ON</button>
-          <button onClick={() => setOutcome("CANCELLED")} className={`rounded-lg border py-3 text-sm font-semibold ${outcome === "CANCELLED" ? "border-red-500 bg-red-500/10 text-red-300" : "border-slate-700 text-slate-300"}`}>🔴 Cancelled</button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: "rgba(0,0,0,0.55)" }}>
+      <div className="one-surface w-full max-w-sm rounded-[22px] p-5" style={{ background: "var(--surface)", border: "1px solid var(--border-strong)", boxShadow: "0 20px 50px rgba(0,0,0,0.5)" }}>
+        <div className="flex items-center justify-between">
+          <h3 className="text-[21px] font-extrabold" style={{ color: "var(--text)" }}>Close poll</h3>
+          <button onClick={onClose} aria-label="Close"><Icon name="close" size={24} style={{ color: "var(--text-3)" }} /></button>
         </div>
-        <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Optional note — 'Court 2, 6pm, 8 confirmed'" rows={3} className="mt-3 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-blue-500 focus:outline-none" />
-        {err && <p className="mt-2 text-sm text-red-400">{err}</p>}
-        <button onClick={submit} disabled={busy} className="mt-3 w-full rounded-xl bg-indigo-500 py-2.5 font-medium text-white active:bg-indigo-600 disabled:opacity-50">{busy ? "Closing…" : "Close & notify"}</button>
+        <p className="mb-3 mt-3 text-[14px]" style={{ color: "var(--text-2)" }}>All members get a notification with the outcome + note.</p>
+        <div className="grid grid-cols-2 gap-2.5">
+          <button onClick={() => setOutcome("GAME_ON")} className="rounded-[11px] py-3 text-[14px] font-bold"
+            style={outcome === "GAME_ON" ? { background: "var(--success-soft)", border: "1px solid var(--success)", color: "var(--success)" } : { border: "1px solid var(--border-strong)", color: "var(--text-2)" }}>🟢 Game ON</button>
+          <button onClick={() => setOutcome("CANCELLED")} className="rounded-[11px] py-3 text-[14px] font-bold"
+            style={outcome === "CANCELLED" ? { background: "var(--danger-soft)", border: "1px solid var(--danger)", color: "var(--danger)" } : { border: "1px solid var(--border-strong)", color: "var(--text-2)" }}>🔴 Cancelled</button>
+        </div>
+        <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Optional note — 'Court 2, 6pm, 8 confirmed'" rows={3} className="one-input mt-3 w-full rounded-[11px] px-3.5 py-3 text-[15px]" />
+        {err && <p className="mt-2 text-[13px]" style={{ color: "var(--danger)" }}>{err}</p>}
+        <button onClick={submit} disabled={busy} className="mt-3 w-full rounded-[13px] py-3.5 text-[16px] font-bold text-white active:opacity-90 disabled:opacity-50" style={{ background: "var(--accent-strong)" }}>{busy ? "Closing…" : "Close & notify"}</button>
       </div>
     </div>
   );
 }
 
-function Centered({ children }: { children: React.ReactNode }) { return <div className="flex flex-1 items-center justify-center px-4">{children}</div>; }
+function Centered({ children }: { children: React.ReactNode }) {
+  return <div className="one-surface flex flex-1 items-center justify-center px-4" style={{ background: "var(--bg)", color: "var(--text)" }}>{children}</div>;
+}
 function fmtDateTime(iso: string): string { return new Date(iso).toLocaleString("en-IN", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }); }

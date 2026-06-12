@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Users, Plus, X, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
 
@@ -41,39 +42,61 @@ export default function Groups() {
   }
 
   return (
-    <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)]">
-      <header className="flex items-center gap-2 py-4">
-        <Link to="/more" className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 active:bg-slate-800"><ArrowLeft size={20} /></Link>
+    <div
+      className="one-surface flex flex-1 flex-col px-[18px] pt-[env(safe-area-inset-top,0px)]"
+      style={{ background: "var(--bg)", color: "var(--text)" }}
+    >
+      <header className="flex items-start gap-3 py-3">
+        <Link to="/community" className="flex pt-0.5" aria-label="Back">
+          <Icon name="arrow_back" size={22} style={{ color: "var(--text-2)" }} />
+        </Link>
         <div className="flex-1 min-w-0">
-          <h1 className="text-lg font-semibold text-white">Groups</h1>
-          <p className="truncate text-[11px] text-slate-500">Sports & activity groups</p>
+          <h1 className="text-[24px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>Groups</h1>
+          <p className="truncate text-[12px]" style={{ color: "var(--text-3)" }}>Sports &amp; activity groups</p>
         </div>
-        <button type="button" onClick={() => setCreateOpen(true)} className="flex h-9 items-center gap-1 rounded-full bg-indigo-500 px-3 text-sm font-medium text-white active:bg-indigo-600">
-          <Plus size={14} /> New
+        <button
+          type="button"
+          onClick={() => setCreateOpen(true)}
+          className="flex shrink-0 items-center gap-1 rounded-full px-4 py-2 text-[14px] font-bold text-white active:opacity-90"
+          style={{ background: "var(--accent-strong)" }}
+        >
+          <Icon name="add" size={17} style={{ color: "#fff" }} /> New
         </button>
       </header>
 
       {loading ? (
-        <div className="flex justify-center py-12 text-slate-500"><Loader2 size={22} className="animate-spin" /></div>
+        <div className="flex justify-center py-12" style={{ color: "var(--text-3)" }}><Loader2 size={22} className="animate-spin" /></div>
       ) : groups.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-700 px-4 py-12 text-center text-sm text-slate-500">
-          <Users size={28} className="mx-auto mb-2 text-slate-600" />
+        <div className="rounded-[18px] px-4 py-12 text-center text-[14px]" style={{ border: "1.5px dashed var(--border-strong)", color: "var(--text-3)" }}>
+          <Icon name="groups" size={28} className="mx-auto mb-2 block" style={{ color: "var(--text-3)" }} />
           No groups yet. Create the first one!
         </div>
       ) : (
-        <div className="space-y-2 pb-4">
+        <div className="space-y-3 pb-4">
           {groups.map((g) => (
-            <div key={g.id} className="rounded-2xl border border-slate-700 bg-slate-800/60 p-3">
+            <div key={g.id} className="rounded-[16px] p-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
               <Link to={`/groups/${g.id}`} className="block">
-                <h3 className="text-sm font-semibold text-white">{g.name}</h3>
-                {g.description && <p className="mt-0.5 line-clamp-2 text-[12px] text-slate-400">{g.description}</p>}
-                <p className="mt-1 text-[11px] text-slate-500">{g.memberCount} member{g.memberCount !== 1 ? "s" : ""}</p>
+                <h3 className="text-[18px] font-bold" style={{ color: "var(--text)" }}>{g.name}</h3>
+                {g.description && <p className="mt-0.5 line-clamp-2 text-[14px]" style={{ color: "var(--text-2)" }}>{g.description}</p>}
+                <p className="mt-1 text-[13px]" style={{ color: "var(--text-3)" }}>{g.memberCount} member{g.memberCount !== 1 ? "s" : ""}</p>
               </Link>
-              <div className="mt-2">
-                {g.myRole ? (
-                  <span className="text-[12px] font-medium text-emerald-400">{g.myRole === "ORGANIZER" ? "★ Organizer" : "✓ Joined"}</span>
+              <div className="mt-3">
+                {g.myRole === "ORGANIZER" ? (
+                  <span className="inline-flex items-center gap-1.5 text-[14px] font-bold" style={{ color: "var(--success)" }}>
+                    <Icon name="star" size={18} fill style={{ color: "var(--success)" }} /> Organizer
+                  </span>
+                ) : g.myRole === "MEMBER" ? (
+                  <span className="inline-flex items-center gap-1.5 text-[14px] font-bold" style={{ color: "var(--success)" }}>
+                    <Icon name="check_circle" size={18} fill style={{ color: "var(--success)" }} /> Joined
+                  </span>
                 ) : (
-                  <button type="button" onClick={() => join(g.id)} disabled={busyId === g.id} className="w-full rounded-lg bg-indigo-500/20 py-2 text-[13px] font-medium text-indigo-300 active:bg-indigo-500/30 disabled:opacity-50">
+                  <button
+                    type="button"
+                    onClick={() => join(g.id)}
+                    disabled={busyId === g.id}
+                    className="w-full rounded-[11px] py-2.5 text-[14px] font-bold active:opacity-80 disabled:opacity-50"
+                    style={{ background: "var(--accent-soft)", color: "var(--accent)" }}
+                  >
                     {busyId === g.id ? "Joining…" : "Join"}
                   </button>
                 )}
@@ -107,27 +130,25 @@ function CreateGroupModal({ token, onClose, onCreated }: { token: string | null;
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 px-4 pt-[max(3rem,env(safe-area-inset-top,0px))]">
-      <div className="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-5">
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="font-bold text-white">New group</h3>
-          <button type="button" onClick={onClose} className="text-slate-400"><X size={18} /></button>
+    <div className="fixed inset-0 z-50 flex items-start justify-center px-3.5 pt-[max(2.5rem,env(safe-area-inset-top,0px))]" style={{ background: "rgba(0,0,0,0.55)" }}>
+      <div className="one-surface w-full max-w-md rounded-[22px] p-5" style={{ background: "var(--surface)", border: "1px solid var(--border-strong)", boxShadow: "0 20px 50px rgba(0,0,0,0.5)" }}>
+        <div className="flex items-center justify-between">
+          <h3 className="text-[21px] font-extrabold" style={{ color: "var(--text)" }}>New group</h3>
+          <button type="button" onClick={onClose} aria-label="Close"><Icon name="close" size={24} style={{ color: "var(--text-3)" }} /></button>
         </div>
-        <div className="space-y-3">
+        <div className="mt-4 space-y-4">
           <div>
-            <label className="mb-1 block text-[11px] text-slate-400">Group name</label>
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Sunday Volleyball" className={inputCls} />
+            <label className="mb-1.5 block text-[13px] font-semibold" style={{ color: "var(--text-2)" }}>Group name</label>
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Sunday Volleyball" className="one-input w-full rounded-[11px] px-3.5 py-3 text-[15px]" />
           </div>
           <div>
-            <label className="mb-1 block text-[11px] text-slate-400">Description (optional)</label>
-            <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="When/where you usually play…" rows={2} className={inputCls} />
+            <label className="mb-1.5 block text-[13px] font-semibold" style={{ color: "var(--text-2)" }}>Description (optional)</label>
+            <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="When/where you usually play…" rows={3} className="one-input w-full rounded-[11px] px-3.5 py-3 text-[15px]" />
           </div>
-          {err && <p className="rounded-lg border border-red-700/60 bg-red-900/20 px-3 py-2 text-[12px] text-red-200">{err}</p>}
-          <button type="button" onClick={submit} disabled={busy} className="w-full rounded-xl bg-indigo-500 py-2.5 font-medium text-white active:bg-indigo-600 disabled:opacity-50">{busy ? "Creating…" : "Create group"}</button>
+          {err && <p className="rounded-[11px] px-3.5 py-2.5 text-[13px]" style={{ background: "var(--danger-soft)", border: "1px solid color-mix(in srgb, var(--danger) 40%, transparent)", color: "var(--danger)" }}>{err}</p>}
+          <button type="button" onClick={submit} disabled={busy} className="w-full rounded-[13px] py-3.5 text-[16px] font-bold text-white active:opacity-90 disabled:opacity-50" style={{ background: "var(--accent-strong)" }}>{busy ? "Creating…" : "Create group"}</button>
         </div>
       </div>
     </div>
   );
 }
-
-const inputCls = "w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-blue-500 focus:outline-none";
