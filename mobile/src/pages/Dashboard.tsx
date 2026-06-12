@@ -666,7 +666,6 @@ const EXPLORE: {
   { to: "/games", ms: "sports_esports", label: "Games", sub: "7 games" },
   { to: "/residents", ms: "groups", label: "Directory", sub: "Find residents" },
   { to: "/groups", ms: "diversity_3", label: "Groups", sub: "Join & vote" },
-  { to: "/community", ms: "forum", label: "Community", sub: "Posts & feed" },
   { to: "/parking", ms: "local_parking", label: "Parking", sub: "Book a slot" },
   { to: "/guidelines", ms: "checklist", label: "Guidelines", sub: "Community rules" },
   { to: "/marketplace", ms: "storefront", label: "Marketplace", sub: "Buy & sell" },

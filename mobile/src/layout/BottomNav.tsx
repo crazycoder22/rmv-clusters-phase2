@@ -1,7 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
-import { Gamepad2, Home, MoreHorizontal, Newspaper } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
-import clsx from "clsx";
+import Icon from "../components/Icon";
 
 // On Android 15/16 with Samsung One UI, the WebView draws under the system
 // gesture / 3-button nav bar even with WindowCompat.setDecorFitsSystemWindows
@@ -17,58 +16,17 @@ const bottomPadding =
     ? `calc(env(safe-area-inset-bottom, 0px) + ${ANDROID_NAV_BAR_FALLBACK_PX}px)`
     : "env(safe-area-inset-bottom, 0px)";
 
-const GAMES_PREFIXES = [
-  "/games",
-  "/memory",
-  "/wordle",
-  "/sudoku",
-  "/2048",
-  "/quiz",
-  "/tambola",
-  "/fantasy",
-  "/anagram",
-];
-
-const MORE_PREFIXES = [
-  "/more",
-  "/guidelines",
-  "/info",
-  "/faq",
-  "/gallery",
-  "/videos",
-  "/sos-guidelines",
-  "/sos-warriors",
-  "/residents",
-  "/settings",
-  "/marketplace",
-  "/domestic-help",
-  "/admin",
-  "/issues",
-  "/community",
-  "/polls",
-  "/visits",
-  "/vehicles",
-];
-
-function isGamesActive(pathname: string): boolean {
-  return GAMES_PREFIXES.some((p) => pathname.startsWith(p));
+// OneRMV nav: Home · Community · Settings. Home is the dashboard only; Settings
+// owns the preferences screen; Community owns the hub + every feature launched
+// from it (so any non-home, non-settings route keeps the Community tab lit).
+function isSettingsActive(p: string): boolean {
+  return p.startsWith("/settings");
 }
-
-function isNewsActive(pathname: string): boolean {
-  return pathname.startsWith("/news");
+function isHomeActive(p: string): boolean {
+  return p === "/";
 }
-
-function isMoreActive(pathname: string): boolean {
-  return MORE_PREFIXES.some((p) => pathname.startsWith(p));
-}
-
-function isHomeActive(pathname: string): boolean {
-  return (
-    pathname === "/" ||
-    (!isGamesActive(pathname) &&
-      !isNewsActive(pathname) &&
-      !isMoreActive(pathname))
-  );
+function isCommunityActive(p: string): boolean {
+  return !isHomeActive(p) && !isSettingsActive(p);
 }
 
 export default function BottomNav() {
@@ -76,33 +34,26 @@ export default function BottomNav() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur dark:border-slate-700 dark:bg-slate-900/95"
-      style={{ paddingBottom: bottomPadding }}
+      className="fixed inset-x-0 bottom-0 z-40"
+      style={{
+        paddingBottom: bottomPadding,
+        background: "var(--surface)",
+        borderTop: "1px solid var(--border)",
+      }}
     >
       <div className="mx-auto flex max-w-md items-stretch">
+        <Tab to="/" label="Home" ms="home" active={isHomeActive(pathname)} />
         <Tab
-          to="/"
-          label="Home"
-          Icon={Home}
-          active={isHomeActive(pathname)}
+          to="/community"
+          label="Community"
+          ms="forum"
+          active={isCommunityActive(pathname)}
         />
         <Tab
-          to="/games"
-          label="Games"
-          Icon={Gamepad2}
-          active={isGamesActive(pathname)}
-        />
-        <Tab
-          to="/news"
-          label="News"
-          Icon={Newspaper}
-          active={isNewsActive(pathname)}
-        />
-        <Tab
-          to="/more"
-          label="More"
-          Icon={MoreHorizontal}
-          active={isMoreActive(pathname)}
+          to="/settings"
+          label="Settings"
+          ms="settings"
+          active={isSettingsActive(pathname)}
         />
       </div>
     </nav>
@@ -112,24 +63,25 @@ export default function BottomNav() {
 function Tab({
   to,
   label,
-  Icon,
+  ms,
   active,
 }: {
   to: string;
   label: string;
-  Icon: typeof Home;
+  ms: string;
   active: boolean;
 }) {
+  const color = active ? "var(--accent)" : "var(--text-3)";
   return (
     <Link
       to={to}
-      className={clsx(
-        "flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[11px] font-medium transition-colors",
-        active ? "text-indigo-600 dark:text-indigo-400" : "text-slate-400 dark:text-slate-500"
-      )}
+      className="flex flex-1 flex-col items-center gap-1 py-3"
+      style={{ color }}
     >
-      <Icon size={20} />
-      {label}
+      <Icon name={ms} size={25} fill={active} weight={active ? 500 : 400} style={{ color }} />
+      <span className="text-[11px]" style={{ fontWeight: active ? 700 : 600 }}>
+        {label}
+      </span>
     </Link>
   );
 }

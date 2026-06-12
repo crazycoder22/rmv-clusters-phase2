@@ -1,4 +1,4 @@
-import { HashRouter, Route, Routes } from "react-router-dom";
+import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider, useAuth } from "./auth/AuthProvider";
 import { ThemeProvider } from "./theme/ThemeProvider";
 import SignIn from "./auth/SignIn";
@@ -20,7 +20,6 @@ import MemoryMulti from "./pages/MemoryMulti";
 import MemoryMultiSession from "./pages/MemoryMultiSession";
 import Guidelines from "./pages/Guidelines";
 import Info from "./pages/Info";
-import MorePage from "./pages/More";
 import Faq from "./pages/Faq";
 import Gallery from "./pages/Gallery";
 import Videos from "./pages/Videos";
@@ -53,6 +52,7 @@ import AdminUsage from "./pages/AdminUsage";
 import Issues from "./pages/Issues";
 import IssueNew from "./pages/IssueNew";
 import IssueDetail from "./pages/IssueDetail";
+import CommunityHub from "./pages/CommunityHub";
 import Community from "./pages/Community";
 import CommunityPost from "./pages/CommunityPost";
 import Polls from "./pages/Polls";
@@ -158,7 +158,9 @@ function Gate() {
           <Route path="/fantasy/:matchId" element={<FantasyMatch />} />
           <Route path="/guidelines" element={<Guidelines />} />
           <Route path="/info" element={<Info />} />
-          <Route path="/more" element={<MorePage />} />
+          {/* "More" folded into the Community hub. Keep the path as a redirect
+              so every feature page's "back to More" link lands on the hub. */}
+          <Route path="/more" element={<Navigate to="/community" replace />} />
           <Route path="/faq" element={<Faq />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/videos" element={<Videos />} />
@@ -193,7 +195,8 @@ function Gate() {
           <Route path="/issues" element={<Issues />} />
           <Route path="/issues/new" element={<IssueNew />} />
           <Route path="/issues/:id" element={<IssueDetail />} />
-          <Route path="/community" element={<Community />} />
+          <Route path="/community" element={<CommunityHub />} />
+          <Route path="/community/feed" element={<Community />} />
           <Route path="/community/:id" element={<CommunityPost />} />
           <Route path="/polls" element={<Polls />} />
           <Route path="/polls/:id" element={<PollDetail />} />

@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { ArrowLeft, Loader2, Monitor, Moon, Siren, Sun } from "lucide-react";
+import { Loader2, LogOut, Monitor, Moon, Siren, Sun } from "lucide-react";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
 import { useTheme, type ThemePref } from "../theme/ThemeProvider";
@@ -12,7 +11,7 @@ const THEME_OPTIONS: { value: ThemePref; label: string; icon: typeof Sun }[] = [
 ];
 
 export default function Settings() {
-  const { token, user, updateUser } = useAuth();
+  const { token, user, updateUser, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
   const [saving, setSaving] = useState(false);
   const senior = !!user?.isSeniorCitizen;
@@ -39,14 +38,13 @@ export default function Settings() {
 
   return (
     <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)] pb-8">
-      <header className="flex items-center gap-2 py-4">
-        <Link
-          to="/more"
-          className="flex h-9 w-9 items-center justify-center rounded-full text-slate-600 active:bg-slate-200 dark:text-slate-300 dark:active:bg-slate-800"
-        >
-          <ArrowLeft size={20} />
-        </Link>
-        <h1 className="text-lg font-semibold text-slate-900 dark:text-white">Settings</h1>
+      <header className="py-4">
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
+          Settings
+        </h1>
+        <p className="mt-0.5 text-xs text-slate-500">
+          Appearance, accessibility & account
+        </p>
       </header>
 
       {/* Appearance */}
@@ -127,6 +125,26 @@ export default function Settings() {
           This preference is saved to your account and applies on all your devices.
         </p>
       </section>
+
+      {/* Account */}
+      {user && (
+        <section className="mt-6">
+          <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
+            Account
+          </h2>
+          <button
+            onClick={() => void signOut()}
+            className="flex w-full items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-left text-sm font-semibold text-red-600 active:bg-slate-100 dark:border-slate-700 dark:bg-slate-800/60 dark:text-red-300 dark:active:bg-slate-800"
+          >
+            <LogOut size={16} />
+            Sign out
+          </button>
+          <p className="mt-2 px-1 text-[11px] text-slate-500">
+            Signed in as {user.name}
+            {user.block ? ` · Block ${user.block}` : ""}
+          </p>
+        </section>
+      )}
     </div>
   );
 }
