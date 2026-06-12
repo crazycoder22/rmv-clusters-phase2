@@ -47,6 +47,89 @@ html {
   scroll-behavior: smooth;
 }
 
+/* ───────────────────────────────────────────────────────────────────────────
+   OneRMV Design System — tokens (teal accent), type & Material Symbols.
+   Light values on :root, dark values under .dark (site's existing strategy).
+   Consume via var(--bg) etc. or the .one-* helpers below.
+   ─────────────────────────────────────────────────────────────────────────── */
+:root {
+  --bg: #f1f4f9;
+  --surface: #ffffff;
+  --surface-2: #f7f9fc;
+  --surface-3: #eef2f8;
+  --border: #e5e9f1;
+  --border-strong: #d2dae7;
+  --text: #0e1626;
+  --text-2: #516079;
+  --text-3: #8696ae;
+  --on-accent: #ffffff;
+  --accent: #0e9384;
+  --accent-strong: #0b7d70;
+  --accent-soft: #e2f6f3;
+  --success: #0f9d6e;
+  --success-soft: #e4f7ef;
+  --warning: #b7791f;
+  --warning-soft: #fbf0dc;
+  --danger: #dc2626;
+  --danger-soft: #fdecec;
+  --info: #2563eb;
+  --shadow: 0 8px 28px rgba(16, 28, 51, 0.1);
+  --banner: linear-gradient(110deg, #0e7490, #0f766e 60%, #047857);
+  --ds-font: "Hanken Grotesk", system-ui, -apple-system, sans-serif;
+  --ds-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+.dark {
+  --bg: #0a0f1c;
+  --surface: #111a2e;
+  --surface-2: #16223c;
+  --surface-3: #1c2945;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --text: #f3f6fb;
+  --text-2: #9fb0c9;
+  --text-3: #6b7c98;
+  --on-accent: #ffffff;
+  --accent: #2dd4bf;
+  --accent-strong: #14b8a6;
+  --accent-soft: rgba(45, 212, 191, 0.16);
+  --success: #34d399;
+  --success-soft: rgba(52, 211, 153, 0.16);
+  --warning: #fbbf24;
+  --warning-soft: rgba(251, 191, 36, 0.16);
+  --danger: #f87171;
+  --danger-soft: rgba(248, 113, 113, 0.16);
+  --info: #60a5fa;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  --banner: linear-gradient(110deg, #0d3b3a, #0f5b53 60%, #0f766e);
+}
+
+/* Material Symbols Outlined glyph base (the <Icon> component renders .ms). */
+.ms {
+  font-family: "Material Symbols Outlined";
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: "opsz" 24, "wght" 400, "FILL" 0, "GRAD" 0;
+  user-select: none;
+}
+
+/* Opt-in OneRMV typography for migrated subtrees (rest of site keeps Geist). */
+.one-surface {
+  font-family: var(--ds-font);
+  -webkit-font-smoothing: antialiased;
+}
+.one-mono {
+  font-family: var(--ds-mono);
+}
+
 /* Wordle shake animation */
 @keyframes shake {
   0%, 100% { transform: translateX(0); }

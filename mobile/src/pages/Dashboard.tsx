@@ -3,10 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   ChevronRight,
   Circle,
-  Coins,
   Flame,
   Loader2,
-  LogOut,
   Siren,
   Target,
 } from "lucide-react";
@@ -15,6 +13,7 @@ import clsx from "clsx";
 import { apiFetch } from "../lib/api";
 import { API_BASE_URL } from "../config";
 import { useAuth } from "../auth/AuthProvider";
+import Icon from "../components/Icon";
 
 
 type Rsvp = {
@@ -254,19 +253,23 @@ export default function Dashboard() {
             <img
               src={user.imageUrl}
               alt=""
-              className="h-10 w-10 rounded-full border border-slate-200 dark:border-slate-700 object-cover"
+              className="h-11 w-11 rounded-full object-cover"
+              style={{ border: "2px solid var(--accent)" }}
             />
           ) : (
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-500/20 text-sm font-semibold text-indigo-300">
+            <div
+              className="flex h-11 w-11 items-center justify-center rounded-full text-base font-extrabold"
+              style={{ background: "var(--accent-soft)", border: "2px solid var(--accent)", color: "var(--accent)" }}
+            >
               {user?.name?.[0]?.toUpperCase() ?? "?"}
             </div>
           )}
           <div>
-            <p className="text-base font-semibold text-slate-900 dark:text-white">
+            <p className="text-[18px] font-extrabold leading-none tracking-tight" style={{ color: "var(--text)" }}>
               Hi, {firstName}
             </p>
-            <p className="text-[11px] text-slate-500">
-              Block {user?.block}, {user?.flatNumber}
+            <p className="one-mono mt-1 text-[11px]" style={{ color: "var(--text-3)" }}>
+              Block {user?.block} · {user?.flatNumber}
             </p>
           </div>
         </div>
@@ -274,18 +277,20 @@ export default function Dashboard() {
           {/* Coins earned from games / competitions → tap for the Rewards page. */}
           <button
             onClick={() => navigate("/rewards")}
-            className="flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/15 px-2.5 py-1.5 text-sm font-semibold text-amber-300 active:bg-amber-500/25"
+            className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold active:opacity-80"
+            style={{ background: "var(--warning-soft)", color: "var(--warning)" }}
             title="My rewards"
           >
-            <Coins size={15} />
+            <Icon name="paid" size={17} fill />
             <span className="tabular-nums">{coins.toLocaleString("en-IN")}</span>
           </button>
           <button
             onClick={() => void signOut()}
-            className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 dark:text-slate-400 active:bg-slate-100 dark:active:bg-slate-800"
+            className="flex h-9 w-9 items-center justify-center rounded-full active:opacity-70"
+            style={{ color: "var(--text-3)" }}
             title="Sign out"
           >
-            <LogOut size={18} />
+            <Icon name="logout" size={20} />
           </button>
         </div>
       </header>
@@ -429,14 +434,15 @@ export default function Dashboard() {
 
       {/* Habits to mark today — quick check-off without leaving the home tab. */}
       {habitsToday.length > 0 && (
-        <section className="mb-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3">
-          <div className="mb-2 flex items-center justify-between">
-            <h2 className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+        <section className="one-card mb-5 rounded-2xl p-3">
+          <div className="mb-2.5 flex items-center justify-between">
+            <h2 className="one-mono inline-flex items-center gap-1.5 text-[12px] font-medium uppercase" style={{ color: "var(--text-3)", letterSpacing: "0.08em" }}>
               <Target size={12} /> Mark today
             </h2>
             <Link
               to="/habits"
-              className="text-[11px] font-medium text-indigo-300 active:underline"
+              className="text-[11px] font-semibold active:underline"
+              style={{ color: "var(--accent)" }}
             >
               All habits
             </Link>
@@ -483,7 +489,7 @@ export default function Dashboard() {
         {regsLoading ? (
           <p className="py-4 text-center text-xs text-slate-500">Loading…</p>
         ) : rsvps.length === 0 && sportsRegs.length === 0 ? (
-          <p className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/40 px-4 py-5 text-center text-xs text-slate-500">
+          <p className="one-card rounded-2xl px-4 py-5 text-center text-xs" style={{ color: "var(--text-3)" }}>
             No upcoming registrations. Check News for events.
           </p>
         ) : (
@@ -492,7 +498,7 @@ export default function Dashboard() {
               <button
                 key={r.id}
                 onClick={() => openLink(`/events/${r.announcementId}/rsvp`)}
-                className="flex w-full items-center justify-between rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3 text-left active:bg-slate-100 dark:active:bg-slate-800"
+                className="flex w-full items-center justify-between rounded-2xl one-card p-3 text-left"
               >
                 <div className="min-w-0 flex-1">
                   <div className="mb-1 flex flex-wrap items-center gap-1.5">
@@ -526,7 +532,7 @@ export default function Dashboard() {
               <button
                 key={sr.id}
                 onClick={() => openLink(`/events/${sr.announcementId}/sports`)}
-                className="flex w-full items-center justify-between rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3 text-left active:bg-slate-100 dark:active:bg-slate-800"
+                className="flex w-full items-center justify-between rounded-2xl one-card p-3 text-left"
               >
                 <div className="min-w-0 flex-1">
                   <Badge className="mb-1 inline-block bg-orange-500/20 text-orange-300">
@@ -551,11 +557,11 @@ export default function Dashboard() {
       {/* Latest news (last 2 weeks) */}
       {recentNews.length > 0 && (
         <section className="mb-5">
-          <div className="mb-2 flex items-center justify-between">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+          <div className="mb-2.5 flex items-center justify-between">
+            <h2 className="one-mono text-[12px] font-medium uppercase" style={{ color: "var(--text-3)", letterSpacing: "0.08em" }}>
               Latest news
             </h2>
-            <Link to="/news" className="text-[11px] font-medium text-indigo-300">
+            <Link to="/news" className="text-[11px] font-semibold" style={{ color: "var(--accent)" }}>
               View all
             </Link>
           </div>
@@ -564,7 +570,7 @@ export default function Dashboard() {
               <Link
                 key={n.id}
                 to="/news"
-                className="flex items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3 active:bg-slate-100 dark:active:bg-slate-800"
+                className="flex items-center gap-3 rounded-2xl one-card p-3"
               >
                 <span className="text-xl">{n.emoji ?? "📰"}</span>
                 <div className="min-w-0 flex-1">
@@ -591,7 +597,7 @@ export default function Dashboard() {
               <button
                 key={p.id}
                 onClick={() => openLink(`/polls/${p.id}`)}
-                className="flex w-full items-center justify-between rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3 text-left active:bg-slate-100 dark:active:bg-slate-800"
+                className="flex w-full items-center justify-between rounded-2xl one-card p-3 text-left"
               >
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
@@ -611,107 +617,10 @@ export default function Dashboard() {
 
       {/* Quick nav */}
       <Section title="Explore">
-        <div className="grid grid-cols-2 gap-2">
-          <Link
-            to="/news"
-            className="flex items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3 active:bg-slate-100 dark:active:bg-slate-800"
-          >
-            <span className="text-2xl">📰</span>
-            <div>
-              <p className="text-sm font-semibold text-slate-900 dark:text-white">News</p>
-              <p className="text-[10px] text-slate-500">Announcements</p>
-            </div>
-          </Link>
-          <Link
-            to="/games"
-            className="flex items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3 active:bg-slate-100 dark:active:bg-slate-800"
-          >
-            <span className="text-2xl">🎮</span>
-            <div>
-              <p className="text-sm font-semibold text-slate-900 dark:text-white">Games</p>
-              <p className="text-[10px] text-slate-500">7 games</p>
-            </div>
-          </Link>
-          <Link
-            to="/residents"
-            className="flex items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3 active:bg-slate-100 dark:active:bg-slate-800"
-          >
-            <span className="text-2xl">👥</span>
-            <div>
-              <p className="text-sm font-semibold text-slate-900 dark:text-white">Directory</p>
-              <p className="text-[10px] text-slate-500">Find residents</p>
-            </div>
-          </Link>
-          <Link
-            to="/groups"
-            className="flex items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3 active:bg-slate-100 dark:active:bg-slate-800"
-          >
-            <span className="text-2xl">🏸</span>
-            <div>
-              <p className="text-sm font-semibold text-slate-900 dark:text-white">Groups</p>
-              <p className="text-[10px] text-slate-500">Join & vote</p>
-            </div>
-          </Link>
-          <Link
-            to="/community"
-            className="flex items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3 active:bg-slate-100 dark:active:bg-slate-800"
-          >
-            <span className="text-2xl">💬</span>
-            <div>
-              <p className="text-sm font-semibold text-slate-900 dark:text-white">Community</p>
-              <p className="text-[10px] text-slate-500">Posts & feed</p>
-            </div>
-          </Link>
-          <Link
-            to="/parking"
-            className="flex items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3 active:bg-slate-100 dark:active:bg-slate-800"
-          >
-            <span className="text-2xl">🚗</span>
-            <div>
-              <p className="text-sm font-semibold text-slate-900 dark:text-white">Parking</p>
-              <p className="text-[10px] text-slate-500">Book a slot</p>
-            </div>
-          </Link>
-          <Link
-            to="/guidelines"
-            className="flex items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3 active:bg-slate-100 dark:active:bg-slate-800"
-          >
-            <span className="text-2xl">📋</span>
-            <div>
-              <p className="text-sm font-semibold text-slate-900 dark:text-white">Guidelines</p>
-              <p className="text-[10px] text-slate-500">Community rules</p>
-            </div>
-          </Link>
-          <Link
-            to="/marketplace"
-            className="flex items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3 active:bg-slate-100 dark:active:bg-slate-800"
-          >
-            <span className="text-2xl">🛒</span>
-            <div>
-              <p className="text-sm font-semibold text-slate-900 dark:text-white">Marketplace</p>
-              <p className="text-[10px] text-slate-500">Buy & sell</p>
-            </div>
-          </Link>
-          <Link
-            to="/domestic-help"
-            className="flex items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3 active:bg-slate-100 dark:active:bg-slate-800"
-          >
-            <span className="text-2xl">🧹</span>
-            <div>
-              <p className="text-sm font-semibold text-slate-900 dark:text-white">Domestic Help</p>
-              <p className="text-[10px] text-slate-500">Maids, cooks…</p>
-            </div>
-          </Link>
-          <Link
-            to="/emergency"
-            className="flex items-center gap-3 rounded-2xl border border-red-500/40 bg-red-500/10 p-3 active:bg-red-500/20"
-          >
-            <span className="text-2xl">🚨</span>
-            <div>
-              <p className="text-sm font-semibold text-slate-900 dark:text-white">Emergency</p>
-              <p className="text-[10px] text-slate-500 dark:text-slate-400">Contacts & warriors</p>
-            </div>
-          </Link>
+        <div className="grid grid-cols-2 gap-2.5">
+          {EXPLORE.map((e) => (
+            <ExploreTile key={e.to} {...e} />
+          ))}
         </div>
       </Section>
 
@@ -730,11 +639,80 @@ function Section({
 }) {
   return (
     <section className="mb-5">
-      <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
+      <h2
+        className="one-mono mb-2.5 text-[12px] font-medium uppercase"
+        style={{ color: "var(--text-3)", letterSpacing: "0.08em" }}
+      >
         {title}
       </h2>
       {children}
     </section>
+  );
+}
+
+// OneRMV "Explore" feature tiles — Material Symbol in an accent-soft rounded
+// tile + label/subtitle. `danger` items (Emergency) use the danger token.
+const EXPLORE: {
+  to: string;
+  ms: string;
+  label: string;
+  sub: string;
+  danger?: boolean;
+}[] = [
+  { to: "/news", ms: "newspaper", label: "News", sub: "Announcements" },
+  { to: "/games", ms: "sports_esports", label: "Games", sub: "7 games" },
+  { to: "/residents", ms: "groups", label: "Directory", sub: "Find residents" },
+  { to: "/groups", ms: "diversity_3", label: "Groups", sub: "Join & vote" },
+  { to: "/community", ms: "forum", label: "Community", sub: "Posts & feed" },
+  { to: "/parking", ms: "local_parking", label: "Parking", sub: "Book a slot" },
+  { to: "/guidelines", ms: "checklist", label: "Guidelines", sub: "Community rules" },
+  { to: "/marketplace", ms: "storefront", label: "Marketplace", sub: "Buy & sell" },
+  { to: "/domestic-help", ms: "cleaning_services", label: "Domestic Help", sub: "Maids, cooks…" },
+  { to: "/emergency", ms: "emergency", label: "Emergency", sub: "Contacts & warriors", danger: true },
+];
+
+function ExploreTile({
+  to,
+  ms,
+  label,
+  sub,
+  danger,
+}: {
+  to: string;
+  ms: string;
+  label: string;
+  sub: string;
+  danger?: boolean;
+}) {
+  const fg = danger ? "var(--danger)" : "var(--accent)";
+  const tileBg = danger ? "var(--danger-soft)" : "var(--accent-soft)";
+  return (
+    <Link
+      to={to}
+      className="flex items-center gap-3 rounded-[14px] p-3 active:opacity-80"
+      style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+    >
+      <span
+        className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-[11px]"
+        style={{ background: tileBg }}
+      >
+        <Icon name={ms} size={21} style={{ color: fg }} />
+      </span>
+      <span className="min-w-0">
+        <span
+          className="block truncate text-[13.5px] font-bold"
+          style={{ color: "var(--text)" }}
+        >
+          {label}
+        </span>
+        <span
+          className="block truncate text-[11px]"
+          style={{ color: "var(--text-3)" }}
+        >
+          {sub}
+        </span>
+      </span>
+    </Link>
   );
 }
 
