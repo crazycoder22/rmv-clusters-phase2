@@ -9,7 +9,6 @@ import {
   Target,
 } from "lucide-react";
 import { Browser } from "@capacitor/browser";
-import clsx from "clsx";
 import { apiFetch } from "../lib/api";
 import { API_BASE_URL } from "../config";
 import { useAuth } from "../auth/AuthProvider";
@@ -278,7 +277,11 @@ export default function Dashboard() {
           <button
             onClick={() => navigate("/rewards")}
             className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold active:opacity-80"
-            style={{ background: "var(--warning-soft)", color: "var(--warning)" }}
+            style={{
+              background: "var(--warning-soft)",
+              color: "var(--warning)",
+              border: "1px solid color-mix(in srgb, var(--warning) 30%, transparent)",
+            }}
             title="My rewards"
           >
             <Icon name="paid" size={17} fill />
@@ -407,25 +410,27 @@ export default function Dashboard() {
               <Link
                 key={e.announcementId}
                 to={`/steps/${e.announcementId}`}
-                className="flex items-center gap-3 rounded-2xl border border-emerald-700/50 bg-gradient-to-br from-emerald-500/20 to-indigo-500/20 p-4 active:from-emerald-500/30 active:to-indigo-500/30"
+                className="flex items-center gap-3.5 rounded-[20px] p-[17px] active:opacity-90"
+                style={{ background: "var(--banner)", border: "1px solid var(--border)" }}
               >
-                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-white/10 text-2xl">
-                  {e.emoji ?? "🏃"}
+                <div className="flex h-[50px] w-[50px] flex-shrink-0 items-center justify-center rounded-full bg-white/[0.14] text-[26px]">
+                  {e.emoji ? (
+                    e.emoji
+                  ) : (
+                    <Icon name="directions_run" size={27} weight={500} style={{ color: "#fff" }} />
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">
+                  <p className="truncate text-[18px] font-extrabold tracking-tight text-white">
                     {e.title}
                   </p>
-                  <p className="text-[11px] text-emerald-100">
+                  <p className="mt-0.5 text-[12px] text-white/[0.78]">
                     {statusText}
                     {e.dailyGoal > 0 &&
                       ` · ${e.dailyGoal.toLocaleString()} daily goal`}
                   </p>
                 </div>
-                <ChevronRight
-                  size={16}
-                  className="flex-shrink-0 text-white/70"
-                />
+                <Icon name="chevron_right" size={23} style={{ color: "rgba(255,255,255,0.8)" }} />
               </Link>
             );
           })}
@@ -436,7 +441,7 @@ export default function Dashboard() {
       {habitsToday.length > 0 && (
         <section className="one-card mb-5 rounded-2xl p-3">
           <div className="mb-2.5 flex items-center justify-between">
-            <h2 className="one-mono inline-flex items-center gap-1.5 text-[12px] font-medium uppercase" style={{ color: "var(--text-3)", letterSpacing: "0.08em" }}>
+            <h2 className="one-mono inline-flex items-center gap-1.5 text-[10px] font-medium uppercase" style={{ color: "var(--text-3)", letterSpacing: "0.14em" }}>
               <Target size={12} /> Mark today
             </h2>
             <Link
@@ -501,31 +506,23 @@ export default function Dashboard() {
                 className="flex w-full items-center justify-between rounded-2xl one-card p-3 text-left"
               >
                 <div className="min-w-0 flex-1">
-                  <div className="mb-1 flex flex-wrap items-center gap-1.5">
+                  <div className="mb-2 flex flex-wrap items-center gap-1.5">
                     {r.mealType && (
-                      <Badge className="bg-emerald-500/20 text-emerald-300">
-                        {r.mealType}
-                      </Badge>
+                      <TokenPill tone="accent">{r.mealType}</TokenPill>
                     )}
-                    <Badge
-                      className={
-                        r.paid
-                          ? "bg-emerald-500/20 text-emerald-300"
-                          : "bg-red-500/20 text-red-300"
-                      }
-                    >
+                    <TokenPill tone={r.paid ? "success" : "warning"}>
                       {r.paid ? "Paid" : "Unpaid"}
-                    </Badge>
+                    </TokenPill>
                   </div>
-                  <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
+                  <p className="truncate text-[16px] font-bold" style={{ color: "var(--text)" }}>
                     {r.eventTitle}
                   </p>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="mt-0.5 text-[12px]" style={{ color: "var(--text-3)" }}>
                     {formatDate(r.eventDate)} · {r.totalPlates} plate
                     {r.totalPlates !== 1 ? "s" : ""}
                   </p>
                 </div>
-                <ChevronRight size={16} className="text-slate-500" />
+                <Icon name="chevron_right" size={22} style={{ color: "var(--text-3)" }} />
               </button>
             ))}
             {sportsRegs.map((sr) => (
@@ -535,19 +532,19 @@ export default function Dashboard() {
                 className="flex w-full items-center justify-between rounded-2xl one-card p-3 text-left"
               >
                 <div className="min-w-0 flex-1">
-                  <Badge className="mb-1 inline-block bg-orange-500/20 text-orange-300">
-                    Sports
-                  </Badge>
-                  <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
+                  <div className="mb-2">
+                    <TokenPill tone="accent">Sports</TokenPill>
+                  </div>
+                  <p className="truncate text-[16px] font-bold" style={{ color: "var(--text)" }}>
                     {sr.eventTitle}
                   </p>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="mt-0.5 text-[12px]" style={{ color: "var(--text-3)" }}>
                     {formatDate(sr.eventDate)} · {sr.participantCount}{" "}
                     participant{sr.participantCount !== 1 ? "s" : ""}
                     {sr.sports.length > 0 && ` · ${sr.sports.join(", ")}`}
                   </p>
                 </div>
-                <ChevronRight size={16} className="text-slate-500" />
+                <Icon name="chevron_right" size={22} style={{ color: "var(--text-3)" }} />
               </button>
             ))}
           </div>
@@ -558,7 +555,7 @@ export default function Dashboard() {
       {recentNews.length > 0 && (
         <section className="mb-5">
           <div className="mb-2.5 flex items-center justify-between">
-            <h2 className="one-mono text-[12px] font-medium uppercase" style={{ color: "var(--text-3)", letterSpacing: "0.08em" }}>
+            <h2 className="one-mono text-[10px] font-medium uppercase" style={{ color: "var(--text-3)", letterSpacing: "0.14em" }}>
               Latest news
             </h2>
             <Link to="/news" className="text-[11px] font-semibold" style={{ color: "var(--accent)" }}>
@@ -572,17 +569,22 @@ export default function Dashboard() {
                 to="/news"
                 className="flex items-center gap-3 rounded-2xl one-card p-3"
               >
-                <span className="text-xl">{n.emoji ?? "📰"}</span>
+                <span
+                  className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[11px] text-lg"
+                  style={{ background: "var(--accent-soft)" }}
+                >
+                  {n.emoji ?? "📰"}
+                </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
+                  <p className="truncate text-[15px] font-bold" style={{ color: "var(--text)" }}>
                     {n.title}
                   </p>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="mt-px text-[12px]" style={{ color: "var(--text-3)" }}>
                     <span className="capitalize">{n.category}</span> ·{" "}
                     {formatDate(n.date)}
                   </p>
                 </div>
-                <ChevronRight size={16} className="flex-shrink-0 text-slate-500" />
+                <Icon name="chevron_right" size={22} style={{ color: "var(--text-3)" }} />
               </Link>
             ))}
           </div>
@@ -600,15 +602,15 @@ export default function Dashboard() {
                 className="flex w-full items-center justify-between rounded-2xl one-card p-3 text-left"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
+                  <p className="truncate text-[16px] font-bold" style={{ color: "var(--text)" }}>
                     {p.title}
                   </p>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="mt-0.5 text-[12px]" style={{ color: "var(--text-3)" }}>
                     {p._count.votes} vote{p._count.votes !== 1 ? "s" : ""} ·
                     ends {formatDate(p.deadline)}
                   </p>
                 </div>
-                <ChevronRight size={16} className="text-slate-500" />
+                <Icon name="chevron_right" size={22} style={{ color: "var(--text-3)" }} />
               </button>
             ))}
           </div>
@@ -618,9 +620,10 @@ export default function Dashboard() {
       {/* Quick nav */}
       <Section title="Explore">
         <div className="grid grid-cols-2 gap-2.5">
-          {EXPLORE.map((e) => (
+          {EXPLORE.filter((e) => !e.danger).map((e) => (
             <ExploreTile key={e.to} {...e} />
           ))}
+          <EmergencyTile />
         </div>
       </Section>
 
@@ -640,8 +643,8 @@ function Section({
   return (
     <section className="mb-5">
       <h2
-        className="one-mono mb-2.5 text-[12px] font-medium uppercase"
-        style={{ color: "var(--text-3)", letterSpacing: "0.08em" }}
+        className="one-mono mb-2.5 text-[10px] font-medium uppercase"
+        style={{ color: "var(--text-3)", letterSpacing: "0.14em" }}
       >
         {title}
       </h2>
@@ -671,12 +674,12 @@ const EXPLORE: {
   { to: "/emergency", ms: "emergency", label: "Emergency", sub: "Contacts & warriors", danger: true },
 ];
 
+// OneRMV Explore tile — vertical: accent-soft icon tile on top, label + sub below.
 function ExploreTile({
   to,
   ms,
   label,
   sub,
-  danger,
 }: {
   to: string;
   ms: string;
@@ -684,29 +687,27 @@ function ExploreTile({
   sub: string;
   danger?: boolean;
 }) {
-  const fg = danger ? "var(--danger)" : "var(--accent)";
-  const tileBg = danger ? "var(--danger-soft)" : "var(--accent-soft)";
   return (
     <Link
       to={to}
-      className="flex items-center gap-3 rounded-[14px] p-3 active:opacity-80"
+      className="flex flex-col gap-[11px] rounded-[16px] p-3.5 active:opacity-80"
       style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
     >
       <span
-        className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-[11px]"
-        style={{ background: tileBg }}
+        className="flex h-10 w-10 items-center justify-center rounded-[12px]"
+        style={{ background: "var(--accent-soft)" }}
       >
-        <Icon name={ms} size={21} style={{ color: fg }} />
+        <Icon name={ms} size={22} style={{ color: "var(--accent)" }} />
       </span>
       <span className="min-w-0">
         <span
-          className="block truncate text-[13.5px] font-bold"
+          className="block truncate text-[15px] font-bold leading-tight"
           style={{ color: "var(--text)" }}
         >
           {label}
         </span>
         <span
-          className="block truncate text-[11px]"
+          className="mt-px block truncate text-[12px]"
           style={{ color: "var(--text-3)" }}
         >
           {sub}
@@ -716,19 +717,48 @@ function ExploreTile({
   );
 }
 
-function Badge({
+// Emergency — full-width danger row spanning both grid columns, with a chevron.
+function EmergencyTile() {
+  return (
+    <Link
+      to="/emergency"
+      className="col-span-2 flex items-center gap-[13px] rounded-[16px] p-3.5 active:opacity-80"
+      style={{
+        background: "var(--danger-soft)",
+        border: "1px solid color-mix(in srgb, var(--danger) 30%, transparent)",
+      }}
+    >
+      <span
+        className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-[12px]"
+        style={{ background: "color-mix(in srgb, var(--danger) 18%, transparent)" }}
+      >
+        <Icon name="emergency" size={23} style={{ color: "var(--danger)" }} />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[15px] font-bold" style={{ color: "var(--text)" }}>
+          Emergency
+        </span>
+        <span className="block text-[12px]" style={{ color: "var(--text-3)" }}>
+          Contacts &amp; warriors
+        </span>
+      </span>
+      <Icon name="chevron_right" size={22} style={{ color: "var(--danger)" }} />
+    </Link>
+  );
+}
+
+// OneRMV status pill — soft tinted background + matching foreground token.
+function TokenPill({
+  tone,
   children,
-  className,
 }: {
+  tone: "accent" | "success" | "warning" | "danger";
   children: React.ReactNode;
-  className?: string;
 }) {
   return (
     <span
-      className={clsx(
-        "inline-block rounded-full px-2 py-0.5 text-[10px] font-medium capitalize",
-        className
-      )}
+      className="inline-block rounded-full px-2.5 py-[3px] text-[11px] font-bold capitalize"
+      style={{ background: `var(--${tone}-soft)`, color: `var(--${tone})` }}
     >
       {children}
     </span>
