@@ -144,7 +144,7 @@ export default function ResidentDirectory() {
     >
       <header className="flex items-center gap-3 py-3">
         {mode === "residents" ? (
-          <button onClick={goBrowse} className="flex" aria-label="Back to buildings" style={{ color: "var(--text-2)" }}>
+          <button onClick={goBrowse} className="flex" aria-label="Back to blocks" style={{ color: "var(--text-2)" }}>
             <Icon name="arrow_back" size={22} style={{ color: "var(--text-2)" }} />
           </button>
         ) : (
@@ -153,7 +153,7 @@ export default function ResidentDirectory() {
           </Link>
         )}
         <h1 className="flex-1 text-[21px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>
-          {mode === "residents" ? `Building ${activeBlock}` : "Resident Directory"}
+          {mode === "residents" ? `Block ${activeBlock}` : "Resident Directory"}
         </h1>
       </header>
 
@@ -222,11 +222,11 @@ export default function ResidentDirectory() {
       {/* ===== BROWSE: BUILDINGS ===== */}
       {mode === "buildings" && (
         <div className="flex-1">
-          <Eyebrow>Buildings</Eyebrow>
+          <Eyebrow>Blocks</Eyebrow>
           {!blocksLoaded ? (
             <div className="flex justify-center py-10"><Loader2 size={20} className="animate-spin" style={{ color: "var(--text-3)" }} /></div>
           ) : blocks.length === 0 ? (
-            <p className="rounded-[18px] px-4 py-9 text-center text-[14px]" style={{ border: "1px solid var(--border)", color: "var(--text-3)" }}>No buildings found.</p>
+            <p className="rounded-[18px] px-4 py-9 text-center text-[14px]" style={{ border: "1px solid var(--border)", color: "var(--text-3)" }}>No blocks found.</p>
           ) : (
             <div className="overflow-hidden rounded-[16px]" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
               {blocks.map((b, i) => (
@@ -239,7 +239,7 @@ export default function ResidentDirectory() {
                   <span className="flex h-[38px] w-[38px] flex-shrink-0 items-center justify-center rounded-[11px]" style={{ background: "var(--accent-soft)" }}>
                     <Icon name="apartment" size={21} style={{ color: "var(--accent)" }} />
                   </span>
-                  <span className="flex-1 text-[16px] font-bold" style={{ color: "var(--text)" }}>Building {b.block}</span>
+                  <span className="flex-1 text-[16px] font-bold" style={{ color: "var(--text)" }}>Block {b.block}</span>
                   <span className="text-[12px]" style={{ color: "var(--text-3)" }}>{b.count}</span>
                   <Icon name="chevron_right" size={22} style={{ color: "var(--text-3)" }} />
                 </button>
@@ -255,7 +255,7 @@ export default function ResidentDirectory() {
           {rosterLoading ? (
             <div className="flex justify-center py-10"><Loader2 size={20} className="animate-spin" style={{ color: "var(--text-3)" }} /></div>
           ) : roster.length === 0 ? (
-            <p className="rounded-[18px] px-4 py-9 text-center text-[14px]" style={{ border: "1px solid var(--border)", color: "var(--text-3)" }}>No residents in this building yet.</p>
+            <p className="rounded-[18px] px-4 py-9 text-center text-[14px]" style={{ border: "1px solid var(--border)", color: "var(--text-3)" }}>No residents in this block yet.</p>
           ) : (
             <div className="flex flex-col">
               {Object.entries(byFlat).map(([flat, people]) => (
