@@ -364,7 +364,7 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
           } finally { setSubmitting(false); }
         },
         prefill: { name: isGuest ? guestName : session?.user?.name || "", email: isGuest ? guestEmail : session?.user?.email || "", contact: isGuest ? guestPhone : "" },
-        theme: { color: "#1e40af" },
+        theme: { color: "#4f46e5" },
         modal: { ondismiss: () => { setSubmitting(false); setError("Payment cancelled. Your RSVP was not submitted."); } },
       };
       const rzp = new window.Razorpay(options);
