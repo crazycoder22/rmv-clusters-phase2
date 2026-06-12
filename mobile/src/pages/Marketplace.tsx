@@ -1,14 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  ArrowUpDown,
-  Heart,
-  Loader2,
-  Plus,
-  Search,
-  ShoppingBag,
-  Tag,
-} from "lucide-react";
+import { Loader2 } from "lucide-react";
+import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
 import {
@@ -16,7 +9,6 @@ import {
   LISTING_TYPES,
   formatPrice,
   getCategoryLabel,
-  TYPE_BADGE,
 } from "../lib/marketplace";
 
 export type Listing = {
@@ -35,40 +27,66 @@ export type Listing = {
   createdAt: string;
 };
 
+// Striped "listing photo" placeholder matching OneRMV Marketplace.dc.html.
+const stripe =
+  "repeating-linear-gradient(45deg, var(--surface-2), var(--surface-2) 7px, var(--surface-3) 7px, var(--surface-3) 14px)";
+
+// SELL → accent, GIVEAWAY → success, RENT → warning.
+function typeTone(t: string): { bg: string; fg: string } {
+  if (t === "GIVEAWAY") return { bg: "var(--success-soft)", fg: "var(--success)" };
+  if (t === "RENT") return { bg: "var(--warning-soft)", fg: "var(--warning)" };
+  return { bg: "var(--accent-soft)", fg: "var(--accent)" };
+}
+function priceColor(t: string): string {
+  return t === "GIVEAWAY" ? "var(--success)" : "var(--accent)";
+}
+
 export function ListingCard({ l }: { l: Listing }) {
+  const tone = typeTone(l.listingType);
   return (
     <Link
       to={`/marketplace/${l.id}`}
-      className="flex gap-3 rounded-2xl border border-slate-700 bg-slate-800/60 p-2.5 active:bg-slate-700"
+      className="flex gap-3 rounded-[16px] p-[13px] active:opacity-90"
+      style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
     >
-      <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl bg-slate-900">
+      <div
+        className="relative h-[74px] w-[74px] flex-shrink-0 overflow-hidden rounded-[12px]"
+        style={{ border: "1px solid var(--border)", background: l.images?.[0] ? undefined : stripe }}
+      >
         {l.images?.[0] ? (
           <img src={l.images[0]} alt="" className="h-full w-full object-cover" />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-slate-600">
-            <ShoppingBag size={24} />
+          <div className="flex h-full w-full items-center justify-center" style={{ color: "var(--text-3)" }}>
+            <Icon name="shopping_bag" size={28} style={{ color: "var(--text-3)" }} />
           </div>
         )}
         {l.status === "SOLD" && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/55">
-            <span className="text-[11px] font-bold text-red-300">SOLD</span>
+            <span className="text-[11px] font-bold" style={{ color: "var(--danger)" }}>SOLD</span>
           </div>
         )}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold text-white">{l.title}</p>
-        <p className="mt-0.5 text-sm font-bold text-indigo-300">
+        <p className="truncate text-[16px] font-bold" style={{ color: "var(--text)" }}>{l.title}</p>
+        <p className="mt-px text-[18px] font-extrabold tracking-tight" style={{ color: priceColor(l.listingType) }}>
           {formatPrice(l.price, l.listingType, l.rentPeriod)}
         </p>
-        <div className="mt-1 flex flex-wrap items-center gap-1">
-          <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${TYPE_BADGE[l.listingType] ?? "bg-slate-700 text-slate-300"}`}>
-            {l.listingType === "GIVEAWAY" ? "Free" : l.listingType.charAt(0) + l.listingType.slice(1).toLowerCase()}
+        <div className="mt-1.5 flex flex-wrap items-center gap-2">
+          <span className="rounded-full px-2.5 py-0.5 text-[11px] font-bold" style={{ background: tone.bg, color: tone.fg }}>
+            {l.listingType === "GIVEAWAY" ? "Giveaway" : l.listingType.charAt(0) + l.listingType.slice(1).toLowerCase()}
           </span>
-          <span className="text-[10px] text-slate-500">{getCategoryLabel(l.category)}</span>
+          <span className="text-[13px]" style={{ color: "var(--text-3)" }}>{getCategoryLabel(l.category)}</span>
         </div>
-        <p className="mt-0.5 text-[10px] text-slate-500">
-          Block {l.seller.block ?? "—"}, {l.seller.flatNumber}
-          {l._count ? ` · ♥ ${l._count.wishlistedBy}` : ""}
+        <p className="mt-1.5 flex items-center gap-1.5 text-[12px]" style={{ color: "var(--text-3)" }}>
+          <span>Block {l.seller.block ?? "—"}, {l.seller.flatNumber}</span>
+          {l._count && (
+            <>
+              <span>·</span>
+              <span className="inline-flex items-center gap-0.5">
+                <Icon name="favorite" size={14} fill style={{ color: "var(--text-3)" }} />{l._count.wishlistedBy}
+              </span>
+            </>
+          )}
         </p>
       </div>
     </Link>
@@ -117,69 +135,78 @@ export default function Marketplace() {
   }, [load]);
 
   return (
-    <div className="flex flex-1 flex-col px-4 pt-[max(2rem,env(safe-area-inset-top,0px))] pb-8">
+    <div
+      className="one-surface flex flex-1 flex-col px-[18px] pt-[max(1.5rem,env(safe-area-inset-top,0px))] pb-8"
+      style={{ background: "var(--bg)", color: "var(--text)" }}
+    >
       <header className="mb-3 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight text-white">Marketplace</h1>
+        <h1 className="text-[25px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>Marketplace</h1>
         <Link
           to="/marketplace/new"
-          className="flex items-center gap-1 rounded-xl bg-indigo-600 px-3 py-2 text-xs font-semibold text-white active:bg-indigo-700"
+          className="flex items-center gap-1.5 rounded-full px-4 py-2 text-[14px] font-bold text-white active:opacity-90"
+          style={{ background: "var(--accent-strong)" }}
         >
-          <Plus size={15} /> Post
+          <Icon name="add" size={18} style={{ color: "#fff" }} /> Post
         </Link>
       </header>
 
-      <div className="mb-3 flex gap-2">
-        <Link to="/marketplace/mine" className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800/60 px-3 py-2 text-xs font-medium text-slate-200 active:bg-slate-700">
-          <Tag size={14} /> My listings
+      <div className="mb-3 grid grid-cols-2 gap-2.5">
+        <Link to="/marketplace/mine" className="flex items-center justify-center gap-2 rounded-[12px] py-2.5 text-[14px] font-semibold active:opacity-80" style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text)" }}>
+          <Icon name="sell" size={19} style={{ color: "var(--text-2)" }} /> My listings
         </Link>
-        <Link to="/marketplace/wishlist" className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800/60 px-3 py-2 text-xs font-medium text-slate-200 active:bg-slate-700">
-          <Heart size={14} /> Wishlist
+        <Link to="/marketplace/wishlist" className="flex items-center justify-center gap-2 rounded-[12px] py-2.5 text-[14px] font-semibold active:opacity-80" style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text)" }}>
+          <Icon name="favorite" size={19} style={{ color: "var(--text-2)" }} /> Wishlist
         </Link>
       </div>
 
       {/* Search */}
-      <div className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3">
-        <Search size={16} className="text-slate-500" />
+      <div className="flex items-center gap-2.5 rounded-[13px] px-3.5" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+        <Icon name="search" size={20} style={{ color: "var(--text-3)" }} />
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search listings…"
-          className="flex-1 bg-transparent py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none"
+          className="flex-1 bg-transparent py-3 text-[14px] outline-none"
+          style={{ color: "var(--text)" }}
         />
       </div>
 
-      {/* Type pills + sort */}
-      <div className="mt-2 flex items-center gap-2 overflow-x-auto pb-1">
-        <button onClick={() => setType("")} className={pill(type === "")}>All</button>
+      {/* Type chips + sort */}
+      <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden">
+        <Chip active={type === ""} onClick={() => setType("")}>All</Chip>
         {LISTING_TYPES.map((t) => (
-          <button key={t.value} onClick={() => setType(t.value)} className={pill(type === t.value)}>{t.label}</button>
+          <Chip key={t.value} active={type === t.value} onClick={() => setType(t.value)}>{t.label}</Chip>
         ))}
         <button
           onClick={() => setSort(SORTS[(SORTS.indexOf(sort) + 1) % SORTS.length])}
-          className="ml-auto flex flex-shrink-0 items-center gap-1 rounded-full border border-slate-700 bg-slate-800/60 px-2.5 py-1 text-[11px] text-slate-300"
+          className="ml-auto flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-[13px] font-semibold"
+          style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text-2)" }}
         >
-          <ArrowUpDown size={12} /> {SORT_LABEL[sort]}
+          <Icon name="swap_vert" size={16} style={{ color: "var(--text-2)" }} /> {SORT_LABEL[sort]}
         </button>
       </div>
 
       {/* Category select */}
-      <select
-        value={category}
-        onChange={(e) => setCategory(e.target.value)}
-        className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-800/60 px-3 py-2 text-sm text-white"
-      >
-        <option value="">All categories</option>
-        {MARKETPLACE_CATEGORIES.map((c) => (
-          <option key={c.value} value={c.value}>{c.label}</option>
-        ))}
-      </select>
+      <div className="mt-3">
+        <select
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          className="w-full appearance-none rounded-[12px] px-3.5 py-3 text-[15px]"
+          style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text)" }}
+        >
+          <option value="">All categories</option>
+          {MARKETPLACE_CATEGORIES.map((c) => (
+            <option key={c.value} value={c.value}>{c.label}</option>
+          ))}
+        </select>
+      </div>
 
       {/* List */}
-      <div className="mt-4 space-y-2">
+      <div className="mt-3.5 space-y-3">
         {loading ? (
-          <div className="flex justify-center py-10"><Loader2 className="animate-spin text-slate-500" size={22} /></div>
+          <div className="flex justify-center py-10"><Loader2 className="animate-spin" size={22} style={{ color: "var(--text-3)" }} /></div>
         ) : items.length === 0 ? (
-          <p className="rounded-2xl border border-slate-700 bg-slate-800/40 px-4 py-10 text-center text-sm text-slate-400">No listings found.</p>
+          <p className="rounded-[16px] px-4 py-10 text-center text-[14px]" style={{ border: "1px solid var(--border)", color: "var(--text-3)" }}>No listings found.</p>
         ) : (
           items.map((l) => <ListingCard key={l.id} l={l} />)
         )}
@@ -188,9 +215,16 @@ export default function Marketplace() {
   );
 }
 
-function pill(active: boolean): string {
+function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
-    "flex-shrink-0 rounded-full px-3 py-1 text-xs font-medium " +
-    (active ? "bg-indigo-600 text-white" : "border border-slate-700 bg-slate-800/60 text-slate-300")
+    <button
+      onClick={onClick}
+      className="flex-shrink-0 rounded-full px-4 py-2 text-[13px] font-semibold"
+      style={active
+        ? { background: "var(--accent-strong)", color: "#fff", border: "1px solid var(--accent-strong)" }
+        : { background: "var(--surface-2)", color: "var(--text-2)", border: "1px solid var(--border)" }}
+    >
+      {children}
+    </button>
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Loader2, Plus } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
 import { ListingCard, type Listing } from "./Marketplace";
@@ -21,21 +22,25 @@ export default function MarketplaceMine() {
   }, [token]);
 
   return (
-    <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)] pb-8">
+    <div className="one-surface flex flex-1 flex-col px-[18px] pt-[env(safe-area-inset-top,0px)] pb-8" style={{ background: "var(--bg)", color: "var(--text)" }}>
       <header className="flex items-center gap-2 py-3">
-        <button onClick={() => navigate(-1)} className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 active:bg-slate-800"><ArrowLeft size={20} /></button>
-        <h1 className="text-lg font-semibold text-white">My listings</h1>
+        <button onClick={() => navigate(-1)} className="flex h-9 w-9 items-center justify-center rounded-full active:opacity-70" style={{ color: "var(--text-2)" }}>
+          <Icon name="arrow_back" size={22} style={{ color: "var(--text-2)" }} />
+        </button>
+        <h1 className="text-[20px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>My listings</h1>
       </header>
 
       {loading ? (
-        <div className="flex justify-center py-10"><Loader2 className="animate-spin text-slate-500" size={22} /></div>
+        <div className="flex justify-center py-10"><Loader2 className="animate-spin" size={22} style={{ color: "var(--text-3)" }} /></div>
       ) : items.length === 0 ? (
-        <div className="rounded-2xl border border-slate-700 bg-slate-800/40 px-4 py-10 text-center">
-          <p className="text-sm text-slate-400">You haven't posted anything yet.</p>
-          <Link to="/marketplace/new" className="mt-3 inline-flex items-center gap-1 rounded-xl bg-indigo-600 px-3 py-2 text-xs font-semibold text-white"><Plus size={14} /> Post a listing</Link>
+        <div className="rounded-[16px] px-4 py-10 text-center" style={{ border: "1px solid var(--border)" }}>
+          <p className="text-[14px]" style={{ color: "var(--text-3)" }}>You haven't posted anything yet.</p>
+          <Link to="/marketplace/new" className="mt-3 inline-flex items-center gap-1.5 rounded-[12px] px-3.5 py-2 text-[13px] font-bold text-white" style={{ background: "var(--accent-strong)" }}>
+            <Icon name="add" size={16} style={{ color: "#fff" }} /> Post a listing
+          </Link>
         </div>
       ) : (
-        <div className="space-y-2">{items.map((l) => <ListingCard key={l.id} l={l} />)}</div>
+        <div className="space-y-3">{items.map((l) => <ListingCard key={l.id} l={l} />)}</div>
       )}
     </div>
   );

@@ -50,6 +50,7 @@ body,
   --nonveg: #dc2626;
   --chef: #b5792a;
   --produce: #0f9d6e;
+  --whatsapp: #1faa52;
   --shadow: 0 8px 28px rgba(16, 28, 51, 0.1);
   --banner: linear-gradient(110deg, #0f766e, #3730a3 60%, #4338ca);
   --ds-mono: "JetBrains Mono", ui-monospace, monospace;
@@ -82,6 +83,7 @@ html.dark {
   --nonveg: #f87171;
   --chef: #d49a4e;
   --produce: #46b07a;
+  --whatsapp: #25b85a;
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
   --banner: linear-gradient(110deg, #173a3a, #1a2a52 60%, #23275e);
 }

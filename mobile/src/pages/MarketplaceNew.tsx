@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Loader2, Plus, X } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
 import { API_BASE_URL } from "../config";
 import { useAuth } from "../auth/AuthProvider";
@@ -78,34 +79,39 @@ export default function MarketplaceNew() {
     }
   }
 
-  const field = "w-full rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-2.5 text-sm text-white placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none";
-  const lbl = "mb-1 block text-xs font-medium text-slate-400";
+  const field = "one-input w-full rounded-[12px] px-3.5 py-3 text-[15px]";
+  const lbl = "mb-1.5 block text-[13px] font-semibold";
 
   return (
-    <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)] pb-10">
+    <div className="one-surface flex flex-1 flex-col px-[18px] pt-[env(safe-area-inset-top,0px)] pb-10" style={{ background: "var(--bg)", color: "var(--text)" }}>
       <header className="flex items-center gap-2 py-3">
-        <button onClick={() => navigate(-1)} className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 active:bg-slate-800"><ArrowLeft size={20} /></button>
-        <h1 className="text-lg font-semibold text-white">New listing</h1>
+        <button onClick={() => navigate(-1)} className="flex h-9 w-9 items-center justify-center rounded-full active:opacity-70" style={{ color: "var(--text-2)" }}>
+          <Icon name="arrow_back" size={22} style={{ color: "var(--text-2)" }} />
+        </button>
+        <h1 className="text-[20px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>New listing</h1>
       </header>
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         {/* Photos */}
         <div>
-          <label className={lbl}>Photos ({images.length}/{MAX_IMAGES})</label>
+          <label className={lbl} style={{ color: "var(--text-2)" }}>Photos ({images.length}/{MAX_IMAGES})</label>
           <div className="flex flex-wrap gap-2">
             {images.map((img, i) => (
-              <div key={i} className="relative h-20 w-20 overflow-hidden rounded-xl border border-slate-700">
+              <div key={i} className="relative h-[78px] w-[78px] overflow-hidden rounded-[12px]" style={{ border: "1px solid var(--border)" }}>
                 <img src={img} alt="" className="h-full w-full object-cover" />
-                <button onClick={() => setImages((p) => p.filter((_, idx) => idx !== i))} className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white"><X size={12} /></button>
+                <button onClick={() => setImages((p) => p.filter((_, idx) => idx !== i))} className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white">
+                  <Icon name="close" size={13} style={{ color: "#fff" }} />
+                </button>
               </div>
             ))}
             {images.length < MAX_IMAGES && (
               <button
                 onClick={() => fileRef.current?.click()}
                 disabled={uploading}
-                className="flex h-20 w-20 flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-700 text-slate-500 active:bg-slate-800 disabled:opacity-60"
+                className="flex h-[78px] w-[78px] flex-col items-center justify-center rounded-[12px] active:opacity-70 disabled:opacity-60"
+                style={{ border: "2px dashed var(--border-strong)", color: "var(--text-3)" }}
               >
-                {uploading ? <Loader2 size={18} className="animate-spin" /> : <Plus size={18} />}
+                {uploading ? <Loader2 size={18} className="animate-spin" /> : <Icon name="add_a_photo" size={20} style={{ color: "var(--text-3)" }} />}
               </button>
             )}
           </div>
@@ -123,45 +129,48 @@ export default function MarketplaceNew() {
         </div>
 
         <div>
-          <label className={lbl}>Title</label>
+          <label className={lbl} style={{ color: "var(--text-2)" }}>Title</label>
           <input className={field} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Study table" />
         </div>
         <div>
-          <label className={lbl}>Description</label>
+          <label className={lbl} style={{ color: "var(--text-2)" }}>Description</label>
           <textarea className={field} rows={3} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Condition, age, why selling…" />
         </div>
         <div>
-          <label className={lbl}>Category</label>
+          <label className={lbl} style={{ color: "var(--text-2)" }}>Category</label>
           <select className={field} value={category} onChange={(e) => setCategory(e.target.value)}>
             {MARKETPLACE_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
           </select>
         </div>
         <div>
-          <label className={lbl}>Type</label>
-          <div className="flex gap-2">
-            {LISTING_TYPES.map((t) => (
-              <button
-                key={t.value}
-                onClick={() => setListingType(t.value)}
-                className={
-                  "flex-1 rounded-xl px-3 py-2 text-sm font-medium " +
-                  (listingType === t.value ? "bg-indigo-600 text-white" : "border border-slate-700 bg-slate-800/60 text-slate-300")
-                }
-              >
-                {t.label}
-              </button>
-            ))}
+          <label className={lbl} style={{ color: "var(--text-2)" }}>Type</label>
+          <div className="grid grid-cols-3 gap-2">
+            {LISTING_TYPES.map((t) => {
+              const active = listingType === t.value;
+              return (
+                <button
+                  key={t.value}
+                  onClick={() => setListingType(t.value)}
+                  className="rounded-[12px] px-3 py-2.5 text-[14px] font-semibold"
+                  style={active
+                    ? { background: "var(--accent-strong)", color: "#fff" }
+                    : { background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text-2)" }}
+                >
+                  {t.label}
+                </button>
+              );
+            })}
           </div>
         </div>
         {listingType !== "GIVEAWAY" && (
           <div className="flex gap-2">
             <div className="flex-1">
-              <label className={lbl}>Price (₹)</label>
+              <label className={lbl} style={{ color: "var(--text-2)" }}>Price (₹)</label>
               <input className={field} inputMode="numeric" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="0" />
             </div>
             {listingType === "RENT" && (
               <div className="flex-1">
-                <label className={lbl}>Per</label>
+                <label className={lbl} style={{ color: "var(--text-2)" }}>Per</label>
                 <select className={field} value={rentPeriod} onChange={(e) => setRentPeriod(e.target.value)}>
                   {RENT_PERIODS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
                 </select>
@@ -170,16 +179,17 @@ export default function MarketplaceNew() {
           </div>
         )}
         <div>
-          <label className={lbl}>WhatsApp number</label>
+          <label className={lbl} style={{ color: "var(--text-2)" }}>WhatsApp number</label>
           <input className={field} inputMode="tel" value={whatsappNumber} onChange={(e) => setWhatsappNumber(e.target.value)} placeholder="10-digit number" />
         </div>
 
-        {err && <p className="rounded-lg border border-red-700/60 bg-red-900/20 px-3 py-2 text-xs text-red-200">{err}</p>}
+        {err && <p className="rounded-[12px] px-3.5 py-2.5 text-[13px]" style={{ background: "var(--danger-soft)", color: "var(--danger)" }}>{err}</p>}
 
         <button
           onClick={() => void submit()}
           disabled={saving || uploading}
-          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white active:bg-indigo-700 disabled:opacity-60"
+          className="flex w-full items-center justify-center gap-2 rounded-[14px] px-4 py-3.5 text-[15px] font-bold text-white active:opacity-90 disabled:opacity-60"
+          style={{ background: "var(--accent-strong)" }}
         >
           {saving ? <Loader2 size={16} className="animate-spin" /> : null}
           Post listing
