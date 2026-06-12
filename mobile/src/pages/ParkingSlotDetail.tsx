@@ -3,13 +3,22 @@ import { useNavigate, useParams } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
-import {
-  ArrowLeft, MapPin, IndianRupee, Clock, Car, Pencil, Trash2, Ban, Info, Share2,
-} from "lucide-react";
+import Icon from "../components/Icon";
 import { Share } from "@capacitor/share";
 
 const MIN_BOOKING_MINUTES = 30;
 const WEB_BASE = "https://onermv.app";
+
+// Token-styled form input (OneRMV: surface-2 fill, strong border, r11, 48px).
+const inputCls = "w-full rounded-[11px] px-3.5 text-[15px] outline-none";
+const inputStyle = {
+  background: "var(--surface-2)",
+  border: "1px solid var(--border-strong)",
+  color: "var(--text)",
+  height: 48,
+} as const;
+const labelCls = "mb-1.5 block text-[13px] font-semibold";
+const labelStyle = { color: "var(--text-2)" } as const;
 
 interface BusyWindow { startAt: string; endAt: string; kind: "booking" | "block"; mode?: string; ongoing?: boolean }
 interface Booking {
@@ -57,46 +66,57 @@ export default function ParkingSlotDetail() {
 
   useEffect(() => { if (id) void refresh(); }, [id, refresh]);
 
-  if (loading) return <Centered><div className="h-7 w-7 animate-spin rounded-full border-b-2 border-blue-400" /></Centered>;
+  if (loading) return <Centered><div className="h-7 w-7 animate-spin rounded-full border-b-2" style={{ borderColor: "var(--accent)" }} /></Centered>;
   if (error || !slot) return (
     <Centered>
       <div className="text-center">
-        <p className="mb-3 text-red-400">{error ?? "Not found"}</p>
-        <button onClick={() => navigate("/parking")} className="text-sm text-blue-400">← All parking</button>
+        <p className="mb-3" style={{ color: "var(--danger)" }}>{error ?? "Not found"}</p>
+        <button onClick={() => navigate("/parking")} className="text-sm" style={{ color: "var(--accent)" }}>← All parking</button>
       </div>
     </Centered>
   );
 
   return (
-    <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)] pb-6">
-      <button onClick={() => navigate("/parking")} className="flex items-center gap-1 py-4 text-sm text-slate-400">
-        <ArrowLeft size={16} /> All parking
+    <div
+      className="one-surface flex flex-1 flex-col px-[18px] pt-[env(safe-area-inset-top,0px)] pb-6"
+      style={{ background: "var(--bg)", color: "var(--text)" }}
+    >
+      <button onClick={() => navigate("/parking")} className="flex items-center gap-1.5 py-3.5 text-[15px] font-semibold" style={{ color: "var(--text-2)" }}>
+        <Icon name="arrow_back" size={20} style={{ color: "var(--text-2)" }} /> All parking
       </button>
 
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <h1 className="flex items-center gap-2 text-xl font-bold text-white"><Car className="text-blue-400" size={20} /> {slot.label}</h1>
-          {slot.location && <p className="mt-1 flex items-center gap-1 text-sm text-slate-400"><MapPin size={13} /> {slot.location}</p>}
+        <div className="min-w-0 flex-1">
+          <h1 className="flex items-center gap-2 text-[20px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>
+            <Icon name="directions_car" size={24} style={{ color: "var(--carblue)" }} /> {slot.label}
+          </h1>
+          {slot.location && (
+            <p className="mt-2 flex items-start gap-1.5 text-[13px]" style={{ color: "var(--text-3)" }}>
+              <Icon name="location_on" size={17} style={{ color: "var(--text-3)" }} /> {slot.location}
+            </p>
+          )}
         </div>
-        <div className="text-right">
-          <span className="flex items-center justify-end text-lg font-bold text-white"><IndianRupee size={15} />{slot.hourlyRate}<span className="text-sm font-normal text-slate-500">/hr</span></span>
-          {slot.monthlyRate != null && <span className="flex items-center justify-end text-sm font-semibold text-slate-300"><IndianRupee size={12} />{slot.monthlyRate}<span className="font-normal text-slate-500">/mo</span></span>}
+        <div className="shrink-0 text-right">
+          <div className="text-[16px] font-extrabold" style={{ color: "var(--text)" }}>₹{slot.hourlyRate}<span className="text-[12px]" style={{ color: "var(--text-3)" }}>/hr</span></div>
+          {slot.monthlyRate != null && <div className="text-[16px] font-extrabold" style={{ color: "var(--accent)" }}>₹{slot.monthlyRate}<span className="text-[12px]" style={{ color: "var(--text-3)" }}>/mo</span></div>}
         </div>
       </div>
-      {slot.description && <p className="mt-2 text-sm text-slate-300">{slot.description}</p>}
-      {slot.photoUrl && <img src={slot.photoUrl} alt={`Parking slot ${slot.label}`} className="mt-3 max-h-72 w-full rounded-xl border border-slate-700 object-cover" />}
-      {!slot.owner.isMe && <p className="mt-1 text-[11px] text-slate-500">Owner: {slot.owner.name} · B{slot.owner.block ?? "—"}, {slot.owner.flatNumber}</p>}
+      {slot.description && <p className="mt-3 text-[15px] leading-relaxed" style={{ color: "var(--text)" }}>{slot.description}</p>}
+      {slot.photoUrl ? (
+        <img src={slot.photoUrl} alt={`Parking slot ${slot.label}`} className="mt-3.5 max-h-72 w-full rounded-[14px] object-cover" style={{ border: "1px solid var(--border)" }} />
+      ) : null}
+      {!slot.owner.isMe && <p className="mt-2 text-[12px]" style={{ color: "var(--text-3)" }}>Owner: {slot.owner.name} · B{slot.owner.block ?? "—"}, {slot.owner.flatNumber}</p>}
 
       {slot.busy.length > 0 && (
         <div className="mt-5">
-          <h2 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Already reserved</h2>
+          <Eyebrow>Already reserved</Eyebrow>
           <div className="space-y-1.5">
             {slot.busy.map((w, i) => (
-              <div key={i} className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800/40 px-3 py-2 text-[12px]">
-                <Clock size={12} className="text-slate-500" />
-                <span className="text-slate-300">{fmtBusy(w)}</span>
-                {w.mode === "MONTHLY" && <span className="text-[10px] font-medium text-purple-300">monthly</span>}
-                {w.kind === "block" && <span className="text-[10px] text-slate-500">(owner)</span>}
+              <div key={i} className="flex items-center gap-2.5 rounded-[13px] px-3.5 py-3 text-[14px]" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+                <Icon name="schedule" size={19} style={{ color: "var(--text-3)" }} />
+                <span style={{ color: "var(--text)" }}>{fmtBusy(w)}</span>
+                {w.mode === "MONTHLY" && <span className="text-[11px] font-semibold" style={{ color: "var(--accent)" }}>monthly</span>}
+                {w.kind === "block" && <span className="text-[11px]" style={{ color: "var(--text-3)" }}>(owner)</span>}
               </div>
             ))}
           </div>
@@ -104,6 +124,14 @@ export default function ParkingSlotDetail() {
       )}
 
       {slot.owner.isMe ? <OwnerPanel slot={slot} onChange={refresh} navigate={navigate} token={token} /> : <BookerPanel slot={slot} onBooked={refresh} token={token} />}
+    </div>
+  );
+}
+
+function Eyebrow({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="one-mono mb-2.5 text-[10px] font-medium uppercase" style={{ color: "var(--text-3)", letterSpacing: "0.14em" }}>
+      {children}
     </div>
   );
 }
@@ -166,87 +194,100 @@ function BookerPanel({ slot, onBooked, token }: { slot: SlotDetail; onBooked: ()
   return (
     <div className="mt-6">
       {activeBooking && (
-        <div className="mb-5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4">
-          <p className="font-semibold text-emerald-300">You have this slot booked</p>
-          <p className="mt-0.5 text-sm text-slate-300">{bookingLine(activeBooking)}</p>
+        <div className="mb-5 rounded-[18px] p-[18px]" style={{ background: "var(--success-soft)", border: "1px solid var(--success-line)" }}>
+          <div className="flex items-center gap-2">
+            <Icon name="check_circle" size={22} fill style={{ color: "var(--success)" }} />
+            <p className="text-[18px] font-extrabold" style={{ color: "var(--success)" }}>You have this slot booked</p>
+          </div>
+          <p className="mt-1.5 text-[14px]" style={{ color: "var(--text)" }}>{bookingLine(activeBooking)}</p>
           <PayBox slot={slot} />
         </div>
       )}
 
       {!slot.active ? (
-        <div className="flex items-center gap-2 rounded-2xl border border-slate-700 bg-slate-800/40 p-4 text-sm text-slate-400"><Info size={15} /> This slot isn&apos;t accepting bookings right now.</div>
+        <div className="flex items-center gap-2 rounded-[18px] p-4 text-[14px]" style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text-3)" }}>
+          <Icon name="info" size={18} style={{ color: "var(--text-3)" }} /> This slot isn&apos;t accepting bookings right now.
+        </div>
       ) : done ? (
-        <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4">
-          <p className="font-semibold text-emerald-300">Booked! 🎉</p>
-          <p className="mt-0.5 text-sm text-slate-300">Pay the owner to confirm, then tap “I&apos;ve paid”.</p>
+        <div className="rounded-[18px] p-[18px]" style={{ background: "var(--success-soft)", border: "1px solid var(--success-line)" }}>
+          <div className="flex items-center gap-2">
+            <Icon name="check_circle" size={22} fill style={{ color: "var(--success)" }} />
+            <p className="text-[18px] font-extrabold" style={{ color: "var(--success)" }}>You have this slot booked</p>
+          </div>
+          <p className="mt-1.5 text-[14px]" style={{ color: "var(--text)" }}>Pay the owner to confirm, then tap “I&apos;ve paid”.</p>
           <PayBox slot={slot} />
         </div>
       ) : (
-        <div className="space-y-3 rounded-2xl border border-slate-700 bg-slate-800/60 p-4">
-          <h2 className="font-semibold text-white">Book this slot</h2>
+        <div className="rounded-[18px] p-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+          <h2 className="text-[18px] font-extrabold" style={{ color: "var(--text)" }}>Book this slot</h2>
 
           {canMonthly && (
-            <div className="flex rounded-lg bg-slate-900 p-0.5 text-[12px]">
+            <div className="mt-3.5 flex rounded-[12px] p-1" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
               {(["HOURLY", "MONTHLY"] as const).map((m) => (
                 <button key={m} onClick={() => setMode(m)}
-                  className={`flex-1 rounded-md py-1.5 font-medium ${mode === m ? "bg-slate-700 text-white" : "text-slate-400"}`}>
+                  className="flex-1 rounded-[9px] py-2.5 text-[14px] font-bold"
+                  style={mode === m ? { background: "var(--surface-3)", color: "var(--text)", boxShadow: "0 1px 5px rgba(0,0,0,0.18)" } : { background: "transparent", color: "var(--text-3)" }}>
                   {m === "HOURLY" ? "Hourly" : "Monthly"}
                 </button>
               ))}
             </div>
           )}
 
-          {mode === "HOURLY" ? (
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="mb-1 block text-[11px] text-slate-400">From</label>
-                <input type="datetime-local" value={start} onChange={(e) => setStart(e.target.value)} className={`${inputCls} min-w-0 appearance-none`} />
+          <div className="mt-4 space-y-3.5">
+            {mode === "HOURLY" ? (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelCls} style={labelStyle}>From</label>
+                  <input type="datetime-local" value={start} onChange={(e) => setStart(e.target.value)} className={`${inputCls} min-w-0 appearance-none`} style={inputStyle} />
+                </div>
+                <div>
+                  <label className={labelCls} style={labelStyle}>Until</label>
+                  <input type="datetime-local" value={end} onChange={(e) => setEnd(e.target.value)} className={`${inputCls} min-w-0 appearance-none`} style={inputStyle} />
+                </div>
               </div>
-              <div>
-                <label className="mb-1 block text-[11px] text-slate-400">Until</label>
-                <input type="datetime-local" value={end} onChange={(e) => setEnd(e.target.value)} className={`${inputCls} min-w-0 appearance-none`} />
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelCls} style={labelStyle}>Start date</label>
+                  <input type="date" value={mStart} onChange={(e) => setMStart(e.target.value)} className={`${inputCls} min-w-0 appearance-none`} style={inputStyle} />
+                </div>
+                <div>
+                  <label className={labelCls} style={labelStyle}>End (optional)</label>
+                  <input type="date" value={mEnd} min={mStart || undefined} onChange={(e) => setMEnd(e.target.value)} className={`${inputCls} min-w-0 appearance-none`} style={inputStyle} />
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="mb-1 block text-[11px] text-slate-400">Start date</label>
-                <input type="date" value={mStart} onChange={(e) => setMStart(e.target.value)} className={`${inputCls} min-w-0 appearance-none`} />
-              </div>
-              <div>
-                <label className="mb-1 block text-[11px] text-slate-400">End date (optional)</label>
-                <input type="date" value={mEnd} min={mStart || undefined} onChange={(e) => setMEnd(e.target.value)} className={`${inputCls} min-w-0 appearance-none`} />
-              </div>
-            </div>
-          )}
+            )}
 
-          <div>
-            <label className="mb-1 block text-[11px] text-slate-400">Vehicle number (optional)</label>
-            <input value={vehicle} onChange={(e) => setVehicle(e.target.value.toUpperCase())} placeholder="KA 01 AB 1234" className={inputCls} />
+            <div>
+              <label className={labelCls} style={labelStyle}>Vehicle number (optional)</label>
+              <input value={vehicle} onChange={(e) => setVehicle(e.target.value.toUpperCase())} placeholder="KA 01 AB 1234" className={inputCls} style={inputStyle} />
+            </div>
+            <div>
+              <label className={labelCls} style={labelStyle}>Note (optional)</label>
+              <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="visitor for flat 302" className={inputCls} style={inputStyle} />
+            </div>
+
+            {mode === "HOURLY" && price && (
+              <div className="flex items-center justify-between rounded-[11px] px-3.5 py-2.5" style={{ background: "var(--accent-soft)", border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)" }}>
+                <span className="text-[13px]" style={{ color: "var(--text-2)" }}>{price.dur} × ₹{slot.hourlyRate}/hr</span>
+                <span className="text-[15px] font-extrabold" style={{ color: "var(--text)" }}>₹{price.amount}</span>
+              </div>
+            )}
+            {mode === "MONTHLY" && monthly && (
+              <div className="rounded-[11px] px-3.5 py-2.5 text-[13px]" style={monthly.invalid
+                ? { background: "var(--danger-soft)", border: "1px solid color-mix(in srgb, var(--danger) 40%, transparent)", color: "var(--danger)" }
+                : { background: "var(--accent-soft)", border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)", color: "var(--accent)" }}>
+                {monthly.label}
+                {!monthly.invalid && !mEnd && <span className="mt-0.5 block text-[11px]" style={{ color: "var(--text-3)" }}>No end date → reserves the slot until you cancel.</span>}
+              </div>
+            )}
+
+            <p className="text-[12px] leading-relaxed" style={{ color: "var(--text-3)" }}>{mode === "HOURLY" ? `Minimum ${MIN_BOOKING_MINUTES} min. ` : ""}Payment is offline — you&apos;ll see the owner&apos;s details after booking.</p>
+            {err && <p className="rounded-[11px] px-3.5 py-2.5 text-[13px]" style={{ background: "var(--danger-soft)", border: "1px solid color-mix(in srgb, var(--danger) 40%, transparent)", color: "var(--danger)" }}>{err}</p>}
+            <button onClick={book} disabled={busy || !canSubmit} className="w-full rounded-[13px] py-3.5 text-[16px] font-bold text-white active:opacity-90 disabled:opacity-50" style={{ background: "var(--accent-strong)" }}>
+              {busy ? "Booking…" : mode === "MONTHLY" ? "Book monthly" : price ? `Book for ₹${price.amount}` : "Book this slot"}
+            </button>
           </div>
-          <div>
-            <label className="mb-1 block text-[11px] text-slate-400">Note (optional)</label>
-            <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="visitor for flat 302" className={inputCls} />
-          </div>
-
-          {mode === "HOURLY" && price && (
-            <div className="flex items-center justify-between rounded-lg border border-blue-500/30 bg-blue-500/10 px-3 py-2">
-              <span className="text-[12px] text-slate-300">{price.dur} × ₹{slot.hourlyRate}/hr</span>
-              <span className="font-bold text-white">₹{price.amount}</span>
-            </div>
-          )}
-          {mode === "MONTHLY" && monthly && (
-            <div className={`rounded-lg px-3 py-2 text-[12px] ${monthly.invalid ? "border border-red-700/60 bg-red-900/20 text-red-200" : "border border-purple-500/30 bg-purple-500/10 text-purple-200"}`}>
-              {monthly.label}
-              {!monthly.invalid && !mEnd && <span className="mt-0.5 block text-[10px] text-slate-400">No end date → reserves the slot until you cancel.</span>}
-            </div>
-          )}
-
-          <p className="text-[11px] text-slate-500">{mode === "HOURLY" ? `Minimum ${MIN_BOOKING_MINUTES} min. ` : ""}Payment is offline — you&apos;ll see the owner&apos;s details after booking.</p>
-          {err && <p className="rounded-lg border border-red-700/60 bg-red-900/20 px-3 py-2 text-[12px] text-red-200">{err}</p>}
-          <button onClick={book} disabled={busy || !canSubmit} className="w-full rounded-xl bg-indigo-500 py-2.5 font-medium text-white active:bg-indigo-600 disabled:opacity-50">
-            {busy ? "Booking…" : mode === "MONTHLY" ? "Book monthly" : price ? `Book for ₹${price.amount}` : "Book this slot"}
-          </button>
         </div>
       )}
     </div>
@@ -256,10 +297,10 @@ function BookerPanel({ slot, onBooked, token }: { slot: SlotDetail; onBooked: ()
 function PayBox({ slot }: { slot: SlotDetail }) {
   if (!slot.payInfo && !slot.payQrUrl) return null;
   return (
-    <div className="mt-3 border-t border-emerald-500/20 pt-3">
-      <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Pay the owner</p>
-      {slot.payInfo && <p className="text-sm font-medium text-white">{slot.payInfo}</p>}
-      {slot.payQrUrl && <img src={slot.payQrUrl} alt="Payment QR" className="mt-2 h-44 w-44 rounded-lg bg-white object-contain p-2" />}
+    <div className="mt-4 pt-4" style={{ borderTop: "1px solid var(--success-line)" }}>
+      <div className="one-mono text-[10px] font-medium uppercase" style={{ color: "var(--text-3)", letterSpacing: "0.14em" }}>Pay the owner</div>
+      {slot.payInfo && <p className="mt-1.5 text-[16px] font-bold" style={{ color: "var(--text)" }}>{slot.payInfo}</p>}
+      {slot.payQrUrl && <img src={slot.payQrUrl} alt="Payment QR" className="mt-3 h-[150px] w-[150px] rounded-[14px] bg-white object-contain p-2" />}
     </div>
   );
 }
@@ -316,57 +357,57 @@ function OwnerPanel({ slot, onChange, navigate, token }: { slot: SlotDetail; onC
 
   return (
     <div className="mt-6 space-y-5">
-      <div className="rounded-2xl border border-slate-700 bg-slate-800/60 p-5 text-center">
-        <h2 className="font-semibold text-white">Slot QR code</h2>
-        <p className="mb-3 mt-0.5 text-sm text-slate-400">Print this and stick it at the slot. Residents scan to book.</p>
-        <div className="inline-block rounded-lg bg-white p-3">
+      <div className="rounded-[18px] p-5 text-center" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+        <h2 className="text-[16px] font-bold" style={{ color: "var(--text)" }}>Slot QR code</h2>
+        <p className="mb-3 mt-1 text-[13px]" style={{ color: "var(--text-3)" }}>Print this and stick it at the slot. Residents scan to book.</p>
+        <div className="inline-block rounded-[12px] bg-white p-3">
           <QRCodeSVG value={bookingUrl} size={170} />
         </div>
-        <p className="mt-3 break-all text-[10px] text-slate-500">{bookingUrl}</p>
-        <button onClick={() => void shareSlot()} className="mt-3 inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white active:bg-emerald-600">
-          <Share2 size={15} /> Share on WhatsApp
+        <p className="mt-3 break-all text-[10px]" style={{ color: "var(--text-3)" }}>{bookingUrl}</p>
+        <button onClick={() => void shareSlot()} className="mt-3 inline-flex items-center justify-center gap-1.5 rounded-[12px] px-4 py-2.5 text-[14px] font-bold text-white active:opacity-90" style={{ background: "var(--success)" }}>
+          <Icon name="share" size={16} style={{ color: "#fff" }} /> Share on WhatsApp
         </button>
       </div>
 
-      <div className="flex gap-2">
-        <button onClick={() => navigate(`/parking/slots/${slot.id}/edit`)} className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-slate-700 py-2 text-[12px] font-medium text-slate-200 active:bg-slate-800">
-          <Pencil size={14} /> Edit
+      <div className="flex gap-2.5">
+        <button onClick={() => navigate(`/parking/slots/${slot.id}/edit`)} className="flex flex-1 items-center justify-center gap-1.5 rounded-[12px] py-2.5 text-[13px] font-semibold active:opacity-80" style={{ border: "1px solid var(--border-strong)", color: "var(--text)" }}>
+          <Icon name="edit" size={16} style={{ color: "var(--text)" }} /> Edit
         </button>
-        <button onClick={() => setShowBlock((v) => !v)} className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-slate-700 py-2 text-[12px] font-medium text-slate-200 active:bg-slate-800">
-          <Ban size={14} /> Block time
+        <button onClick={() => setShowBlock((v) => !v)} className="flex flex-1 items-center justify-center gap-1.5 rounded-[12px] py-2.5 text-[13px] font-semibold active:opacity-80" style={{ border: "1px solid var(--border-strong)", color: "var(--text)" }}>
+          <Icon name="block" size={16} style={{ color: "var(--text)" }} /> Block time
         </button>
       </div>
 
       {showBlock && <BlockForm slotId={slot.id} token={token} onDone={() => { setShowBlock(false); onChange(); }} />}
 
       <div>
-        <h2 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Bookings</h2>
+        <Eyebrow>Bookings</Eyebrow>
         {!slot.ownerBookings || slot.ownerBookings.length === 0 ? (
-          <p className="text-sm text-slate-500">No bookings yet.</p>
+          <p className="text-[14px]" style={{ color: "var(--text-3)" }}>No bookings yet.</p>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             {slot.ownerBookings.map((b) => (
-              <div key={b.id} className={`rounded-2xl border border-slate-700 bg-slate-800/60 p-3 ${b.status === "CANCELLED" ? "opacity-60" : ""}`}>
+              <div key={b.id} className="rounded-[16px] p-3.5" style={{ background: "var(--surface)", border: "1px solid var(--border)", opacity: b.status === "CANCELLED" ? 0.6 : 1 }}>
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-medium text-white">{b.mode === "MONTHLY" ? bookingLine(b) : fmtRange(b.startAt, b.endAt)}</span>
-                  {b.mode !== "MONTHLY" && <span className="font-bold text-white">₹{b.totalAmount}</span>}
+                  <span className="text-[14px] font-semibold" style={{ color: "var(--text)" }}>{b.mode === "MONTHLY" ? bookingLine(b) : fmtRange(b.startAt, b.endAt)}</span>
+                  {b.mode !== "MONTHLY" && <span className="text-[15px] font-extrabold" style={{ color: "var(--text)" }}>₹{b.totalAmount}</span>}
                 </div>
-                <p className="mt-0.5 text-[10px] text-slate-500">{b.booker?.name} · B{b.booker?.block ?? "—"}{b.vehicleNumber ? ` · ${b.vehicleNumber}` : ""}</p>
+                <p className="mt-1 text-[12px]" style={{ color: "var(--text-3)" }}>{b.booker?.name} · B{b.booker?.block ?? "—"}{b.vehicleNumber ? ` · ${b.vehicleNumber}` : ""}</p>
                 {b.status === "BOOKED" && (
-                  <div className="mt-2 flex items-center gap-2">
-                    {b.ownerConfirmedPaid ? <span className="text-[10px] font-bold text-emerald-300">Payment confirmed</span>
-                      : <button onClick={() => patch(b.id, "confirm_paid")} disabled={busyId === b.id} className="rounded-full bg-emerald-500 px-2.5 py-0.5 text-[10px] font-bold text-white active:bg-emerald-600">{b.bookerPaid ? "Confirm payment" : "Mark received"}</button>}
-                    <button onClick={() => patch(b.id, "cancel")} disabled={busyId === b.id} className="ml-auto text-[10px] font-bold text-red-300">Cancel</button>
+                  <div className="mt-2.5 flex items-center gap-2">
+                    {b.ownerConfirmedPaid ? <span className="text-[11px] font-bold" style={{ color: "var(--success)" }}>Payment confirmed</span>
+                      : <button onClick={() => patch(b.id, "confirm_paid")} disabled={busyId === b.id} className="rounded-full px-3 py-1 text-[11px] font-bold text-white active:opacity-90" style={{ background: "var(--success)" }}>{b.bookerPaid ? "Confirm payment" : "Mark received"}</button>}
+                    <button onClick={() => patch(b.id, "cancel")} disabled={busyId === b.id} className="ml-auto text-[11px] font-bold" style={{ color: "var(--danger)" }}>Cancel</button>
                   </div>
                 )}
-                {b.status === "CANCELLED" && <span className="text-[10px] text-red-300">Cancelled</span>}
+                {b.status === "CANCELLED" && <span className="text-[11px]" style={{ color: "var(--danger)" }}>Cancelled</span>}
               </div>
             ))}
           </div>
         )}
       </div>
 
-      <button onClick={del} className="flex items-center gap-1.5 text-sm text-red-300"><Trash2 size={14} /> Remove listing</button>
+      <button onClick={del} className="flex items-center gap-1.5 text-[14px] font-semibold" style={{ color: "var(--danger)" }}><Icon name="delete" size={16} style={{ color: "var(--danger)" }} /> Remove listing</button>
     </div>
   );
 }
@@ -396,23 +437,22 @@ function BlockForm({ slotId, token, onDone }: { slotId: string; token: string | 
   }
 
   return (
-    <div className="space-y-3 rounded-2xl border border-slate-700 bg-slate-800/60 p-4">
-      <p className="text-sm font-medium text-slate-200">Block a window for your own use</p>
-      <div className="grid grid-cols-2 gap-2">
-        <input type="datetime-local" value={start} onChange={(e) => setStart(e.target.value)} className={inputCls} />
-        <input type="datetime-local" value={end} onChange={(e) => setEnd(e.target.value)} className={inputCls} />
+    <div className="space-y-3 rounded-[16px] p-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+      <p className="text-[14px] font-semibold" style={{ color: "var(--text)" }}>Block a window for your own use</p>
+      <div className="grid grid-cols-2 gap-2.5">
+        <input type="datetime-local" value={start} onChange={(e) => setStart(e.target.value)} className={inputCls} style={inputStyle} />
+        <input type="datetime-local" value={end} onChange={(e) => setEnd(e.target.value)} className={inputCls} style={inputStyle} />
       </div>
-      <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Reason (optional)" className={inputCls} />
-      {err && <p className="text-[12px] text-red-300">{err}</p>}
-      <button onClick={submit} disabled={busy} className="w-full rounded-xl bg-slate-700 py-2 text-[12px] font-medium text-white active:bg-slate-600 disabled:opacity-50">{busy ? "Blocking…" : "Block this time"}</button>
+      <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Reason (optional)" className={inputCls} style={inputStyle} />
+      {err && <p className="text-[12px]" style={{ color: "var(--danger)" }}>{err}</p>}
+      <button onClick={submit} disabled={busy} className="w-full rounded-[12px] py-2.5 text-[13px] font-bold text-white active:opacity-90 disabled:opacity-50" style={{ background: "var(--accent-strong)" }}>{busy ? "Blocking…" : "Block this time"}</button>
     </div>
   );
 }
 
 function Centered({ children }: { children: React.ReactNode }) {
-  return <div className="flex flex-1 items-center justify-center px-4">{children}</div>;
+  return <div className="one-surface flex flex-1 items-center justify-center px-4" style={{ background: "var(--bg)", color: "var(--text)" }}>{children}</div>;
 }
-const inputCls = "w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:border-blue-500 focus:outline-none";
 function fmtDur(s: Date, e: Date): string {
   const m = Math.round((e.getTime() - s.getTime()) / 60000);
   const h = Math.floor(m / 60), mm = m % 60;

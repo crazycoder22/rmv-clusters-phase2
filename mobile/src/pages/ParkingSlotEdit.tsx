@@ -3,9 +3,18 @@ import { useNavigate, useParams } from "react-router-dom";
 import { apiFetch } from "../lib/api";
 import { API_BASE_URL } from "../config";
 import { useAuth } from "../auth/AuthProvider";
-import { ArrowLeft, Upload, X, IndianRupee } from "lucide-react";
+import Icon from "../components/Icon";
 
 const MAX_RATE = 1000;
+
+// Token-styled inputs (OneRMV: surface-2 fill, strong border, r11).
+const inputCls = "w-full rounded-[11px] px-3.5 py-3 text-[15px] outline-none";
+const inputStyle = {
+  background: "var(--surface-2)",
+  border: "1px solid var(--border-strong)",
+  color: "var(--text)",
+} as const;
+const uploadStyle = { border: "1.5px dashed var(--border-strong)", color: "var(--text-2)" } as const;
 
 interface SlotDetail {
   label: string; location: string | null; description: string | null;
@@ -133,85 +142,88 @@ export default function ParkingSlotEdit() {
     }
   }
 
-  if (loading) return <div className="flex flex-1 items-center justify-center"><div className="h-7 w-7 animate-spin rounded-full border-b-2 border-blue-400" /></div>;
+  if (loading) return <div className="one-surface flex flex-1 items-center justify-center" style={{ background: "var(--bg)" }}><div className="h-7 w-7 animate-spin rounded-full border-b-2" style={{ borderColor: "var(--accent)" }} /></div>;
 
   return (
-    <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)] pb-6">
-      <button onClick={() => navigate(editing ? `/parking/${id}` : "/parking")} className="flex items-center gap-1 py-4 text-sm text-slate-400">
-        <ArrowLeft size={16} /> Back
+    <div
+      className="one-surface flex flex-1 flex-col px-[18px] pt-[env(safe-area-inset-top,0px)] pb-6"
+      style={{ background: "var(--bg)", color: "var(--text)" }}
+    >
+      <button onClick={() => navigate(editing ? `/parking/${id}` : "/parking")} className="flex items-center gap-1.5 py-3.5 text-[15px] font-semibold" style={{ color: "var(--text-2)" }}>
+        <Icon name="arrow_back" size={20} style={{ color: "var(--text-2)" }} /> {editing ? "Back" : "Parking"}
       </button>
-      <h1 className="mb-4 text-xl font-bold text-white">{editing ? "Edit slot" : "List your parking slot"}</h1>
+      <h1 className="mb-5 text-[23px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>{editing ? "Edit slot" : "List your parking slot"}</h1>
 
       <div className="space-y-4">
         <Field label="Slot name / number">
-          <input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Basement P2 - 45" className={inputCls} />
+          <input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Basement P2 - 45" className={inputCls} style={inputStyle} />
         </Field>
         <Field label="Location / directions" optional>
-          <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Near lift lobby B" className={inputCls} />
+          <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Near lift lobby B" className={inputCls} style={inputStyle} />
         </Field>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           <Field label="Hourly rate">
             <div className="relative">
-              <IndianRupee size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-              <input type="number" inputMode="decimal" value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} placeholder="30" className={`${inputCls} pl-8`} />
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[15px] font-bold" style={{ color: "var(--text-2)" }}>₹</span>
+              <input type="number" inputMode="decimal" value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} placeholder="30" className={`${inputCls} pl-8`} style={inputStyle} />
             </div>
           </Field>
-          <Field label="Monthly rate" optional>
+          <Field label="Monthly" optional>
             <div className="relative">
-              <IndianRupee size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-              <input type="number" inputMode="decimal" value={monthlyRate} onChange={(e) => setMonthlyRate(e.target.value)} placeholder="3000" className={`${inputCls} pl-8`} />
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[15px] font-bold" style={{ color: "var(--text-2)" }}>₹</span>
+              <input type="number" inputMode="decimal" value={monthlyRate} onChange={(e) => setMonthlyRate(e.target.value)} placeholder="3000" className={`${inputCls} pl-8`} style={inputStyle} />
             </div>
           </Field>
         </div>
-        <p className="-mt-2 text-[11px] text-slate-500">Add a monthly rate to also offer this slot for monthly rental.</p>
+        <p className="-mt-2 text-[12px]" style={{ color: "var(--text-3)" }}>Add a monthly rate to also offer this slot for monthly rental.</p>
         <Field label="Notes" optional>
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="compact cars only, covered" rows={2} className={inputCls} />
+          <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="compact cars only, covered" rows={2} className={inputCls} style={inputStyle} />
         </Field>
 
         <Field label="Slot photo" optional>
           {photoUrl ? (
             <div className="relative inline-block">
-              <img src={photoUrl} alt="Parking slot" className="h-40 w-full max-w-xs rounded-lg border border-slate-700 object-cover" />
-              <button onClick={() => setPhotoUrl(null)} className="absolute -right-2 -top-2 rounded-full bg-slate-700 p-1 text-white"><X size={12} /></button>
+              <img src={photoUrl} alt="Parking slot" className="h-40 w-full max-w-xs rounded-[11px] object-cover" style={{ border: "1px solid var(--border)" }} />
+              <button onClick={() => setPhotoUrl(null)} className="absolute -right-2 -top-2 rounded-full p-1 text-white" style={{ background: "var(--surface-3)" }}><Icon name="close" size={12} style={{ color: "var(--text)" }} /></button>
             </div>
           ) : (
-            <button onClick={() => photoRef.current?.click()} disabled={photoUploading} className="flex items-center gap-1.5 rounded-lg border border-dashed border-slate-700 px-4 py-2 text-sm text-slate-400">
-              <Upload size={15} /> {photoUploading ? "Uploading…" : "Upload slot photo"}
+            <button onClick={() => photoRef.current?.click()} disabled={photoUploading} className="flex items-center gap-2 rounded-[11px] px-4 py-3 text-[14px] font-semibold" style={uploadStyle}>
+              <Icon name="upload" size={20} style={{ color: "var(--text-2)" }} /> {photoUploading ? "Uploading…" : "Upload slot photo"}
             </button>
           )}
           <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void uploadPhoto(f); e.target.value = ""; }} />
         </Field>
-        <p className="-mt-2 text-[11px] text-slate-500">A photo of the spot helps bookers recognise it.</p>
+        <p className="-mt-2 text-[12px]" style={{ color: "var(--text-3)" }}>A photo of the spot helps bookers recognise it.</p>
 
-        <div className="space-y-4 border-t border-slate-800 pt-2">
-          <Field label="Your payment handle (UPI ID / phone)" optional>
-            <input value={payInfo} onChange={(e) => setPayInfo(e.target.value)} placeholder="name@upi or 98xxxxxxxx" className={inputCls} />
+        <div className="space-y-4 pt-2" style={{ borderTop: "1px solid var(--border)" }}>
+          <Field label="Payment handle — UPI ID / phone" optional>
+            <input value={payInfo} onChange={(e) => setPayInfo(e.target.value)} placeholder="name@upi or 98xxxxxxxx" className={inputCls} style={inputStyle} />
           </Field>
           <Field label="Payment QR image" optional>
             {payQrUrl ? (
               <div className="relative inline-block">
-                <img src={payQrUrl} alt="Payment QR" className="h-32 w-32 rounded-lg bg-white object-contain p-1" />
-                <button onClick={() => setPayQrUrl(null)} className="absolute -right-2 -top-2 rounded-full bg-slate-700 p-1 text-white"><X size={12} /></button>
+                <img src={payQrUrl} alt="Payment QR" className="h-32 w-32 rounded-[11px] bg-white object-contain p-1" />
+                <button onClick={() => setPayQrUrl(null)} className="absolute -right-2 -top-2 rounded-full p-1 text-white" style={{ background: "var(--surface-3)" }}><Icon name="close" size={12} style={{ color: "var(--text)" }} /></button>
               </div>
             ) : (
-              <button onClick={() => fileRef.current?.click()} disabled={uploading} className="flex items-center gap-1.5 rounded-lg border border-dashed border-slate-700 px-4 py-2 text-sm text-slate-400">
-                <Upload size={15} /> {uploading ? "Uploading…" : "Upload UPI QR"}
+              <button onClick={() => fileRef.current?.click()} disabled={uploading} className="flex items-center gap-2 rounded-[11px] px-4 py-3 text-[14px] font-semibold" style={uploadStyle}>
+                <Icon name="qr_code_2" size={20} style={{ color: "var(--text-2)" }} /> {uploading ? "Uploading…" : "Upload UPI QR"}
               </button>
             )}
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void uploadQr(f); e.target.value = ""; }} />
           </Field>
-          <p className="text-[11px] text-slate-500">Bookers see these to pay you directly. Payment stays offline.</p>
+          <p className="text-[12px]" style={{ color: "var(--text-3)" }}>Bookers see these to pay you directly. Payment stays offline.</p>
         </div>
 
         {editing && (
-          <label className="flex items-center gap-2 border-t border-slate-800 pt-2">
-            <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />
-            <span className="text-sm text-slate-300">Listed (accepting bookings)</span>
+          <label className="flex items-center gap-2 pt-2" style={{ borderTop: "1px solid var(--border)" }}>
+            <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} className="accent-[var(--accent)]" />
+            <span className="text-[14px]" style={{ color: "var(--text-2)" }}>Listed (accepting bookings)</span>
           </label>
         )}
 
-        {err && <p className="rounded-lg border border-red-700/60 bg-red-900/20 px-3 py-2 text-[12px] text-red-200">{err}</p>}
-        <button onClick={submit} disabled={busy} className="w-full rounded-xl bg-indigo-500 py-2.5 font-medium text-white active:bg-indigo-600 disabled:opacity-50">
+        {err && <p className="rounded-[11px] px-3.5 py-2.5 text-[13px]" style={{ background: "var(--danger-soft)", border: "1px solid color-mix(in srgb, var(--danger) 40%, transparent)", color: "var(--danger)" }}>{err}</p>}
+        <button onClick={submit} disabled={busy} className="w-full rounded-[13px] py-3.5 text-[16px] font-bold text-white active:opacity-90 disabled:opacity-50" style={{ background: "var(--accent-strong)" }}>
           {busy ? "Saving…" : editing ? "Save changes" : "List slot"}
         </button>
       </div>
@@ -222,9 +234,10 @@ export default function ParkingSlotEdit() {
 function Field({ label, optional, children }: { label: string; optional?: boolean; children: React.ReactNode }) {
   return (
     <div>
-      <label className="mb-1 block text-[11px] text-slate-400">{label}{optional && <span className="text-slate-600"> (optional)</span>}</label>
+      <label className="mb-1.5 block text-[13px] font-semibold" style={{ color: "var(--text-2)" }}>
+        {label}{optional && <span style={{ color: "var(--text-3)", fontWeight: 500 }}> (optional)</span>}
+      </label>
       {children}
     </div>
   );
 }
-const inputCls = "w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:border-blue-500 focus:outline-none";
