@@ -1,37 +1,19 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  ArrowLeft,
-  Building,
-  Car,
-  ChevronDown,
-  Trash2,
-  Users,
-  Wrench,
-  type LucideIcon,
-} from "lucide-react";
-import clsx from "clsx";
+import Icon from "../components/Icon";
 import guidelinesData from "../data/guidelines.json";
 
 type Rule = { title: string; description: string };
-type Section = {
-  id: string;
-  title: string;
-  icon: string;
-  rules: Rule[];
-};
+type Section = { id: string; title: string; icon: string; rules: Rule[] };
+type Guidelines = { lastUpdated: string; sections: Section[] };
 
-type Guidelines = {
-  lastUpdated: string;
-  sections: Section[];
-};
-
-const ICONS: Record<string, LucideIcon> = {
-  car: Car,
-  wrench: Wrench,
-  users: Users,
-  building: Building,
-  "trash-2": Trash2,
+// JSON icon string → Material Symbol (matches OneRMV Guidelines.dc.html).
+const ICONS: Record<string, string> = {
+  car: "directions_car",
+  wrench: "build",
+  users: "security",
+  building: "deck",
+  "trash-2": "recycling",
 };
 
 export default function GuidelinesPage() {
@@ -49,69 +31,43 @@ export default function GuidelinesPage() {
     });
 
   return (
-    <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)]">
-      <header className="flex items-center gap-2 py-4">
-        <Link
-          to="/"
-          className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 hover:bg-slate-800"
-        >
-          <ArrowLeft size={20} />
+    <div
+      className="one-surface flex flex-1 flex-col px-[18px] pt-[env(safe-area-inset-top,0px)]"
+      style={{ background: "var(--bg)", color: "var(--text)" }}
+    >
+      <header className="flex items-center gap-3 py-3">
+        <Link to="/community" className="flex" aria-label="Back">
+          <Icon name="arrow_back" size={22} style={{ color: "var(--text-2)" }} />
         </Link>
-        <h1 className="text-lg font-semibold text-white">Guidelines</h1>
+        <div>
+          <h1 className="text-[24px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>Guidelines</h1>
+          <p className="mt-px text-[12px]" style={{ color: "var(--text-3)" }}>
+            Community rules — last updated{" "}
+            {new Date(data.lastUpdated).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+          </p>
+        </div>
       </header>
 
-      <p className="mb-4 text-xs text-slate-500">
-        Community rules — last updated{" "}
-        {new Date(data.lastUpdated).toLocaleDateString("en-IN", {
-          day: "numeric",
-          month: "short",
-          year: "numeric",
-        })}
-      </p>
-
-      <div className="space-y-3">
+      <div className="flex flex-col gap-3.5 pb-6">
         {data.sections.map((section) => {
-          const Icon = ICONS[section.icon] ?? Users;
+          const ms = ICONS[section.icon] ?? "rule";
           const isOpen = expanded.has(section.id);
           return (
-            <div
-              key={section.id}
-              className="overflow-hidden rounded-2xl border border-slate-700 bg-slate-800/60"
-            >
-              <button
-                onClick={() => toggle(section.id)}
-                className="flex w-full items-center gap-3 px-4 py-3 active:bg-slate-800"
-              >
-                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-indigo-500/20 text-indigo-300">
-                  <Icon size={16} />
-                </div>
-                <span className="flex-1 text-left text-sm font-semibold text-white">
-                  {section.title}
+            <div key={section.id} className="overflow-hidden rounded-[18px]" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+              <button onClick={() => toggle(section.id)} className="flex w-full items-center gap-3 p-4 text-left active:opacity-90">
+                <span className="flex h-[42px] w-[42px] flex-shrink-0 items-center justify-center rounded-[12px]" style={{ background: "var(--accent-soft)" }}>
+                  <Icon name={ms} size={22} style={{ color: "var(--accent)" }} />
                 </span>
-                <span className="text-[11px] text-slate-500">
-                  {section.rules.length}
-                </span>
-                <ChevronDown
-                  size={16}
-                  className={clsx(
-                    "text-slate-500 transition-transform",
-                    isOpen && "rotate-180"
-                  )}
-                />
+                <span className="flex-1 text-[17px] font-bold" style={{ color: "var(--text)" }}>{section.title}</span>
+                <span className="text-[14px]" style={{ color: "var(--text-3)" }}>{section.rules.length}</span>
+                <Icon name="expand_more" size={22} className="transition-transform" style={{ color: "var(--text-3)", transform: isOpen ? "rotate(180deg)" : "rotate(0deg)" }} />
               </button>
               {isOpen && (
-                <div className="space-y-3 border-t border-slate-700 px-4 py-3">
+                <div className="px-4 pb-4" style={{ borderTop: "1px solid var(--border)" }}>
                   {section.rules.map((rule, i) => (
-                    <div
-                      key={i}
-                      className="border-l-2 border-indigo-500/60 pl-3"
-                    >
-                      <p className="text-sm font-medium text-slate-100">
-                        {rule.title}
-                      </p>
-                      <p className="mt-0.5 text-xs leading-relaxed text-slate-400">
-                        {rule.description}
-                      </p>
+                    <div key={i} className="mt-4 pl-3.5" style={{ borderLeft: "2px solid var(--accent)" }}>
+                      <p className="text-[16px] font-bold" style={{ color: "var(--text)" }}>{rule.title}</p>
+                      <p className="mt-1.5 text-[14px] leading-relaxed" style={{ color: "var(--text-2)" }}>{rule.description}</p>
                     </div>
                   ))}
                 </div>
@@ -121,7 +77,7 @@ export default function GuidelinesPage() {
         })}
       </div>
 
-      <p className="mt-6 pb-4 text-center text-[11px] text-slate-500">
+      <p className="mt-2 pb-4 text-center text-[12px]" style={{ color: "var(--text-3)" }}>
         Questions? Contact the office from the About page.
       </p>
     </div>
