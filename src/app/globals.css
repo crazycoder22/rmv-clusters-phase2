@@ -10,16 +10,37 @@ body {
 }
 
 @theme inline {
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-200: #bfdbfe;
-  --color-primary-300: #93c5fd;
-  --color-primary-400: #60a5fa;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a5f;
+  /* OneRMV reskin lever — the brand "primary" scale is repointed to the OneRMV
+     indigo accent so every existing `primary-*` utility (1.5k usages) re-tints
+     at once. 600 = accent, 700 = accent-strong, 800/900 = deep brand. */
+  --color-primary-50: #eef0fe;
+  --color-primary-100: #e0e2fd;
+  --color-primary-200: #c7cafb;
+  --color-primary-300: #a5a8f7;
+  --color-primary-400: #8b8df7;
+  --color-primary-500: #6366f1;
+  --color-primary-600: #4f46e5;
+  --color-primary-700: #4338ca;
+  --color-primary-800: #3730a3;
+  --color-primary-900: #312e81;
+
+  /* OneRMV reskin lever — the neutral `gray` ramp is remapped to OneRMV's
+     blue-tinted neutrals as a monotonic light→dark ramp. Pages already use it
+     in `light dark:` pairs (e.g. bg-white dark:bg-gray-900), so this preserves
+     every contrast relationship while shifting pure gray → navy/cool-white.
+     50–300 = OneRMV light surfaces/borders; 400/500 = muted text; 700–950 =
+     OneRMV dark surfaces. */
+  --color-gray-50: #f1f4f9;
+  --color-gray-100: #eef2f8;
+  --color-gray-200: #e5e9f1;
+  --color-gray-300: #d2dae7;
+  --color-gray-400: #8696ae;
+  --color-gray-500: #516079;
+  --color-gray-600: #3a4963;
+  --color-gray-700: #1c2945;
+  --color-gray-800: #16223c;
+  --color-gray-900: #111a2e;
+  --color-gray-950: #0a0f1c;
 
   --color-accent-50: #ecfdf5;
   --color-accent-100: #d1fae5;
@@ -38,8 +59,12 @@ body {
 }
 
 body {
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
-  @apply bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100;
+  /* OneRMV: Hanken Grotesk + token surfaces site-wide (matches the mobile app).
+     Light/dark is driven by the `.dark` class on <html> via the tokens below. */
+  font-family: var(--ds-font);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
@@ -73,6 +98,13 @@ html {
   --danger: #dc2626;
   --danger-soft: #fdecec;
   --info: #2563eb;
+  --info-soft: #e6efff;
+  --success-line: #a7e3cd;
+  --carblue: #2563eb;
+  --veg: #0f9d6e;
+  --nonveg: #dc2626;
+  --chef: #b5792a;
+  --produce: #0f9d6e;
   --shadow: 0 8px 28px rgba(16, 28, 51, 0.1);
   --banner: linear-gradient(110deg, #0f766e, #3730a3 60%, #4338ca);
   --ds-font: "Hanken Grotesk", system-ui, -apple-system, sans-serif;
@@ -99,6 +131,13 @@ html {
   --danger: #f87171;
   --danger-soft: rgba(248, 113, 113, 0.16);
   --info: #60a5fa;
+  --info-soft: rgba(91, 156, 255, 0.16);
+  --success-line: rgba(52, 211, 153, 0.38);
+  --carblue: #5b9cff;
+  --veg: #34d399;
+  --nonveg: #f87171;
+  --chef: #d49a4e;
+  --produce: #46b07a;
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
   --banner: linear-gradient(110deg, #173a3a, #1a2a52 60%, #23275e);
 }
@@ -121,13 +160,28 @@ html {
   user-select: none;
 }
 
-/* Opt-in OneRMV typography for migrated subtrees (rest of site keeps Geist). */
+/* OneRMV typography helpers. */
 .one-surface {
   font-family: var(--ds-font);
   -webkit-font-smoothing: antialiased;
 }
 .one-mono {
   font-family: var(--ds-mono);
+}
+
+/* OneRMV surface card + form input — token-driven, re-theme with light/dark. */
+.one-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.one-input {
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+  outline: none;
+}
+.one-input::placeholder {
+  color: var(--text-3);
 }
 
 /* Wordle shake animation */
