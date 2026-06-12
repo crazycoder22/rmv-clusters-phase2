@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Loader2, Phone, Star, Trash2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
-import { getCategoryLabel, CATEGORY_BADGE } from "../lib/domesticHelp";
+import { getCategoryLabel, categoryTagClass } from "../lib/domesticHelp";
 
 type Review = {
   id: string;
@@ -28,7 +29,7 @@ type Worker = {
 
 function Stars({ value, onPick, size = 16 }: { value: number; onPick?: (n: number) => void; size?: number }) {
   return (
-    <div className="flex items-center gap-0.5">
+    <div className="flex items-center gap-1">
       {[1, 2, 3, 4, 5].map((n) => (
         <button
           key={n}
@@ -37,7 +38,7 @@ function Stars({ value, onPick, size = 16 }: { value: number; onPick?: (n: numbe
           onClick={() => onPick?.(n)}
           className={onPick ? "active:scale-90" : "cursor-default"}
         >
-          <Star size={size} className={n <= value ? "fill-amber-400 text-amber-400" : "text-slate-600"} />
+          <Icon name="star" size={size} fill={n <= value} style={{ color: n <= value ? "var(--star)" : "var(--text-3)" }} />
         </button>
       ))}
     </div>
@@ -126,99 +127,128 @@ export default function DomesticHelpDetail() {
   }
 
   if (loading) {
-    return <div className="flex flex-1 items-center justify-center"><Loader2 className="animate-spin text-slate-500" size={22} /></div>;
+    return <div className="flex flex-1 items-center justify-center" style={{ background: "var(--bg)" }}><Loader2 className="animate-spin" size={22} style={{ color: "var(--text-3)" }} /></div>;
   }
   if (notFound || !w) {
     return (
-      <div className="flex flex-1 flex-col px-4 pt-[max(2rem,env(safe-area-inset-top,0px))]">
-        <button onClick={() => navigate(-1)} className="mb-6 flex items-center gap-1.5 text-sm text-slate-400 active:text-white"><ArrowLeft size={18} /> Back</button>
-        <p className="rounded-2xl border border-slate-700 bg-slate-800/40 px-4 py-8 text-center text-sm text-slate-400">This listing isn't available.</p>
+      <div className="one-surface flex flex-1 flex-col px-[18px] pt-[max(2rem,env(safe-area-inset-top,0px))]" style={{ background: "var(--bg)", color: "var(--text)" }}>
+        <button onClick={() => navigate(-1)} className="mb-6 flex items-center gap-1.5 text-[14px]" style={{ color: "var(--text-3)" }}>
+          <Icon name="arrow_back" size={18} style={{ color: "var(--text-3)" }} /> Back
+        </button>
+        <p className="rounded-[16px] px-4 py-8 text-center text-[14px]" style={{ border: "1px solid var(--border)", color: "var(--text-3)" }}>This listing isn't available.</p>
       </div>
     );
   }
 
+  const canSave = myRating >= 1;
+
   return (
-    <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)] pb-8">
-      <header className="flex items-center gap-2 py-3">
-        <button onClick={() => navigate(-1)} className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 active:bg-slate-800"><ArrowLeft size={20} /></button>
-        <h1 className="truncate text-lg font-semibold text-white">{w.name}</h1>
+    <div className="one-surface flex flex-1 flex-col px-[18px] pt-[env(safe-area-inset-top,0px)] pb-8" style={{ background: "var(--bg)", color: "var(--text)" }}>
+      <header className="flex items-center gap-3.5 py-3">
+        <button onClick={() => navigate(-1)} className="flex active:opacity-70" aria-label="Back">
+          <Icon name="arrow_back" size={24} style={{ color: "var(--text)" }} />
+        </button>
+        <h1 className="truncate text-[24px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>{w.name}</h1>
       </header>
 
-      <div className="flex items-center gap-2">
-        {w.reviewCount > 0 ? (
-          <>
-            <Stars value={Math.round(w.avgRating)} />
-            <span className="text-sm font-semibold text-amber-300">{w.avgRating.toFixed(1)}</span>
-            <span className="text-xs text-slate-500">({w.reviewCount} review{w.reviewCount !== 1 ? "s" : ""})</span>
-          </>
-        ) : (
-          <span className="text-xs text-slate-500">No reviews yet</span>
-        )}
-      </div>
+      {/* Review summary */}
+      <p className="text-[14px]" style={{ color: "var(--text-3)" }}>
+        {w.reviewCount > 0 ? `${w.avgRating.toFixed(1)} ★ · ${w.reviewCount} review${w.reviewCount !== 1 ? "s" : ""}` : "No reviews yet"}
+      </p>
 
-      <div className="mt-2 flex flex-wrap gap-1.5">
+      {/* Tags */}
+      <div className="mt-3 flex flex-wrap gap-2">
         {w.categories.map((c) => (
-          <span key={c} className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${CATEGORY_BADGE[c] ?? "bg-slate-600/40 text-slate-300"}`}>{getCategoryLabel(c)}</span>
+          <span key={c} className={categoryTagClass(c)}>{getCategoryLabel(c)}</span>
         ))}
       </div>
 
-      {w.availability && <p className="mt-3 text-sm text-slate-300">🕑 {w.availability}</p>}
-      {w.description && <p className="mt-2 whitespace-pre-wrap text-sm text-slate-300">{w.description}</p>}
-      <p className="mt-2 text-[11px] text-slate-500">Added by {w.addedBy.name} · Block {w.addedBy.block ?? "—"}, {w.addedBy.flatNumber}</p>
+      {/* Availability */}
+      {w.availability && (
+        <div className="mt-4 flex items-center gap-2.5">
+          <Icon name="schedule" size={20} style={{ color: "var(--text-2)" }} />
+          <span className="text-[16px] font-medium" style={{ color: "var(--text)" }}>{w.availability}</span>
+        </div>
+      )}
+      {w.description && <p className="mt-3 whitespace-pre-wrap text-[15px] leading-relaxed" style={{ color: "var(--text-2)" }}>{w.description}</p>}
+      <p className="mt-3.5 text-[13px]" style={{ color: "var(--text-3)" }}>
+        Added by {w.addedBy.name} · Block {w.addedBy.block ?? "—"}, {w.addedBy.flatNumber}
+      </p>
 
-      <a href={`tel:${w.phone.replace(/\s+/g, "")}`} className="mt-4 flex items-center justify-center gap-2 rounded-2xl bg-green-600 px-4 py-3 text-sm font-semibold text-white active:bg-green-700">
-        <Phone size={16} /> Call {w.name.split(" ")[0]} · {w.phone}
+      {/* Call */}
+      <a
+        href={`tel:${w.phone.replace(/\s+/g, "")}`}
+        className="mt-[18px] flex items-center justify-center gap-2.5 rounded-[16px] px-4 py-4 active:opacity-90"
+        style={{ background: "var(--call)", boxShadow: "0 8px 20px rgba(22,163,74,0.28)" }}
+      >
+        <Icon name="call" size={22} fill style={{ color: "#fff" }} />
+        <span className="text-[17px] font-bold text-white">Call {w.name.split(" ")[0]} · {w.phone}</span>
       </a>
 
-      {/* My review */}
-      <div className="mt-5 rounded-2xl border border-slate-700 bg-slate-800/60 p-3">
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Your review</p>
-        <Stars value={myRating} onPick={setMyRating} size={24} />
+      {/* Your review */}
+      <div className="mt-[18px] rounded-[18px] p-[18px]" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+        <p className="one-mono text-[11px]" style={{ color: "var(--text-3)", letterSpacing: "0.12em" }}>YOUR REVIEW</p>
+        <div className="mt-3.5">
+          <Stars value={myRating} onPick={setMyRating} size={34} />
+        </div>
         <textarea
           value={myComment}
           onChange={(e) => setMyComment(e.target.value)}
           rows={2}
           placeholder="Share your experience (optional)"
-          className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none"
+          className="mt-3.5 w-full resize-none rounded-[13px] px-3.5 py-3 text-[14px] leading-relaxed outline-none"
+          style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text)" }}
         />
         <button
           onClick={() => void submitReview()}
-          disabled={busy || myRating < 1}
-          className="mt-2 w-full rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white active:bg-indigo-700 disabled:opacity-60"
+          disabled={busy || !canSave}
+          className="mt-3.5 w-full rounded-[13px] px-4 py-3.5 text-[16px] font-bold"
+          style={canSave ? { background: "var(--accent-strong)", color: "#fff" } : { background: "var(--surface-3)", color: "var(--text-3)" }}
         >
           {busy ? "Saving…" : "Save review"}
         </button>
       </div>
 
-      {/* Reviews list */}
-      <div className="mt-5">
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Reviews</p>
-        {w.reviews.length === 0 ? (
-          <p className="rounded-2xl border border-slate-700 bg-slate-800/40 px-4 py-5 text-center text-xs text-slate-500">Be the first to review.</p>
-        ) : (
-          <div className="space-y-2">
-            {w.reviews.map((rv) => (
-              <div key={rv.id} className="rounded-2xl border border-slate-700 bg-slate-800/60 px-3 py-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-slate-100">{rv.resident.name}</span>
-                  <Stars value={rv.rating} size={12} />
+      {/* Reviews */}
+      <p className="one-mono mt-6 text-[11px]" style={{ color: "var(--text-3)", letterSpacing: "0.12em" }}>REVIEWS</p>
+      {w.reviews.length === 0 ? (
+        <p className="mt-3 rounded-[16px] px-4 py-6 text-center text-[14px]" style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-3)" }}>
+          Be the first to review.
+        </p>
+      ) : (
+        <div className="mt-3 flex flex-col gap-3">
+          {w.reviews.map((rv) => (
+            <div key={rv.id} className="rounded-[16px] px-4 py-3.5" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-[38px] w-[38px] flex-shrink-0 items-center justify-center rounded-full text-[15px] font-extrabold" style={{ background: "var(--accent-soft)", border: "2px solid var(--accent)", color: "var(--accent)" }}>
+                  {rv.resident.name[0]?.toUpperCase() ?? "?"}
                 </div>
-                <p className="text-[10px] text-slate-500">Block {rv.resident.block ?? "—"}, {rv.resident.flatNumber} · {fmtDate(rv.createdAt)}</p>
-                {rv.comment && <p className="mt-1 text-sm text-slate-300">{rv.comment}</p>}
-                {(rv.residentId === user?.id || canManage) && (
-                  <button onClick={() => void deleteReview(rv.id)} className="mt-1 inline-flex items-center gap-1 text-[11px] text-red-400">
-                    <Trash2 size={11} /> Delete
-                  </button>
-                )}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[14px] font-bold" style={{ color: "var(--text)" }}>{rv.resident.name}</p>
+                  <p className="text-[11px]" style={{ color: "var(--text-3)" }}>Block {rv.resident.block ?? "—"}, {rv.resident.flatNumber} · {fmtDate(rv.createdAt)}</p>
+                </div>
+                <span className="flex-shrink-0 tracking-wide" style={{ color: "var(--star)" }}>
+                  {"★".repeat(rv.rating)}
+                </span>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+              {rv.comment && <p className="mt-2.5 text-[14px] leading-relaxed" style={{ color: "var(--text-2)" }}>{rv.comment}</p>}
+              {(rv.residentId === user?.id || canManage) && (
+                <button onClick={() => void deleteReview(rv.id)} className="mt-2 inline-flex items-center gap-1 text-[11.5px] font-semibold" style={{ color: "var(--danger)" }}>
+                  <Icon name="delete" size={13} style={{ color: "var(--danger)" }} /> Delete
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
 
       {(isOwner || canManage) && (
-        <button onClick={() => void deleteWorker()} className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl border border-red-500/40 bg-red-500/5 px-4 py-2.5 text-sm font-semibold text-red-300 active:bg-red-500/15">
-          <Trash2 size={16} /> Delete listing
+        <button
+          onClick={() => void deleteWorker()}
+          className="mt-[22px] flex w-full items-center justify-center gap-2 rounded-[16px] px-4 py-3.5 text-[16px] font-bold"
+          style={{ background: "var(--danger-soft)", border: "1px solid color-mix(in srgb, var(--danger) 45%, transparent)", color: "var(--danger)" }}
+        >
+          <Icon name="delete" size={20} style={{ color: "var(--danger)" }} /> Delete listing
         </button>
       )}
     </div>

@@ -17,6 +17,17 @@ export function getCategoryLabel(value: string): string {
   return DOMESTIC_HELP_CATEGORIES.find((c) => c.value === value)?.label ?? value;
 }
 
+// OneRMV theme-aware service tag classes (defined in index.css). Each category
+// value maps to its lowercased suffix; CLEANER → "cleaner", etc.
+const DH_TAG_SUFFIX = new Set([
+  "maid", "cook", "driver", "plumber", "electrician",
+  "carpenter", "gardener", "painter", "cleaner", "other",
+]);
+export function categoryTagClass(value: string): string {
+  const suffix = value.toLowerCase();
+  return `dh-tag dh-tag-${DH_TAG_SUFFIX.has(suffix) ? suffix : "other"}`;
+}
+
 // Dark-theme badge colors.
 export const CATEGORY_BADGE: Record<string, string> = {
   MAID: "bg-pink-500/20 text-pink-300",

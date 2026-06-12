@@ -52,6 +52,8 @@ body,
   --produce: #0f9d6e;
   --whatsapp: #1faa52;
   --like: #e11d6b;
+  --call: #15803d;
+  --star: #d97706;
   --shadow: 0 8px 28px rgba(16, 28, 51, 0.1);
   --banner: linear-gradient(110deg, #0f766e, #3730a3 60%, #4338ca);
   --ds-mono: "JetBrains Mono", ui-monospace, monospace;
@@ -86,6 +88,8 @@ html.dark {
   --produce: #46b07a;
   --whatsapp: #25b85a;
   --like: #f43f7a;
+  --call: #16a34a;
+  --star: #fbbf24;
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
   --banner: linear-gradient(110deg, #173a3a, #1a2a52 60%, #23275e);
 }
@@ -128,6 +132,38 @@ html.dark {
 .one-card:active {
   background: var(--surface-2);
 }
+
+/* Domestic-help service tags — per-category hue, theme-aware (OneRMV Domestic
+   Help.dc.html). Light = darker fg; html.dark = brighter fg. */
+.dh-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.dh-tag-maid { background: rgba(232, 121, 199, 0.16); color: #c026d3; }
+.dh-tag-cook { background: rgba(245, 158, 11, 0.16); color: #b45309; }
+.dh-tag-driver { background: rgba(96, 165, 250, 0.16); color: #2563eb; }
+.dh-tag-plumber { background: rgba(45, 212, 191, 0.16); color: #0d9488; }
+.dh-tag-electrician { background: rgba(250, 204, 21, 0.16); color: #a16207; }
+.dh-tag-carpenter { background: rgba(251, 146, 60, 0.16); color: #c2410c; }
+.dh-tag-gardener { background: rgba(52, 211, 153, 0.16); color: #059669; }
+.dh-tag-painter { background: rgba(167, 139, 250, 0.16); color: #7c3aed; }
+.dh-tag-cleaner { background: rgba(56, 189, 248, 0.16); color: #0284c7; }
+.dh-tag-other { background: rgba(148, 163, 184, 0.16); color: #475569; }
+html.dark .dh-tag-maid { color: #e879c7; }
+html.dark .dh-tag-cook { color: #fbbf24; }
+html.dark .dh-tag-driver { color: #60a5fa; }
+html.dark .dh-tag-plumber { color: #2dd4bf; }
+html.dark .dh-tag-electrician { color: #facc15; }
+html.dark .dh-tag-carpenter { color: #fb923c; }
+html.dark .dh-tag-gardener { color: #34d399; }
+html.dark .dh-tag-painter { color: #a78bfa; }
+html.dark .dh-tag-cleaner { color: #38bdf8; }
+html.dark .dh-tag-other { color: #94a3b8; }
 
 #root {
   display: flex;
