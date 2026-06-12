@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Check, ImagePlus, Loader2, Plus, Trash2, X } from "lucide-react";
+import { Check, ImagePlus, Loader2, Plus, Trash2, X } from "lucide-react";
 import clsx from "clsx";
+import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
 import { API_BASE_URL } from "../config";
 import { useAuth } from "../auth/AuthProvider";
@@ -84,13 +85,13 @@ export default function VendorEdit() {
     } catch { setErr("Network error"); } finally { setSaving(false); }
   }
 
-  if (loading) return <div className="flex flex-1 items-center justify-center text-slate-500"><Loader2 size={20} className="animate-spin" /></div>;
+  if (loading) return <div className="one-surface flex flex-1 items-center justify-center" style={{ background: "var(--bg)", color: "var(--text-3)" }}><Loader2 size={20} className="animate-spin" /></div>;
 
   return (
-    <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)]">
-      <header className="flex items-center gap-2 py-4">
-        <button onClick={() => navigate(isEdit ? `/vendors/${id}` : "/food")} className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 active:bg-slate-800"><ArrowLeft size={20} /></button>
-        <h1 className="text-lg font-semibold text-white">{isEdit ? "Edit vendor" : "Add a food vendor"}</h1>
+    <div className="one-surface flex flex-1 flex-col px-[18px] pt-[env(safe-area-inset-top,0px)]" style={{ background: "var(--bg)", color: "var(--text)" }}>
+      <header className="flex items-center gap-3 py-3">
+        <button onClick={() => navigate(isEdit ? `/vendors/${id}` : "/food")} className="flex" style={{ color: "var(--text-2)" }}><Icon name="arrow_back" size={24} style={{ color: "var(--text-2)" }} /></button>
+        <h1 className="text-[21px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>{isEdit ? "Edit vendor" : "Add a food vendor"}</h1>
       </header>
 
       <div className="flex-1 space-y-3 pb-6">
@@ -106,50 +107,50 @@ export default function VendorEdit() {
         <Field label="Photo (optional)">
           {photoUrl ? (
             <div className="relative inline-block">
-              <img src={photoUrl} alt="" className="h-32 w-full max-w-xs rounded-lg border border-slate-700 object-cover" />
-              <button onClick={() => setPhotoUrl(null)} className="absolute -right-2 -top-2 rounded-full bg-slate-700 p-1 text-white"><X size={12} /></button>
+              <img src={photoUrl} alt="" className="h-32 w-full max-w-xs rounded-[11px] object-cover" style={{ border: "1px solid var(--border)" }} />
+              <button onClick={() => setPhotoUrl(null)} className="absolute -right-2 -top-2 rounded-full p-1 text-white" style={{ background: "var(--surface-3)" }}><X size={12} /></button>
             </div>
           ) : (
-            <button onClick={() => photoRef.current?.click()} disabled={uploading} className="flex items-center gap-1.5 rounded-lg border border-dashed border-slate-700 px-4 py-2 text-sm text-slate-400">
-              <ImagePlus size={15} /> {uploading ? "Uploading…" : "Upload photo"}
+            <button onClick={() => photoRef.current?.click()} disabled={uploading} className="flex items-center gap-2 rounded-[11px] px-4 py-3 text-[14px] font-semibold" style={{ border: "1.5px dashed var(--border-strong)", color: "var(--text-2)" }}>
+              <ImagePlus size={18} /> {uploading ? "Uploading…" : "Upload photo"}
             </button>
           )}
           <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void uploadPhoto(f); e.target.value = ""; }} />
         </Field>
 
         <div>
-          <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400">Menu items</p>
-          <div className="space-y-2">
+          <p className="one-mono mb-2 text-[10px] font-medium uppercase" style={{ color: "var(--text-3)", letterSpacing: "0.12em" }}>Menu items</p>
+          <div className="space-y-2.5">
             {items.map((it, i) => (
-              <div key={i} className="space-y-2 rounded-2xl border border-slate-700 bg-slate-800/60 p-2.5">
+              <div key={i} className="space-y-2.5 rounded-[14px] p-3" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
                 <div className="flex gap-2">
-                  <input value={it.name} onChange={(e) => updateItem(i, { name: e.target.value })} placeholder="Item name" className={clsx(inputCls, "flex-1")} />
-                  {items.length > 1 && <button onClick={() => setItems((prev) => prev.filter((_, idx) => idx !== i))} className="flex h-7 w-7 flex-shrink-0 items-center justify-center self-start rounded-full text-slate-500 active:bg-slate-800 active:text-red-300"><Trash2 size={14} /></button>}
+                  <input value={it.name} onChange={(e) => updateItem(i, { name: e.target.value })} placeholder="Item name" className="one-input flex-1 rounded-[10px] px-3 py-2.5 text-[14px]" />
+                  {items.length > 1 && <button onClick={() => setItems((prev) => prev.filter((_, idx) => idx !== i))} className="flex h-7 w-7 flex-shrink-0 items-center justify-center self-start rounded-full" style={{ color: "var(--text-3)" }}><Trash2 size={14} /></button>}
                 </div>
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="text-sm text-slate-400">₹</span>
-                  <input type="number" inputMode="decimal" value={it.price} onChange={(e) => updateItem(i, { price: e.target.value })} placeholder="Price" className={clsx(inputCls, "w-20")} />
-                  <span className="text-slate-500">/</span>
-                  <select value={it.unit ?? ""} onChange={(e) => updateItem(i, { unit: e.target.value || null })} className={clsx(inputCls, "w-24 appearance-none")}>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[15px] font-bold" style={{ color: "var(--text-2)" }}>₹</span>
+                  <input type="number" inputMode="decimal" value={it.price} onChange={(e) => updateItem(i, { price: e.target.value })} placeholder="Price" className="one-input w-20 rounded-[10px] px-3 py-2.5 text-[14px]" />
+                  <span style={{ color: "var(--text-3)" }}>/</span>
+                  <select value={it.unit ?? ""} onChange={(e) => updateItem(i, { unit: e.target.value || null })} className="one-input w-24 appearance-none rounded-[10px] px-3 py-2.5 text-[14px]">
                     <option value="">flat ₹</option>
                     {MARKET_UNITS.map((u) => <option key={u.value} value={u.value}>{u.label}</option>)}
                   </select>
-                  <select value={it.section} onChange={(e) => updateItem(i, { section: e.target.value })} className={clsx(inputCls, "w-24 appearance-none")}>
+                  <select value={it.section} onChange={(e) => updateItem(i, { section: e.target.value })} className="one-input w-24 appearance-none rounded-[10px] px-3 py-2.5 text-[14px]">
                     <option value="">no tag</option>
                     {VENDOR_SECTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>
-                <input value={it.note} onChange={(e) => updateItem(i, { note: e.target.value })} placeholder="Note (optional) — e.g. 25 pieces" className={inputCls} />
+                <input value={it.note} onChange={(e) => updateItem(i, { note: e.target.value })} placeholder="Note (optional) — e.g. 25 pieces" className="one-input w-full rounded-[10px] px-3 py-2.5 text-[14px]" />
               </div>
             ))}
           </div>
-          <button onClick={() => setItems((p) => [...p, emptyItem()])} className="mt-2 flex w-full items-center justify-center gap-1 rounded-xl border border-dashed border-slate-700 py-2.5 text-[12px] font-medium text-slate-300 active:bg-slate-800">
-            <Plus size={14} /> Add another item
+          <button onClick={() => setItems((p) => [...p, emptyItem()])} className="mt-3 flex w-full items-center justify-center gap-2 rounded-[12px] py-3 text-[14px] font-semibold active:opacity-80" style={{ border: "1.5px dashed var(--border-strong)", color: "var(--text-2)" }}>
+            <Plus size={16} /> Add another item
           </button>
         </div>
 
-        {err && <p className="rounded-lg border border-red-700/60 bg-red-900/20 px-3 py-2 text-[11px] text-red-200">{err}</p>}
-        <button onClick={save} disabled={saving} className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-500 py-3 text-sm font-semibold text-white active:bg-indigo-600 disabled:opacity-50">
+        {err && <p className="rounded-[11px] px-3.5 py-2.5 text-[13px]" style={{ background: "var(--danger-soft)", border: "1px solid color-mix(in srgb, var(--danger) 40%, transparent)", color: "var(--danger)" }}>{err}</p>}
+        <button onClick={save} disabled={saving} className="flex w-full items-center justify-center gap-2 rounded-[13px] py-3.5 text-[16px] font-bold text-white active:opacity-90 disabled:opacity-50" style={{ background: "var(--accent-strong)" }}>
           {saving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
           {isEdit ? "Save vendor" : "Add vendor"}
         </button>
@@ -161,9 +162,9 @@ export default function VendorEdit() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">{label}</p>
+      <p className="one-mono mb-1.5 text-[10px] font-medium uppercase" style={{ color: "var(--text-3)", letterSpacing: "0.12em" }}>{label}</p>
       {children}
     </div>
   );
 }
-const inputCls = "w-full rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none";
+const inputCls = "one-input w-full rounded-[11px] px-3.5 py-3 text-[15px]";

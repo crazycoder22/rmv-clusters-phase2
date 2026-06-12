@@ -1,19 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import {
-  ArrowLeft,
-  ChefHat,
-  ChevronRight,
-  Clock,
-  Loader2,
-  MessageCircle,
-  Plus,
-  ShoppingBag,
-  ShoppingBasket,
-  Store,
-  Truck,
-} from "lucide-react";
-import clsx from "clsx";
+import { Loader2 } from "lucide-react";
+import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
 import { type FoodKind, KIND_LABELS, formatUnitPrice, unitLabel, asKind } from "../lib/market";
@@ -66,6 +54,14 @@ interface VendorCard {
 }
 
 type Tab = "order" | "vendors" | "kitchen" | "bazaar" | "orders";
+
+const TABS: { key: Tab; ms: string; label: string }[] = [
+  { key: "order", ms: "restaurant", label: "Order" },
+  { key: "vendors", ms: "storefront", label: "Vendors" },
+  { key: "kitchen", ms: "cooking", label: "Kitchen" },
+  { key: "bazaar", ms: "shopping_basket", label: "Bazaar" },
+  { key: "orders", ms: "receipt_long", label: "Orders" },
+];
 
 /** "3 kg Apples" (market) | "2× Dosa" (kitchen). */
 function lineText(i: { qty: number; name: string; unit: string | null }): string {
@@ -144,123 +140,101 @@ export default function Food() {
           : null;
 
   return (
-    <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)]">
-      <header className="flex items-center gap-2 py-4">
-        <Link
-          to="/more"
-          className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 active:bg-slate-800"
-        >
-          <ArrowLeft size={20} />
+    <div
+      className="one-surface flex flex-1 flex-col px-[18px] pt-[env(safe-area-inset-top,0px)]"
+      style={{ background: "var(--bg)", color: "var(--text)" }}
+    >
+      <header className="flex items-start gap-3 py-3">
+        <Link to="/community" className="flex pt-0.5" aria-label="Back">
+          <Icon name="arrow_back" size={22} style={{ color: "var(--text-2)" }} />
         </Link>
         <div className="flex-1 min-w-0">
-          <h1 className="text-lg font-semibold text-white">Food &amp; Bazaar</h1>
-          <p className="truncate text-[11px] text-slate-500">
-            Home kitchens &amp; fresh produce from the community
+          <h1 className="text-[21px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>Food &amp; Bazaar</h1>
+          <p className="truncate text-[12px]" style={{ color: "var(--text-3)" }}>
+            Home kitchens &amp; fresh produce
           </p>
         </div>
         {createCta && (
           <button
             type="button"
             onClick={() => navigate(createCta.path)}
-            className="flex h-9 items-center gap-1 rounded-full bg-indigo-500 px-3 text-sm font-medium text-white active:bg-indigo-600"
+            className="flex shrink-0 items-center gap-1 rounded-full px-3.5 py-2 text-[13px] font-bold text-white active:opacity-90"
+            style={{ background: "var(--accent-strong)" }}
           >
-            <Plus size={14} />
+            <Icon name="add" size={17} style={{ color: "#fff" }} />
             {createCta.label}
           </button>
         )}
       </header>
 
-      {/* Tabs */}
-      <div className="mb-4 flex rounded-xl bg-slate-800 p-0.5">
-        <TabButton active={tab === "order"} onClick={() => setTab("order")} icon={ShoppingBag}>
-          Order
-        </TabButton>
-        <TabButton active={tab === "vendors"} onClick={() => setTab("vendors")} icon={Store}>
-          Vendors
-        </TabButton>
-        <TabButton active={tab === "kitchen"} onClick={() => setTab("kitchen")} icon={ChefHat}>
-          Kitchen
-        </TabButton>
-        <TabButton active={tab === "bazaar"} onClick={() => setTab("bazaar")} icon={ShoppingBasket}>
-          Bazaar
-        </TabButton>
-        <TabButton active={tab === "orders"} onClick={() => setTab("orders")} icon={ShoppingBag}>
-          Orders
-        </TabButton>
+      {/* Tabs — horizontally scrollable pills */}
+      <div className="mb-3 flex gap-1.5 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden">
+        {TABS.map((t) => (
+          <TabPill key={t.key} active={tab === t.key} onClick={() => setTab(t.key)} ms={t.ms}>
+            {t.label}
+          </TabPill>
+        ))}
       </div>
 
       {error && (
-        <p className="mb-3 rounded-xl border border-red-700/60 bg-red-900/20 px-4 py-2.5 text-xs text-red-200">
+        <p className="mb-3 rounded-[11px] px-4 py-2.5 text-[13px]" style={{ background: "var(--danger-soft)", border: "1px solid color-mix(in srgb, var(--danger) 40%, transparent)", color: "var(--danger)" }}>
           {error}
         </p>
       )}
 
       {loading ? (
-        <div className="flex justify-center py-10 text-slate-500">
+        <div className="flex justify-center py-10" style={{ color: "var(--text-3)" }}>
           <Loader2 size={20} className="animate-spin" />
         </div>
       ) : (
         <div className="flex-1 pb-4">
           {tab === "order" && (
             browseOthers.length === 0 ? (
-              <Empty icon={ShoppingBag} text="Nothing open right now. Check back soon!" />
+              <Empty ms="restaurant" text="Nothing open right now. Check back soon!" />
             ) : (
-              <ul className="space-y-2">
-                {browseOthers.map((m) => (
-                  <MenuRow key={m.id} menu={m} />
-                ))}
+              <ul className="space-y-3">
+                {browseOthers.map((m) => <MenuRow key={m.id} menu={m} />)}
               </ul>
             )
           )}
 
           {tab === "vendors" && (
             vendors.length === 0 ? (
-              <Empty icon={Store} text="No outside vendors yet. Know a caterer? Tap “Vendor” to add one." />
+              <Empty ms="storefront" text="No outside vendors yet. Know a caterer? Tap “Vendor” to add one." />
             ) : (
-              <ul className="space-y-2">
-                {vendors.map((v) => (
-                  <VendorRow key={v.id} v={v} onNavigate={(p) => navigate(p)} />
-                ))}
+              <ul className="space-y-3">
+                {vendors.map((v) => <VendorRow key={v.id} v={v} onNavigate={(p) => navigate(p)} />)}
               </ul>
             )
           )}
 
           {tab === "kitchen" && (
             mineKitchen.length === 0 ? (
-              <Empty icon={ChefHat} text="You haven't published a menu yet. Tap “Menu” to cook for the community!" />
+              <Empty ms="cooking" text="You haven't published a menu yet. Tap “Menu” to cook for the community!" />
             ) : (
-              <ul className="space-y-2">
-                {mineKitchen.map((m) => (
-                  <MenuRow key={m.id} menu={m} chefView />
-                ))}
+              <ul className="space-y-3">
+                {mineKitchen.map((m) => <MenuRow key={m.id} menu={m} chefView />)}
               </ul>
             )
           )}
 
           {tab === "bazaar" && (
             mineBazaar.length === 0 ? (
-              <Empty icon={ShoppingBasket} text="You haven't listed any goods yet. Tap “Stall” to sell produce by the unit!" />
+              <Empty ms="shopping_basket" text="You haven't listed any goods yet. Tap “Stall” to sell produce by the unit!" />
             ) : (
-              <ul className="space-y-2">
-                {mineBazaar.map((m) => (
-                  <MenuRow key={m.id} menu={m} chefView />
-                ))}
+              <ul className="space-y-3">
+                {mineBazaar.map((m) => <MenuRow key={m.id} menu={m} chefView />)}
               </ul>
             )
           )}
 
           {tab === "orders" && (
             orders.length === 0 ? (
-              <Empty icon={ShoppingBag} text="No orders yet. Browse the Order tab to get started." />
+              <Empty ms="receipt_long" text="No orders yet. Browse the Order tab to get started." />
             ) : (
-              <ul className="space-y-2">
+              <ul className="space-y-3">
                 {orders.map((o) => (
-                  <OrderRow
-                    key={o.id}
-                    order={o}
-                    busy={busyId === o.id}
-                    onMarkPaid={() => markPaid(o.id)}
-                  />
+                  <OrderRow key={o.id} order={o} busy={busyId === o.id} onMarkPaid={() => markPaid(o.id)} />
                 ))}
               </ul>
             )
@@ -273,27 +247,17 @@ export default function Food() {
 
 // ── Sub-components ─────────────────────────────────────────────────────────
 
-function TabButton({
-  active,
-  onClick,
-  icon: Icon,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  icon: typeof ChefHat;
-  children: React.ReactNode;
-}) {
+function TabPill({ active, onClick, ms, children }: { active: boolean; onClick: () => void; ms: string; children: React.ReactNode }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={clsx(
-        "flex flex-1 items-center justify-center gap-0.5 whitespace-nowrap rounded-lg px-0.5 py-2 text-[10.5px] font-medium",
-        active ? "bg-slate-700 text-white" : "text-slate-400"
-      )}
+      className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[11px] px-3.5 py-2.5 text-[13px] font-bold"
+      style={active
+        ? { background: "var(--surface-3)", color: "var(--text)", boxShadow: "0 1px 5px rgba(0,0,0,0.18)" }
+        : { background: "transparent", color: "var(--text-3)" }}
     >
-      <Icon size={12} className="shrink-0" />
+      <Icon name={ms} size={16} style={{ color: active ? "var(--text)" : "var(--text-3)" }} />
       {children}
     </button>
   );
@@ -302,29 +266,39 @@ function TabButton({
 function VendorRow({ v, onNavigate }: { v: VendorCard; onNavigate: (path: string) => void }) {
   const order = waOrderLink(v.phone, v.name);
   return (
-    <li className="overflow-hidden rounded-2xl border border-slate-700 bg-slate-800/60">
-      <button type="button" onClick={() => onNavigate(`/vendors/${v.id}`)} className="block w-full text-left active:bg-slate-700">
+    <li className="overflow-hidden rounded-[16px]" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+      <button type="button" onClick={() => onNavigate(`/vendors/${v.id}`)} className="block w-full text-left active:opacity-90">
         {v.photoUrl && <img src={v.photoUrl} alt="" className="h-28 w-full object-cover" />}
-        <div className="flex items-center gap-3 px-4 py-3">
-          {!v.photoUrl && <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-amber-300"><Store size={18} /></div>}
+        <div className="flex items-start gap-3 p-3.5">
+          {!v.photoUrl && (
+            <div className="flex h-[50px] w-[50px] flex-shrink-0 items-center justify-center rounded-full" style={{ background: "color-mix(in srgb, var(--chef) 22%, transparent)" }}>
+              <Icon name="storefront" size={26} style={{ color: "var(--chef)" }} />
+            </div>
+          )}
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-white">{v.name}</p>
-            <div className="mt-1 flex flex-wrap items-center gap-1">
+            <p className="truncate text-[17px] font-bold" style={{ color: "var(--text)" }}>{v.name}</p>
+            <div className="mt-1.5 flex flex-wrap items-center gap-2">
               {v.sections.map((s) => {
                 const l = s.toLowerCase();
-                const cls = l.startsWith("veg") ? "bg-emerald-500/20 text-emerald-300" : l.startsWith("non") ? "bg-red-500/20 text-red-300" : "bg-slate-600/40 text-slate-300";
-                return <span key={s} className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${cls}`}>{s}</span>;
+                const tone = l.startsWith("veg") ? "var(--veg)" : l.startsWith("non") ? "var(--nonveg)" : "var(--text-3)";
+                return (
+                  <span key={s} className="rounded-[7px] px-2 py-0.5 text-[11px] font-bold" style={{ background: `color-mix(in srgb, ${tone} 16%, transparent)`, color: tone }}>{s}</span>
+                );
               })}
-              <span className="text-[11px] text-slate-500">{v.itemCount} item{v.itemCount !== 1 ? "s" : ""}{v.minPrice > 0 && ` · from ${formatUnitPrice(v.minPrice, null)}`}</span>
+              <span className="text-[12px]" style={{ color: "var(--text-3)" }}>{v.itemCount} item{v.itemCount !== 1 ? "s" : ""}{v.minPrice > 0 && ` · from ${formatUnitPrice(v.minPrice, null)}`}</span>
             </div>
-            {v.deliveryInfo && <p className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-slate-500"><Truck size={11} /> {v.deliveryInfo}</p>}
+            {v.deliveryInfo && (
+              <p className="mt-1.5 inline-flex items-center gap-1.5 text-[12px]" style={{ color: "var(--text-3)" }}>
+                <Icon name="local_shipping" size={15} style={{ color: "var(--text-3)" }} /> {v.deliveryInfo}
+              </p>
+            )}
           </div>
-          <ChevronRight size={16} className="shrink-0 text-slate-500" />
+          <Icon name="chevron_right" size={18} style={{ color: "var(--text-3)" }} />
         </div>
       </button>
       {order && (
-        <a href={order} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-1.5 border-t border-slate-700 py-2.5 text-[13px] font-medium text-emerald-300 active:bg-slate-700">
-          <MessageCircle size={15} /> Order on WhatsApp
+        <a href={order} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 py-3 text-[14px] font-bold active:opacity-80" style={{ borderTop: "1px solid var(--border)", color: "var(--veg)" }}>
+          <Icon name="chat" size={19} style={{ color: "var(--veg)" }} /> Order on WhatsApp
         </a>
       )}
     </li>
@@ -334,104 +308,70 @@ function VendorRow({ v, onNavigate }: { v: VendorCard; onNavigate: (path: string
 function MenuRow({ menu, chefView }: { menu: MenuCard; chefView?: boolean }) {
   const L = KIND_LABELS[asKind(menu.kind)];
   const isMarket = menu.kind === "MARKET";
-  const Icon = isMarket ? ShoppingBasket : ChefHat;
+  const cat = isMarket ? "var(--produce)" : "var(--chef)";
   return (
     <Link
       to={`${L.sectionPath}/menus/${menu.id}`}
-      className={clsx(
-        "flex items-start gap-3 rounded-2xl border p-3 active:bg-slate-800",
-        menu.orderable
-          ? "border-slate-700 bg-slate-800/60"
-          : "border-slate-700 bg-slate-800/30"
-      )}
+      className="flex items-start gap-3 rounded-[16px] p-3.5 active:opacity-90"
+      style={{ background: "var(--surface)", border: "1px solid var(--border)", opacity: menu.orderable ? 1 : 0.85 }}
     >
-      <div className={clsx("flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full", isMarket ? "bg-emerald-500/20 text-emerald-300" : "bg-orange-500/20 text-orange-300")}>
-        <Icon size={16} />
+      <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-full" style={{ background: `color-mix(in srgb, ${cat} 22%, transparent)` }}>
+        <Icon name={isMarket ? "shopping_basket" : "cooking"} size={24} style={{ color: cat }} />
       </div>
       <div className="flex-1 min-w-0">
-        <div className="flex items-baseline justify-between gap-2">
-          <h3 className="truncate text-sm font-semibold text-white">{menu.title}</h3>
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="truncate text-[16px] font-bold" style={{ color: "var(--text)" }}>{menu.title}</h3>
           <div className="flex shrink-0 items-center gap-1.5">
             {chefView && menu.coManaging && (
-              <span className="rounded-full bg-purple-500/20 px-1.5 py-0.5 text-[9px] font-bold text-purple-300">CO-MANAGING</span>
+              <span className="rounded-full px-2 py-0.5 text-[9px] font-bold" style={{ background: "var(--accent-soft)", color: "var(--accent)" }}>CO-MANAGING</span>
             )}
             <StatusBadge status={menu.status} orderable={menu.orderable} />
+            <Icon name="chevron_right" size={18} style={{ color: "var(--text-3)" }} />
           </div>
         </div>
-        <p className="mt-0.5 truncate text-[11px] text-slate-400">
+        <p className="mt-1 truncate text-[12px]" style={{ color: "var(--text-3)" }}>
           {chefView
             ? `${menu.orderCount} order${menu.orderCount !== 1 ? "s" : ""}`
             : `by ${menu.chef.name} · B${menu.chef.block}`}
           {menu.itemCount > 0 && ` · ${menu.itemCount} ${menu.itemCount !== 1 ? L.itemPlural : L.item}`}
           {menu.minPrice > 0 && ` · from ${formatUnitPrice(menu.minPrice, menu.minPriceUnit)}`}
         </p>
-        <div className="mt-1 flex flex-wrap items-center gap-x-2 text-[10px] text-slate-500">
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5" style={{ color: "var(--text-3)" }}>
           {menu.orderByAt && (
-            <span className="inline-flex items-center gap-0.5">
-              <Clock size={9} /> order by {fmtTime(menu.orderByAt)}
+            <span className="inline-flex items-center gap-1 text-[12px]">
+              <Icon name="schedule" size={14} style={{ color: "var(--text-3)" }} /> order by {fmtTime(menu.orderByAt)}
             </span>
           )}
           {!chefView && menu.iOrdered && (
-            <span className="rounded-full bg-emerald-500/20 px-1.5 py-0.5 font-bold text-emerald-300">
-              ORDERED
-            </span>
+            <span className="rounded-full px-2 py-0.5 text-[10px] font-bold" style={{ background: "var(--success-soft)", color: "var(--success)" }}>ORDERED</span>
           )}
         </div>
       </div>
-      <ChevronRight size={16} className="mt-1 flex-shrink-0 text-slate-500" />
     </Link>
   );
 }
 
-function OrderRow({
-  order,
-  busy,
-  onMarkPaid,
-}: {
-  order: MyOrder;
-  busy: boolean;
-  onMarkPaid: () => void;
-}) {
+function OrderRow({ order, busy, onMarkPaid }: { order: MyOrder; busy: boolean; onMarkPaid: () => void }) {
   const L = KIND_LABELS[asKind(order.kind)];
   const itemLine = order.items.map(lineText).join(", ");
   return (
-    <li
-      className={clsx(
-        "rounded-2xl border p-3",
-        order.status === "CANCELLED"
-          ? "border-slate-700 bg-slate-800/30 opacity-70"
-          : "border-slate-700 bg-slate-800/60"
-      )}
-    >
-      <div className="flex items-baseline justify-between gap-2">
-        <Link to={`${L.sectionPath}/menus/${order.menuId}`} className="truncate text-sm font-semibold text-white active:underline">
+    <li className="rounded-[16px] p-[15px]" style={{ background: "var(--surface)", border: "1px solid var(--border)", opacity: order.status === "CANCELLED" ? 0.7 : 1 }}>
+      <div className="flex items-start justify-between gap-2">
+        <Link to={`${L.sectionPath}/menus/${order.menuId}`} className="truncate text-[16px] font-bold active:underline" style={{ color: "var(--text)" }}>
           {order.menuTitle}
         </Link>
-        <span className="shrink-0 text-sm font-bold tabular-nums text-white">
-          ₹{order.totalAmount}
-        </span>
+        <span className="shrink-0 text-[16px] font-extrabold tabular-nums" style={{ color: "var(--text)" }}>₹{order.totalAmount}</span>
       </div>
-      <p className="mt-0.5 line-clamp-1 text-[11px] text-slate-400">{itemLine}</p>
-      <p className="mt-0.5 text-[10px] text-slate-500">
-        {order.chef.name} · B{order.chef.block} · {order.chef.flatNumber}
-      </p>
-      <div className="mt-2 flex flex-wrap items-center gap-1.5">
+      <p className="mt-1 line-clamp-1 text-[13px]" style={{ color: "var(--text-2)" }}>{itemLine}</p>
+      <p className="mt-0.5 text-[12px]" style={{ color: "var(--text-3)" }}>{order.chef.name} · B{order.chef.block} · {order.chef.flatNumber}</p>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
         <OrderStatusPill status={order.status} />
         {order.chefPaid ? (
-          <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
-            PAID ✓ confirmed
-          </span>
+          <span className="rounded-full px-3 py-1 text-[11px] font-bold" style={{ background: "var(--success-soft)", color: "var(--success)" }}>PAID ✓ confirmed</span>
         ) : order.buyerPaid ? (
-          <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-200">
-            PAID — awaiting confirm
-          </span>
+          <span className="rounded-full px-3 py-1 text-[11px] font-bold" style={{ background: "var(--warning-soft)", color: "var(--warning)" }}>PAID — awaiting confirm</span>
         ) : order.status !== "CANCELLED" ? (
-          <button
-            type="button"
-            onClick={onMarkPaid}
-            disabled={busy}
-            className="rounded-full bg-indigo-500 px-2.5 py-0.5 text-[10px] font-bold text-white active:bg-indigo-600 disabled:opacity-50"
-          >
+          <button type="button" onClick={onMarkPaid} disabled={busy} className="rounded-full px-3.5 py-1.5 text-[12px] font-bold text-white active:opacity-90 disabled:opacity-50" style={{ background: "var(--accent-strong)" }}>
             {busy ? "…" : "I've paid"}
           </button>
         ) : null}
@@ -440,44 +380,30 @@ function OrderRow({
   );
 }
 
-function StatusBadge({
-  status,
-  orderable,
-}: {
-  status: string;
-  orderable: boolean;
-}) {
+function StatusBadge({ status, orderable }: { status: string; orderable: boolean }) {
   if (orderable)
-    return (
-      <span className="shrink-0 rounded-full bg-emerald-500/20 px-1.5 py-0.5 text-[9px] font-bold text-emerald-300">
-        OPEN
-      </span>
-    );
+    return <span className="shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-bold" style={{ background: "var(--success-soft)", color: "var(--success)" }}>OPEN</span>;
   return (
-    <span className="shrink-0 rounded-full bg-slate-700 px-1.5 py-0.5 text-[9px] font-bold text-slate-300">
+    <span className="shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-bold" style={{ background: "var(--surface-3)", color: "var(--text-3)" }}>
       {status === "OPEN" ? "CLOSED" : status}
     </span>
   );
 }
 
 function OrderStatusPill({ status }: { status: string }) {
-  const cls =
+  const style =
     status === "CONFIRMED"
-      ? "bg-emerald-500/20 text-emerald-300"
+      ? { background: "var(--success-soft)", color: "var(--success)" }
       : status === "CANCELLED"
-        ? "bg-red-500/20 text-red-300"
-        : "bg-slate-700 text-slate-300";
-  return (
-    <span className={clsx("rounded-full px-2 py-0.5 text-[10px] font-bold", cls)}>
-      {status}
-    </span>
-  );
+        ? { background: "var(--danger-soft)", color: "var(--danger)" }
+        : { background: "var(--surface-3)", color: "var(--text-2)" };
+  return <span className="rounded-full px-3 py-1 text-[11px] font-bold" style={style}>{status}</span>;
 }
 
-function Empty({ icon: Icon, text }: { icon: typeof ChefHat; text: string }) {
+function Empty({ ms, text }: { ms: string; text: string }) {
   return (
-    <div className="rounded-2xl border border-dashed border-slate-700 px-4 py-10 text-center text-sm text-slate-500">
-      <Icon size={28} className="mx-auto mb-2 text-slate-600" />
+    <div className="rounded-[18px] px-6 py-10 text-center text-[14px] leading-relaxed" style={{ border: "1.5px dashed var(--border-strong)", color: "var(--text-3)" }}>
+      <Icon name={ms} size={42} className="mx-auto mb-3 block" style={{ color: "var(--text-3)" }} />
       {text}
     </div>
   );

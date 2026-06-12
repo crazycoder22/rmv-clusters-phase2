@@ -45,6 +45,10 @@ body,
   --info: #2563eb;
   --success-line: #a7e3cd;
   --carblue: #2563eb;
+  --veg: #0f9d6e;
+  --nonveg: #dc2626;
+  --chef: #b5792a;
+  --produce: #0f9d6e;
   --shadow: 0 8px 28px rgba(16, 28, 51, 0.1);
   --banner: linear-gradient(110deg, #0f766e, #3730a3 60%, #4338ca);
   --ds-mono: "JetBrains Mono", ui-monospace, monospace;
@@ -72,6 +76,10 @@ html.dark {
   --info: #60a5fa;
   --success-line: rgba(52, 211, 153, 0.38);
   --carblue: #5b9cff;
+  --veg: #34d399;
+  --nonveg: #f87171;
+  --chef: #d49a4e;
+  --produce: #46b07a;
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
   --banner: linear-gradient(110deg, #173a3a, #1a2a52 60%, #23275e);
 }
@@ -95,6 +103,16 @@ html.dark {
 }
 .one-mono {
   font-family: var(--ds-mono);
+}
+/* OneRMV form input — token fill + strong border, re-themes light/dark. */
+.one-input {
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+  outline: none;
+}
+.one-input::placeholder {
+  color: var(--text-3);
 }
 /* OneRMV surface card — token-driven so it re-themes with light/dark. */
 .one-card {
