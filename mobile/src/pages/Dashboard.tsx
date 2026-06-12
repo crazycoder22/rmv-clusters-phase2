@@ -669,7 +669,7 @@ const EXPLORE: {
   { to: "/parking", ms: "local_parking", label: "Parking", sub: "Book a slot" },
   { to: "/guidelines", ms: "checklist", label: "Guidelines", sub: "Community rules" },
   { to: "/marketplace", ms: "storefront", label: "Marketplace", sub: "Buy & sell" },
-  { to: "/domestic-help", ms: "cleaning_services", label: "Domestic Help", sub: "Maids, cooks…" },
+  { to: "/food", ms: "restaurant", label: "Food & Bazaar", sub: "Order & shop" },
   { to: "/emergency", ms: "emergency", label: "Emergency", sub: "Contacts & warriors", danger: true },
 ];
 
