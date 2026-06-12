@@ -1,18 +1,21 @@
 import { useState } from "react";
-import { Loader2, LogOut, Monitor, Moon, Siren, Sun } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Loader2 } from "lucide-react";
+import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
 import { useTheme, type ThemePref } from "../theme/ThemeProvider";
 
-const THEME_OPTIONS: { value: ThemePref; label: string; icon: typeof Sun }[] = [
-  { value: "light", label: "Light", icon: Sun },
-  { value: "dark", label: "Dark", icon: Moon },
-  { value: "system", label: "System", icon: Monitor },
+const THEME_OPTIONS: { value: ThemePref; ms: string; label: string }[] = [
+  { value: "light", ms: "light_mode", label: "Light" },
+  { value: "dark", ms: "dark_mode", label: "Dark" },
+  { value: "system", ms: "brightness_auto", label: "System" },
 ];
 
 export default function Settings() {
   const { token, user, updateUser, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
+  const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
   const senior = !!user?.isSeniorCitizen;
 
@@ -36,115 +39,211 @@ export default function Settings() {
     }
   }
 
+  const initial = user?.name?.[0]?.toUpperCase() ?? "?";
+
   return (
-    <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)] pb-8">
-      <header className="py-4">
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
+    <div
+      className="one-surface flex flex-1 flex-col px-[18px] pt-[max(1.5rem,env(safe-area-inset-top,0px))] pb-8"
+      style={{ background: "var(--bg)", color: "var(--text)" }}
+    >
+      <header className="pb-3">
+        <h1 className="text-[26px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>
           Settings
         </h1>
-        <p className="mt-0.5 text-xs text-slate-500">
-          Appearance, accessibility & account
+        <p className="mt-px text-[13px]" style={{ color: "var(--text-3)" }}>
+          Manage your account &amp; preferences
         </p>
       </header>
 
+      {/* Profile card */}
+      <div
+        className="flex items-center gap-3.5 rounded-[18px] p-4"
+        style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+      >
+        {user?.imageUrl ? (
+          <img
+            src={user.imageUrl}
+            alt=""
+            className="h-[52px] w-[52px] flex-shrink-0 rounded-full object-cover"
+            style={{ border: "2px solid var(--accent)" }}
+          />
+        ) : (
+          <div
+            className="flex h-[52px] w-[52px] flex-shrink-0 items-center justify-center rounded-full text-[20px] font-extrabold"
+            style={{ background: "var(--accent-soft)", border: "2px solid var(--accent)", color: "var(--accent)" }}
+          >
+            {initial}
+          </div>
+        )}
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-[18px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>
+            {user?.name ?? "Resident"}
+          </div>
+          {(user?.block || user?.flatNumber) && (
+            <div className="one-mono mt-px text-[12px]" style={{ color: "var(--text-3)" }}>
+              {user?.block ? `Block ${user.block}` : ""}
+              {user?.block && user?.flatNumber ? " · " : ""}
+              {user?.flatNumber ?? ""}
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Appearance */}
-      <section className="mb-6">
-        <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
-          Appearance
-        </h2>
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800/60">
-          <p className="mb-2 text-sm font-semibold text-slate-900 dark:text-white">Theme</p>
-          <div className="grid grid-cols-3 gap-2">
+      <Eyebrow>Appearance</Eyebrow>
+      <SectionCard>
+        <Row ms="palette" title="Theme">
+          <div
+            className="flex gap-0.5 rounded-[10px] p-0.5"
+            style={{ background: "var(--surface-3)", border: "1px solid var(--border)" }}
+          >
             {THEME_OPTIONS.map((opt) => {
-              const Icon = opt.icon;
               const active = theme === opt.value;
               return (
                 <button
                   key={opt.value}
                   onClick={() => setTheme(opt.value)}
-                  className={
-                    "flex flex-col items-center gap-1 rounded-xl border py-3 text-xs font-medium transition-colors " +
-                    (active
-                      ? "border-indigo-500 bg-indigo-500/10 text-indigo-600 dark:text-indigo-300"
-                      : "border-slate-200 bg-slate-50 text-slate-500 dark:border-slate-700 dark:bg-slate-900/40 dark:text-slate-400")
-                  }
+                  aria-label={opt.label}
+                  className="flex items-center justify-center rounded-[7px] px-2.5 py-1.5"
+                  style={active
+                    ? { background: "var(--surface)", color: "var(--accent)", boxShadow: "0 1px 4px rgba(0,0,0,0.15)" }
+                    : { background: "transparent", color: "var(--text-3)" }}
                 >
-                  <Icon size={18} />
-                  {opt.label}
+                  <Icon name={opt.ms} size={18} style={{ color: active ? "var(--accent)" : "var(--text-3)" }} />
                 </button>
               );
             })}
           </div>
-        </div>
-        <p className="mt-2 px-1 text-[11px] text-slate-500">
-          “System” follows your phone’s light/dark setting. Saved on this device.
-        </p>
-      </section>
+        </Row>
+      </SectionCard>
+      <Hint>“System” follows your phone’s light/dark setting. Saved on this device.</Hint>
 
-      <section>
-        <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
-          Accessibility
-        </h2>
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800/60">
-          <div className="flex items-center gap-3 px-4 py-3.5">
-            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-red-500/15 text-red-500 dark:text-red-300">
-              <Siren size={16} />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-slate-900 dark:text-white">Senior-friendly mode</p>
-              <p className="mt-0.5 text-[11px] text-slate-500">
-                Show the Emergency SOS button at the top of your home screen for easy access.
-              </p>
-            </div>
-            <button
-              role="switch"
-              aria-checked={senior}
-              disabled={saving}
-              onClick={() => void toggleSenior(!senior)}
-              className={
-                "relative h-7 w-12 flex-shrink-0 rounded-full transition-colors disabled:opacity-60 " +
-                (senior ? "bg-indigo-600" : "bg-slate-300 dark:bg-slate-600")
-              }
-            >
-              <span
-                className={
-                  "absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-transform " +
-                  (senior ? "translate-x-[22px]" : "translate-x-0.5")
-                }
-              />
-              {saving ? (
-                <Loader2
-                  size={12}
-                  className="absolute right-1.5 top-2 animate-spin text-white/80"
-                />
-              ) : null}
-            </button>
-          </div>
-        </div>
-        <p className="mt-2 px-1 text-[11px] text-slate-500">
-          This preference is saved to your account and applies on all your devices.
-        </p>
-      </section>
+      {/* Accessibility */}
+      <Eyebrow>Accessibility</Eyebrow>
+      <SectionCard>
+        <Row ms="elderly" title="Senior-friendly mode" subtitle="Show the Emergency SOS button at the top of your home screen">
+          <Toggle on={senior} saving={saving} onClick={() => void toggleSenior(!senior)} />
+        </Row>
+      </SectionCard>
+      <Hint>Saved to your account and applies on all your devices.</Hint>
 
       {/* Account */}
+      <Eyebrow>Account</Eyebrow>
+      <SectionCard>
+        <Row ms="directions_car" title="My vehicles" onClick={() => navigate("/vehicles")}>
+          <Icon name="chevron_right" size={21} style={{ color: "var(--text-3)" }} />
+        </Row>
+      </SectionCard>
+
+      {/* Log out */}
       {user && (
-        <section className="mt-6">
-          <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
-            Account
-          </h2>
-          <button
-            onClick={() => void signOut()}
-            className="flex w-full items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-left text-sm font-semibold text-red-600 active:bg-slate-100 dark:border-slate-700 dark:bg-slate-800/60 dark:text-red-300 dark:active:bg-slate-800"
-          >
-            <LogOut size={16} />
-            Sign out
-          </button>
-          <p className="mt-2 px-1 text-[11px] text-slate-500">
-            Signed in as {user.name}
-            {user.block ? ` · Block ${user.block}` : ""}
-          </p>
-        </section>
+        <button
+          onClick={() => void signOut()}
+          className="mt-[18px] flex items-center justify-center gap-2 rounded-[14px] p-3.5 text-[15px] font-bold active:opacity-90"
+          style={{ background: "var(--danger-soft)", color: "var(--danger)" }}
+        >
+          <Icon name="logout" size={20} style={{ color: "var(--danger)" }} /> Log out
+        </button>
       )}
+
+      <div className="one-mono mt-3.5 text-center text-[11px]" style={{ color: "var(--text-3)" }}>
+        OneRMV · v1.0
+      </div>
     </div>
+  );
+}
+
+function Eyebrow({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      className="one-mono mt-[22px] mb-2.5 text-[10px] font-medium uppercase"
+      style={{ color: "var(--text-3)", letterSpacing: "0.14em" }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function SectionCard({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="overflow-hidden rounded-[16px]" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+      {children}
+    </div>
+  );
+}
+
+// One settings row — accent-soft icon tile + title/subtitle + trailing control.
+// `danger` tints the icon tile; `onClick` makes the whole row tappable.
+function Row({
+  ms,
+  title,
+  subtitle,
+  danger,
+  onClick,
+  children,
+}: {
+  ms: string;
+  title: string;
+  subtitle?: string;
+  danger?: boolean;
+  onClick?: () => void;
+  children?: React.ReactNode;
+}) {
+  const fg = danger ? "var(--danger)" : "var(--accent)";
+  const bg = danger ? "var(--danger-soft)" : "var(--accent-soft)";
+  const inner = (
+    <>
+      <span
+        className="flex h-[38px] w-[38px] flex-shrink-0 items-center justify-center rounded-[11px]"
+        style={{ background: bg }}
+      >
+        <Icon name={ms} size={20} style={{ color: fg }} />
+      </span>
+      <span className="min-w-0 flex-1 text-left">
+        <span className="block text-[15px] font-bold" style={{ color: "var(--text)" }}>{title}</span>
+        {subtitle && <span className="block text-[12px] leading-snug" style={{ color: "var(--text-3)" }}>{subtitle}</span>}
+      </span>
+      {children}
+    </>
+  );
+  const cls = "flex w-full items-center gap-3.5 px-3.5 py-3.5 [&:not(:last-child)]:border-b";
+  const borderStyle = { borderColor: "var(--border)" } as const;
+  return onClick ? (
+    <button type="button" onClick={onClick} className={`${cls} active:opacity-80`} style={borderStyle}>
+      {inner}
+    </button>
+  ) : (
+    <div className={cls} style={borderStyle}>
+      {inner}
+    </div>
+  );
+}
+
+// OneRMV pill toggle.
+function Toggle({ on, saving, onClick }: { on: boolean; saving?: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      disabled={saving}
+      onClick={onClick}
+      className="relative flex h-[27px] w-[46px] flex-shrink-0 items-center rounded-full p-[3px] transition-colors disabled:opacity-60"
+      style={on ? { background: "var(--accent)" } : { background: "var(--surface-3)", border: "1px solid var(--border)" }}
+    >
+      <span
+        className="h-[21px] w-[21px] rounded-full bg-white shadow transition-transform"
+        style={{ transform: on ? "translateX(19px)" : "translateX(0)" }}
+      />
+      {saving && <Loader2 size={12} className="absolute right-1.5 animate-spin text-white/80" />}
+    </button>
+  );
+}
+
+function Hint({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="mt-2 px-1 text-[11px] leading-relaxed" style={{ color: "var(--text-3)" }}>
+      {children}
+    </p>
   );
 }
