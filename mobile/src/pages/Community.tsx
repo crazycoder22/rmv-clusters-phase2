@@ -1,14 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  ArrowLeft,
-  Heart,
-  Loader2,
-  MessageCircle,
-  Send,
-  Trash2,
-} from "lucide-react";
+import { Loader2 } from "lucide-react";
 import clsx from "clsx";
+import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
 
@@ -43,6 +37,7 @@ export default function Community() {
   const [composeText, setComposeText] = useState("");
   const [composing, setComposing] = useState(false);
   const [composeError, setComposeError] = useState<string | null>(null);
+  const [composeOpen, setComposeOpen] = useState(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   const fetchPage = useCallback(
@@ -112,6 +107,7 @@ export default function Community() {
       }
       setPosts((prev) => [data as Post, ...prev]);
       setComposeText("");
+      setComposeOpen(false);
     } finally {
       setComposing(false);
     }
@@ -170,87 +166,130 @@ export default function Community() {
   };
 
   return (
-    <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)]">
-      <header className="flex items-center gap-2 py-4">
-        <Link
-          to="/more"
-          className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 hover:bg-slate-800"
-        >
-          <ArrowLeft size={20} />
+    <div
+      className="one-surface flex flex-1 flex-col"
+      style={{ background: "var(--bg)", color: "var(--text)" }}
+    >
+      {/* Header */}
+      <header className="flex flex-shrink-0 items-center gap-3 px-[18px] pt-[max(0.5rem,env(safe-area-inset-top,0px))] pb-3">
+        <Link to="/community" className="flex active:opacity-70" aria-label="Back">
+          <Icon name="arrow_back" size={22} style={{ color: "var(--text-2)" }} />
         </Link>
-        <h1 className="text-lg font-semibold text-white">Community</h1>
-      </header>
-
-      {/* Compose */}
-      <div className="mb-4 rounded-2xl border border-slate-700 bg-slate-800/60 p-3">
-        <div className="flex gap-3">
-          <Avatar
-            name={user?.name ?? ""}
-            imageUrl={user?.imageUrl ?? null}
-          />
-          <div className="flex-1">
-            <textarea
-              value={composeText}
-              onChange={(e) => setComposeText(e.target.value)}
-              placeholder="Share something with the community…"
-              rows={3}
-              className="w-full resize-none rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder:text-slate-600 focus:border-indigo-400 focus:outline-none"
-            />
-            {composeError && (
-              <p className="mt-1 text-xs text-red-400">{composeError}</p>
-            )}
-            <div className="mt-2 flex items-center justify-end">
-              <button
-                onClick={submitPost}
-                disabled={composing || !composeText.trim()}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-500 px-4 py-2 text-xs font-semibold text-white active:bg-indigo-600 disabled:opacity-50"
-              >
-                {composing ? (
-                  <>
-                    <Loader2 size={12} className="animate-spin" />
-                    Posting…
-                  </>
-                ) : (
-                  <>
-                    <Send size={12} />
-                    Post
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Feed */}
-      {loading ? (
-        <p className="py-10 text-center text-sm text-slate-500">Loading…</p>
-      ) : posts.length === 0 ? (
-        <div className="py-16 text-center">
-          <MessageCircle size={32} className="mx-auto mb-2 text-slate-600" />
-          <p className="text-sm text-slate-400">No posts yet.</p>
-          <p className="mt-1 text-xs text-slate-500">
-            Be the first to share something.
+        <div className="min-w-0 flex-1">
+          <h1 className="text-[22px] font-extrabold leading-tight tracking-tight" style={{ color: "var(--text)" }}>
+            Community Feed
+          </h1>
+          <p className="mt-px text-[12px]" style={{ color: "var(--text-3)" }}>
+            {user?.block ? `Block ${user.block} · ` : ""}Moments &amp; updates from your block
           </p>
         </div>
-      ) : (
-        <div className="space-y-3 pb-4">
-          {posts.map((post) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              currentUserId={user?.id}
-              onLike={() => toggleLike(post.id)}
-              onDelete={() => deletePost(post.id)}
-            />
-          ))}
-          {nextCursor && (
-            <div ref={sentinelRef} className="py-4 text-center text-xs text-slate-500">
-              {loadingMore ? "Loading more…" : "Scroll for more"}
+        <Link
+          to="/messages"
+          className="flex h-[38px] w-[38px] items-center justify-center rounded-full active:opacity-80"
+          style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
+          aria-label="Messages"
+        >
+          <Icon name="send" size={20} style={{ color: "var(--text-2)" }} />
+        </Link>
+      </header>
+
+      <div className="flex-1 overflow-y-auto">
+        {/* Composer */}
+        <div className="px-[18px] pb-4">
+          {!composeOpen ? (
+            <button
+              onClick={() => setComposeOpen(true)}
+              className="flex w-full items-center gap-3 rounded-[16px] p-[11px_13px] text-left active:opacity-90"
+              style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+            >
+              <Avatar name={user?.name ?? ""} imageUrl={user?.imageUrl ?? null} size={38} />
+              <span className="flex-1 text-[13.5px]" style={{ color: "var(--text-3)" }}>
+                Share a moment with your block…
+              </span>
+              <span className="flex h-[34px] w-[34px] items-center justify-center rounded-[10px]" style={{ background: "var(--accent-soft)" }}>
+                <Icon name="add_photo_alternate" size={20} style={{ color: "var(--accent)" }} />
+              </span>
+            </button>
+          ) : (
+            <div className="rounded-[16px] p-3" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+              <div className="flex gap-3">
+                <Avatar name={user?.name ?? ""} imageUrl={user?.imageUrl ?? null} size={38} />
+                <div className="flex-1">
+                  <textarea
+                    autoFocus
+                    value={composeText}
+                    onChange={(e) => setComposeText(e.target.value)}
+                    placeholder="Share a moment with your block…"
+                    rows={3}
+                    className="one-input w-full resize-none rounded-[12px] px-3 py-2.5 text-[14px]"
+                  />
+                  {composeError && (
+                    <p className="mt-1 text-[12px]" style={{ color: "var(--danger)" }}>{composeError}</p>
+                  )}
+                  <div className="mt-2 flex items-center justify-end gap-2">
+                    <button
+                      onClick={() => {
+                        setComposeOpen(false);
+                        setComposeText("");
+                        setComposeError(null);
+                      }}
+                      className="rounded-[10px] px-3.5 py-2 text-[13px] font-semibold"
+                      style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text-2)" }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={submitPost}
+                      disabled={composing || !composeText.trim()}
+                      className="inline-flex items-center gap-1.5 rounded-[10px] px-4 py-2 text-[13px] font-bold text-white active:opacity-90 disabled:opacity-50"
+                      style={{ background: "var(--accent-strong)" }}
+                    >
+                      {composing ? <Loader2 size={13} className="animate-spin" /> : <Icon name="send" size={15} style={{ color: "#fff" }} />}
+                      Post
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>
-      )}
+
+        {/* Feed */}
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <Loader2 className="animate-spin" size={22} style={{ color: "var(--text-3)" }} />
+          </div>
+        ) : posts.length === 0 ? (
+          <div className="px-[18px] py-16 text-center">
+            <Icon name="forum" size={38} style={{ color: "var(--text-3)" }} />
+            <p className="mt-2 text-[14px]" style={{ color: "var(--text-2)" }}>No posts yet.</p>
+            <p className="mt-1 text-[12px]" style={{ color: "var(--text-3)" }}>Be the first to share something.</p>
+          </div>
+        ) : (
+          <>
+            <div className="flex flex-col gap-4 px-[18px] pb-5">
+              {posts.map((post) => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  currentUserId={user?.id}
+                  onLike={() => toggleLike(post.id)}
+                  onDelete={() => deletePost(post.id)}
+                />
+              ))}
+            </div>
+            {nextCursor ? (
+              <div ref={sentinelRef} className="flex justify-center pb-6 pt-1">
+                {loadingMore && <Loader2 className="animate-spin" size={18} style={{ color: "var(--text-3)" }} />}
+              </div>
+            ) : (
+              <div className="one-mono pb-6 pt-1 text-center text-[10px]" style={{ color: "var(--text-3)", letterSpacing: "0.1em" }}>
+                YOU'RE ALL CAUGHT UP ✦
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -267,84 +306,74 @@ function PostCard({
   onDelete: () => void;
 }) {
   const isMine = currentUserId === post.author.id;
+  const imgs = post.images ?? [];
   return (
-    <article className="overflow-hidden rounded-2xl border border-slate-700 bg-slate-800/60">
-      <div className="flex items-start gap-3 px-4 pt-4">
-        <Avatar
-          name={post.author.name}
-          imageUrl={post.author.googleImage}
-        />
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-white">
-            {post.author.name}
-          </p>
-          <p className="text-[11px] text-slate-500">
-            Block {post.author.block}, {post.author.flatNumber} ·{" "}
-            {timeAgo(post.createdAt)}
+    <article
+      className="overflow-hidden rounded-[20px]"
+      style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "var(--shadow)" }}
+    >
+      {/* Header */}
+      <div className="flex items-center gap-2.5 p-3">
+        <Avatar name={post.author.name} imageUrl={post.author.googleImage} size={40} />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[13.5px] font-bold" style={{ color: "var(--text)" }}>{post.author.name}</p>
+          <p className="text-[11.5px]" style={{ color: "var(--text-3)" }}>
+            Block {post.author.block}, {post.author.flatNumber} · {timeAgo(post.createdAt)}
           </p>
         </div>
         {isMine && (
-          <button
-            onClick={onDelete}
-            className="text-slate-500 active:text-red-400"
-            title="Delete"
-          >
-            <Trash2 size={14} />
+          <button onClick={onDelete} className="flex active:opacity-70" title="Delete post">
+            <Icon name="more_horiz" size={20} style={{ color: "var(--text-3)" }} />
           </button>
         )}
       </div>
 
-      <Link to={`/community/${post.id}`} className="block px-4 pt-2">
-        <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-100">
-          {post.content}
-        </p>
-      </Link>
-
-      {post.images.length > 0 && (
-        <div
-          className={clsx(
-            "mt-3 grid gap-1 px-4",
-            post.images.length === 1
-              ? "grid-cols-1"
-              : post.images.length === 2
-                ? "grid-cols-2"
-                : "grid-cols-2"
+      {/* Photo(s) */}
+      {imgs.length > 0 && (
+        <Link to={`/community/${post.id}`} className="block">
+          {imgs.length === 1 ? (
+            <img src={imgs[0]} alt="" loading="lazy" className="h-[300px] w-full object-cover" />
+          ) : (
+            <div className={clsx("grid gap-0.5", imgs.length === 2 ? "grid-cols-2" : "grid-cols-2")}>
+              {imgs.slice(0, 4).map((src, i) => (
+                <img key={i} src={src} alt="" loading="lazy" className="aspect-square w-full object-cover" />
+              ))}
+            </div>
           )}
-        >
-          {post.images.slice(0, 4).map((src, i) => (
-            <img
-              key={i}
-              src={src}
-              alt=""
-              className="aspect-square w-full rounded-lg object-cover"
-              loading="lazy"
-            />
-          ))}
-        </div>
+        </Link>
       )}
 
-      <div className="mt-3 flex items-center gap-4 border-t border-slate-700 px-4 py-2.5 text-xs">
-        <button
-          onClick={onLike}
-          className={clsx(
-            "flex items-center gap-1.5 transition-colors",
-            post.isLiked ? "text-red-400" : "text-slate-400 active:text-red-400"
-          )}
-        >
-          <Heart
-            size={14}
-            fill={post.isLiked ? "currentColor" : "none"}
-          />
-          <span className="font-medium">{post.likeCount}</span>
+      {/* Actions */}
+      <div className="flex items-center gap-1.5 px-3 pb-1.5 pt-2.5">
+        <button onClick={onLike} className="flex items-center gap-1.5 p-1 active:opacity-70">
+          <Icon name="favorite" size={25} fill={post.isLiked} style={{ color: post.isLiked ? "var(--like)" : "var(--text-2)" }} />
+          <span className="text-[13px] font-bold" style={{ color: "var(--text)" }}>{post.likeCount}</span>
         </button>
-        <Link
-          to={`/community/${post.id}`}
-          className="flex items-center gap-1.5 text-slate-400 active:text-indigo-400"
-        >
-          <MessageCircle size={14} />
-          <span className="font-medium">{post.commentCount}</span>
+        <Link to={`/community/${post.id}`} className="ml-1.5 flex items-center gap-1.5 p-1 active:opacity-70">
+          <Icon name="mode_comment" size={24} style={{ color: "var(--text-2)" }} />
+          <span className="text-[13px] font-bold" style={{ color: "var(--text)" }}>{post.commentCount}</span>
+        </Link>
+        <Link to="/messages" className="ml-1.5 flex p-1 active:opacity-70" aria-label="Share via message">
+          <Icon name="send" size={24} style={{ color: "var(--text-2)" }} />
         </Link>
       </div>
+
+      {/* Caption */}
+      {post.content && (
+        <Link to={`/community/${post.id}`} className="block px-3 pb-1.5">
+          <p className="whitespace-pre-wrap text-[13.5px] leading-snug" style={{ color: "var(--text)" }}>
+            <span className="font-bold">{post.author.name}</span> {post.content}
+          </p>
+        </Link>
+      )}
+
+      {/* Comments link */}
+      {post.commentCount > 0 && (
+        <Link to={`/community/${post.id}`} className="block px-3 pb-3.5 text-[13px]" style={{ color: "var(--text-3)" }}>
+          View all {post.commentCount} {post.commentCount === 1 ? "comment" : "comments"}
+        </Link>
+      )}
+      {post.commentCount === 0 && <div className="pb-2" />}
     </article>
   );
 }
@@ -364,16 +393,21 @@ export function Avatar({
         src={imageUrl}
         alt=""
         style={{ width: size, height: size }}
-        className="flex-shrink-0 rounded-full border border-slate-700 object-cover"
+        className="flex-shrink-0 rounded-full object-cover"
       />
     );
   }
   return (
     <div
-      style={{ width: size, height: size }}
-      className="flex flex-shrink-0 items-center justify-center rounded-full bg-indigo-500/20 text-sm font-semibold text-indigo-300"
+      style={{ width: size, height: size, fontSize: size * 0.36 }}
+      className="flex flex-shrink-0 items-center justify-center rounded-full font-bold text-white"
     >
-      {name?.[0]?.toUpperCase() ?? "?"}
+      <span
+        className="flex h-full w-full items-center justify-center rounded-full"
+        style={{ background: "linear-gradient(140deg, var(--accent-strong), var(--accent))" }}
+      >
+        {name?.[0]?.toUpperCase() ?? "?"}
+      </span>
     </div>
   );
 }
