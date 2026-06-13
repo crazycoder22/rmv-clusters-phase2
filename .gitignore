@@ -95,3 +95,6 @@ prisma/dev.db-journal
 
 # MyGate report data (resident PII — never commit)
 scripts/.data/
+
+# Local PII backups (resident registrations) — never commit
+*registrations-backup.csv
