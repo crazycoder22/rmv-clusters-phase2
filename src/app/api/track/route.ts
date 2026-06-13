@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthedResident, platformOf } from "@/lib/api-auth";
-import { isTrackable, recordPageView } from "@/lib/track";
+import { isTrackable, recordPageView, recordDwell } from "@/lib/track";
 
 export const dynamic = "force-dynamic";
 
@@ -18,13 +18,18 @@ export async function POST(request: Request) {
   const pageKey = body?.pageKey;
   if (!isTrackable(feature, pageKey)) return new NextResponse(null, { status: 204 });
 
-  recordPageView({
-    residentId: me.id,
-    feature,
-    pageKey,
-    entityId: typeof body?.entityId === "string" ? body.entityId : null,
-    platform: platformOf(request),
-  });
+  const entityId = typeof body?.entityId === "string" ? body.entityId : null;
+  const platform = platformOf(request);
+  const durationMs =
+    typeof body?.durationMs === "number" && body.durationMs > 0 ? body.durationMs : null;
+
+  // A ping carrying durationMs is a dwell update for an existing view; otherwise
+  // it's a fresh view.
+  if (durationMs) {
+    recordDwell({ residentId: me.id, feature, pageKey, entityId, durationMs, platform });
+  } else {
+    recordPageView({ residentId: me.id, feature, pageKey, entityId, platform });
+  }
 
   return new NextResponse(null, { status: 204 });
 }

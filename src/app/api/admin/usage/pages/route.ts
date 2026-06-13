@@ -24,12 +24,13 @@ export async function GET(request: Request) {
 
   const [byPage, byPagePlatform, byEntity, byEntityPlatform, pageUniqueRows, entityUniqueRows, trendRows] =
     await Promise.all([
-      prisma.pageView.groupBy({ by: ["feature", "pageKey"], _count: { _all: true } }),
+      prisma.pageView.groupBy({ by: ["feature", "pageKey"], _count: { _all: true }, _avg: { durationMs: true } }),
       prisma.pageView.groupBy({ by: ["feature", "pageKey", "platform"], _count: { _all: true } }),
       prisma.pageView.groupBy({
         by: ["entityId"],
         where: { feature: "initiatives", pageKey: "detail", entityId: { not: null } },
         _count: { _all: true },
+        _avg: { durationMs: true },
       }),
       prisma.pageView.groupBy({
         by: ["entityId", "platform"],
@@ -70,6 +71,7 @@ export async function GET(request: Request) {
         pageKey: r.pageKey,
         totalOpens: r._count._all,
         uniqueResidents: pageUnique.get(k) ?? 0,
+        avgDwellMs: r._avg.durationMs != null ? Math.round(r._avg.durationMs) : null,
         platform: pagePlatform.get(k) ?? emptySplit(),
       };
     })
@@ -100,6 +102,7 @@ export async function GET(request: Request) {
       title: titleById.get(r.entityId!) ?? "(deleted)",
       totalOpens: r._count._all,
       uniqueResidents: entityUnique.get(r.entityId!) ?? 0,
+      avgDwellMs: r._avg.durationMs != null ? Math.round(r._avg.durationMs) : null,
       platform: entityPlatform.get(r.entityId!) ?? emptySplit(),
     }))
     .sort((a, b) => b.totalOpens - a.totalOpens);

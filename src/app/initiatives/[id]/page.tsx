@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { youtubeId } from "@/lib/initiatives";
 import RichTextViewer from "@/components/editor/RichTextViewer";
-import { track } from "@/lib/track-client";
+import { track, useDwell } from "@/lib/track-client";
 
 const looksLikeHtml = (s: string) => /<[a-z][\s\S]*>/i.test(s);
 
@@ -71,6 +71,9 @@ export default function InitiativeDetailPage() {
   }, [id]);
 
   useEffect(() => { if (id) void refresh(); }, [id, refresh]);
+
+  // Measure time-on-page once the post has loaded.
+  useDwell("initiatives", "detail", id, !!data);
 
   async function postFeedback() {
     if (!feedback.trim()) return;

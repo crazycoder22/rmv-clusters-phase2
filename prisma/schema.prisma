@@ -181,6 +181,7 @@ model PageView {
   pageKey    String   // "list" | "detail"
   entityId   String?  // specific item id on detail pages; null on list pages
   platform   String   // "web" | "ios" | "android" | "app"
+  durationMs Int?     // dwell time on the page (visible ms), filled in on leave/background
   createdAt  DateTime @default(now())
 
   @@index([feature, pageKey, entityId, createdAt])              // rollups + trend

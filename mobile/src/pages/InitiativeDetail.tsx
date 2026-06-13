@@ -4,7 +4,7 @@ import { Loader2 } from "lucide-react";
 import { Browser } from "@capacitor/browser";
 import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
-import { track } from "../lib/track";
+import { track, useDwell } from "../lib/track";
 import { useAuth } from "../auth/AuthProvider";
 
 interface Comment {
@@ -63,6 +63,9 @@ export default function InitiativeDetail() {
   }, [id, token]);
 
   useEffect(() => { if (id) void refresh(); }, [id, refresh]);
+
+  // Measure time-on-page once the post has loaded.
+  useDwell(token, "initiatives", "detail", id, !!data);
 
   async function postFeedback() {
     if (!feedback.trim()) return;

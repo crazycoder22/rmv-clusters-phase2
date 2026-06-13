@@ -25,6 +25,7 @@ type FeatureRow = {
   pageKey: string;
   totalOpens: number;
   uniqueResidents: number;
+  avgDwellMs: number | null;
   platform: PlatformSplit;
 };
 type InitiativeRow = {
@@ -32,6 +33,7 @@ type InitiativeRow = {
   title: string;
   totalOpens: number;
   uniqueResidents: number;
+  avgDwellMs: number | null;
   platform: PlatformSplit;
 };
 type PageData = {
@@ -181,6 +183,7 @@ function PageViews({ data }: { data: PageData }) {
                   <th className="text-left font-medium px-3 py-2">Page</th>
                   <th className="text-right font-medium px-3 py-2">People</th>
                   <th className="text-right font-medium px-3 py-2">Opens</th>
+                  <th className="text-right font-medium px-3 py-2">Avg time</th>
                   <th className="text-left font-medium px-3 py-2">Platforms</th>
                 </tr>
               </thead>
@@ -190,6 +193,7 @@ function PageViews({ data }: { data: PageData }) {
                     <td className="px-3 py-2 text-gray-900 dark:text-gray-100">{prettyPage(f.feature, f.pageKey)}</td>
                     <td className="px-3 py-2 text-right font-semibold text-gray-900 dark:text-gray-100 tabular-nums">{f.uniqueResidents}</td>
                     <td className="px-3 py-2 text-right text-gray-500 dark:text-gray-400 tabular-nums">{f.totalOpens}</td>
+                    <td className="px-3 py-2 text-right text-gray-500 dark:text-gray-400 tabular-nums">{fmtDur(f.avgDwellMs)}</td>
                     <td className="px-3 py-2"><PlatformCell split={f.platform} /></td>
                   </tr>
                 ))}
@@ -208,6 +212,7 @@ function PageViews({ data }: { data: PageData }) {
                       <th className="text-left font-medium px-3 py-2">Initiative</th>
                       <th className="text-right font-medium px-3 py-2">People</th>
                       <th className="text-right font-medium px-3 py-2">Opens</th>
+                      <th className="text-right font-medium px-3 py-2">Avg time</th>
                       <th className="text-left font-medium px-3 py-2">Platforms</th>
                     </tr>
                   </thead>
@@ -217,6 +222,7 @@ function PageViews({ data }: { data: PageData }) {
                         <td className="px-3 py-2 text-gray-900 dark:text-gray-100 max-w-xs truncate">{i.title}</td>
                         <td className="px-3 py-2 text-right font-semibold text-gray-900 dark:text-gray-100 tabular-nums">{i.uniqueResidents}</td>
                         <td className="px-3 py-2 text-right text-gray-500 dark:text-gray-400 tabular-nums">{i.totalOpens}</td>
+                        <td className="px-3 py-2 text-right text-gray-500 dark:text-gray-400 tabular-nums">{fmtDur(i.avgDwellMs)}</td>
                         <td className="px-3 py-2"><PlatformCell split={i.platform} /></td>
                       </tr>
                     ))}
@@ -270,6 +276,15 @@ function TrendStrip({ trend }: { trend: { date: string; count: number }[] }) {
       </div>
     </div>
   );
+}
+
+function fmtDur(ms: number | null): string {
+  if (ms == null || ms < 1000) return "—";
+  const s = Math.round(ms / 1000);
+  if (s < 60) return `${s}s`;
+  const m = Math.floor(s / 60);
+  const rem = s % 60;
+  return rem ? `${m}m ${rem}s` : `${m}m`;
 }
 
 function prettyPage(feature: string, pageKey: string): string {

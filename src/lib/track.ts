@@ -45,3 +45,49 @@ export function recordPageView(args: {
     await prisma.pageView.create({ data: { ...args } });
   })().catch(() => {});
 }
+
+// Sanity cap so a stuck timer / clock skew can't write a garbage duration.
+const MAX_DWELL_MS = 6 * 60 * 60 * 1000; // 6 hours
+
+// Fire-and-forget: attach a dwell time to this resident's most recent view of
+// the page. The duration the client sends is cumulative-for-the-visit, so we
+// keep the largest seen. Falls back to creating a row if the view didn't land.
+export function recordDwell(args: {
+  residentId: string;
+  feature: string;
+  pageKey: string;
+  entityId: string | null;
+  durationMs: number;
+  platform: string;
+}): void {
+  const dur = Math.min(Math.round(args.durationMs), MAX_DWELL_MS);
+  void (async () => {
+    const recent = await prisma.pageView.findFirst({
+      where: {
+        residentId: args.residentId,
+        feature: args.feature,
+        pageKey: args.pageKey,
+        entityId: args.entityId,
+      },
+      orderBy: { createdAt: "desc" },
+      select: { id: true, durationMs: true },
+    });
+    if (recent) {
+      const next = Math.max(recent.durationMs ?? 0, dur);
+      if (next !== recent.durationMs) {
+        await prisma.pageView.update({ where: { id: recent.id }, data: { durationMs: next } });
+      }
+    } else {
+      await prisma.pageView.create({
+        data: {
+          residentId: args.residentId,
+          feature: args.feature,
+          pageKey: args.pageKey,
+          entityId: args.entityId,
+          platform: args.platform,
+          durationMs: dur,
+        },
+      });
+    }
+  })().catch(() => {});
+}
