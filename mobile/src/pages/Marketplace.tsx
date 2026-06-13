@@ -139,8 +139,11 @@ export default function Marketplace() {
       className="one-surface flex flex-1 flex-col px-[18px] pt-[max(1.5rem,env(safe-area-inset-top,0px))] pb-8"
       style={{ background: "var(--bg)", color: "var(--text)" }}
     >
-      <header className="mb-3 flex items-center justify-between">
-        <h1 className="text-[25px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>Marketplace</h1>
+      <header className="mb-3 flex items-center gap-3">
+        <Link to="/community" className="flex active:opacity-70" aria-label="Back">
+          <Icon name="arrow_back" size={24} style={{ color: "var(--text-2)" }} />
+        </Link>
+        <h1 className="flex-1 text-[25px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>Marketplace</h1>
         <Link
           to="/marketplace/new"
           className="flex items-center gap-1.5 rounded-full px-4 py-2 text-[14px] font-bold text-white active:opacity-90"
