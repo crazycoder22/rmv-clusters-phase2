@@ -1,117 +1,61 @@
-"use client";
+import type { Metadata } from "next";
+import { prisma } from "@/lib/prisma";
+import siteData from "@/data/site.json";
+import PostDetailClient from "./PostDetailClient";
 
-import { useState, useEffect, use } from "react";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, Loader2 } from "lucide-react";
-import Link from "next/link";
-import FeedPost from "@/components/community/FeedPost";
+// Per-post Open Graph tags so a shared link unfurls with the post's photo +
+// a snippet (WhatsApp / iMessage / Slack read these server-side, unauthenticated).
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  try {
+    const post = await prisma.post.findUnique({
+      where: { id },
+      select: {
+        content: true,
+        images: true,
+        author: { select: { name: true } },
+      },
+    });
 
-interface PostData {
-  id: string;
-  content: string;
-  images: string[];
-  videoUrl: string | null;
-  author: {
-    id: string;
-    name: string;
-    block: number;
-    flatNumber: string;
-    googleImage: string | null;
-  };
-  commentCount: number;
-  likeCount: number;
-  isLiked: boolean;
-  createdAt: string;
+    if (!post) return { title: "Post" };
+
+    const snippet =
+      post.content?.trim().slice(0, 160) ||
+      (post.images.length > 0 ? "Shared a photo" : "Community post");
+    const title = `${post.author.name} · ${siteData.name} Community`;
+    const image = post.images[0]; // Vercel Blob → already an absolute https URL
+
+    return {
+      title,
+      description: snippet,
+      openGraph: {
+        title,
+        description: snippet,
+        type: "article",
+        siteName: siteData.name,
+        ...(image ? { images: [{ url: image }] } : {}),
+      },
+      twitter: {
+        card: image ? "summary_large_image" : "summary",
+        title,
+        description: snippet,
+        ...(image ? { images: [image] } : {}),
+      },
+    };
+  } catch {
+    return { title: "Post" };
+  }
 }
 
-export default function PostDetailPage({
+export default async function PostDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = use(params);
-  const { data: session, status } = useSession();
-  const router = useRouter();
-
-  const [post, setPost] = useState<PostData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState("");
-
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/");
-    } else if (status === "authenticated" && !session?.user?.isApproved) {
-      router.push("/");
-    }
-  }, [status, session, router]);
-
-  useEffect(() => {
-    if (status !== "authenticated") return;
-
-    fetch("/api/residents/me")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.id) setCurrentUserId(data.id);
-      })
-      .catch(() => {});
-  }, [status]);
-
-  useEffect(() => {
-    if (status !== "authenticated") return;
-
-    fetch(`/api/feed/${id}`)
-      .then((r) => {
-        if (!r.ok) throw new Error("not found");
-        return r.json();
-      })
-      .then((data) => setPost(data))
-      .catch(() => setNotFound(true))
-      .finally(() => setLoading(false));
-  }, [status, id]);
-
-  const isAdmin =
-    session?.user?.roles?.some((r: string) =>
-      ["ADMIN", "SUPERADMIN"].includes(r)
-    ) ?? false;
-
-  if (status === "loading" || (status === "authenticated" && loading)) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 size={24} className="animate-spin text-primary-600" />
-      </div>
-    );
-  }
-
-  if (status !== "authenticated" || !session?.user?.isApproved) {
-    return null;
-  }
-
-  return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
-      <Link
-        href="/community"
-        className="inline-flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700 font-medium mb-6"
-      >
-        <ArrowLeft size={16} />
-        Back to Community
-      </Link>
-
-      {notFound ? (
-        <div className="text-center py-12">
-          <p className="text-gray-500 text-sm">
-            This post was not found or has been deleted.
-          </p>
-        </div>
-      ) : post ? (
-        <FeedPost
-          post={post}
-          currentUserId={currentUserId}
-          isAdmin={isAdmin}
-          onDelete={() => router.push("/community")}
-        />
-      ) : null}
-    </div>
-  );
+  const { id } = await params;
+  return <PostDetailClient id={id} />;
 }
