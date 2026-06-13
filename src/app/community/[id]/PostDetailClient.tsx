@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
@@ -36,11 +36,12 @@ export default function PostDetailClient({ id }: { id: string }) {
 
   useEffect(() => {
     if (status === "unauthenticated") {
-      router.push("/");
+      // Preserve the deep link — return to this post after Google login.
+      signIn("google", { callbackUrl: `/community/${id}` });
     } else if (status === "authenticated" && !session?.user?.isApproved) {
       router.push("/");
     }
-  }, [status, session, router]);
+  }, [status, session, router, id]);
 
   useEffect(() => {
     if (status !== "authenticated") return;
