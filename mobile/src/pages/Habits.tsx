@@ -1,22 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  ArrowLeft,
-  Bell,
-  Check,
-  CheckCircle2,
-  ChevronRight,
-  Circle,
-  Flame,
-  Loader2,
-  Plus,
-  Search,
-  Sparkles,
-  Target,
-  UserPlus,
-  X,
-} from "lucide-react";
-import clsx from "clsx";
+import { Loader2 } from "lucide-react";
+import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
 
@@ -72,6 +57,8 @@ interface ResidentHit {
   flatNumber: string;
 }
 
+const EMOJIS = ["🧘", "📖", "🏃", "💪", "🧉", "🥗", "💧", "😴", "🪥", "📝", "🎯", "🧹", "🌱", "🙏", "🚴", "🎵"];
+
 // ── Page ───────────────────────────────────────────────────────────────────
 
 export default function Habits() {
@@ -109,44 +96,6 @@ export default function Habits() {
     void refresh();
   }, [refresh]);
 
-  async function toggleToday(h: OwnedHabit) {
-    setBusyId(h.id);
-    // Optimistic.
-    const next = !h.todayDone;
-    setOwned((prev) =>
-      prev.map((x) =>
-        x.id === h.id
-          ? {
-              ...x,
-              todayDone: next,
-              currentStreak: next
-                ? x.currentStreak + 1
-                : Math.max(0, x.currentStreak - 1),
-              totalDone: next ? x.totalDone + 1 : Math.max(0, x.totalDone - 1),
-            }
-          : x
-      )
-    );
-    try {
-      const res = next
-        ? await apiFetch(`/api/habits/${h.id}/checkin`, {
-            method: "POST",
-            token,
-            body: JSON.stringify({}),
-          })
-        : await apiFetch(`/api/habits/${h.id}/checkin`, {
-            method: "DELETE",
-            token,
-          });
-      if (!res.ok) await refresh();
-      else await refresh(); // re-pull for accurate streak math
-    } catch {
-      await refresh();
-    } finally {
-      setBusyId(null);
-    }
-  }
-
   async function respondInvite(inviteId: string, action: "accept" | "decline") {
     setBusyId(inviteId);
     try {
@@ -164,18 +113,9 @@ export default function Habits() {
   async function nudge(h: PartnerHabit) {
     setBusyId(h.id);
     try {
-      const res = await apiFetch(`/api/habits/${h.id}/nudge`, {
-        method: "POST",
-        token,
-      });
-      if (res.ok) {
-        setPartnering((prev) =>
-          prev.map((x) => (x.id === h.id ? { ...x, canNudge: false } : x))
-        );
-      } else if (res.status === 429) {
-        setPartnering((prev) =>
-          prev.map((x) => (x.id === h.id ? { ...x, canNudge: false } : x))
-        );
+      const res = await apiFetch(`/api/habits/${h.id}/nudge`, { method: "POST", token });
+      if (res.ok || res.status === 429) {
+        setPartnering((prev) => prev.map((x) => (x.id === h.id ? { ...x, canNudge: false } : x)));
       }
     } finally {
       setBusyId(null);
@@ -183,31 +123,25 @@ export default function Habits() {
   }
 
   return (
-    <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)]">
-      <header className="flex items-center gap-2 py-4">
-        <Link
-          to="/more"
-          className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 active:bg-slate-800"
-        >
-          <ArrowLeft size={20} />
+    <div className="one-surface flex flex-1 flex-col px-[18px] pt-[env(safe-area-inset-top,0px)] pb-8" style={{ background: "var(--bg)", color: "var(--text)" }}>
+      {/* Header */}
+      <header className="flex items-start gap-3.5 py-3">
+        <Link to="/community" className="mt-0.5 flex active:opacity-70" aria-label="Back">
+          <Icon name="arrow_back" size={24} style={{ color: "var(--text)" }} />
         </Link>
-        <div className="flex-1 min-w-0">
-          <h1 className="text-lg font-semibold text-white">Habits</h1>
-          <p className="truncate text-[11px] text-slate-500">
-            Build a routine, stay accountable
-          </p>
+        <div className="min-w-0 flex-1">
+          <h1 className="text-[26px] font-extrabold leading-tight tracking-tight" style={{ color: "var(--text)" }}>Habits</h1>
+          <p className="mt-0.5 text-[13px]" style={{ color: "var(--text-3)" }}>Build a routine, stay accountable</p>
         </div>
         <button
           type="button"
           onClick={() => setShowNew((v) => !v)}
-          className={clsx(
-            "flex h-9 items-center gap-1 rounded-full px-3 text-sm font-medium",
-            showNew
-              ? "bg-slate-800 text-slate-300"
-              : "bg-indigo-500 text-white active:bg-indigo-600"
-          )}
+          className="flex items-center gap-1.5 rounded-full px-4 py-2 text-[14px] font-bold"
+          style={showNew
+            ? { background: "var(--surface-2)", border: "1px solid var(--border-strong)", color: "var(--text)" }
+            : { background: "var(--accent-strong)", color: "var(--on-accent)", boxShadow: "0 6px 16px var(--accent-soft)" }}
         >
-          {showNew ? <X size={14} /> : <Plus size={14} />}
+          <Icon name={showNew ? "close" : "add"} size={18} weight={600} style={{ color: showNew ? "var(--text)" : "#fff" }} />
           {showNew ? "Close" : "New"}
         </button>
       </header>
@@ -223,60 +157,32 @@ export default function Habits() {
       )}
 
       {error && (
-        <p className="mb-3 rounded-xl border border-red-700/60 bg-red-900/20 px-4 py-2.5 text-xs text-red-200">
-          {error}
-        </p>
+        <p className="mb-3 rounded-[12px] px-4 py-2.5 text-[13px]" style={{ background: "var(--danger-soft)", color: "var(--danger)" }}>{error}</p>
       )}
 
       {loading ? (
-        <div className="flex justify-center py-10 text-slate-500">
-          <Loader2 size={20} className="animate-spin" />
-        </div>
+        <div className="flex justify-center py-10"><Loader2 size={20} className="animate-spin" style={{ color: "var(--text-3)" }} /></div>
       ) : (
-        <div className="flex-1 space-y-5 pb-4">
+        <div className="flex-1 space-y-5">
           {/* Pending invites */}
           {invites.length > 0 && (
             <section>
-              <h2 className="mb-2 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-amber-300">
-                <Bell size={11} /> Partner invites
+              <h2 className="one-mono mb-2.5 inline-flex items-center gap-1.5 text-[11px]" style={{ color: "var(--warning)", letterSpacing: "0.12em" }}>
+                <Icon name="notifications" size={13} style={{ color: "var(--warning)" }} /> PARTNER INVITES
               </h2>
-              <ul className="space-y-2">
+              <ul className="space-y-2.5">
                 {invites.map((inv) => (
-                  <li
-                    key={inv.id}
-                    className="rounded-2xl border border-amber-700/40 bg-amber-900/10 p-3"
-                  >
-                    <p className="text-sm text-white">
-                      <span className="font-semibold">{inv.ownerName}</span>{" "}
-                      (B{inv.ownerBlock} · {inv.ownerFlat}) wants you as their
-                      partner for{" "}
-                      <span className="font-semibold">
-                        {inv.emoji ? `${inv.emoji} ` : ""}
-                        {inv.title}
-                      </span>
+                  <li key={inv.id} className="rounded-[16px] p-3.5" style={{ background: "var(--warning-soft)", border: "1px solid color-mix(in srgb, var(--warning) 40%, transparent)" }}>
+                    <p className="text-[14px] leading-snug" style={{ color: "var(--text)" }}>
+                      <span className="font-bold">{inv.ownerName}</span> (B{inv.ownerBlock} · {inv.ownerFlat}) wants you as their partner for{" "}
+                      <span className="font-bold">{inv.emoji ? `${inv.emoji} ` : ""}{inv.title}</span>
                     </p>
-                    <div className="mt-2 flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => respondInvite(inv.id, "accept")}
-                        disabled={busyId === inv.id}
-                        className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-emerald-500 py-2 text-[12px] font-semibold text-white active:bg-emerald-600 disabled:opacity-50"
-                      >
-                        {busyId === inv.id ? (
-                          <Loader2 size={12} className="animate-spin" />
-                        ) : (
-                          <Check size={12} />
-                        )}
-                        Accept
+                    <div className="mt-2.5 flex gap-2">
+                      <button type="button" onClick={() => respondInvite(inv.id, "accept")} disabled={busyId === inv.id} className="flex flex-1 items-center justify-center gap-1.5 rounded-[10px] py-2 text-[13px] font-bold text-white disabled:opacity-50" style={{ background: "var(--success)" }}>
+                        {busyId === inv.id ? <Loader2 size={12} className="animate-spin" /> : <Icon name="check" size={14} style={{ color: "#fff" }} />} Accept
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => respondInvite(inv.id, "decline")}
-                        disabled={busyId === inv.id}
-                        className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-slate-700 bg-slate-800 py-2 text-[12px] font-semibold text-slate-300 active:bg-slate-700 disabled:opacity-50"
-                      >
-                        <X size={12} />
-                        Decline
+                      <button type="button" onClick={() => respondInvite(inv.id, "decline")} disabled={busyId === inv.id} className="flex flex-1 items-center justify-center gap-1.5 rounded-[10px] py-2 text-[13px] font-bold disabled:opacity-50" style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text-2)" }}>
+                        <Icon name="close" size={14} style={{ color: "var(--text-2)" }} /> Decline
                       </button>
                     </div>
                   </li>
@@ -287,78 +193,45 @@ export default function Habits() {
 
           {/* My habits */}
           <section>
-            <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
-              My habits
-            </h2>
+            <h2 className="one-mono mb-3 text-[11px]" style={{ color: "var(--text-3)", letterSpacing: "0.14em" }}>MY HABITS</h2>
             {owned.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-slate-700 px-4 py-10 text-center text-sm text-slate-500">
-                <Target size={28} className="mx-auto mb-2 text-slate-600" />
-                No habits yet. Tap{" "}
-                <span className="text-indigo-300">New</span> to start one.
+              <div className="flex flex-col items-center gap-3.5 rounded-[18px] px-6 py-10 text-center" style={{ border: "1.5px dashed var(--border-strong)" }}>
+                <Icon name="target" size={40} style={{ color: "var(--text-3)" }} />
+                <p className="text-[15px]" style={{ color: "var(--text-3)" }}>No habits yet. Tap <span className="font-bold" style={{ color: "var(--accent)" }}>New</span> to start one.</p>
               </div>
             ) : (
-              <ul className="space-y-2">
+              <ul className="space-y-3">
                 {owned.map((h) => (
-                  <li
-                    key={h.id}
-                    className={clsx(
-                      "flex items-center gap-3 rounded-2xl border p-3",
-                      h.todayDone
-                        ? "border-emerald-700/50 bg-emerald-900/10"
-                        : "border-slate-700 bg-slate-800/60"
-                    )}
-                  >
-                    {/* Today toggle */}
-                    <button
-                      type="button"
-                      onClick={() => toggleToday(h)}
-                      disabled={busyId === h.id}
-                      aria-label={h.todayDone ? "Mark not done" : "Mark done"}
-                      className={clsx(
-                        "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full",
-                        h.todayDone
-                          ? "bg-emerald-500 text-white active:bg-emerald-600"
-                          : "border border-slate-600 bg-slate-900 text-slate-500 active:bg-slate-800",
-                        busyId === h.id && "opacity-50"
-                      )}
-                    >
-                      {busyId === h.id ? (
-                        <Loader2 size={16} className="animate-spin" />
-                      ) : h.todayDone ? (
-                        <CheckCircle2 size={20} />
-                      ) : (
-                        <Circle size={20} />
-                      )}
-                    </button>
-                    <Link to={`/habits/${h.id}`} className="flex flex-1 min-w-0 items-center gap-2">
-                      <div className="flex-1 min-w-0">
-                        <p className="truncate text-sm font-semibold text-white">
-                          {h.emoji ? `${h.emoji} ` : ""}
-                          {h.title}
-                        </p>
-                        <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] text-slate-400">
-                          <span className="inline-flex items-center gap-1 text-orange-300">
-                            <Flame size={11} />
-                            {h.currentStreak}d streak
+                  <li key={h.id}>
+                    <Link to={`/habits/${h.id}`} className="flex items-center gap-3.5 rounded-[18px] px-4 py-3.5 active:opacity-90" style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "var(--shadow)" }}>
+                      <div
+                        className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full"
+                        style={{ background: `conic-gradient(var(--accent) ${h.completionPct * 3.6}deg, var(--surface-3) 0)` }}
+                      >
+                        <div className="flex h-[38px] w-[38px] items-center justify-center rounded-full text-[18px]" style={{ background: "var(--surface)" }}>
+                          {h.emoji || "🎯"}
+                        </div>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[17px] font-bold" style={{ color: "var(--text)" }}>{h.title}</p>
+                        <div className="mt-1.5 flex flex-wrap items-center gap-x-2 text-[13px]">
+                          <span className="inline-flex items-center gap-1 font-bold" style={{ color: "var(--flame)" }}>
+                            <Icon name="local_fire_department" size={16} style={{ color: "var(--flame)" }} />{h.currentStreak}d streak
                           </span>
-                          <span className="text-slate-600">·</span>
-                          <span>{h.completionPct}%</span>
+                          <span style={{ color: "var(--text-3)" }}>·</span>
+                          <span className="font-semibold" style={{ color: "var(--text-2)" }}>{h.completionPct}%</span>
                           {h.partner && (
                             <>
-                              <span className="text-slate-600">·</span>
-                              <span className="inline-flex items-center gap-1">
-                                <Sparkles size={10} />
-                                {h.partner.status === "accepted"
-                                  ? h.partner.name
-                                  : h.partner.status === "pending"
-                                    ? "invite sent"
-                                    : "no partner"}
+                              <span style={{ color: "var(--text-3)" }}>·</span>
+                              <span className="inline-flex items-center gap-1" style={{ color: "var(--text-2)" }}>
+                                <Icon name="group_add" size={15} style={{ color: "var(--accent)" }} />
+                                {h.partner.status === "accepted" ? h.partner.name : h.partner.status === "pending" ? "invite sent" : "no partner"}
                               </span>
                             </>
                           )}
                         </div>
                       </div>
-                      <ChevronRight size={16} className="flex-shrink-0 text-slate-500" />
+                      <Icon name="chevron_right" size={22} style={{ color: "var(--text-3)" }} className="flex-shrink-0" />
                     </Link>
                   </li>
                 ))}
@@ -369,60 +242,28 @@ export default function Habits() {
           {/* Habits I'm partnering */}
           {partnering.length > 0 && (
             <section>
-              <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                Keeping accountable
-              </h2>
-              <ul className="space-y-2">
+              <h2 className="one-mono mb-3 text-[11px]" style={{ color: "var(--text-3)", letterSpacing: "0.14em" }}>KEEPING ACCOUNTABLE</h2>
+              <ul className="space-y-3">
                 {partnering.map((h) => (
-                  <li
-                    key={h.id}
-                    className="flex items-center gap-3 rounded-2xl border border-slate-700 bg-slate-800/60 p-3"
-                  >
-                    <div
-                      className={clsx(
-                        "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-lg",
-                        h.todayDone
-                          ? "bg-emerald-500/20"
-                          : "bg-slate-900 text-slate-500"
-                      )}
-                    >
+                  <li key={h.id} className="flex items-center gap-3 rounded-[16px] p-3.5" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-[18px]" style={{ background: h.todayDone ? "var(--success-soft)" : "var(--surface-2)" }}>
                       {h.emoji ?? "🎯"}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="truncate text-sm font-semibold text-white">
-                        {h.title}
-                      </p>
-                      <p className="mt-0.5 text-[11px] text-slate-400">
-                        {h.owner.name} ·{" "}
-                        <span className="text-orange-300">
-                          {h.currentStreak}d
-                        </span>{" "}
-                        ·{" "}
-                        <span
-                          className={
-                            h.todayDone ? "text-emerald-300" : "text-slate-500"
-                          }
-                        >
-                          {h.todayDone ? "done today" : "not yet today"}
-                        </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[14px] font-bold" style={{ color: "var(--text)" }}>{h.title}</p>
+                      <p className="mt-0.5 text-[12px]" style={{ color: "var(--text-3)" }}>
+                        {h.owner.name} · <span style={{ color: "var(--flame)" }}>{h.currentStreak}d</span> ·{" "}
+                        <span style={{ color: h.todayDone ? "var(--success)" : "var(--text-3)" }}>{h.todayDone ? "done today" : "not yet today"}</span>
                       </p>
                     </div>
                     <button
                       type="button"
                       onClick={() => nudge(h)}
                       disabled={busyId === h.id || !h.canNudge}
-                      className={clsx(
-                        "flex flex-shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-semibold",
-                        h.canNudge
-                          ? "bg-indigo-500 text-white active:bg-indigo-600"
-                          : "bg-slate-800 text-slate-500"
-                      )}
+                      className="flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-bold"
+                      style={h.canNudge ? { background: "var(--accent-strong)", color: "#fff" } : { background: "var(--surface-2)", color: "var(--text-3)" }}
                     >
-                      {busyId === h.id ? (
-                        <Loader2 size={11} className="animate-spin" />
-                      ) : (
-                        <Bell size={11} />
-                      )}
+                      {busyId === h.id ? <Loader2 size={11} className="animate-spin" /> : <Icon name="notifications" size={13} style={{ color: h.canNudge ? "#fff" : "var(--text-3)" }} />}
                       {h.canNudge ? "Nudge" : "Sent"}
                     </button>
                   </li>
@@ -446,7 +287,8 @@ function NewHabitForm({
   onCreated: () => void | Promise<void>;
 }) {
   const [title, setTitle] = useState("");
-  const [emoji, setEmoji] = useState("");
+  const [emoji, setEmoji] = useState("🎯");
+  const [emojiOpen, setEmojiOpen] = useState(false);
   const [targetMinutes, setTargetMinutes] = useState("");
   const [startDate, setStartDate] = useState(todayIso());
   const [endDate, setEndDate] = useState(addDays(todayIso(), 30));
@@ -454,6 +296,7 @@ function NewHabitForm({
   const [search, setSearch] = useState("");
   const [hits, setHits] = useState<ResidentHit[]>([]);
   const [searching, setSearching] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -472,10 +315,7 @@ function NewHabitForm({
     setSearching(true);
     debounce.current = setTimeout(async () => {
       try {
-        const res = await apiFetch(
-          `/api/residents/search?q=${encodeURIComponent(q)}`,
-          { token }
-        );
+        const res = await apiFetch(`/api/residents/search?q=${encodeURIComponent(q)}`, { token });
         if (res.ok) {
           const data = await res.json();
           setHits((data.residents ?? []).slice(0, 12));
@@ -526,152 +366,103 @@ function NewHabitForm({
     }
   }
 
+  const canCreate = title.trim().length > 0;
+  const mono = "one-mono text-[11px]";
+  const monoStyle = { color: "var(--text-3)", letterSpacing: "0.12em" } as const;
+  const field = "one-input mt-2 w-full rounded-[13px] px-3.5 py-3.5 text-[16px]";
+  const dateField = "mt-2 w-full min-w-0 appearance-none rounded-[13px] px-3.5 py-3.5 text-[14px] outline-none";
+  const dateStyle = { background: "var(--surface-2)", border: "1px solid var(--border-strong)", color: "var(--text)" } as const;
+
   return (
-    <section className="mb-4 space-y-3 rounded-2xl border border-indigo-700/50 bg-slate-800/80 p-3">
-      <div className="grid grid-cols-[60px,1fr] gap-2">
-        <div>
-          <Label>Emoji</Label>
-          <input
-            value={emoji}
-            onChange={(e) =>
-              setEmoji(Array.from(e.target.value).slice(0, 2).join(""))
-            }
-            placeholder="🧘"
-            className="w-full rounded-xl border border-slate-700 bg-slate-900/60 px-2 py-2.5 text-center text-lg text-white placeholder:text-slate-600 focus:border-indigo-400 focus:outline-none"
-          />
-        </div>
-        <div>
-          <Label>Habit</Label>
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g. Yoga every morning"
-            className="w-full rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-2.5 text-sm text-white placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none"
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-2">
-        <div>
-          <Label>Start</Label>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="w-full min-w-0 appearance-none rounded-xl border border-slate-700 bg-slate-900/60 px-2 py-2.5 text-[12px] text-white focus:border-indigo-400 focus:outline-none"
-          />
-        </div>
-        <div>
-          <Label>End</Label>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="w-full min-w-0 appearance-none rounded-xl border border-slate-700 bg-slate-900/60 px-2 py-2.5 text-[12px] text-white focus:border-indigo-400 focus:outline-none"
-          />
-        </div>
-      </div>
-      <div>
-        <Label>Mins/day</Label>
-        <input
-          type="number"
-          inputMode="numeric"
-          value={targetMinutes}
-          onChange={(e) => setTargetMinutes(e.target.value)}
-          placeholder="10"
-          className="w-full min-w-0 rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-2.5 text-sm text-white placeholder:text-slate-600 focus:border-indigo-400 focus:outline-none"
-        />
-      </div>
-
-      {/* Partner picker */}
-      <div>
-        <Label>Accountability partner (optional)</Label>
-        {partner ? (
-          <div className="flex items-center justify-between rounded-xl border border-emerald-700/50 bg-emerald-900/20 px-3 py-2">
-            <span className="text-sm text-white">
-              {partner.name}{" "}
-              <span className="text-[11px] text-slate-400">
-                B{partner.block ?? "—"} · {partner.flatNumber}
-              </span>
-            </span>
-            <button
-              type="button"
-              onClick={() => {
-                setPartner(null);
-                setSearch("");
-              }}
-              className="text-slate-400"
-              aria-label="Clear partner"
-            >
-              <X size={14} />
+    <div className="mb-4 rounded-[20px] p-[18px]" style={{ background: "var(--surface)", border: "1px solid color-mix(in srgb, var(--accent) 45%, var(--border))", boxShadow: "var(--shadow)" }}>
+      {/* Emoji */}
+      <p className={mono} style={monoStyle}>EMOJI</p>
+      <button type="button" onClick={() => setEmojiOpen((v) => !v)} className="mt-2 flex h-14 w-full items-center justify-center rounded-[13px] text-[28px]" style={{ background: "var(--surface-2)", border: "1px solid var(--border-strong)" }}>
+        {emoji}
+      </button>
+      {emojiOpen && (
+        <div className="mt-2 flex flex-wrap gap-1.5 rounded-[13px] p-2.5" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+          {EMOJIS.map((e) => (
+            <button key={e} type="button" onClick={() => { setEmoji(e); setEmojiOpen(false); }} className="flex h-[38px] w-[38px] items-center justify-center rounded-[11px] text-[21px]" style={{ background: e === emoji ? "var(--accent-soft)" : "transparent" }}>
+              {e}
             </button>
-          </div>
-        ) : (
-          <>
-            <label className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900/60 px-3">
-              <Search size={14} className="text-slate-500" />
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search a resident to invite…"
-                className="flex-1 bg-transparent py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none"
-              />
-              {searching && (
-                <Loader2 size={13} className="animate-spin text-slate-500" />
-              )}
-            </label>
-            {hits.length > 0 && (
-              <ul className="mt-1.5 max-h-48 space-y-1 overflow-y-auto rounded-xl border border-slate-700 bg-slate-900/80 p-1">
-                {hits.map((hit) => (
-                  <li key={hit.id}>
-                    <button
-                      type="button"
-                      onClick={() => setPartner(hit)}
-                      className="flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left active:bg-slate-800"
-                    >
-                      <span className="flex items-center gap-1.5 text-sm text-white">
-                        <UserPlus size={12} className="text-slate-500" />
-                        {hit.name}
-                      </span>
-                      <span className="font-mono text-[11px] text-slate-400">
-                        B{hit.block ?? "—"} · {hit.flatNumber}
-                      </span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </>
-        )}
-        <p className="mt-1 text-[10px] text-slate-500">
-          They'll get a request and can see your progress once they accept.
-        </p>
+          ))}
+        </div>
+      )}
+
+      {/* Habit */}
+      <p className={`${mono} mt-[18px]`} style={monoStyle}>HABIT</p>
+      <input className={field} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Read everyday 10 pages" />
+
+      {/* Dates */}
+      <div className="mt-[18px] flex gap-3">
+        <div className="min-w-0 flex-1">
+          <p className={mono} style={monoStyle}>START</p>
+          <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className={dateField} style={dateStyle} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className={mono} style={monoStyle}>END</p>
+          <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className={dateField} style={dateStyle} />
+        </div>
       </div>
 
-      {err && (
-        <p className="rounded-lg border border-red-700/60 bg-red-900/20 px-3 py-1.5 text-[11px] text-red-200">
-          {err}
-        </p>
+      {/* Mins */}
+      <p className={`${mono} mt-[18px]`} style={monoStyle}>MINS/DAY</p>
+      <input className={field} type="number" inputMode="numeric" value={targetMinutes} onChange={(e) => setTargetMinutes(e.target.value)} placeholder="30" />
+
+      {/* Partner */}
+      <p className={`${mono} mt-[18px]`} style={monoStyle}>ACCOUNTABILITY PARTNER (OPTIONAL)</p>
+      {partner ? (
+        <div className="mt-2 flex items-center gap-2 rounded-[13px] px-3.5 py-3" style={{ background: "var(--success-soft)", border: "1px solid color-mix(in srgb, var(--success) 45%, transparent)" }}>
+          <span className="text-[16px] font-bold" style={{ color: "var(--text)" }}>{partner.name}</span>
+          <span className="text-[14px]" style={{ color: "var(--text-3)" }}>B{partner.block ?? "—"} · {partner.flatNumber}</span>
+          <div className="flex-1" />
+          <button type="button" onClick={() => { setPartner(null); setSearch(""); setShowSearch(false); }} aria-label="Clear partner">
+            <Icon name="close" size={20} style={{ color: "var(--text-3)" }} />
+          </button>
+        </div>
+      ) : showSearch ? (
+        <>
+          <div className="mt-2 flex items-center gap-2 rounded-[13px] px-3.5" style={{ background: "var(--surface-2)", border: "1px solid var(--border-strong)" }}>
+            <Icon name="search" size={18} style={{ color: "var(--text-3)" }} />
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search a resident to invite…" autoFocus className="flex-1 bg-transparent py-3 text-[15px] outline-none" style={{ color: "var(--text)" }} />
+            {searching && <Loader2 size={13} className="animate-spin" style={{ color: "var(--text-3)" }} />}
+          </div>
+          {hits.length > 0 && (
+            <ul className="mt-1.5 max-h-48 space-y-1 overflow-y-auto rounded-[13px] p-1" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+              {hits.map((hit) => (
+                <li key={hit.id}>
+                  <button type="button" onClick={() => setPartner(hit)} className="flex w-full items-center justify-between gap-2 rounded-[10px] px-2.5 py-2 text-left active:opacity-80">
+                    <span className="flex items-center gap-1.5 text-[14px]" style={{ color: "var(--text)" }}>
+                      <Icon name="person_add" size={14} style={{ color: "var(--accent)" }} />{hit.name}
+                    </span>
+                    <span className="one-mono text-[11px]" style={{ color: "var(--text-3)" }}>B{hit.block ?? "—"} · {hit.flatNumber}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
+      ) : (
+        <button type="button" onClick={() => setShowSearch(true)} className="mt-2 flex w-full items-center gap-2.5 rounded-[13px] px-3.5 py-3 text-[15px] font-semibold" style={{ background: "var(--surface-2)", border: "1px dashed var(--border-strong)", color: "var(--text-2)" }}>
+          <Icon name="person_add" size={20} style={{ color: "var(--accent)" }} /> Add a neighbour
+        </button>
       )}
+      <p className="mt-2.5 text-[12.5px] leading-relaxed" style={{ color: "var(--text-3)" }}>They'll get a request and can see your progress once they accept.</p>
+
+      {err && <p className="mt-3 rounded-[10px] px-3 py-2 text-[12px]" style={{ background: "var(--danger-soft)", color: "var(--danger)" }}>{err}</p>}
 
       <button
         type="button"
         onClick={submit}
-        disabled={busy}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-500 py-2.5 text-sm font-semibold text-white active:bg-indigo-600 disabled:opacity-50"
+        disabled={busy || !canCreate}
+        className="mt-[18px] flex w-full items-center justify-center gap-2.5 rounded-[15px] py-4 text-[17px] font-bold"
+        style={canCreate ? { background: "var(--accent-strong)", color: "var(--on-accent)", boxShadow: "0 8px 20px var(--accent-soft)" } : { background: "var(--surface-3)", color: "var(--text-3)" }}
       >
-        {busy ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+        {busy ? <Loader2 size={16} className="animate-spin" /> : <Icon name="check" size={21} style={{ color: canCreate ? "#fff" : "var(--text-3)" }} />}
         Create habit
       </button>
-    </section>
-  );
-}
-
-function Label({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-      {children}
-    </p>
+    </div>
   );
 }
 

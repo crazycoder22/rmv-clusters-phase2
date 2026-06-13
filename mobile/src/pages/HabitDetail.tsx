@@ -1,17 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import {
-  ArrowLeft,
-  Bell,
-  CheckCircle2,
-  Flame,
-  Loader2,
-  Sparkles,
-  Target,
-  Trash2,
-  Trophy,
-} from "lucide-react";
-import clsx from "clsx";
+import { Loader2 } from "lucide-react";
+import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
 
@@ -70,10 +60,7 @@ export default function HabitDetail() {
     void refresh();
   }, [refresh]);
 
-  const doneSet = useMemo(
-    () => new Set(habit?.checkinDates ?? []),
-    [habit?.checkinDates]
-  );
+  const doneSet = useMemo(() => new Set(habit?.checkinDates ?? []), [habit?.checkinDates]);
 
   // Build the day grid over [startDate, endDate].
   const days = useMemo(() => {
@@ -96,15 +83,8 @@ export default function HabitDetail() {
     const isDone = doneSet.has(iso);
     try {
       const res = isDone
-        ? await apiFetch(`/api/habits/${id}/checkin?date=${iso}`, {
-            method: "DELETE",
-            token,
-          })
-        : await apiFetch(`/api/habits/${id}/checkin`, {
-            method: "POST",
-            token,
-            body: JSON.stringify({ date: iso }),
-          });
+        ? await apiFetch(`/api/habits/${id}/checkin?date=${iso}`, { method: "DELETE", token })
+        : await apiFetch(`/api/habits/${id}/checkin`, { method: "POST", token, body: JSON.stringify({ date: iso }) });
       if (res.ok) await refresh();
     } finally {
       setBusy(false);
@@ -127,10 +107,7 @@ export default function HabitDetail() {
     if (!confirm(`Delete "${habit.title}"? This can't be undone.`)) return;
     setBusy(true);
     try {
-      const res = await apiFetch(`/api/habits/${id}`, {
-        method: "DELETE",
-        token,
-      });
+      const res = await apiFetch(`/api/habits/${id}`, { method: "DELETE", token });
       if (res.ok) navigate("/habits", { replace: true });
     } finally {
       setBusy(false);
@@ -138,28 +115,17 @@ export default function HabitDetail() {
   }
 
   if (loading) {
-    return (
-      <div className="flex flex-1 items-center justify-center text-slate-500">
-        <Loader2 size={20} className="animate-spin" />
-      </div>
-    );
+    return <div className="flex flex-1 items-center justify-center" style={{ background: "var(--bg)" }}><Loader2 size={20} className="animate-spin" style={{ color: "var(--text-3)" }} /></div>;
   }
 
   if (error || !habit) {
     return (
-      <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)]">
-        <header className="flex items-center gap-2 py-4">
-          <Link
-            to="/habits"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 active:bg-slate-800"
-          >
-            <ArrowLeft size={20} />
-          </Link>
-          <h1 className="text-lg font-semibold text-white">Habit</h1>
+      <div className="one-surface flex flex-1 flex-col px-[18px] pt-[env(safe-area-inset-top,0px)]" style={{ background: "var(--bg)", color: "var(--text)" }}>
+        <header className="flex items-center gap-3.5 py-3">
+          <Link to="/habits" className="flex active:opacity-70" aria-label="Back"><Icon name="arrow_back" size={24} style={{ color: "var(--text)" }} /></Link>
+          <h1 className="text-[21px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>Habit</h1>
         </header>
-        <p className="rounded-xl border border-red-700/60 bg-red-900/20 px-4 py-3 text-xs text-red-200">
-          {error ?? "Not found"}
-        </p>
+        <p className="rounded-[12px] px-4 py-3 text-[13px]" style={{ background: "var(--danger-soft)", color: "var(--danger)" }}>{error ?? "Not found"}</p>
       </div>
     );
   }
@@ -167,44 +133,31 @@ export default function HabitDetail() {
   const isOwner = habit.role === "owner";
 
   return (
-    <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)]">
-      <header className="flex items-center gap-2 py-4">
-        <Link
-          to="/habits"
-          className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 active:bg-slate-800"
-        >
-          <ArrowLeft size={20} />
-        </Link>
-        <div className="flex-1 min-w-0">
-          <h1 className="truncate text-lg font-semibold text-white">
-            {habit.emoji ? `${habit.emoji} ` : ""}
-            {habit.title}
-          </h1>
-          <p className="truncate text-[11px] text-slate-500">
+    <div className="one-surface flex flex-1 flex-col px-[18px] pt-[env(safe-area-inset-top,0px)] pb-8" style={{ background: "var(--bg)", color: "var(--text)" }}>
+      {/* Header */}
+      <header className="flex items-start gap-3.5 py-3">
+        <Link to="/habits" className="mt-0.5 flex active:opacity-70" aria-label="Back"><Icon name="arrow_back" size={24} style={{ color: "var(--text)" }} /></Link>
+        <div className="min-w-0 flex-1">
+          <h1 className="text-[21px] font-extrabold leading-tight tracking-tight" style={{ color: "var(--text)" }}>{habit.emoji ? `${habit.emoji} ` : ""}{habit.title}</h1>
+          <p className="mt-0.5 truncate text-[13px]" style={{ color: "var(--text-3)" }}>
             {fmtDate(habit.startDate)} – {fmtDate(habit.endDate)}
             {habit.targetMinutes ? ` · ${habit.targetMinutes} min/day` : ""}
             {!isOwner && ` · ${habit.owner.name}'s habit`}
           </p>
         </div>
         {isOwner && (
-          <button
-            type="button"
-            onClick={remove}
-            disabled={busy}
-            aria-label="Delete"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 active:bg-slate-800 active:text-red-300"
-          >
-            <Trash2 size={16} />
+          <button type="button" onClick={remove} disabled={busy} aria-label="Delete" className="mt-0.5 flex active:opacity-70">
+            <Icon name="delete" size={22} style={{ color: "var(--text-2)" }} />
           </button>
         )}
       </header>
 
       {/* Stats */}
-      <section className="mb-3 grid grid-cols-3 gap-2">
-        <Stat value={habit.currentStreak} label="day streak" icon={Flame} tint="text-orange-300" />
-        <Stat value={habit.longestStreak} label="best streak" icon={Trophy} tint="text-amber-300" />
-        <Stat value={habit.completionPct} label="complete" icon={Target} tint="text-emerald-300" suffix="%" />
-      </section>
+      <div className="grid grid-cols-3 gap-2.5">
+        <Stat value={habit.currentStreak} label="DAY STREAK" ms="local_fire_department" tint="var(--flame)" />
+        <Stat value={habit.longestStreak} label="BEST STREAK" ms="trophy" tint="var(--gold)" />
+        <Stat value={habit.completionPct} label="COMPLETE" ms="target" tint="var(--target)" suffix="%" />
+      </div>
 
       {/* Mark today (owner only) */}
       {isOwner && habit.today >= habit.startDate && habit.today <= habit.endDate && (
@@ -212,20 +165,13 @@ export default function HabitDetail() {
           type="button"
           onClick={() => toggle(habit.today)}
           disabled={busy}
-          className={clsx(
-            "mb-3 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold",
-            habit.todayDone
-              ? "bg-emerald-500/20 text-emerald-200"
-              : "bg-indigo-500 text-white active:bg-indigo-600",
-            busy && "opacity-50"
-          )}
+          className="mt-4 flex w-full items-center justify-center gap-2.5 rounded-[15px] py-4 text-[17px] font-bold"
+          style={habit.todayDone
+            ? { background: "var(--success-soft)", color: "var(--success)", border: "1px solid color-mix(in srgb, var(--success) 40%, transparent)" }
+            : { background: "var(--accent-strong)", color: "#fff", boxShadow: "0 8px 20px var(--accent-soft)" }}
         >
-          {busy ? (
-            <Loader2 size={16} className="animate-spin" />
-          ) : (
-            <CheckCircle2 size={16} />
-          )}
-          {habit.todayDone ? "Done today ✓ (tap to undo)" : "Mark today done"}
+          {busy ? <Loader2 size={16} className="animate-spin" /> : <Icon name="check_circle" size={22} fill={habit.todayDone} style={{ color: habit.todayDone ? "var(--success)" : "#fff" }} />}
+          {habit.todayDone ? "Done today · tap to undo" : "Mark today done"}
         </button>
       )}
 
@@ -235,130 +181,85 @@ export default function HabitDetail() {
           type="button"
           onClick={nudge}
           disabled={busy || !habit.canNudge}
-          className={clsx(
-            "mb-3 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold",
-            habit.canNudge
-              ? "bg-indigo-500 text-white active:bg-indigo-600"
-              : "bg-slate-800 text-slate-500"
-          )}
+          className="mt-4 flex w-full items-center justify-center gap-2.5 rounded-[15px] py-4 text-[16px] font-bold"
+          style={habit.canNudge ? { background: "var(--accent-strong)", color: "#fff", boxShadow: "0 8px 20px var(--accent-soft)" } : { background: "var(--surface-2)", color: "var(--text-3)" }}
         >
-          {busy ? (
-            <Loader2 size={16} className="animate-spin" />
-          ) : (
-            <Bell size={16} />
-          )}
+          {busy ? <Loader2 size={16} className="animate-spin" /> : <Icon name="notifications" size={20} style={{ color: habit.canNudge ? "#fff" : "var(--text-3)" }} />}
           {habit.canNudge ? "Send a nudge" : "Nudged recently — try later"}
         </button>
       )}
 
       {/* Day grid */}
-      <section className="mb-3">
-        <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
-          {isOwner ? "Tap a day to mark" : "Progress"}
-        </h2>
-        <div className="grid grid-cols-7 gap-1.5">
-          {days.map((d) => {
-            const done = doneSet.has(d.iso);
-            const isToday = d.iso === habit.today;
-            return (
-              <button
-                key={d.iso}
-                type="button"
-                onClick={() => toggle(d.iso)}
-                disabled={!isOwner || d.inFuture || busy}
-                className={clsx(
-                  "flex aspect-square flex-col items-center justify-center rounded-lg text-[10px]",
-                  done
-                    ? "bg-emerald-500 text-white"
-                    : d.inFuture
-                      ? "bg-slate-900/40 text-slate-600"
-                      : "bg-slate-800 text-slate-400",
-                  isToday && "ring-2 ring-indigo-400"
-                )}
-              >
-                <span className="font-semibold">{dayNum(d.iso)}</span>
-                <span className="text-[8px] uppercase opacity-70">
-                  {monthAbbr(d.iso)}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </section>
+      <p className="one-mono mt-5 text-[11px]" style={{ color: "var(--text-3)", letterSpacing: "0.12em" }}>{isOwner ? "TAP A DAY TO MARK" : "PROGRESS"}</p>
+      <div className="mt-3 grid grid-cols-7 gap-[7px]">
+        {days.map((d) => {
+          const done = doneSet.has(d.iso);
+          const isToday = d.iso === habit.today;
+          const numColor = done ? "#fff" : isToday ? "var(--text)" : d.inFuture ? "var(--text-3)" : "var(--text-2)";
+          const monColor = done ? "rgba(255,255,255,0.7)" : "var(--text-3)";
+          return (
+            <button
+              key={d.iso}
+              type="button"
+              onClick={() => toggle(d.iso)}
+              disabled={!isOwner || d.inFuture || busy}
+              className="flex h-[56px] flex-col items-center justify-center gap-0.5 rounded-[12px]"
+              style={{
+                background: done ? "var(--accent-strong)" : isToday ? "var(--surface-3)" : "var(--surface-2)",
+                border: done ? "1px solid var(--accent-strong)" : isToday ? "1.5px solid var(--accent)" : "1px solid var(--border)",
+              }}
+            >
+              <span className="text-[15px] font-bold" style={{ color: numColor }}>{dayNum(d.iso)}</span>
+              <span className="one-mono text-[8px] uppercase" style={{ color: monColor, letterSpacing: "0.05em" }}>{monthAbbr(d.iso)}</span>
+            </button>
+          );
+        })}
+      </div>
 
-      {/* Partner info */}
-      <section className="pb-4">
-        <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
-          Accountability
-        </h2>
-        <div className="rounded-2xl border border-slate-700 bg-slate-800/60 p-3">
-          {isOwner ? (
-            habit.partner ? (
-              <p className="inline-flex items-center gap-2 text-sm text-white">
-                <Sparkles size={14} className="text-indigo-300" />
-                {habit.partner.name}
-                <StatusPill status={habit.partner.status} />
-              </p>
-            ) : (
-              <p className="text-[12px] text-slate-400">
-                No partner yet. Add one when you create a habit, or they can
-                cheer you on once invited.
-              </p>
-            )
+      {/* Accountability */}
+      <p className="one-mono mt-5 text-[11px]" style={{ color: "var(--text-3)", letterSpacing: "0.12em" }}>ACCOUNTABILITY</p>
+      <div className="mt-3 rounded-[16px] p-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+        {isOwner ? (
+          habit.partner ? (
+            <div className="flex items-center gap-2.5">
+              <Icon name="auto_awesome" size={22} style={{ color: "var(--accent)" }} />
+              <span className="text-[16px] font-bold" style={{ color: "var(--text)" }}>{habit.partner.name}</span>
+              <StatusPill status={habit.partner.status} />
+            </div>
           ) : (
-            <p className="text-[12px] text-slate-400">
-              You're keeping {habit.owner.name} accountable. Send a nudge if
-              they haven't marked today.
-            </p>
-          )}
-        </div>
-      </section>
+            <p className="text-[13px]" style={{ color: "var(--text-3)" }}>No partner yet. Add one when you create a habit, or they can cheer you on once invited.</p>
+          )
+        ) : (
+          <p className="text-[13px]" style={{ color: "var(--text-3)" }}>You're keeping {habit.owner.name} accountable. Send a nudge if they haven't marked today.</p>
+        )}
+      </div>
     </div>
   );
 }
 
 // ── Sub-components ─────────────────────────────────────────────────────────
 
-function Stat({
-  value,
-  label,
-  icon: Icon,
-  tint,
-  suffix = "",
-}: {
-  value: number;
-  label: string;
-  icon: typeof Flame;
-  tint: string;
-  suffix?: string;
-}) {
+function Stat({ value, label, ms, tint, suffix = "" }: { value: number; label: string; ms: string; tint: string; suffix?: string }) {
   return (
-    <div className="rounded-2xl border border-slate-700 bg-slate-800/60 p-3 text-center">
-      <Icon size={16} className={clsx("mx-auto mb-1", tint)} />
-      <p className="text-xl font-bold tabular-nums text-white">
-        {value}
-        {suffix}
-      </p>
-      <p className="text-[9px] uppercase tracking-wider text-slate-500">
-        {label}
-      </p>
+    <div className="flex flex-col items-center gap-1 rounded-[16px] px-1.5 py-3.5" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+      <Icon name={ms} size={24} fill style={{ color: tint }} />
+      <p className="text-[24px] font-extrabold tabular-nums" style={{ color: "var(--text)" }}>{value}{suffix}</p>
+      <p className="one-mono text-[9px] uppercase" style={{ color: "var(--text-3)", letterSpacing: "0.08em" }}>{label}</p>
     </div>
   );
 }
 
 function StatusPill({ status }: { status: string }) {
-  const cls =
-    status === "accepted"
-      ? "bg-emerald-500/20 text-emerald-200"
-      : status === "pending"
-        ? "bg-amber-500/20 text-amber-200"
-        : "bg-slate-700 text-slate-300";
+  const accepted = status === "accepted";
+  const pending = status === "pending";
   return (
     <span
-      className={clsx(
-        "rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider",
-        cls
-      )}
+      className="ml-auto rounded-full px-2.5 py-1 text-[11px] font-extrabold uppercase"
+      style={{
+        letterSpacing: "0.04em",
+        background: accepted ? "var(--success-soft)" : pending ? "var(--warning-soft)" : "var(--surface-2)",
+        color: accepted ? "var(--success)" : pending ? "var(--warning)" : "var(--text-2)",
+      }}
     >
       {status}
     </span>
@@ -386,8 +287,5 @@ function monthAbbr(iso: string): string {
 }
 
 function fmtDate(iso: string): string {
-  return new Date(iso + "T00:00:00").toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short",
-  });
+  return new Date(iso + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 }

@@ -54,6 +54,9 @@ body,
   --like: #e11d6b;
   --call: #15803d;
   --star: #d97706;
+  --flame: #ea580c;
+  --gold: #b7791f;
+  --target: #0f9d6e;
   --shadow: 0 8px 28px rgba(16, 28, 51, 0.1);
   --banner: linear-gradient(110deg, #0f766e, #3730a3 60%, #4338ca);
   --ds-mono: "JetBrains Mono", ui-monospace, monospace;
@@ -90,6 +93,9 @@ html.dark {
   --like: #f43f7a;
   --call: #16a34a;
   --star: #fbbf24;
+  --flame: #fb923c;
+  --gold: #fbbf24;
+  --target: #34d399;
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
   --banner: linear-gradient(110deg, #173a3a, #1a2a52 60%, #23275e);
 }
