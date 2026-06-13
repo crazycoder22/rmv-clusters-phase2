@@ -28,6 +28,14 @@ function bearerPlatform(request: Request): string {
   return p === "ios" || p === "android" ? p : "app";
 }
 
+// Public platform resolver — same logic touchLastSeen uses, for routes that
+// record platform-tagged activity (e.g. /api/track). Bearer → ios/android/app,
+// cookie → web.
+export function platformOf(request: Request): string {
+  const authz = request.headers.get("authorization");
+  return authz?.startsWith("Bearer ") ? bearerPlatform(request) : "web";
+}
+
 export type AuthedResident = {
   id: string;
   email: string;

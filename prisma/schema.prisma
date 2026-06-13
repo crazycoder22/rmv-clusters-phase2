@@ -146,6 +146,7 @@ model Resident {
   amenityBookings          AmenityBooking[]        @relation("AmenityBookingsByBooker")
   dailySteps               ResidentDailySteps[]
   stepChallengePartnerOf   StepChallengeGoal[]     @relation("StepChallengePartner")
+  pageViews                PageView[]              @relation("PageViews")
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 }
@@ -165,6 +166,27 @@ model ResidentDailySteps {
 
   @@unique([residentId, date])
   @@index([residentId, date])
+}
+
+// Generic page/feature view log — powers the admin "Page views" dashboard.
+// One row per resident per page per ~viewing-session (the write helper dedups
+// repeat opens within a 30-min window). `feature`/`pageKey` are server-whitelisted
+// strings (not enums) so a new page is a one-line whitelist edit, no migration.
+// Aggregate-only: the admin API never exposes who viewed what, just counts.
+model PageView {
+  id         String   @id @default(cuid())
+  residentId String
+  resident   Resident @relation("PageViews", fields: [residentId], references: [id], onDelete: Cascade)
+  feature    String   // e.g. "initiatives"
+  pageKey    String   // "list" | "detail"
+  entityId   String?  // specific item id on detail pages; null on list pages
+  platform   String   // "web" | "ios" | "android" | "app"
+  createdAt  DateTime @default(now())
+
+  @@index([feature, pageKey, entityId, createdAt])              // rollups + trend
+  @@index([feature, pageKey, entityId, residentId])             // unique-resident counts
+  @@index([residentId, feature, pageKey, entityId, createdAt])  // dedup guard lookup
+  @@map("page_views")
 }
 
 model EventConfig {

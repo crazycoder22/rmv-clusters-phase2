@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Megaphone, Plus, MessageSquare, Clock, Lock } from "lucide-react";
+import { track } from "@/lib/track-client";
 
 interface InitiativeCard {
   id: string;
@@ -37,6 +38,7 @@ export default function InitiativesPage() {
         const d = await res.json();
         setItems(d.initiatives ?? []);
         setCanCreate(!!d.canCreate);
+        track("initiatives", "list");
       }
     } finally {
       setLoading(false);

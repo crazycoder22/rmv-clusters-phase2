@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
+import { track } from "../lib/track";
 import { useAuth } from "../auth/AuthProvider";
 import { canManageAnnouncements } from "../lib/roles";
 
@@ -27,7 +28,10 @@ export default function Initiatives() {
     setLoading(true);
     try {
       const res = await apiFetch("/api/initiatives", { token });
-      if (res.ok) setItems((await res.json()).initiatives ?? []);
+      if (res.ok) {
+        setItems((await res.json()).initiatives ?? []);
+        track(token, "initiatives", "list");
+      }
     } catch {
       // ignore
     } finally {

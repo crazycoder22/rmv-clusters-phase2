@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import { Browser } from "@capacitor/browser";
 import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
+import { track } from "../lib/track";
 import { useAuth } from "../auth/AuthProvider";
 
 interface Comment {
@@ -55,6 +56,7 @@ export default function InitiativeDetail() {
       if (!res.ok) { setError(res.status === 404 ? "Initiative not found" : "Could not load"); return; }
       setData(await res.json());
       setError(null);
+      track(token, "initiatives", "detail", id);
     } finally {
       setLoading(false);
     }

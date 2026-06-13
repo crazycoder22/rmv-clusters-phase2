@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { youtubeId } from "@/lib/initiatives";
 import RichTextViewer from "@/components/editor/RichTextViewer";
+import { track } from "@/lib/track-client";
 
 const looksLikeHtml = (s: string) => /<[a-z][\s\S]*>/i.test(s);
 
@@ -63,6 +64,7 @@ export default function InitiativeDetailPage() {
       if (!res.ok) { setError(res.status === 404 ? "Initiative not found" : "Could not load"); return; }
       setData(await res.json());
       setError(null);
+      track("initiatives", "detail", id);
     } finally {
       setLoading(false);
     }

@@ -19,6 +19,27 @@ type Data = {
   recent: Recent[];
 };
 
+type PlatformSplit = { web: number; ios: number; android: number; app: number };
+type FeatureRow = {
+  feature: string;
+  pageKey: string;
+  totalOpens: number;
+  uniqueResidents: number;
+  platform: PlatformSplit;
+};
+type InitiativeRow = {
+  id: string;
+  title: string;
+  totalOpens: number;
+  uniqueResidents: number;
+  platform: PlatformSplit;
+};
+type PageData = {
+  features: FeatureRow[];
+  initiatives: InitiativeRow[];
+  trend: { date: string; count: number }[];
+};
+
 const PLAT: Record<string, { label: string; emoji: string; cls: string }> = {
   web: { label: "Website", emoji: "🌐", cls: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300" },
   ios: { label: "iOS app", emoji: "", cls: "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200" },
@@ -29,6 +50,7 @@ const PLAT: Record<string, { label: string; emoji: string; cls: string }> = {
 export default function UsageDashboard() {
   const { isAdmin, isLoading } = useRole();
   const [data, setData] = useState<Data | null>(null);
+  const [pages, setPages] = useState<PageData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,6 +61,10 @@ export default function UsageDashboard() {
       .then(setData)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
+    fetch("/api/admin/usage/pages")
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("Failed"))))
+      .then(setPages)
+      .catch(() => {});
   }, [isLoading, isAdmin]);
 
   if (isLoading) return null;
@@ -126,8 +152,130 @@ export default function UsageDashboard() {
           </div>
         </>
       )}
+
+      {pages && <PageViews data={pages} />}
     </div>
   );
+}
+
+function PageViews({ data }: { data: PageData }) {
+  const hasData = data.features.length > 0 || data.initiatives.length > 0;
+  return (
+    <section className="mt-10">
+      <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Page views</h2>
+      <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+        How many residents open each page, and from which platform. Counts only — no individual viewing history.
+      </p>
+
+      {!hasData ? (
+        <p className="text-sm text-gray-400 dark:text-gray-500">
+          No views recorded yet. Counts appear once residents open a tracked page.
+        </p>
+      ) : (
+        <>
+          {/* Per-feature/page */}
+          <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700 mb-6">
+            <table className="min-w-full text-sm">
+              <thead className="bg-gray-50 dark:bg-gray-800/60 text-gray-500 dark:text-gray-400">
+                <tr>
+                  <th className="text-left font-medium px-3 py-2">Page</th>
+                  <th className="text-right font-medium px-3 py-2">People</th>
+                  <th className="text-right font-medium px-3 py-2">Opens</th>
+                  <th className="text-left font-medium px-3 py-2">Platforms</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.features.map((f) => (
+                  <tr key={`${f.feature}|${f.pageKey}`} className="border-t border-gray-100 dark:border-gray-700/60">
+                    <td className="px-3 py-2 text-gray-900 dark:text-gray-100">{prettyPage(f.feature, f.pageKey)}</td>
+                    <td className="px-3 py-2 text-right font-semibold text-gray-900 dark:text-gray-100 tabular-nums">{f.uniqueResidents}</td>
+                    <td className="px-3 py-2 text-right text-gray-500 dark:text-gray-400 tabular-nums">{f.totalOpens}</td>
+                    <td className="px-3 py-2"><PlatformCell split={f.platform} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Per-initiative */}
+          {data.initiatives.length > 0 && (
+            <>
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">By initiative</h3>
+              <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700 mb-6">
+                <table className="min-w-full text-sm">
+                  <thead className="bg-gray-50 dark:bg-gray-800/60 text-gray-500 dark:text-gray-400">
+                    <tr>
+                      <th className="text-left font-medium px-3 py-2">Initiative</th>
+                      <th className="text-right font-medium px-3 py-2">People</th>
+                      <th className="text-right font-medium px-3 py-2">Opens</th>
+                      <th className="text-left font-medium px-3 py-2">Platforms</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.initiatives.map((i) => (
+                      <tr key={i.id} className="border-t border-gray-100 dark:border-gray-700/60">
+                        <td className="px-3 py-2 text-gray-900 dark:text-gray-100 max-w-xs truncate">{i.title}</td>
+                        <td className="px-3 py-2 text-right font-semibold text-gray-900 dark:text-gray-100 tabular-nums">{i.uniqueResidents}</td>
+                        <td className="px-3 py-2 text-right text-gray-500 dark:text-gray-400 tabular-nums">{i.totalOpens}</td>
+                        <td className="px-3 py-2"><PlatformCell split={i.platform} /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+
+          {/* Daily trend */}
+          {data.trend.length > 0 && <TrendStrip trend={data.trend} />}
+        </>
+      )}
+    </section>
+  );
+}
+
+function PlatformCell({ split }: { split: PlatformSplit }) {
+  const items = (["web", "ios", "android", "app"] as const)
+    .map((p) => ({ p, n: split[p] }))
+    .filter((x) => x.n > 0);
+  if (items.length === 0) return <span className="text-gray-300 dark:text-gray-600">—</span>;
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {items.map(({ p, n }) => (
+        <span key={p} className={`text-xs font-medium rounded-full px-2 py-0.5 ${PLAT[p].cls}`}>
+          {PLAT[p].emoji || "📱"} {n}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function TrendStrip({ trend }: { trend: { date: string; count: number }[] }) {
+  const max = Math.max(...trend.map((t) => t.count), 1);
+  const total = trend.reduce((s, t) => s + t.count, 0);
+  return (
+    <div>
+      <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+        Opens per day <span className="text-xs font-normal text-gray-400 dark:text-gray-500">· last 30 days · {total} total</span>
+      </h3>
+      <div className="flex items-end gap-0.5 h-24 rounded-xl border border-gray-200 dark:border-gray-700 p-3 bg-white dark:bg-gray-800">
+        {trend.map((t) => (
+          <div key={t.date} className="flex-1 group relative flex items-end" title={`${t.date}: ${t.count}`}>
+            <div
+              className="w-full rounded-sm bg-blue-500/70 dark:bg-blue-400/60 min-h-[2px]"
+              style={{ height: `${(t.count / max) * 100}%` }}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function prettyPage(feature: string, pageKey: string): string {
+  const f = feature.charAt(0).toUpperCase() + feature.slice(1);
+  const k = pageKey === "list" ? "List" : pageKey === "detail" ? "Detail" : pageKey;
+  return `${f} · ${k}`;
 }
 
 function StatCard({ label, value, muted }: { label: string; value: number; muted?: boolean }) {
