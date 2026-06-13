@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { type FoodKind, KIND_LABELS, formatUnitPrice, unitLabel, asKind } from "@/lib/market";
 import { waOrderLink } from "@/lib/vendors";
+import { track } from "@/lib/track-client";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -107,6 +108,7 @@ export default function FoodHub() {
       if (z.ok) setMineBazaar((await z.json()).menus ?? []);
       if (o.ok) setOrders((await o.json()).orders ?? []);
       if (vn.ok) setVendors((await vn.json()).vendors ?? []);
+      track("food", "list");
     } finally {
       setLoading(false);
     }

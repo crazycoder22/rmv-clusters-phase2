@@ -24,6 +24,7 @@ import {
   X,
 } from "lucide-react";
 import { type FoodKind, KIND_LABELS, formatUnitPrice, unitLabel, waNumber } from "@/lib/market";
+import { track } from "@/lib/track-client";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -126,8 +127,10 @@ export default function MenuDetail({ section = "KITCHEN" }: { section?: FoodKind
         setError(res.status === 404 ? "Not found" : "Could not load");
         return;
       }
-      setMenu(await res.json());
+      const m: MenuDetailData = await res.json();
+      setMenu(m);
       setError(null);
+      track(m.kind === "MARKET" ? "bazaar" : "food", "detail", m.id);
     } finally {
       setLoading(false);
     }

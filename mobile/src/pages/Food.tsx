@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
+import { track } from "../lib/track";
 import { useAuth } from "../auth/AuthProvider";
 import { type FoodKind, KIND_LABELS, formatUnitPrice, unitLabel, asKind } from "../lib/market";
 import { waOrderLink } from "../lib/vendors";
@@ -99,6 +100,7 @@ export default function Food() {
       if (z.ok) setMineBazaar((await z.json()).menus ?? []);
       if (o.ok) setOrders((await o.json()).orders ?? []);
       if (vn.ok) setVendors((await vn.json()).vendors ?? []);
+      track(token, "food", "list");
       setError(null);
     } catch {
       setError("Network error");

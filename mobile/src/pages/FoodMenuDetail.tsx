@@ -23,6 +23,7 @@ import {
 import { Share } from "@capacitor/share";
 import clsx from "clsx";
 import { apiFetch } from "../lib/api";
+import { track } from "../lib/track";
 import { API_BASE_URL } from "../config";
 import { useAuth } from "../auth/AuthProvider";
 import { type FoodKind, KIND_LABELS, formatUnitPrice, unitLabel, waNumber } from "../lib/market";
@@ -124,8 +125,10 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
         setError(res.status === 404 ? "Menu not found" : "Could not load");
         return;
       }
-      setMenu(await res.json());
+      const m: MenuDetail = await res.json();
+      setMenu(m);
       setError(null);
+      track(token, m.kind === "MARKET" ? "bazaar" : "food", "detail", m.id);
     } catch {
       setError("Network error");
     } finally {

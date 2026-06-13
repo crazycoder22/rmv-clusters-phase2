@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 // Adding a new page = add its key here + one track() call on the client. No migration.
 export const TRACKABLE: Record<string, readonly string[]> = {
   initiatives: ["list", "detail"],
+  food: ["list", "detail"], // "list" = the merged Food & Bazaar hub
+  bazaar: ["detail"], // produce/stall detail (no separate bazaar list — shared hub)
 };
 
 export function isTrackable(feature: unknown, pageKey: unknown): boolean {
