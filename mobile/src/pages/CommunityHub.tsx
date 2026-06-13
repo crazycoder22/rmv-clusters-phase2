@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import Icon from "../components/Icon";
 import { useAuth } from "../auth/AuthProvider";
 import {
+  canAccessTasks,
   canIssueMedals,
   canIssueStickers,
   canManageAnnouncements,
@@ -93,8 +94,10 @@ export default function CommunityHub() {
 
   const needle = q.trim().toLowerCase();
   const match = (t: Tile) => !needle || t.label.toLowerCase().includes(needle);
+  // "My Duties" is staff-only — mirror the web nav gate (canAccessTasks).
+  const canDuties = canAccessTasks(user?.roles);
   const admin = adminTiles.filter(match);
-  const community = COMMUNITY.filter(match);
+  const community = COMMUNITY.filter(match).filter((t) => t.to !== "/duties" || canDuties);
   const services = SERVICES.filter(match);
   const rules = RULES.filter(match);
   const app = APP.filter(match);

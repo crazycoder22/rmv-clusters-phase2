@@ -71,3 +71,12 @@ export function canManageResidents(roles: Roles): boolean {
 export function canManageAmenities(roles: Roles): boolean {
   return isAdmin(roles) || has(roles, "COMMUNITY_ADMIN") || has(roles, "FACILITY_MANAGER");
 }
+
+/**
+ * Can access task/duty staff features (My Duties). Mirrors the web
+ * `canAccessTasks` — admins + FACILITY_MANAGER. Regular residents don't see
+ * the My Duties tile.
+ */
+export function canAccessTasks(roles: Roles): boolean {
+  return isAdmin(roles) || has(roles, "FACILITY_MANAGER");
+}
