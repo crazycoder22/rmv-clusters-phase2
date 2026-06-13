@@ -116,6 +116,9 @@ export default function Parking() {
     >
       <header className="flex items-center justify-between py-3">
         <div className="flex items-center gap-2.5">
+          <button type="button" onClick={() => navigate("/community")} className="flex active:opacity-70" aria-label="Back">
+            <Icon name="arrow_back" size={24} style={{ color: "var(--text-2)" }} />
+          </button>
           <Icon name="directions_car" size={26} weight={500} style={{ color: "var(--carblue)" }} />
           <h1 className="text-[24px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>
             Parking
