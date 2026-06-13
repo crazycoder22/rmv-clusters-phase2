@@ -120,7 +120,6 @@ export default function MorePage() {
           { to: "/food", icon: UtensilsCrossed, title: "Food & Bazaar", subtitle: "Home kitchens, produce & outside vendors" },
           { to: "/parking", icon: Car, title: "Parking", subtitle: "Book a neighbour's slot by the hour" },
           { to: "/vehicles", icon: Car, title: "My Vehicles", subtitle: "View your registered vehicles" },
-          { to: "/amenities", icon: CalendarDays, title: "Amenities", subtitle: "Book the clubhouse, courts, gym & more" },
           { to: "/marketplace", icon: ShoppingBag, title: "Marketplace", subtitle: "Buy, sell, give away & rent within RMV" },
           { to: "/domestic-help", icon: Sparkles, title: "Domestic Help", subtitle: "Maids, cooks, drivers — rated by neighbours" },
           { to: "/initiatives", icon: Megaphone, title: "Initiatives", subtitle: "Share feedback on community initiatives" },

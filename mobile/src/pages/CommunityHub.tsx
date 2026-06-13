@@ -25,7 +25,6 @@ interface Tile {
 }
 
 const COMMUNITY: Tile[] = [
-  { to: "/amenities", ms: "fitness_center", label: "Amenities" },
   { to: "/calendar", ms: "calendar_month", label: "Calendar" },
   { to: "/community/feed", ms: "forum", label: "Community Feed" },
   { to: "/domestic-help", ms: "cleaning_services", label: "Domestic Help" },
@@ -45,7 +44,7 @@ const COMMUNITY: Tile[] = [
   { to: "/parking", ms: "local_parking", label: "Parking" },
   { to: "/polls", ms: "poll", label: "Polls" },
   { to: "/referendums", ms: "how_to_vote", label: "Referendums" },
-  { to: "/residents", ms: "contacts", label: "Directory" },
+  { to: "/residents", ms: "contacts", label: "Resident Directory" },
   { to: "/videos", ms: "smart_display", label: "Videos" },
   { to: "/visits", ms: "how_to_reg", label: "Visitors" },
 ];

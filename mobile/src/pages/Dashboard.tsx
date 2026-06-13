@@ -662,15 +662,15 @@ const EXPLORE: {
   sub: string;
   danger?: boolean;
 }[] = [
-  { to: "/news", ms: "newspaper", label: "News", sub: "Announcements" },
+  { to: "/community/feed", ms: "forum", label: "Community Feed", sub: "Photos & posts" },
+  { to: "/emergency", ms: "emergency", label: "Emergency", sub: "Contacts & warriors", danger: true },
+  { to: "/food", ms: "restaurant", label: "Food & Bazaar", sub: "Order & shop" },
   { to: "/games", ms: "sports_esports", label: "Games", sub: "7 games" },
-  { to: "/residents", ms: "groups", label: "Directory", sub: "Find residents" },
-  { to: "/groups", ms: "diversity_3", label: "Groups", sub: "Join & vote" },
-  { to: "/parking", ms: "local_parking", label: "Parking", sub: "Book a slot" },
   { to: "/guidelines", ms: "checklist", label: "Guidelines", sub: "Community rules" },
   { to: "/marketplace", ms: "storefront", label: "Marketplace", sub: "Buy & sell" },
-  { to: "/food", ms: "restaurant", label: "Food & Bazaar", sub: "Order & shop" },
-  { to: "/emergency", ms: "emergency", label: "Emergency", sub: "Contacts & warriors", danger: true },
+  { to: "/news", ms: "newspaper", label: "News", sub: "Announcements" },
+  { to: "/parking", ms: "local_parking", label: "Parking", sub: "Book a slot" },
+  { to: "/residents", ms: "groups", label: "Resident Directory", sub: "Find residents" },
 ];
 
 // OneRMV Explore tile — vertical: accent-soft icon tile on top, label + sub below.
