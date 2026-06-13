@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, MessageCircle, Plus, Search, X, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
 import { Avatar } from "./Community";
@@ -54,53 +55,59 @@ export default function Messages() {
   }
 
   return (
-    <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)]">
-      <header className="flex items-center gap-2 py-4">
-        <Link to="/more" className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 active:bg-slate-800">
-          <ArrowLeft size={20} />
+    <div className="one-surface flex flex-1 flex-col px-[18px] pt-[env(safe-area-inset-top,0px)] pb-8" style={{ background: "var(--bg)", color: "var(--text)" }}>
+      <header className="flex items-center gap-3 py-3">
+        <Link to="/community" className="flex active:opacity-70" aria-label="Back">
+          <Icon name="arrow_back" size={24} style={{ color: "var(--text-2)" }} />
         </Link>
-        <h1 className="flex-1 text-lg font-semibold text-white">Messages</h1>
+        <h1 className="min-w-0 flex-1 text-[24px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>Messages</h1>
         <button
           type="button"
           onClick={() => setPickerOpen(true)}
-          className="flex h-9 items-center gap-1 rounded-full bg-indigo-500 px-3 text-sm font-medium text-white active:bg-indigo-600"
+          className="flex items-center gap-1.5 rounded-full px-4 py-2 text-[14px] font-bold text-white active:opacity-90"
+          style={{ background: "var(--accent-strong)", boxShadow: "0 6px 16px var(--accent-soft)" }}
         >
-          <Plus size={14} /> New
+          <Icon name="add" size={18} style={{ color: "#fff" }} /> New
         </button>
       </header>
 
       {loading ? (
-        <div className="flex justify-center py-12 text-slate-500"><Loader2 size={22} className="animate-spin" /></div>
+        <div className="flex justify-center py-12"><Loader2 size={22} className="animate-spin" style={{ color: "var(--text-3)" }} /></div>
       ) : conversations.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-700 px-4 py-12 text-center text-sm text-slate-500">
-          <MessageCircle size={28} className="mx-auto mb-2 text-slate-600" />
-          No conversations yet. Tap “New” to start one.
+        <div className="flex flex-col items-center gap-3 rounded-[18px] px-6 py-12 text-center" style={{ border: "1.5px dashed var(--border-strong)" }}>
+          <Icon name="forum" size={28} style={{ color: "var(--text-3)" }} />
+          <p className="text-[14px]" style={{ color: "var(--text-3)" }}>No conversations yet. Tap "New" to start one.</p>
         </div>
       ) : (
-        <div className="divide-y divide-slate-800 overflow-hidden rounded-2xl border border-slate-700 bg-slate-800/60 pb-1">
-          {conversations.map((c) => (
-            <Link key={c.id} to={`/messages/${c.id}`} className="flex items-center gap-3 px-3 py-3 active:bg-slate-800">
-              <Avatar name={c.other.name} imageUrl={c.other.googleImage} size={42} />
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between gap-2">
-                  <p className={`truncate text-sm ${c.unreadCount > 0 ? "font-bold text-white" : "font-medium text-slate-200"}`}>
-                    {c.other.name} <span className="text-[11px] font-normal text-slate-500">B{c.other.block ?? "—"}, {c.other.flatNumber}</span>
-                  </p>
-                  <span className="shrink-0 text-[11px] text-slate-500">{timeAgo(c.lastMessageAt)}</span>
-                </div>
-                <div className="mt-0.5 flex items-center justify-between gap-2">
-                  <p className={`truncate text-xs ${c.unreadCount > 0 ? "font-medium text-slate-300" : "text-slate-500"}`}>
+        <div className="overflow-hidden rounded-[18px]" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+          {conversations.map((c, i) => {
+            const unread = c.unreadCount > 0;
+            return (
+              <Link
+                key={c.id}
+                to={`/messages/${c.id}`}
+                className="relative flex items-center gap-3 p-[13px] active:opacity-90"
+                style={i < conversations.length - 1 ? { borderBottom: "1px solid var(--border)" } : undefined}
+              >
+                <Avatar name={c.other.name} imageUrl={c.other.googleImage} size={44} />
+                <div className="min-w-0 flex-1 pr-7">
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="truncate text-[15px] font-bold tracking-tight" style={{ color: "var(--text)" }}>{c.other.name}</span>
+                    <span className="flex-shrink-0 whitespace-nowrap text-[12.5px]" style={{ color: "var(--text-3)" }}>B{c.other.block ?? "—"}, {c.other.flatNumber}</span>
+                  </div>
+                  <p className="mt-0.5 truncate text-[14px]" style={{ color: unread ? "var(--text-2)" : "var(--text-3)", fontWeight: unread ? 600 : 400 }}>
                     {c.lastMessage ? (c.lastMessage.fromMe ? "You: " : "") + c.lastMessage.body : "No messages yet"}
                   </p>
-                  {c.unreadCount > 0 && (
-                    <span className="flex h-[18px] min-w-[18px] shrink-0 items-center justify-center rounded-full bg-indigo-500 px-1 text-[10px] font-bold text-white">
-                      {c.unreadCount > 9 ? "9+" : c.unreadCount}
-                    </span>
-                  )}
                 </div>
-              </div>
-            </Link>
-          ))}
+                <span className="absolute right-3 top-[13px] text-[12px]" style={{ color: "var(--text-3)" }}>{timeAgo(c.lastMessageAt)}</span>
+                {unread && (
+                  <span className="absolute bottom-[15px] right-3 flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-bold text-white" style={{ background: "var(--accent-strong)" }}>
+                    {c.unreadCount > 9 ? "9+" : c.unreadCount}
+                  </span>
+                )}
+              </Link>
+            );
+          })}
         </div>
       )}
 
@@ -125,31 +132,33 @@ function ResidentPicker({ token, onClose, onPick }: { token: string | null; onCl
   }, [q, token]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 px-4 pt-[max(3rem,env(safe-area-inset-top,0px))]">
-      <div className="w-full max-w-md overflow-hidden rounded-2xl border border-slate-700 bg-slate-900">
-        <div className="flex items-center justify-between border-b border-slate-700 px-4 py-3">
-          <h3 className="font-bold text-white">New message</h3>
-          <button type="button" onClick={onClose} className="text-slate-400"><X size={18} /></button>
+    <div className="one-surface fixed inset-0 z-50 flex items-start justify-center bg-black/60 px-3.5 pt-[max(3rem,env(safe-area-inset-top,0px))]">
+      <div className="flex max-h-[80vh] w-full max-w-md flex-col overflow-hidden rounded-[20px]" style={{ background: "var(--surface)", border: "1px solid var(--border-strong)", boxShadow: "0 24px 60px rgba(0,0,0,0.4)" }}>
+        <div className="flex items-center justify-between px-[18px] py-4" style={{ borderBottom: "1px solid var(--border)" }}>
+          <h3 className="text-[19px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>New message</h3>
+          <button type="button" onClick={onClose} aria-label="Close"><Icon name="close" size={22} style={{ color: "var(--text-3)" }} /></button>
         </div>
-        <div className="p-3">
-          <div className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-950 px-3">
-            <Search size={15} className="text-slate-500" />
-            <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by name or flat…" className="flex-1 bg-transparent py-2 text-sm text-slate-100 focus:outline-none" />
+        <div className="px-4 pb-2.5 pt-3.5">
+          <div className="flex items-center gap-2.5 rounded-[12px] px-3.5" style={{ background: "var(--surface-2)", border: "1px solid var(--border-strong)" }}>
+            <Icon name="search" size={20} style={{ color: "var(--text-3)" }} />
+            <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search residents…" className="flex-1 bg-transparent py-3.5 text-[15px] outline-none" style={{ color: "var(--text)" }} />
           </div>
-          <div className="mt-2 max-h-72 divide-y divide-slate-800 overflow-y-auto">
-            {hits.map((h) => (
-              <button key={h.id} type="button" onClick={() => onPick(h.id)} className="flex w-full items-center gap-3 rounded px-1 py-2 text-left active:bg-slate-800">
-                <Avatar name={h.name} imageUrl={h.googleImage} size={36} />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm text-slate-200">{h.name}</p>
-                  <p className="text-xs text-slate-500">Block {h.block ?? "—"}, {h.flatNumber}</p>
-                </div>
-              </button>
-            ))}
-            {q.trim().length >= 1 && hits.length === 0 && (
-              <p className="py-6 text-center text-sm text-slate-500">No residents found.</p>
-            )}
-          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto px-2 pb-2.5">
+          {hits.map((h) => (
+            <button key={h.id} type="button" onClick={() => onPick(h.id)} className="flex w-full items-center gap-3.5 rounded-[12px] p-[11px_10px] text-left active:opacity-80">
+              <span className="flex h-[42px] w-[42px] flex-shrink-0 items-center justify-center rounded-full text-[16px] font-bold text-white" style={{ background: "var(--accent-strong)" }}>
+                {h.name[0]?.toUpperCase() ?? "?"}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[15.5px] font-semibold" style={{ color: "var(--text)" }}>{h.name}</p>
+                <p className="text-[13px]" style={{ color: "var(--text-3)" }}>Block {h.block ?? "—"}, {h.flatNumber}</p>
+              </div>
+            </button>
+          ))}
+          {q.trim().length >= 1 && hits.length === 0 && (
+            <p className="py-6 text-center text-[14px]" style={{ color: "var(--text-3)" }}>No residents found.</p>
+          )}
         </div>
       </div>
     </div>

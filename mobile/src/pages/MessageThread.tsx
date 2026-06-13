@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Send, Trash2, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
 import { Avatar } from "./Community";
@@ -74,30 +75,34 @@ export default function MessageThread() {
     if (res.ok) navigate("/messages");
   }
 
-  if (loading) return <Centered><Loader2 size={22} className="animate-spin text-slate-500" /></Centered>;
-  if (error || !data) return (
-    <Centered>
-      <div className="text-center">
-        <p className="mb-3 text-red-400">{error ?? "Not found"}</p>
-        <button onClick={() => navigate("/messages")} className="text-sm text-blue-400">← Messages</button>
+  if (loading) {
+    return <div className="flex flex-1 items-center justify-center" style={{ background: "var(--bg)" }}><Loader2 size={22} className="animate-spin" style={{ color: "var(--text-3)" }} /></div>;
+  }
+  if (error || !data) {
+    return (
+      <div className="flex flex-1 items-center justify-center px-4" style={{ background: "var(--bg)" }}>
+        <div className="text-center">
+          <p className="mb-3" style={{ color: "var(--danger)" }}>{error ?? "Not found"}</p>
+          <button onClick={() => navigate("/messages")} className="text-[14px]" style={{ color: "var(--accent)" }}>← Messages</button>
+        </div>
       </div>
-    </Centered>
-  );
+    );
+  }
 
   const myLast = [...data.messages].reverse().find((m) => m.fromMe);
   const seen = myLast && data.otherLastReadAt && new Date(data.otherLastReadAt).getTime() >= new Date(myLast.createdAt).getTime();
 
   return (
-    <div className="flex flex-1 flex-col pt-[env(safe-area-inset-top,0px)]">
+    <div className="one-surface flex flex-1 flex-col pt-[env(safe-area-inset-top,0px)]" style={{ background: "var(--bg)", color: "var(--text)" }}>
       {/* Header */}
-      <div className="flex items-center gap-3 border-b border-slate-800 bg-slate-900 px-4 py-3">
-        <button onClick={() => navigate("/messages")} className="text-slate-400"><ArrowLeft size={20} /></button>
-        <Avatar name={data.other.name} imageUrl={data.other.googleImage} size={36} />
+      <div className="flex items-center gap-3 px-4 py-3" style={{ borderBottom: "1px solid var(--border)", background: "var(--surface)" }}>
+        <button onClick={() => navigate("/messages")} className="flex active:opacity-70" aria-label="Back"><Icon name="arrow_back" size={23} style={{ color: "var(--text-2)" }} /></button>
+        <Avatar name={data.other.name} imageUrl={data.other.googleImage} size={38} />
         <div className="min-w-0 flex-1">
-          <p className="truncate font-semibold text-white">{data.other.name}</p>
-          <p className="text-xs text-slate-500">Block {data.other.block ?? "—"}, {data.other.flatNumber}</p>
+          <p className="truncate text-[16px] font-bold" style={{ color: "var(--text)" }}>{data.other.name}</p>
+          <p className="text-[11.5px]" style={{ color: "var(--text-3)" }}>Block {data.other.block ?? "—"}, {data.other.flatNumber} · Resident</p>
         </div>
-        <button onClick={hideConversation} className="text-slate-500"><Trash2 size={18} /></button>
+        <button onClick={hideConversation} className="flex active:opacity-70" aria-label="Remove conversation"><Icon name="delete" size={21} style={{ color: "var(--text-2)" }} /></button>
       </div>
 
       {/* Messages */}
@@ -108,58 +113,68 @@ export default function MessageThread() {
           atBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
         }}
       >
-        <div className="space-y-2">
+        <div className="flex flex-col gap-2">
           {data.messages.length === 0 ? (
-            <p className="py-10 text-center text-sm text-slate-500">No messages yet. Say hello 👋</p>
+            <p className="py-10 text-center text-[14px]" style={{ color: "var(--text-3)" }}>No messages yet. Say hello 👋</p>
           ) : (
             data.messages.map((m, i) => {
               const showDay = i === 0 || !sameDay(data.messages[i - 1].createdAt, m.createdAt);
               return (
                 <div key={m.id}>
                   {showDay && (
-                    <div className="my-3 text-center">
-                      <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[11px] text-slate-500">{dayLabel(m.createdAt)}</span>
+                    <div className="my-2 flex justify-center">
+                      <span className="rounded-full px-3 py-1 text-[11.5px] font-semibold" style={{ background: "var(--surface-2)", color: "var(--text-3)" }}>{dayLabel(m.createdAt)}</span>
                     </div>
                   )}
                   <div className={`flex ${m.fromMe ? "justify-end" : "justify-start"}`}>
-                    <div className={`max-w-[80%] rounded-2xl px-3.5 py-2 ${m.fromMe ? "rounded-br-sm bg-indigo-600 text-white" : "rounded-bl-sm border border-slate-700 bg-slate-800 text-slate-100"}`}>
-                      <p className="whitespace-pre-wrap break-words text-sm">{m.body}</p>
-                      <p className={`mt-0.5 text-right text-[10px] ${m.fromMe ? "text-indigo-200" : "text-slate-500"}`}>{fmtTime(m.createdAt)}</p>
+                    <div
+                      className="max-w-[78%] px-3.5 py-2"
+                      style={m.fromMe
+                        ? { background: "var(--accent-strong)", color: "#fff", borderRadius: "17px 17px 5px 17px" }
+                        : { background: "var(--surface-2)", color: "var(--text)", border: "1px solid var(--border)", borderRadius: "17px 17px 17px 5px" }}
+                    >
+                      <p className="whitespace-pre-wrap break-words text-[15px] leading-snug">{m.body}</p>
+                      <p className="mt-0.5 text-right text-[10.5px]" style={{ color: m.fromMe ? "rgba(255,255,255,0.72)" : "var(--text-3)" }}>{fmtTime(m.createdAt)}</p>
                     </div>
                   </div>
                 </div>
               );
             })
           )}
-          {seen && <p className="pr-1 text-right text-[11px] text-slate-500">Seen</p>}
+          {seen && <p className="pr-1 text-right text-[11px]" style={{ color: "var(--text-3)" }}>Seen</p>}
           <div ref={bottomRef} />
         </div>
       </div>
 
       {/* Composer */}
-      <div className="flex items-end gap-2 border-t border-slate-800 bg-slate-900 px-3 py-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom,0px))]">
-        <textarea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Type a message…"
-          rows={1}
-          className="max-h-32 flex-1 resize-none rounded-2xl bg-slate-800 px-4 py-2.5 text-sm text-slate-100 focus:outline-none"
-        />
+      <div className="flex items-center gap-2.5 px-3.5 py-2.5 pb-[max(0.875rem,env(safe-area-inset-bottom,0px))]" style={{ borderTop: "1px solid var(--border)", background: "var(--surface)" }}>
+        <div className="flex flex-1 items-center rounded-full px-4" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void send(); }
+            }}
+            placeholder="Type a message…"
+            rows={1}
+            className="max-h-32 flex-1 resize-none bg-transparent py-3 text-[14.5px] outline-none"
+            style={{ color: "var(--text)" }}
+          />
+        </div>
         <button
           onClick={send}
           disabled={sending || !text.trim()}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white active:bg-indigo-700 disabled:opacity-40"
+          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full active:opacity-90 disabled:opacity-50"
+          style={{ background: "var(--accent-strong)" }}
+          aria-label="Send"
         >
-          <Send size={17} />
+          {sending ? <Loader2 size={17} className="animate-spin text-white" /> : <Icon name="near_me" size={21} fill style={{ color: "#fff" }} />}
         </button>
       </div>
     </div>
   );
 }
 
-function Centered({ children }: { children: React.ReactNode }) {
-  return <div className="flex flex-1 items-center justify-center px-4">{children}</div>;
-}
 function fmtTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
 }
