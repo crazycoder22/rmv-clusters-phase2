@@ -51,7 +51,7 @@ export default function RichTextEditor({
     editorProps: {
       attributes: {
         class:
-          "newsletter-content min-h-[200px] outline-none px-4 py-3 prose prose-sm max-w-none",
+          "newsletter-content min-h-[200px] outline-none px-4 py-3 prose prose-sm max-w-none dark:prose-invert text-gray-900 dark:text-gray-100",
       },
     },
   });
@@ -76,9 +76,9 @@ export default function RichTextEditor({
   };
 
   return (
-    <div className="border border-gray-300 rounded-lg overflow-hidden bg-white">
+    <div className="border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-900">
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-0.5 px-2 py-1.5 border-b border-gray-200 bg-gray-50">
+      <div className="flex flex-wrap items-center gap-0.5 px-2 py-1.5 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}
           active={editor.isActive("bold")}
@@ -101,7 +101,7 @@ export default function RichTextEditor({
           <UnderlineIcon size={16} />
         </ToolbarButton>
 
-        <div className="w-px h-5 bg-gray-300 mx-1" />
+        <div className="w-px h-5 bg-gray-300 dark:bg-gray-600 mx-1" />
 
         <ToolbarButton
           onClick={() =>
@@ -122,7 +122,7 @@ export default function RichTextEditor({
           <Heading3 size={16} />
         </ToolbarButton>
 
-        <div className="w-px h-5 bg-gray-300 mx-1" />
+        <div className="w-px h-5 bg-gray-300 dark:bg-gray-600 mx-1" />
 
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBulletList().run()}
@@ -139,7 +139,7 @@ export default function RichTextEditor({
           <ListOrdered size={16} />
         </ToolbarButton>
 
-        <div className="w-px h-5 bg-gray-300 mx-1" />
+        <div className="w-px h-5 bg-gray-300 dark:bg-gray-600 mx-1" />
 
         <ToolbarButton
           onClick={addLink}
@@ -152,7 +152,7 @@ export default function RichTextEditor({
           <ImageIcon size={16} />
         </ToolbarButton>
 
-        <div className="w-px h-5 bg-gray-300 mx-1" />
+        <div className="w-px h-5 bg-gray-300 dark:bg-gray-600 mx-1" />
 
         <ToolbarButton
           onClick={() => editor.chain().focus().undo().run()}
@@ -199,8 +199,8 @@ function ToolbarButton({
       title={title}
       className={`p-1.5 rounded transition-colors ${
         active
-          ? "bg-primary-100 text-primary-700"
-          : "text-gray-600 hover:bg-gray-200 hover:text-gray-900"
+          ? "bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300"
+          : "text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100"
       } ${disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer"}`}
     >
       {children}
