@@ -107,6 +107,7 @@ import PushNotificationsMount from "./components/PushNotificationsMount";
 import StepSyncMount from "./components/StepSyncMount";
 import PersonalStepSyncMount from "./components/PersonalStepSyncMount";
 import DeepLinksMount from "./components/DeepLinksMount";
+import PageViewTracker from "./components/PageViewTracker";
 
 export default function App() {
   return (
@@ -139,6 +140,7 @@ function Gate() {
       <StepSyncMount />
       <PersonalStepSyncMount />
       <DeepLinksMount />
+      <PageViewTracker />
       <Shell>
         <Routes>
           <Route path="/" element={<Dashboard />} />

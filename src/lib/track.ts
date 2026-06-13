@@ -1,20 +1,13 @@
 import { prisma } from "@/lib/prisma";
 
-// Whitelist of trackable (feature → pageKeys). Clients can only record views
-// for these; anything else is silently ignored by the /api/track endpoint.
-// Adding a new page = add its key here + one track() call on the client. No migration.
-export const TRACKABLE: Record<string, readonly string[]> = {
-  initiatives: ["list", "detail"],
-  food: ["list", "detail"], // "list" = the merged Food & Bazaar hub
-  bazaar: ["detail"], // produce/stall detail (no separate bazaar list — shared hub)
-};
-
-export function isTrackable(feature: unknown, pageKey: unknown): boolean {
-  return (
-    typeof feature === "string" &&
-    typeof pageKey === "string" &&
-    TRACKABLE[feature]?.includes(pageKey) === true
-  );
+// Page views are tracked across all pages (an auto-tracker derives feature/pageKey
+// from the route), so instead of an explicit allowlist we sanitise the keys: a
+// trackable key is lowercase [a-z0-9_-], 1-40 chars. Anything else → null (ignored).
+// This keeps the table clean (no arbitrary/garbage keys) without per-page upkeep.
+export function cleanKey(s: unknown): string | null {
+  if (typeof s !== "string") return null;
+  const v = s.toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 40);
+  return v.length ? v : null;
 }
 
 // Collapse repeat opens (refresh / HMR / StrictMode double-mount / back-forward)

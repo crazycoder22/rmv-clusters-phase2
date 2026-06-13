@@ -5,6 +5,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import NoticeBanner from "@/components/layout/NoticeBanner";
 import PopupManager from "@/components/popups/PopupManager";
+import PageViewTracker from "@/components/PageViewTracker";
 import SessionProvider from "@/components/auth/SessionProvider";
 import siteData from "@/data/site.json";
 import type { NoticeBanner as NoticeBannerType } from "@/types";
@@ -94,6 +95,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${playfairDisplay.variable} ${sourceSerif.variable} antialiased`}
       >
         <SessionProvider>
+          <PageViewTracker />
           {siteData.noticeBanner && (
             <NoticeBanner
               banner={siteData.noticeBanner as NoticeBannerType}

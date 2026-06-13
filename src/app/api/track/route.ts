@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthedResident, platformOf } from "@/lib/api-auth";
-import { isTrackable, recordPageView, recordDwell } from "@/lib/track";
+import { cleanKey, recordPageView, recordDwell } from "@/lib/track";
 
 export const dynamic = "force-dynamic";
 
@@ -14,11 +14,12 @@ export async function POST(request: Request) {
   if (!me) return new NextResponse(null, { status: 204 });
 
   const body = await request.json().catch(() => null);
-  const feature = body?.feature;
-  const pageKey = body?.pageKey;
-  if (!isTrackable(feature, pageKey)) return new NextResponse(null, { status: 204 });
+  const feature = cleanKey(body?.feature);
+  const pageKey = cleanKey(body?.pageKey);
+  if (!feature || !pageKey) return new NextResponse(null, { status: 204 });
 
-  const entityId = typeof body?.entityId === "string" ? body.entityId : null;
+  const entityId =
+    typeof body?.entityId === "string" && body.entityId.length <= 100 ? body.entityId : null;
   const platform = platformOf(request);
   const durationMs =
     typeof body?.durationMs === "number" && body.durationMs > 0 ? body.durationMs : null;
