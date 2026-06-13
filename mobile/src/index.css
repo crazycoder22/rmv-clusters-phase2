@@ -44,6 +44,8 @@ body,
   --danger-soft: #fdecec;
   --info: #2563eb;
   --info-soft: #e6efff;
+  --deliver: #c06a22;
+  --deliver-soft: #f7ecdf;
   --success-line: #a7e3cd;
   --carblue: #2563eb;
   --veg: #0f9d6e;
@@ -85,6 +87,8 @@ html.dark {
   --danger-soft: rgba(248, 113, 113, 0.16);
   --info: #5b9cff;
   --info-soft: rgba(91, 156, 255, 0.16);
+  --deliver: #e0843c;
+  --deliver-soft: rgba(224, 132, 60, 0.18);
   --success-line: rgba(52, 211, 153, 0.38);
   --carblue: #5b9cff;
   --veg: #34d399;

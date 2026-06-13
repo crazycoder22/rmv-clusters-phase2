@@ -1,20 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  ArrowLeft,
-  Calendar,
-  Car,
-  ChevronLeft,
-  ChevronRight,
-  Package,
-  ShieldCheck,
-  Sparkles,
-  User,
-  Users,
-  Wrench,
-  type LucideIcon,
-} from "lucide-react";
-import clsx from "clsx";
+import { Loader2 } from "lucide-react";
+import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
 
@@ -38,9 +25,7 @@ type Visit = {
 function todayIst(): string {
   const now = new Date();
   const istOffset = 5.5 * 60 * 60 * 1000;
-  const ist = new Date(
-    now.getTime() + istOffset + now.getTimezoneOffset() * 60 * 1000
-  );
+  const ist = new Date(now.getTime() + istOffset + now.getTimezoneOffset() * 60 * 1000);
   return ist.toISOString().split("T")[0];
 }
 
@@ -74,55 +59,22 @@ function fmtTime(iso: string | null): string {
   });
 }
 
-function categorize(v: Visit): { icon: LucideIcon; tint: string; label: string } {
+// Map a MyGate visit to an OneRMV category (icon + token colours + tag).
+// Follows OneRMV Visitors.dc.html.
+type Cat = { ms: string; color: string; soft: string; tag: string };
+function categorize(v: Visit): Cat {
   const t = v.visitorType?.toLowerCase() ?? "";
   if (t.includes("deliver") || v.fromSource)
-    return {
-      icon: Package,
-      tint: "bg-orange-500/20 text-orange-300",
-      label: v.fromSource ?? "Delivery",
-    };
+    return { ms: "deployed_code", color: "var(--deliver)", soft: "var(--deliver-soft)", tag: "Delivery" };
   if (t.includes("cab") || t.includes("taxi") || t.includes("driver"))
-    return {
-      icon: Car,
-      tint: "bg-amber-500/20 text-amber-300",
-      label: "Cab",
-    };
+    return { ms: "local_taxi", color: "var(--info)", soft: "var(--info-soft)", tag: "Cab" };
+  if (t.includes("help") || t.includes("maid") || t.includes("cook") || t.includes("domestic") || t.includes("nanny"))
+    return { ms: "cleaning_services", color: "var(--produce)", soft: "var(--success-soft)", tag: "Daily help" };
+  if (t.includes("plumb") || t.includes("electric") || t.includes("repair") || t.includes("technic") || t.includes("service"))
+    return { ms: "build", color: "var(--info)", soft: "var(--info-soft)", tag: "Service" };
   if (t.includes("guest") || t.includes("visitor"))
-    return {
-      icon: User,
-      tint: "bg-indigo-500/20 text-indigo-300",
-      label: "Guest",
-    };
-  if (
-    t.includes("help") ||
-    t.includes("maid") ||
-    t.includes("cook") ||
-    t.includes("domestic") ||
-    t.includes("nanny")
-  )
-    return {
-      icon: Sparkles,
-      tint: "bg-emerald-500/20 text-emerald-300",
-      label: "Domestic help",
-    };
-  if (
-    t.includes("plumb") ||
-    t.includes("electric") ||
-    t.includes("repair") ||
-    t.includes("technic") ||
-    t.includes("service")
-  )
-    return {
-      icon: Wrench,
-      tint: "bg-sky-500/20 text-sky-300",
-      label: "Service",
-    };
-  return {
-    icon: Users,
-    tint: "bg-slate-700 text-slate-300",
-    label: v.visitorType || "Visitor",
-  };
+    return { ms: "person", color: "var(--accent)", soft: "var(--accent-soft)", tag: "Guest" };
+  return { ms: "person", color: "var(--text-2)", soft: "var(--surface-3)", tag: v.visitorType || "Visitor" };
 }
 
 export default function VisitsPage() {
@@ -156,149 +108,113 @@ export default function VisitsPage() {
   const residentApproved = visits.filter((v) => v.approvedByResident).length;
 
   return (
-    <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)]">
-      <header className="flex items-center gap-2 py-4">
-        <Link
-          to="/more"
-          className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 hover:bg-slate-800"
-        >
-          <ArrowLeft size={20} />
+    <div
+      className="one-surface flex flex-1 flex-col px-[18px] pt-[env(safe-area-inset-top,0px)] pb-8"
+      style={{ background: "var(--bg)", color: "var(--text)" }}
+    >
+      {/* Header */}
+      <header className="flex items-center gap-3 py-2.5">
+        <Link to="/community" className="flex active:opacity-70" aria-label="Back">
+          <Icon name="arrow_back" size={24} style={{ color: "var(--text-2)" }} />
         </Link>
-        <h1 className="text-lg font-semibold text-white">Your Visitors</h1>
+        <h1 className="text-[24px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>Your Visitors</h1>
       </header>
-
-      <p className="mb-4 text-xs text-slate-500">
+      <p className="mb-3.5 text-[13.5px]" style={{ color: "var(--text-3)" }}>
         Visitors to your flat, imported from MyGate.
       </p>
 
-      {/* Date picker */}
-      <div className="mb-4 flex items-center justify-between rounded-2xl border border-slate-700 bg-slate-800/60 px-2 py-2">
+      {/* Date selector */}
+      <div className="flex items-center justify-between rounded-[16px] p-[5px]" style={{ background: "var(--surface)", border: "1px solid var(--border-strong)" }}>
         <button
           onClick={() => setDate((d) => shiftDay(d, -1))}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 active:bg-slate-700"
+          className="flex h-[42px] w-[42px] items-center justify-center rounded-[12px] active:opacity-70"
+          style={{ color: "var(--text-2)" }}
+          aria-label="Previous day"
         >
-          <ChevronLeft size={18} />
+          <Icon name="chevron_left" size={22} style={{ color: "var(--text-2)" }} />
         </button>
-        <div className="flex items-center gap-2 text-sm font-semibold text-white">
-          <Calendar size={14} className="text-slate-500" />
-          {formatHumanDate(date)}
+        <div className="flex items-center gap-2" style={{ color: "var(--text)" }}>
+          <Icon name="calendar_today" size={19} style={{ color: "var(--text-3)" }} />
+          <span className="text-[16px] font-bold">{formatHumanDate(date)}</span>
         </div>
         <button
           onClick={() => setDate((d) => shiftDay(d, 1))}
           disabled={isToday}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 active:bg-slate-700 disabled:opacity-30"
+          className="flex h-[42px] w-[42px] items-center justify-center rounded-[12px] active:opacity-70 disabled:opacity-40"
+          style={{ color: "var(--text-2)" }}
+          aria-label="Next day"
         >
-          <ChevronRight size={18} />
+          <Icon name="chevron_right" size={22} style={{ color: "var(--text-2)" }} />
         </button>
       </div>
 
-      {loading ? (
-        <p className="py-10 text-center text-sm text-slate-500">Loading…</p>
-      ) : visits.length === 0 ? (
-        <div className="py-16 text-center">
-          <Users size={32} className="mx-auto mb-2 text-slate-600" />
-          <p className="text-sm text-slate-400">No visitors logged.</p>
-          <p className="mt-1 text-xs text-slate-500">
-            Visit log is imported from MyGate periodically.
-          </p>
+      {/* Stats */}
+      <div className="mt-3.5 flex gap-3">
+        <div className="flex flex-1 flex-col items-center gap-1.5 rounded-[16px] px-3 py-[18px]" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+          <span className="text-[30px] font-extrabold leading-none" style={{ color: "var(--text)" }}>{total}</span>
+          <span className="one-mono text-[10px] font-semibold" style={{ color: "var(--text-3)", letterSpacing: "0.12em" }}>TOTAL</span>
         </div>
-      ) : (
-        <>
-          <div className="mb-3 grid grid-cols-2 gap-2">
-            <Stat label="Total" value={total} />
-            <Stat
-              label="Approved by you"
-              value={residentApproved}
-              tint="bg-green-500/20 text-green-300"
-            />
-          </div>
-          <div className="space-y-2 pb-4">
-            {visits.map((v) => (
-              <VisitCard key={v.id} v={v} />
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
+        <div className="flex flex-1 flex-col items-center gap-1.5 rounded-[16px] px-3 py-[18px]" style={{ background: "var(--success-soft)", border: "1px solid color-mix(in srgb, var(--success) 32%, var(--border))" }}>
+          <span className="text-[30px] font-extrabold leading-none" style={{ color: "var(--success)" }}>{residentApproved}</span>
+          <span className="one-mono text-[10px] font-semibold" style={{ color: "var(--text-3)", letterSpacing: "0.12em" }}>APPROVED BY YOU</span>
+        </div>
+      </div>
 
-function Stat({
-  label,
-  value,
-  tint,
-}: {
-  label: string;
-  value: number;
-  tint?: string;
-}) {
-  return (
-    <div className="rounded-xl border border-slate-700 bg-slate-800/60 p-3 text-center">
-      <p className={clsx("text-xl font-bold", tint ?? "text-white")}>{value}</p>
-      <p className="mt-0.5 text-[10px] uppercase tracking-wider text-slate-500">
-        {label}
-      </p>
+      {/* Visitor list */}
+      <div className="mt-3.5 flex flex-col gap-3">
+        {loading ? (
+          <div className="flex justify-center py-12"><Loader2 size={22} className="animate-spin" style={{ color: "var(--text-3)" }} /></div>
+        ) : visits.length === 0 ? (
+          <div className="flex flex-col items-center gap-3 rounded-[18px] px-6 py-10 text-center" style={{ border: "1.5px dashed var(--border-strong)" }}>
+            <Icon name="person_off" size={40} style={{ color: "var(--text-3)" }} />
+            <p className="text-[14px] leading-relaxed" style={{ color: "var(--text-3)" }}>No visitors logged for your flat on this day.</p>
+          </div>
+        ) : (
+          visits.map((v) => <VisitCard key={v.id} v={v} />)
+        )}
+      </div>
     </div>
   );
 }
 
 function VisitCard({ v }: { v: Visit }) {
   const cat = categorize(v);
-  const Icon = cat.icon;
+  const source = (v.fromSource ?? cat.tag).toUpperCase();
   return (
-    <article className="rounded-2xl border border-slate-700 bg-slate-800/60 p-3">
-      <div className="flex items-start gap-3">
-        <div
-          className={clsx(
-            "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full",
-            cat.tint
-          )}
-        >
-          <Icon size={16} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="truncate text-sm font-semibold text-white">
-              {v.visitorName}
-            </p>
-            {v.approvedByResident && (
-              <span className="inline-flex items-center gap-0.5 rounded-full bg-green-500/20 px-1.5 py-0.5 text-[10px] font-bold text-green-300">
-                <ShieldCheck size={9} />
-                You
-              </span>
-            )}
-          </div>
-          <p className="mt-0.5 text-[11px] text-slate-400">
-            {cat.label}
-            {v.fromSource && cat.label !== v.fromSource
-              ? ` · ${v.fromSource}`
-              : ""}
-          </p>
-          <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-slate-500">
-            <span>
-              In <span className="font-mono text-slate-300">{fmtTime(v.inTime)}</span>
-            </span>
-            {v.outTime && (
-              <span>
-                · Out{" "}
-                <span className="font-mono text-slate-300">
-                  {fmtTime(v.outTime)}
-                </span>
-              </span>
-            )}
-            {v.gate && <span>· Gate {v.gate}</span>}
-          </div>
-          {(v.allowedByGuard || v.approvedBy) && (
-            <p className="mt-1 text-[10px] text-slate-500">
-              {v.approvedByResident
-                ? `Approved by ${v.approvedBy ?? "a resident"}`
-                : v.allowedByGuard
-                  ? `Walked through by ${v.allowedByGuard}`
-                  : ""}
-            </p>
-          )}
-        </div>
+    <div className="flex gap-3 rounded-[18px] p-[15px]" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+      <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-full" style={{ background: cat.soft }}>
+        <Icon name={cat.ms} size={23} fill style={{ color: cat.color }} />
       </div>
-    </article>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center justify-between gap-2">
+          <span className="truncate text-[16.5px] font-bold tracking-tight" style={{ color: "var(--text)" }}>{v.visitorName}</span>
+          <span className="flex-shrink-0 rounded-full px-2.5 py-[3px] text-[10px] font-bold" style={{ background: cat.soft, color: cat.color }}>{cat.tag}</span>
+        </div>
+        <div className="one-mono mt-1 text-[11px]" style={{ color: "var(--text-3)", letterSpacing: "0.06em" }}>{source}</div>
+        <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[13px]" style={{ color: "var(--text-2)" }}>
+          <span style={{ color: "var(--text-3)" }}>In</span>
+          <span className="one-mono font-semibold" style={{ color: "var(--text)" }}>{fmtTime(v.inTime)}</span>
+          {v.outTime && (
+            <>
+              <span style={{ color: "var(--text-3)" }}>·</span>
+              <span style={{ color: "var(--text-3)" }}>Out</span>
+              <span className="one-mono font-semibold" style={{ color: "var(--text)" }}>{fmtTime(v.outTime)}</span>
+            </>
+          )}
+          {v.gate && <span style={{ color: "var(--text-3)" }}>· Gate {v.gate}</span>}
+        </div>
+        {v.approvedByResident ? (
+          <div className="mt-2 flex items-center gap-1.5 text-[12px] font-semibold" style={{ color: "var(--success)" }}>
+            <Icon name="verified_user" size={14} fill style={{ color: "var(--success)" }} />
+            Approved by {v.approvedBy ? `${v.approvedBy}` : "you"}
+          </div>
+        ) : v.allowedByGuard ? (
+          <div className="mt-2 flex items-center gap-1.5 text-[12px]" style={{ color: "var(--text-3)" }}>
+            <Icon name="directions_walk" size={14} style={{ color: "var(--text-3)" }} />
+            Walked through by {v.allowedByGuard}
+          </div>
+        ) : null}
+      </div>
+    </div>
   );
 }
