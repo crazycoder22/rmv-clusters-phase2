@@ -95,8 +95,12 @@ export async function POST(request: Request) {
     videoUrl?: string;
   };
 
-  if (!content || !content.trim()) {
-    return NextResponse.json({ error: "Content is required" }, { status: 400 });
+  const hasImages = Array.isArray(images) && images.length > 0;
+  if ((!content || !content.trim()) && !hasImages) {
+    return NextResponse.json(
+      { error: "Add a caption or a photo" },
+      { status: 400 }
+    );
   }
 
   if (images && images.length > 4) {
@@ -108,7 +112,7 @@ export async function POST(request: Request) {
 
   const post = await prisma.post.create({
     data: {
-      content: content.trim(),
+      content: content?.trim() ?? "",
       images: images || [],
       videoUrl: videoUrl?.trim() || null,
       authorId: resident.id,

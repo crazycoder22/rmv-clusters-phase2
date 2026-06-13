@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import clsx from "clsx";
 import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
+import { API_BASE_URL } from "../config";
 import { useAuth } from "../auth/AuthProvider";
 
 type Author = {
@@ -38,7 +39,37 @@ export default function Community() {
   const [composing, setComposing] = useState(false);
   const [composeError, setComposeError] = useState<string | null>(null);
   const [composeOpen, setComposeOpen] = useState(false);
+  const [composeImages, setComposeImages] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const fileRef = useRef<HTMLInputElement | null>(null);
+
+  const MAX_IMAGES = 4;
+
+  async function uploadImage(file: File) {
+    if (composeImages.length >= MAX_IMAGES) return;
+    setUploading(true);
+    setComposeError(null);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch(`${API_BASE_URL}/api/upload`, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        body: form,
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.url) setComposeImages((prev) => [...prev, data.url]);
+      } else {
+        setComposeError("Image upload failed. Try a smaller photo.");
+      }
+    } catch {
+      setComposeError("Image upload failed. Check your connection.");
+    } finally {
+      setUploading(false);
+    }
+  }
 
   const fetchPage = useCallback(
     async (cursor?: string | null) => {
@@ -91,14 +122,14 @@ export default function Community() {
 
   const submitPost = async () => {
     const content = composeText.trim();
-    if (!content) return;
+    if (!content && composeImages.length === 0) return;
     setComposing(true);
     setComposeError(null);
     try {
       const res = await apiFetch("/api/feed", {
         method: "POST",
         token,
-        body: JSON.stringify({ content }),
+        body: JSON.stringify({ content, images: composeImages }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -107,6 +138,7 @@ export default function Community() {
       }
       setPosts((prev) => [data as Post, ...prev]);
       setComposeText("");
+      setComposeImages([]);
       setComposeOpen(false);
     } finally {
       setComposing(false);
@@ -196,25 +228,44 @@ export default function Community() {
       <div className="flex-1 overflow-y-auto">
         {/* Composer */}
         <div className="px-[18px] pb-4">
+          {/* Hidden picker — on iOS this offers Photo Library / Take Photo / Choose File */}
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) void uploadImage(f);
+              e.target.value = "";
+            }}
+          />
           {!composeOpen ? (
-            <button
-              onClick={() => setComposeOpen(true)}
-              className="flex w-full items-center gap-3 rounded-[16px] p-[11px_13px] text-left active:opacity-90"
+            <div
+              className="flex w-full items-center gap-3 rounded-[16px] p-[11px_13px] text-left"
               style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
             >
               <Avatar name={user?.name ?? ""} imageUrl={user?.imageUrl ?? null} size={38} />
-              <span className="flex-1 text-[13.5px]" style={{ color: "var(--text-3)" }}>
+              <button onClick={() => setComposeOpen(true)} className="flex-1 text-left text-[13.5px] active:opacity-80" style={{ color: "var(--text-3)" }}>
                 Share a moment with your block…
-              </span>
-              <span className="flex h-[34px] w-[34px] items-center justify-center rounded-[10px]" style={{ background: "var(--accent-soft)" }}>
+              </button>
+              <button
+                onClick={() => {
+                  setComposeOpen(true);
+                  fileRef.current?.click();
+                }}
+                aria-label="Add a photo"
+                className="flex h-[34px] w-[34px] items-center justify-center rounded-[10px] active:opacity-80"
+                style={{ background: "var(--accent-soft)" }}
+              >
                 <Icon name="add_photo_alternate" size={20} style={{ color: "var(--accent)" }} />
-              </span>
-            </button>
+              </button>
+            </div>
           ) : (
             <div className="rounded-[16px] p-3" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
               <div className="flex gap-3">
                 <Avatar name={user?.name ?? ""} imageUrl={user?.imageUrl ?? null} size={38} />
-                <div className="flex-1">
+                <div className="min-w-0 flex-1">
                   <textarea
                     autoFocus
                     value={composeText}
@@ -223,14 +274,52 @@ export default function Community() {
                     rows={3}
                     className="one-input w-full resize-none rounded-[12px] px-3 py-2.5 text-[14px]"
                   />
-                  {composeError && (
-                    <p className="mt-1 text-[12px]" style={{ color: "var(--danger)" }}>{composeError}</p>
+
+                  {/* Image thumbnails */}
+                  {(composeImages.length > 0 || uploading) && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {composeImages.map((src, i) => (
+                        <div key={i} className="relative h-[68px] w-[68px] overflow-hidden rounded-[10px]" style={{ border: "1px solid var(--border)" }}>
+                          <img src={src} alt="" className="h-full w-full object-cover" />
+                          <button
+                            onClick={() => setComposeImages((p) => p.filter((_, idx) => idx !== i))}
+                            className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white"
+                            aria-label="Remove photo"
+                          >
+                            <Icon name="close" size={12} style={{ color: "#fff" }} />
+                          </button>
+                        </div>
+                      ))}
+                      {uploading && (
+                        <div className="flex h-[68px] w-[68px] items-center justify-center rounded-[10px]" style={{ border: "1px solid var(--border)", background: "var(--surface-2)" }}>
+                          <Loader2 size={18} className="animate-spin" style={{ color: "var(--text-3)" }} />
+                        </div>
+                      )}
+                    </div>
                   )}
-                  <div className="mt-2 flex items-center justify-end gap-2">
+
+                  {composeError && (
+                    <p className="mt-1.5 text-[12px]" style={{ color: "var(--danger)" }}>{composeError}</p>
+                  )}
+
+                  <div className="mt-2 flex items-center gap-2">
+                    {/* Add photo */}
+                    <button
+                      onClick={() => fileRef.current?.click()}
+                      disabled={uploading || composeImages.length >= MAX_IMAGES}
+                      aria-label="Add a photo"
+                      className="flex h-9 w-9 items-center justify-center rounded-[10px] disabled:opacity-50"
+                      style={{ background: "var(--accent-soft)" }}
+                    >
+                      <Icon name="add_photo_alternate" size={20} style={{ color: "var(--accent)" }} />
+                    </button>
+                    <span className="text-[11px]" style={{ color: "var(--text-3)" }}>{composeImages.length}/{MAX_IMAGES}</span>
+                    <div className="flex-1" />
                     <button
                       onClick={() => {
                         setComposeOpen(false);
                         setComposeText("");
+                        setComposeImages([]);
                         setComposeError(null);
                       }}
                       className="rounded-[10px] px-3.5 py-2 text-[13px] font-semibold"
@@ -240,7 +329,7 @@ export default function Community() {
                     </button>
                     <button
                       onClick={submitPost}
-                      disabled={composing || !composeText.trim()}
+                      disabled={composing || uploading || (!composeText.trim() && composeImages.length === 0)}
                       className="inline-flex items-center gap-1.5 rounded-[10px] px-4 py-2 text-[13px] font-bold text-white active:opacity-90 disabled:opacity-50"
                       style={{ background: "var(--accent-strong)" }}
                     >
