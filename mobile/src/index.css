@@ -199,7 +199,7 @@ html.dark .dh-tag-other { color: #94a3b8; }
   margin-bottom: 0;
 }
 .mobile-rich a {
-  color: #818cf8;
+  color: var(--accent);
   text-decoration: underline;
 }
 .mobile-rich ul,
@@ -212,13 +212,13 @@ html.dark .dh-tag-other { color: #94a3b8; }
 }
 .mobile-rich strong,
 .mobile-rich b {
-  color: #f1f5f9;
-  font-weight: 600;
+  color: inherit;
+  font-weight: 700;
 }
 .mobile-rich h1,
 .mobile-rich h2,
 .mobile-rich h3 {
-  color: #f1f5f9;
+  color: var(--text);
   font-weight: 600;
   margin: 0.6rem 0 0.3rem;
 }
