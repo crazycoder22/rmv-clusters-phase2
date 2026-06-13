@@ -74,12 +74,14 @@ export async function getAuthedResident(
           isSeniorCitizen: true,
           dailyStepGoal: true,
           stepSource: true,
+          deactivatedAt: true,
           lastSeenAt: true,
           lastPlatform: true,
           roles: { select: { name: true } },
         },
       });
       if (!resident) return null;
+      if (resident.deactivatedAt) return null; // deactivated account → locked out
       touchLastSeen(resident.id, bearerPlatform(request), resident.lastSeenAt, resident.lastPlatform);
       return {
         id: resident.id,
@@ -117,12 +119,14 @@ export async function getAuthedResident(
       isSeniorCitizen: true,
       dailyStepGoal: true,
       stepSource: true,
+      deactivatedAt: true,
       lastSeenAt: true,
       lastPlatform: true,
       roles: { select: { name: true } },
     },
   });
   if (!resident) return null;
+  if (resident.deactivatedAt) return null; // deactivated account → locked out
   touchLastSeen(resident.id, "web", resident.lastSeenAt, resident.lastPlatform);
   return {
     id: resident.id,

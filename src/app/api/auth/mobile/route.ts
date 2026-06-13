@@ -40,6 +40,7 @@ export async function POST(req: Request) {
       dailyStepGoal: true,
       stepSource: true,
       googleImage: true,
+      deactivatedAt: true,
       roles: { select: { name: true } },
     },
   });
@@ -50,6 +51,16 @@ export async function POST(req: Request) {
     );
     return NextResponse.json(
       { error: "not_registered", email: identity.email },
+      { status: 403 }
+    );
+  }
+
+  if (resident.deactivatedAt) {
+    console.warn(
+      `[auth/mobile] deactivated email=${identity.email} residentId=${resident.id}`
+    );
+    return NextResponse.json(
+      { error: "deactivated", email: identity.email },
       { status: 403 }
     );
   }

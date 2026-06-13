@@ -2,14 +2,17 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
+  Ban,
   Check,
   Crown,
   KeyRound,
   Loader2,
+  RotateCcw,
   Search,
   ShieldAlert,
   ShieldCheck,
   Sparkles,
+  Trash2,
   Wrench,
   X,
   type LucideIcon,
@@ -35,6 +38,7 @@ interface ResidentHit {
   block: number | null;
   flatNumber: string;
   roles: { name: string }[];
+  deactivatedAt?: string | null;
 }
 
 // ── Role meta ──────────────────────────────────────────────────────────────
@@ -183,6 +187,67 @@ export default function AdminRoles() {
     [token]
   );
 
+  // Deactivate / reactivate a resident (soft delete).
+  const setActive = useCallback(
+    async (resident: ResidentHit, deactivate: boolean) => {
+      if (residentIsSuperAdmin(resident) || resident.id === user?.id) return;
+      const verb = deactivate ? "Deactivate" : "Reactivate";
+      if (!window.confirm(`${verb} ${resident.name}? ${deactivate ? "They will be signed out and can't use the app until reactivated." : "They'll be able to sign in again."}`)) return;
+      setBusyId(resident.id);
+      setError(null);
+      try {
+        const res = await apiFetch("/api/admin/roles", {
+          method: "PATCH",
+          token,
+          body: JSON.stringify({ residentId: resident.id, action: deactivate ? "deactivate" : "reactivate" }),
+        });
+        const data = await res.json().catch(() => null);
+        if (!res.ok) {
+          setError(data?.error ?? "Could not update");
+          return;
+        }
+        setHits((prev) =>
+          prev.map((h) =>
+            h.id === resident.id ? { ...h, deactivatedAt: data?.resident?.deactivatedAt ?? (deactivate ? new Date().toISOString() : null) } : h
+          )
+        );
+      } catch {
+        setError("Network error");
+      } finally {
+        setBusyId(null);
+      }
+    },
+    [token, user?.id]
+  );
+
+  // Permanently delete a resident (hard delete).
+  const deleteResident = useCallback(
+    async (resident: ResidentHit) => {
+      if (residentIsSuperAdmin(resident) || resident.id === user?.id) return;
+      if (!window.confirm(`PERMANENTLY delete ${resident.name}? This removes their account and data and cannot be undone.\n\nIf they have posts or bookings this will fail — deactivate them instead.`)) return;
+      setBusyId(resident.id);
+      setError(null);
+      try {
+        const res = await apiFetch("/api/admin/roles", {
+          method: "DELETE",
+          token,
+          body: JSON.stringify({ residentId: resident.id }),
+        });
+        if (res.ok) {
+          setHits((prev) => prev.filter((h) => h.id !== resident.id));
+          return;
+        }
+        const data = await res.json().catch(() => null);
+        setError(data?.error ?? "Could not delete resident.");
+      } catch {
+        setError("Network error");
+      } finally {
+        setBusyId(null);
+      }
+    },
+    [token, user?.id]
+  );
+
   // Re-fetch the latest roles for one resident (used to undo optimistic
   // updates on failure).
   async function refreshOne(residentId: string) {
@@ -268,12 +333,15 @@ export default function AdminRoles() {
               <ResidentRow
                 key={r.id}
                 resident={r}
+                isSelf={r.id === user?.id}
                 busy={busyId === r.id}
                 expanded={expandedId === r.id}
                 onToggleExpand={() =>
                   setExpandedId((cur) => (cur === r.id ? null : r.id))
                 }
                 onToggleRole={(role) => toggleRole(r, role)}
+                onSetActive={(deactivate) => setActive(r, deactivate)}
+                onDelete={() => deleteResident(r)}
               />
             ))}
           </ul>
@@ -296,18 +364,25 @@ function EmptyHint() {
 
 function ResidentRow({
   resident,
+  isSelf,
   busy,
   expanded,
   onToggleExpand,
   onToggleRole,
+  onSetActive,
+  onDelete,
 }: {
   resident: ResidentHit;
+  isSelf: boolean;
   busy: boolean;
   expanded: boolean;
   onToggleExpand: () => void;
   onToggleRole: (role: AssignableRole) => void;
+  onSetActive: (deactivate: boolean) => void;
+  onDelete: () => void;
 }) {
   const isSuper = residentIsSuperAdmin(resident);
+  const isDeactivated = !!resident.deactivatedAt;
   const activeAssignable = new Set(
     resident.roles
       .map((r) => r.name)
@@ -350,6 +425,11 @@ function ResidentRow({
           </p>
           {/* Current role badges */}
           <div className="mt-1.5 flex flex-wrap gap-1">
+            {isDeactivated && (
+              <Badge color="red" icon={Ban}>
+                Deactivated
+              </Badge>
+            )}
             {isSuper && (
               <Badge color="purple" icon={Crown}>
                 SUPERADMIN
@@ -409,6 +489,48 @@ function ResidentRow({
                   <Loader2 size={10} className="animate-spin" /> saving…
                 </p>
               )}
+
+              {/* Danger zone — deactivate / hard delete */}
+              {!isSelf && (
+                <div className="mt-3 border-t border-slate-700 pt-3">
+                  <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-red-400/80">
+                    Danger zone
+                  </p>
+                  <div className="flex gap-1.5">
+                    {isDeactivated ? (
+                      <button
+                        type="button"
+                        onClick={() => onSetActive(false)}
+                        disabled={busy}
+                        className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-emerald-700/50 bg-emerald-900/20 px-3 py-2 text-xs font-semibold text-emerald-200 active:bg-emerald-900/40 disabled:opacity-50"
+                      >
+                        <RotateCcw size={13} /> Reactivate
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => onSetActive(true)}
+                        disabled={busy}
+                        className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-amber-700/50 bg-amber-900/20 px-3 py-2 text-xs font-semibold text-amber-200 active:bg-amber-900/40 disabled:opacity-50"
+                      >
+                        <Ban size={13} /> Deactivate
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={onDelete}
+                      disabled={busy}
+                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-red-700/50 bg-red-900/20 px-3 py-2 text-xs font-semibold text-red-200 active:bg-red-900/40 disabled:opacity-50"
+                    >
+                      <Trash2 size={13} /> Delete
+                    </button>
+                  </div>
+                  <p className="mt-2 text-[10px] leading-relaxed text-slate-500">
+                    Deactivate blocks sign-in (reversible). Delete is permanent and
+                    only works if they have no posts/bookings.
+                  </p>
+                </div>
+              )}
             </>
           )}
         </div>
@@ -422,7 +544,7 @@ function Badge({
   icon: Icon,
   children,
 }: {
-  color: "green" | "indigo" | "teal" | "orange" | "blue" | "purple" | "slate";
+  color: "green" | "indigo" | "teal" | "orange" | "blue" | "purple" | "slate" | "red";
   icon?: LucideIcon;
   children: React.ReactNode;
 }) {
@@ -434,6 +556,7 @@ function Badge({
     blue: "bg-blue-500/20 text-blue-200 border-blue-700/40",
     purple: "bg-purple-500/20 text-purple-200 border-purple-700/40",
     slate: "bg-slate-700 text-slate-300 border-slate-600",
+    red: "bg-red-500/20 text-red-200 border-red-700/40",
   }[color];
   return (
     <span

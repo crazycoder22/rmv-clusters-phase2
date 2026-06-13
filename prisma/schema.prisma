@@ -75,6 +75,7 @@ model Resident {
   isSeniorCitizen Boolean @default(false)
   dailyStepGoal Int      @default(0) // 0 = no personal step goal set
   stepSource   String?  // chosen step source: "apple_health" | "core_motion" | "health_connect"
+  deactivatedAt DateTime? // set when a SUPERADMIN deactivates the account; blocks all access. null = active.
   // Usage tracking — stamped (throttled) on authenticated API calls.
   lastSeenAt   DateTime? // last authenticated activity
   lastPlatform String?   // "web" | "ios" | "android" | "app"
