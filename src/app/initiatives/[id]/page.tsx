@@ -9,6 +9,9 @@ import {
   Trash2, Pencil, Send, CornerDownRight,
 } from "lucide-react";
 import { youtubeId } from "@/lib/initiatives";
+import RichTextViewer from "@/components/editor/RichTextViewer";
+
+const looksLikeHtml = (s: string) => /<[a-z][\s\S]*>/i.test(s);
 
 interface Comment {
   id: string;
@@ -139,7 +142,11 @@ export default function InitiativeDetailPage() {
           </div>
         )}
 
-        <p className="mt-3 text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-relaxed">{data.body}</p>
+        {looksLikeHtml(data.body) ? (
+          <RichTextViewer html={data.body} className="mt-3 text-gray-800 dark:text-gray-200 leading-relaxed" />
+        ) : (
+          <p className="mt-3 text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-relaxed">{data.body}</p>
+        )}
 
         {/* Open/closed banner */}
         {data.isOpen ? (

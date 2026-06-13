@@ -2,12 +2,12 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import Icon from "../components/Icon";
+import RichTextField from "../components/RichTextField";
 import { apiFetch } from "../lib/api";
 import { API_BASE_URL } from "../config";
 import { useAuth } from "../auth/AuthProvider";
 
 const MAX_TITLE = 150;
-const MAX_BODY = 5000;
 
 interface Detail {
   title: string;
@@ -83,7 +83,7 @@ export default function InitiativeForm() {
   async function submit() {
     setErr(null);
     if (!title.trim()) { setErr("Give the initiative a title"); return; }
-    if (!body.trim()) { setErr("Describe the initiative"); return; }
+    if (!body.replace(/<[^>]*>/g, "").replace(/&nbsp;/gi, " ").trim()) { setErr("Describe the initiative"); return; }
     if (youtubeUrl.trim() && !looksLikeYoutube(youtubeUrl.trim())) {
       setErr("That doesn't look like a YouTube link"); return;
     }
@@ -130,7 +130,7 @@ export default function InitiativeForm() {
         <input value={title} onChange={(e) => setTitle(e.target.value.slice(0, MAX_TITLE))} placeholder="e.g. New visitor parking policy" className={field} />
 
         <label className={`${lbl} mt-[18px]`} style={{ color: "var(--text-2)" }}>Details</label>
-        <textarea value={body} onChange={(e) => setBody(e.target.value.slice(0, MAX_BODY))} placeholder="Explain the initiative and what feedback you're looking for…" rows={6} className={`${field} resize-none leading-relaxed`} />
+        <RichTextField valueHtml={body} onChange={setBody} placeholder="Explain the initiative and what feedback you're looking for…" />
 
         <label className={`${lbl} mt-[18px]`} style={{ color: "var(--text-2)" }}>Feedback open until</label>
         <div className="flex items-center gap-2.5 rounded-[12px] px-3.5" style={{ background: "var(--surface-2)", border: "1px solid var(--border-strong)" }}>

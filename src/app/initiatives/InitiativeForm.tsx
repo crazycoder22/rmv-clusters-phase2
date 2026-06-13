@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Upload, X } from "lucide-react";
+import RichTextEditor from "@/components/editor/RichTextEditor";
 
 const MAX_TITLE = 150;
 const MAX_BODY = 5000;
@@ -69,7 +70,7 @@ export default function InitiativeForm({ initiativeId }: { initiativeId?: string
   async function submit() {
     setErr(null);
     if (!title.trim()) { setErr("Give the initiative a title"); return; }
-    if (!body.trim()) { setErr("Describe the initiative"); return; }
+    if (!body.replace(/<[^>]*>/g, "").replace(/&nbsp;/gi, " ").trim()) { setErr("Describe the initiative"); return; }
     if (!commentsCloseAt) { setErr("Set a feedback deadline"); return; }
     const closeDate = new Date(commentsCloseAt);
     if (isNaN(closeDate.getTime()) || closeDate.getTime() <= Date.now()) {
@@ -111,7 +112,7 @@ export default function InitiativeForm({ initiativeId }: { initiativeId?: string
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Details</label>
-            <textarea value={body} onChange={(e) => setBody(e.target.value.slice(0, MAX_BODY))} placeholder="Explain the initiative, the rationale, and what feedback you're looking for…" rows={6} className={inputCls} />
+            <RichTextEditor content={body} onChange={setBody} placeholder="Explain the initiative, the rationale, and what feedback you're looking for…" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Feedback open until</label>

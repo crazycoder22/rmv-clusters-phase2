@@ -132,7 +132,11 @@ export default function InitiativeDetail() {
       <p className="mt-2.5 text-[13px]" style={{ color: "var(--text-3)" }}>by {data.author.name} · B{data.author.block ?? "—"}, {data.author.flatNumber}</p>
 
       {/* Body */}
-      <p className="mt-4 whitespace-pre-wrap text-[15px] leading-relaxed" style={{ color: "var(--text)" }}>{data.body}</p>
+      {/<[a-z][\s\S]*>/i.test(data.body) ? (
+        <div className="mobile-rich mt-4 text-[15px] leading-relaxed" style={{ color: "var(--text)" }} dangerouslySetInnerHTML={{ __html: data.body }} />
+      ) : (
+        <p className="mt-4 whitespace-pre-wrap text-[15px] leading-relaxed" style={{ color: "var(--text)" }}>{data.body}</p>
+      )}
 
       {/* YouTube video */}
       {vid && (

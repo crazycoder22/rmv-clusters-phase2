@@ -52,6 +52,9 @@ export function validateInitiative(
   const body = typeof r.body === "string" ? r.body.trim() : "";
   if (!body) return { ok: false, error: "Describe the initiative" };
   if (body.length > MAX_BODY) return { ok: false, error: `Description must be under ${MAX_BODY} characters` };
+  // `body` may be rich-text HTML — make sure it isn't visually empty (e.g. "<p></p>").
+  const bodyText = body.replace(/<[^>]*>/g, "").replace(/&nbsp;/gi, " ").trim();
+  if (!bodyText) return { ok: false, error: "Describe the initiative" };
 
   if (typeof r.commentsCloseAt !== "string") return { ok: false, error: "Set a feedback deadline" };
   const commentsCloseAt = new Date(r.commentsCloseAt);

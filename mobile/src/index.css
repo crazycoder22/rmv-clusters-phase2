@@ -177,6 +177,16 @@ html.dark .dh-tag-other { color: #94a3b8; }
   min-height: 100svh;
 }
 
+/* contentEditable rich-text field (RichTextField) — placeholder when empty. */
+.rt-editable:empty::before {
+  content: attr(data-placeholder);
+  color: var(--text-3);
+  pointer-events: none;
+}
+.rt-editable:focus {
+  border-color: var(--accent);
+}
+
 /* Light styling for admin-authored HTML (announcement body/summary) */
 .mobile-rich p {
   margin: 0 0 0.6rem;
