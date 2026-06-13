@@ -55,7 +55,8 @@ body,
   --call: #15803d;
   --star: #d97706;
   --flame: #ea580c;
-  --gold: #b7791f;
+  --gold: #a06f12;
+  --gold-soft: #f6eccd;
   --target: #0f9d6e;
   --shadow: 0 8px 28px rgba(16, 28, 51, 0.1);
   --banner: linear-gradient(110deg, #0f766e, #3730a3 60%, #4338ca);
@@ -95,6 +96,7 @@ html.dark {
   --star: #fbbf24;
   --flame: #fb923c;
   --gold: #fbbf24;
+  --gold-soft: rgba(176, 132, 38, 0.34);
   --target: #34d399;
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
   --banner: linear-gradient(110deg, #173a3a, #1a2a52 60%, #23275e);

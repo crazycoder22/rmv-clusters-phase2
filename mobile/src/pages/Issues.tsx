@@ -1,16 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  ArrowLeft,
-  ChevronRight,
-  CircleDot,
-  Plus,
-  Wrench,
-  type LucideIcon,
-  Zap,
-  CheckCircle2,
-} from "lucide-react";
-import clsx from "clsx";
+import { Loader2 } from "lucide-react";
+import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
 
@@ -29,26 +20,34 @@ type Issue = {
 
 type Filter = "OPEN" | "CLOSED" | "ALL";
 
-const CAT_META: Record<
-  Issue["category"],
-  { label: string; icon: LucideIcon; tint: string }
-> = {
-  ELECTRICAL: {
-    label: "Electrical",
-    icon: Zap,
-    tint: "bg-amber-500/20 text-amber-300",
-  },
-  PLUMBING: {
-    label: "Plumbing",
-    icon: Wrench,
-    tint: "bg-sky-500/20 text-sky-300",
-  },
-  OTHER: {
-    label: "Other",
-    icon: CircleDot,
-    tint: "bg-slate-700 text-slate-300",
-  },
+// OneRMV category tones — electrical=gold, plumbing=info, other=neutral.
+export const CAT_TONE: Record<Issue["category"], { label: string; ms: string; ring: string; color: string }> = {
+  ELECTRICAL: { label: "Electrical", ms: "bolt", ring: "var(--gold-soft)", color: "var(--gold)" },
+  PLUMBING: { label: "Plumbing", ms: "plumbing", ring: "var(--info-soft)", color: "var(--info)" },
+  OTHER: { label: "Other", ms: "adjust", ring: "color-mix(in srgb, var(--text-2) 18%, transparent)", color: "var(--text-2)" },
 };
+
+export function CategoryRing({ category, size = 44 }: { category: Issue["category"]; size?: number }) {
+  const c = CAT_TONE[category];
+  return (
+    <span className="flex flex-shrink-0 items-center justify-center rounded-full" style={{ width: size, height: size, background: c.ring }}>
+      <Icon name={c.ms} size={Math.round(size * 0.5)} style={{ color: c.color }} />
+    </span>
+  );
+}
+
+export function StatusBadge({ status }: { status: Issue["status"] }) {
+  const closed = status === "CLOSED";
+  return (
+    <span
+      className="inline-flex flex-shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-[12px] font-bold"
+      style={closed ? { background: "var(--success-soft)", color: "var(--success)" } : { background: "var(--warning-soft)", color: "var(--warning)" }}
+    >
+      {closed && <Icon name="check_circle" size={13} fill style={{ color: "var(--success)" }} />}
+      {closed ? "Closed" : "Open"}
+    </span>
+  );
+}
 
 export default function IssuesPage() {
   const { token } = useAuth();
@@ -63,9 +62,7 @@ export default function IssuesPage() {
     let cancelled = false;
     setLoading(true);
     apiFetch("/api/issues", { token })
-      .then((r) =>
-        r.ok ? r.json() : { issues: [], isManager: false, canRaise: true }
-      )
+      .then((r) => (r.ok ? r.json() : { issues: [], isManager: false, canRaise: true }))
       .then((data) => {
         if (cancelled) return;
         setIssues(data.issues ?? []);
@@ -87,96 +84,80 @@ export default function IssuesPage() {
   }, [issues, filter]);
 
   return (
-    <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)]">
-      <header className="flex items-center justify-between py-4">
-        <div className="flex items-center gap-2">
-          <Link
-            to="/more"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 hover:bg-slate-800"
-          >
-            <ArrowLeft size={20} />
-          </Link>
-          <h1 className="text-lg font-semibold text-white">Issues</h1>
-        </div>
+    <div className="one-surface flex flex-1 flex-col px-[18px] pt-[env(safe-area-inset-top,0px)] pb-8" style={{ background: "var(--bg)", color: "var(--text)" }}>
+      <header className="flex items-center gap-3 py-3">
+        <Link to="/community" className="flex active:opacity-70" aria-label="Back">
+          <Icon name="arrow_back" size={24} style={{ color: "var(--text-2)" }} />
+        </Link>
+        <h1 className="min-w-0 flex-1 text-[24px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>Issues</h1>
         {canRaise && (
-          <Link
-            to="/issues/new"
-            className="inline-flex items-center gap-1 rounded-full bg-indigo-500 px-3 py-1.5 text-xs font-semibold text-white active:bg-indigo-600"
-          >
-            <Plus size={14} />
-            Raise
+          <Link to="/issues/new" className="flex items-center gap-1.5 rounded-full px-4 py-2 text-[14px] font-bold text-white active:opacity-90" style={{ background: "var(--accent-strong)", boxShadow: "0 6px 16px var(--accent-soft)" }}>
+            <Icon name="add" size={18} style={{ color: "#fff" }} /> Raise
           </Link>
         )}
       </header>
 
       {isManager && (
-        <p className="mb-3 inline-flex w-full justify-center text-[11px] text-amber-300">
+        <p className="pb-2.5 text-center text-[13px] font-semibold" style={{ color: "var(--warning)" }}>
           Manager view: showing all residents' issues.
         </p>
       )}
 
-      <div className="mb-4 flex justify-center">
-        <div className="flex items-center rounded-lg bg-slate-800 p-0.5">
-          <Tab active={filter === "OPEN"} onClick={() => setFilter("OPEN")}>
-            Open
-          </Tab>
-          <Tab active={filter === "CLOSED"} onClick={() => setFilter("CLOSED")}>
-            Closed
-          </Tab>
-          <Tab active={filter === "ALL"} onClick={() => setFilter("ALL")}>
-            All
-          </Tab>
+      {/* Filter segmented control */}
+      <div className="mb-3 flex justify-center">
+        <div className="flex gap-1 rounded-[11px] p-[3px]" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+          {(["OPEN", "CLOSED", "ALL"] as Filter[]).map((f) => {
+            const on = filter === f;
+            return (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className="rounded-[9px] px-5 py-2 text-[13.5px] font-bold"
+                style={on ? { background: "var(--surface)", color: "var(--text)", boxShadow: "0 1px 3px rgba(0,0,0,0.18)" } : { background: "transparent", color: "var(--text-2)" }}
+              >
+                {f === "OPEN" ? "Open" : f === "CLOSED" ? "Closed" : "All"}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {loading ? (
-        <p className="py-10 text-center text-sm text-slate-500">Loading…</p>
+        <div className="flex justify-center py-12"><Loader2 className="animate-spin" size={22} style={{ color: "var(--text-3)" }} /></div>
       ) : filtered.length === 0 ? (
         <div className="py-16 text-center">
-          <CircleDot size={32} className="mx-auto mb-2 text-slate-600" />
-          <p className="text-sm text-slate-400">
-            {filter === "OPEN"
-              ? "No open issues."
-              : filter === "CLOSED"
-                ? "No closed issues yet."
-                : "No issues yet."}
+          <Icon name="task_alt" size={32} style={{ color: "var(--text-3)" }} />
+          <p className="mt-2 text-[14px]" style={{ color: "var(--text-3)" }}>
+            {filter === "OPEN" ? "No open issues." : filter === "CLOSED" ? "No closed issues yet." : "No issues yet."}
           </p>
           {canRaise && filter === "OPEN" && (
-            <Link
-              to="/issues/new"
-              className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-indigo-400"
-            >
-              <Plus size={12} /> Raise an issue
+            <Link to="/issues/new" className="mt-3 inline-flex items-center gap-1 text-[13px] font-bold" style={{ color: "var(--accent)" }}>
+              <Icon name="add" size={14} style={{ color: "var(--accent)" }} /> Raise an issue
             </Link>
           )}
         </div>
       ) : (
-        <div className="space-y-2 pb-4">
+        <div className="flex flex-col gap-3.5">
           {filtered.map((issue) => (
             <Link
               key={issue.id}
               to={`/issues/${issue.id}`}
-              className="flex items-start gap-3 rounded-2xl border border-slate-700 bg-slate-800/60 p-4 active:bg-slate-800"
+              className="flex items-center gap-3.5 rounded-[18px] p-[15px_14px] active:opacity-90"
+              style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
             >
-              <CategoryBadge category={issue.category} />
-              <div className="flex-1 min-w-0">
+              <CategoryRing category={issue.category} />
+              <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <p className="truncate text-sm font-semibold text-white">
-                    {issue.title}
-                  </p>
-                  <StatusPill status={issue.status} />
+                  <p className="truncate text-[16px] font-bold tracking-tight" style={{ color: "var(--text)" }}>{issue.title}</p>
+                  <StatusBadge status={issue.status} />
                 </div>
-                <p className="mt-0.5 line-clamp-2 text-xs text-slate-400">
-                  {issue.description}
-                </p>
-                <p className="mt-1 text-[10px] text-slate-500">
-                  {isManager
-                    ? `${issue.resident.name} · Block ${issue.resident.block}, ${issue.resident.flatNumber} · `
-                    : ""}
+                <p className="mt-1 line-clamp-2 text-[13.5px] leading-snug" style={{ color: "var(--text-2)" }}>{issue.description}</p>
+                <p className="mt-1.5 text-[11.5px]" style={{ color: "var(--text-3)" }}>
+                  {isManager ? `${issue.resident.name} · Block ${issue.resident.block}, ${issue.resident.flatNumber} · ` : ""}
                   {formatDate(issue.createdAt)}
                 </p>
               </div>
-              <ChevronRight size={16} className="mt-1 text-slate-500" />
+              <Icon name="chevron_right" size={22} style={{ color: "var(--text-3)" }} className="flex-shrink-0" />
             </Link>
           ))}
         </div>
@@ -185,62 +166,6 @@ export default function IssuesPage() {
   );
 }
 
-function Tab({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={clsx(
-        "rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
-        active ? "bg-slate-700 text-white shadow-sm" : "text-slate-400"
-      )}
-    >
-      {children}
-    </button>
-  );
-}
-
-function CategoryBadge({ category }: { category: Issue["category"] }) {
-  const meta = CAT_META[category];
-  const Icon = meta.icon;
-  return (
-    <div
-      className={clsx(
-        "flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full",
-        meta.tint
-      )}
-    >
-      <Icon size={16} />
-    </div>
-  );
-}
-
-function StatusPill({ status }: { status: Issue["status"] }) {
-  if (status === "CLOSED") {
-    return (
-      <span className="inline-flex items-center gap-0.5 rounded-full bg-green-500/20 px-1.5 py-0.5 text-[10px] font-bold text-green-300">
-        <CheckCircle2 size={9} /> Closed
-      </span>
-    );
-  }
-  return (
-    <span className="rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold text-amber-300">
-      Open
-    </span>
-  );
-}
-
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
+  return new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 }

@@ -1,17 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import {
-  ArrowLeft,
-  CheckCircle2,
-  CircleDot,
-  Loader2,
-  Wrench,
-  Zap,
-  type LucideIcon,
-} from "lucide-react";
-import clsx from "clsx";
+import { useNavigate, useParams } from "react-router-dom";
+import { Loader2 } from "lucide-react";
+import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
+import { CAT_TONE, CategoryRing, StatusBadge } from "./Issues";
 
 type Category = "ELECTRICAL" | "PLUMBING" | "OTHER";
 
@@ -28,30 +21,10 @@ type Issue = {
   closedByResident: { name: string } | null;
 };
 
-const CAT_META: Record<
-  Category,
-  { label: string; icon: LucideIcon; tint: string }
-> = {
-  ELECTRICAL: {
-    label: "Electrical",
-    icon: Zap,
-    tint: "bg-amber-500/20 text-amber-300",
-  },
-  PLUMBING: {
-    label: "Plumbing",
-    icon: Wrench,
-    tint: "bg-sky-500/20 text-sky-300",
-  },
-  OTHER: {
-    label: "Other",
-    icon: CircleDot,
-    tint: "bg-slate-700 text-slate-300",
-  },
-};
-
 export default function IssueDetail() {
   const { id = "" } = useParams<{ id: string }>();
   const { token } = useAuth();
+  const navigate = useNavigate();
 
   const [issue, setIssue] = useState<Issue | null>(null);
   const [isManager, setIsManager] = useState(false);
@@ -111,104 +84,74 @@ export default function IssueDetail() {
   };
 
   return (
-    <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)]">
-      <header className="flex items-center gap-2 py-4">
-        <Link
-          to="/issues"
-          className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 hover:bg-slate-800"
-        >
-          <ArrowLeft size={20} />
-        </Link>
-        <h1 className="text-lg font-semibold text-white">Issue</h1>
+    <div className="one-surface flex flex-1 flex-col px-[18px] pt-[env(safe-area-inset-top,0px)] pb-8" style={{ background: "var(--bg)", color: "var(--text)" }}>
+      <header className="flex items-center py-3">
+        <button onClick={() => navigate("/issues")} className="flex items-center gap-2 text-[15px] font-semibold active:opacity-70" style={{ color: "var(--text-2)" }}>
+          <Icon name="arrow_back" size={22} style={{ color: "var(--text-2)" }} /> All issues
+        </button>
       </header>
 
       {loading ? (
-        <p className="py-10 text-center text-sm text-slate-500">Loading…</p>
+        <div className="flex justify-center py-12"><Loader2 className="animate-spin" size={22} style={{ color: "var(--text-3)" }} /></div>
       ) : !issue ? (
-        <p className="py-10 text-center text-sm text-red-400">
-          {error ?? "Not found"}
-        </p>
+        <p className="py-12 text-center text-[14px]" style={{ color: "var(--danger)" }}>{error ?? "Not found"}</p>
       ) : (
         <>
-          <div className="rounded-2xl border border-slate-700 bg-slate-800/60 p-5">
-            <div className="flex items-start gap-3">
-              <CategoryBadge category={issue.category} />
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <p className="flex-1 text-base font-semibold text-white">
-                    {issue.title}
-                  </p>
-                  <StatusPill status={issue.status} />
-                </div>
-                <p className="mt-1 text-[11px] text-slate-500">
-                  {issue.resident.name} · Block {issue.resident.block},{" "}
-                  {issue.resident.flatNumber} · {formatDate(issue.createdAt)}
-                </p>
-              </div>
+          {/* Title row */}
+          <div className="flex items-center gap-3">
+            <CategoryRing category={issue.category} size={46} />
+            <div className="min-w-0 flex-1">
+              <h1 className="text-[21px] font-extrabold leading-tight tracking-tight" style={{ color: "var(--text)" }}>{issue.title}</h1>
+              <p className="mt-0.5 text-[12px]" style={{ color: "var(--text-3)" }}>{CAT_TONE[issue.category].label}</p>
             </div>
-
-            <div className="mt-4 whitespace-pre-wrap rounded-xl border border-slate-700 bg-slate-900/40 p-3 text-sm leading-relaxed text-slate-200">
-              {issue.description}
-            </div>
+            <StatusBadge status={issue.status} />
           </div>
 
+          {/* Raised by */}
+          <p className="mt-3.5 text-[13px]" style={{ color: "var(--text-3)" }}>
+            Raised by <span className="font-semibold" style={{ color: "var(--text-2)" }}>{issue.resident.name}</span> · Block {issue.resident.block}, {issue.resident.flatNumber} · {formatDate(issue.createdAt)}
+          </p>
+
+          {/* Description */}
+          <p className="mt-3.5 whitespace-pre-wrap text-[14.5px] leading-relaxed" style={{ color: "var(--text)" }}>{issue.description}</p>
+
+          {/* Closed banner */}
           {issue.status === "CLOSED" && (
-            <div className="mt-4 rounded-2xl border border-green-500/30 bg-green-500/10 p-4">
-              <div className="mb-1 flex items-center gap-2 text-sm font-semibold text-green-300">
-                <CheckCircle2 size={14} />
-                Closed
-                {issue.closedByResident && (
-                  <span className="text-xs font-normal text-green-400/70">
-                    by {issue.closedByResident.name}
-                  </span>
-                )}
-                {issue.closedAt && (
-                  <span className="text-xs font-normal text-green-400/70">
-                    · {formatDate(issue.closedAt)}
-                  </span>
-                )}
+            <div className="mt-[18px] rounded-[14px] p-4" style={{ background: "var(--success-soft)", border: "1px solid color-mix(in srgb, var(--success) 35%, transparent)" }}>
+              <div className="mb-1 flex flex-wrap items-center gap-1.5 text-[14px] font-bold" style={{ color: "var(--success)" }}>
+                <Icon name="check_circle" size={15} fill style={{ color: "var(--success)" }} /> Closed
+                {issue.closedByResident && <span className="text-[12px] font-normal" style={{ color: "var(--success)", opacity: 0.8 }}>by {issue.closedByResident.name}</span>}
+                {issue.closedAt && <span className="text-[12px] font-normal" style={{ color: "var(--success)", opacity: 0.8 }}>· {formatDate(issue.closedAt)}</span>}
               </div>
-              {issue.closureComment && (
-                <p className="text-sm leading-relaxed text-green-100/90">
-                  {issue.closureComment}
-                </p>
-              )}
+              {issue.closureComment && <p className="text-[14px] leading-relaxed" style={{ color: "var(--text)" }}>{issue.closureComment}</p>}
             </div>
           )}
 
+          {/* Manager close control */}
           {issue.status === "OPEN" && isManager && (
-            <div className="mt-4 rounded-2xl border border-slate-700 bg-slate-800/60 p-4">
-              <h2 className="mb-2 text-sm font-semibold text-white">
-                Close this issue
-              </h2>
-              <textarea
-                value={closureComment}
-                onChange={(e) => setClosureComment(e.target.value)}
-                placeholder="Add a closure note (e.g. 'Replaced fuse, working again')"
-                rows={3}
-                className="w-full resize-none rounded-lg border border-slate-700 bg-slate-900 px-3 py-2.5 text-sm text-white placeholder:text-slate-600 focus:border-indigo-400 focus:outline-none"
-              />
-              {error && (
-                <p className="mt-2 text-xs text-red-400">{error}</p>
-              )}
-              <button
-                onClick={close}
-                disabled={closing || !closureComment.trim()}
-                className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-green-500 py-2.5 text-sm font-semibold text-white active:bg-green-600 disabled:opacity-50"
-              >
-                {closing ? (
-                  <>
-                    <Loader2 size={14} className="animate-spin" />
-                    Closing…
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 size={14} />
-                    Mark as closed
-                  </>
-                )}
-              </button>
-            </div>
+            <>
+              <p className="one-mono mt-5 mb-2.5 text-[11px]" style={{ color: "var(--text-3)", letterSpacing: "0.1em" }}>CLOSE THIS ISSUE</p>
+              <div className="rounded-[16px] p-3.5" style={{ background: "var(--surface-2)", border: "1px solid var(--border-strong)" }}>
+                <textarea
+                  value={closureComment}
+                  onChange={(e) => setClosureComment(e.target.value)}
+                  placeholder="Add a closure note (e.g. 'Replaced fuse, working again')"
+                  rows={3}
+                  className="w-full resize-none bg-transparent text-[14px] leading-relaxed outline-none"
+                  style={{ color: "var(--text)" }}
+                />
+                {error && <p className="mt-1.5 text-[12px]" style={{ color: "var(--danger)" }}>{error}</p>}
+                <button
+                  onClick={close}
+                  disabled={closing || !closureComment.trim()}
+                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-[12px] py-3.5 text-[15px] font-bold text-white active:opacity-90 disabled:opacity-50"
+                  style={{ background: "var(--success)" }}
+                >
+                  {closing ? <Loader2 size={15} className="animate-spin" /> : <Icon name="check_circle" size={18} fill style={{ color: "#fff" }} />}
+                  {closing ? "Closing…" : "Mark as closed"}
+                </button>
+              </div>
+            </>
           )}
         </>
       )}
@@ -216,40 +159,6 @@ export default function IssueDetail() {
   );
 }
 
-function CategoryBadge({ category }: { category: Category }) {
-  const meta = CAT_META[category];
-  const Icon = meta.icon;
-  return (
-    <div
-      className={clsx(
-        "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full",
-        meta.tint
-      )}
-    >
-      <Icon size={18} />
-    </div>
-  );
-}
-
-function StatusPill({ status }: { status: "OPEN" | "CLOSED" }) {
-  if (status === "CLOSED") {
-    return (
-      <span className="inline-flex items-center gap-0.5 rounded-full bg-green-500/20 px-2 py-0.5 text-[11px] font-bold text-green-300">
-        <CheckCircle2 size={10} /> Closed
-      </span>
-    );
-  }
-  return (
-    <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[11px] font-bold text-amber-300">
-      Open
-    </span>
-  );
-}
-
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
+  return new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 }

@@ -1,16 +1,16 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, CircleDot, Loader2, Send, Wrench, Zap } from "lucide-react";
-import clsx from "clsx";
+import { useNavigate } from "react-router-dom";
+import { Loader2 } from "lucide-react";
+import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
 
 type Category = "ELECTRICAL" | "PLUMBING" | "OTHER";
 
-const CATS: { value: Category; label: string; icon: typeof Wrench }[] = [
-  { value: "ELECTRICAL", label: "Electrical", icon: Zap },
-  { value: "PLUMBING", label: "Plumbing", icon: Wrench },
-  { value: "OTHER", label: "Other", icon: CircleDot },
+const CATS: { value: Category; label: string; ms: string }[] = [
+  { value: "ELECTRICAL", label: "Electrical", ms: "bolt" },
+  { value: "PLUMBING", label: "Plumbing", ms: "plumbing" },
+  { value: "OTHER", label: "Other", ms: "adjust" },
 ];
 
 export default function IssueNew() {
@@ -42,11 +42,7 @@ export default function IssueNew() {
       const res = await apiFetch("/api/issues", {
         method: "POST",
         token,
-        body: JSON.stringify({
-          title: title.trim(),
-          description: description.trim(),
-          category,
-        }),
+        body: JSON.stringify({ title: title.trim(), description: description.trim(), category }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -61,105 +57,74 @@ export default function IssueNew() {
     }
   };
 
+  const mono = "one-mono mb-2.5 text-[11px]";
+  const monoStyle = { color: "var(--text-3)", letterSpacing: "0.1em" } as const;
+
   return (
-    <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)]">
-      <header className="flex items-center gap-2 py-4">
-        <Link
-          to="/issues"
-          className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 hover:bg-slate-800"
-        >
-          <ArrowLeft size={20} />
-        </Link>
-        <h1 className="text-lg font-semibold text-white">Raise an issue</h1>
+    <div className="one-surface flex flex-1 flex-col px-[18px] pt-[env(safe-area-inset-top,0px)] pb-10" style={{ background: "var(--bg)", color: "var(--text)" }}>
+      <header className="flex items-center gap-3 py-3">
+        <button onClick={() => navigate("/issues")} className="flex active:opacity-70" aria-label="Back">
+          <Icon name="arrow_back" size={22} style={{ color: "var(--text-2)" }} />
+        </button>
+        <h1 className="text-[21px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>Raise an issue</h1>
       </header>
 
-      <form onSubmit={handleSubmit} className="space-y-4 pb-4">
-        <section>
-          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-500">
-            Category
-          </label>
-          <div className="grid grid-cols-3 gap-2">
-            {CATS.map(({ value, label, icon: Icon }) => (
+      <form onSubmit={handleSubmit} className="pt-1.5">
+        {/* Category */}
+        <p className={mono} style={monoStyle}>CATEGORY</p>
+        <div className="flex gap-2.5">
+          {CATS.map(({ value, label, ms }) => {
+            const on = category === value;
+            return (
               <button
                 key={value}
                 type="button"
                 onClick={() => setCategory(value)}
-                className={clsx(
-                  "flex flex-col items-center gap-1 rounded-xl border px-3 py-3 transition-colors",
-                  category === value
-                    ? "border-indigo-500 bg-indigo-500/15 text-indigo-200"
-                    : "border-slate-700 bg-slate-800/60 text-slate-400"
-                )}
+                className="flex flex-1 flex-col items-center gap-2 rounded-[14px] px-1.5 py-4 text-[13.5px] font-semibold"
+                style={on
+                  ? { background: "var(--accent-soft)", border: "1.5px solid var(--accent)", color: "var(--accent)" }
+                  : { background: "var(--surface-2)", border: "1.5px solid var(--border-strong)", color: "var(--text-2)" }}
               >
-                <Icon size={18} />
-                <span className="text-xs font-medium">{label}</span>
+                <Icon name={ms} size={22} style={{ color: on ? "var(--accent)" : "var(--text-2)" }} />
+                {label}
               </button>
-            ))}
-          </div>
-        </section>
+            );
+          })}
+        </div>
 
-        <section>
-          <label
-            htmlFor="title"
-            className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-500"
-          >
-            Title
-          </label>
-          <input
-            id="title"
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g. Corridor light not working"
-            maxLength={120}
-            className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2.5 text-sm text-white placeholder:text-slate-600 focus:border-indigo-400 focus:outline-none"
-          />
-        </section>
+        {/* Title */}
+        <p className={`${mono} mt-[22px]`} style={monoStyle}>TITLE</p>
+        <input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="e.g. Corridor light not working"
+          maxLength={120}
+          className="one-input w-full rounded-[12px] px-4 py-3.5 text-[14.5px]"
+        />
 
-        <section>
-          <label
-            htmlFor="description"
-            className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-500"
-          >
-            Description
-          </label>
-          <textarea
-            id="description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Where exactly is the issue? When did it start? Anything that helps the team fix it."
-            rows={5}
-            className="w-full resize-none rounded-lg border border-slate-700 bg-slate-900 px-3 py-2.5 text-sm text-white placeholder:text-slate-600 focus:border-indigo-400 focus:outline-none"
-          />
-        </section>
+        {/* Description */}
+        <p className={`${mono} mt-[22px]`} style={monoStyle}>DESCRIPTION</p>
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Where exactly is the issue? When did it start? Anything that helps the team fix it."
+          rows={5}
+          className="one-input w-full resize-none rounded-[12px] px-4 py-3.5 text-[14.5px] leading-relaxed"
+        />
 
-        {error && (
-          <p className="rounded-lg bg-red-500/10 px-3 py-2 text-center text-xs text-red-300">
-            {error}
-          </p>
-        )}
+        {error && <p className="mt-4 rounded-[12px] px-3.5 py-2.5 text-center text-[13px]" style={{ background: "var(--danger-soft)", color: "var(--danger)" }}>{error}</p>}
 
         <button
           type="submit"
           disabled={submitting}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-500 py-3 text-sm font-semibold text-white active:bg-indigo-600 disabled:opacity-50"
+          className="mt-6 flex w-full items-center justify-center gap-2 rounded-[14px] py-4 text-[16px] font-bold text-white active:opacity-90 disabled:opacity-50"
+          style={{ background: "var(--accent-strong)", boxShadow: "0 8px 22px var(--accent-soft)" }}
         >
-          {submitting ? (
-            <>
-              <Loader2 size={16} className="animate-spin" />
-              Sending…
-            </>
-          ) : (
-            <>
-              <Send size={16} />
-              Raise issue
-            </>
-          )}
+          {submitting ? <Loader2 size={17} className="animate-spin" /> : <Icon name="near_me" size={20} fill style={{ color: "#fff" }} />}
+          {submitting ? "Sending…" : "Raise issue"}
         </button>
 
-        <p className="pt-1 text-center text-[11px] text-slate-500">
-          Facility managers will be notified immediately.
-        </p>
+        <p className="mt-3.5 text-center text-[12.5px]" style={{ color: "var(--text-3)" }}>Facility managers will be notified immediately.</p>
       </form>
     </div>
   );
