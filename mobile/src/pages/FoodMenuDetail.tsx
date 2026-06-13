@@ -1,27 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import {
-  ArrowLeft,
-  Bell,
-  BellOff,
-  ChefHat,
-  Clock,
-  Loader2,
-  Minus,
-  Phone,
-  Pencil,
-  Plus,
-  Power,
-  Share2,
-  ShoppingCart,
-  Store,
-  Trash2,
-  Users,
-  UserPlus,
-  X,
-} from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Share } from "@capacitor/share";
-import clsx from "clsx";
+import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
 import { track } from "../lib/track";
 import { API_BASE_URL } from "../config";
@@ -290,21 +271,21 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
 
   if (loading) {
     return (
-      <div className="flex flex-1 items-center justify-center text-slate-500">
-        <Loader2 size={20} className="animate-spin" />
+      <div className="one-surface flex flex-1 items-center justify-center" style={{ background: "var(--bg)" }}>
+        <Loader2 size={22} className="animate-spin" style={{ color: "var(--text-3)" }} />
       </div>
     );
   }
   if (error && !menu) {
     return (
-      <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)]">
-        <header className="flex items-center gap-2 py-4">
-          <Link to={L.sectionPath} className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 active:bg-slate-800">
-            <ArrowLeft size={20} />
+      <div className="one-surface flex flex-1 flex-col px-[18px] pt-[env(safe-area-inset-top,0px)]" style={{ background: "var(--bg)", color: "var(--text)" }}>
+        <header className="flex items-center gap-3 py-3">
+          <Link to={L.sectionPath} className="flex active:opacity-70" aria-label="Back">
+            <Icon name="arrow_back" size={23} style={{ color: "var(--text-2)" }} />
           </Link>
-          <h1 className="text-lg font-semibold text-white">{L.section}</h1>
+          <h1 className="text-[21px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>{L.section}</h1>
         </header>
-        <p className="rounded-xl border border-red-700/60 bg-red-900/20 px-4 py-3 text-xs text-red-200">{error}</p>
+        <p className="rounded-[12px] px-4 py-3 text-[13px]" style={{ background: "var(--danger-soft)", color: "var(--danger)", border: "1px solid color-mix(in srgb, var(--danger) 40%, transparent)" }}>{error}</p>
       </div>
     );
   }
@@ -314,7 +295,7 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
   // Owner + nominated co-managers both see the management view.
   const canManage = menu.role === "chef" || menu.role === "comanager";
   const myOrders = !canManage ? menu.orders : [];
-  const EmptyIcon = isMarket ? Store : ChefHat;
+  const emptyIcon = isMarket ? "storefront" : "cooking";
 
   async function shareMenu() {
     if (!menu) return;
@@ -371,14 +352,14 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
   }
 
   return (
-    <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)]">
-      <header className="flex items-center gap-2 py-4">
-        <Link to={L.sectionPath} className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 active:bg-slate-800">
-          <ArrowLeft size={20} />
+    <div className="one-surface flex flex-1 flex-col px-[18px] pt-[env(safe-area-inset-top,0px)] pb-8" style={{ background: "var(--bg)", color: "var(--text)" }}>
+      <header className="flex items-start gap-3 py-3">
+        <Link to={L.sectionPath} className="mt-0.5 flex active:opacity-70" aria-label="Back">
+          <Icon name="arrow_back" size={23} style={{ color: "var(--text-2)" }} />
         </Link>
-        <div className="flex-1 min-w-0">
-          <h1 className="truncate text-lg font-semibold text-white">{menu.title}</h1>
-          <p className="truncate text-[11px] text-slate-500">
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-[21px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>{menu.title}</h1>
+          <p className="truncate text-[12.5px]" style={{ color: "var(--text-3)" }}>
             {isOwner
               ? `Your ${L.listing}`
               : canManage
@@ -387,42 +368,36 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
           </p>
         </div>
         {canManage && (
-          <>
-            <button
-              type="button"
-              onClick={() => void shareMenu()}
-              aria-label="Share menu"
-              className="flex h-9 w-9 items-center justify-center rounded-full text-green-400 active:bg-slate-800"
-            >
-              <Share2 size={16} />
+          <div className="flex flex-shrink-0 items-center gap-4">
+            <button type="button" onClick={() => void shareMenu()} aria-label="Share menu" className="flex active:opacity-70">
+              <Icon name="share" size={20} style={{ color: "var(--success)" }} />
             </button>
-            <button
-              type="button"
-              onClick={() => navigate(`${L.sectionPath}/menus/${menu.id}/edit`)}
-              aria-label="Edit"
-              className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 active:bg-slate-800"
-            >
-              <Pencil size={16} />
+            <button type="button" onClick={() => navigate(`${L.sectionPath}/menus/${menu.id}/edit`)} aria-label="Edit" className="flex active:opacity-70">
+              <Icon name="edit" size={20} style={{ color: "var(--text-2)" }} />
             </button>
-          </>
+          </div>
         )}
       </header>
 
       {menu.description && (
-        <p className="mb-3 rounded-xl border border-slate-700 bg-slate-800/40 px-3 py-2 text-[12px] text-slate-300">
+        <div className="mb-3.5 rounded-[13px] px-[15px] py-3 text-[14px] leading-snug" style={{ background: "var(--surface-2)", border: "1px solid var(--border-strong)", color: "var(--text)" }}>
           {menu.description}
-        </p>
+        </div>
       )}
-      <div className="mb-3 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-slate-400">
+      <div className="mb-3 flex flex-col gap-2.5">
         {menu.orderByAt && (
-          <span className="inline-flex items-center gap-1">
-            <Clock size={11} /> Order by {fmtDateTime(menu.orderByAt)}
+          <span className="flex items-center gap-2 text-[13px]" style={{ color: "var(--text-2)" }}>
+            <Icon name="schedule" size={17} style={{ color: "var(--text-3)" }} /> Order by <b style={{ fontWeight: 700, color: "var(--text)" }}>{fmtDateTime(menu.orderByAt)}</b>
           </span>
         )}
-        {menu.pickupInfo && <span>📍 {menu.pickupInfo}</span>}
+        {menu.pickupInfo && (
+          <span className="flex items-center gap-2 text-[13px]" style={{ color: "var(--text-2)" }}>
+            <Icon name="location_on" size={17} style={{ color: "var(--produce)" }} /> {menu.pickupInfo}
+          </span>
+        )}
         {!canManage && menu.chef.phone && (
-          <a href={`tel:${menu.chef.phone}`} className="inline-flex items-center gap-1 text-indigo-300">
-            <Phone size={11} /> {menu.chef.phone}
+          <a href={`tel:${menu.chef.phone}`} className="flex items-center gap-2 text-[13px] font-semibold" style={{ color: "var(--accent)" }}>
+            <Icon name="call" size={17} style={{ color: "var(--accent)" }} /> {menu.chef.phone}
           </a>
         )}
       </div>
@@ -434,19 +409,17 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
           type="button"
           onClick={toggleFollow}
           disabled={followBusy}
-          className={clsx(
-            "mb-3 inline-flex items-center gap-1.5 self-start rounded-full px-3 py-1.5 text-[12px] font-semibold",
+          className="mb-3 inline-flex items-center gap-1.5 self-start rounded-full px-3.5 py-2 text-[13px] font-bold active:opacity-90"
+          style={
             menu.chef.following
-              ? "bg-slate-800 text-slate-300 active:bg-slate-700"
-              : "bg-indigo-500 text-white active:bg-indigo-600"
-          )}
+              ? { background: "var(--surface-3)", color: "var(--text-2)", border: "1px solid var(--border)" }
+              : { background: "var(--accent-strong)", color: "#fff" }
+          }
         >
           {followBusy ? (
-            <Loader2 size={13} className="animate-spin" />
-          ) : menu.chef.following ? (
-            <BellOff size={13} />
+            <Loader2 size={14} className="animate-spin" />
           ) : (
-            <Bell size={13} />
+            <Icon name={menu.chef.following ? "notifications_off" : "notifications"} size={16} fill={!menu.chef.following} style={{ color: menu.chef.following ? "var(--text-2)" : "#fff" }} />
           )}
           {menu.chef.following
             ? `Following ${menu.chef.name.split(" ")[0]}`
@@ -459,18 +432,18 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
         <>
           <div className="mb-3 flex gap-2">
             {menu.status === "OPEN" ? (
-              <button type="button" onClick={() => setMenuStatus("CLOSED")} className="flex flex-1 items-center justify-center gap-1 rounded-xl border border-slate-700 bg-slate-800 py-2 text-[12px] font-semibold text-amber-200 active:bg-slate-700">
-                <Power size={13} /> Close {L.listing}
+              <button type="button" onClick={() => setMenuStatus("CLOSED")} className="flex flex-1 items-center justify-center gap-1.5 rounded-[12px] py-2.5 text-[13px] font-bold active:opacity-90" style={{ background: "var(--surface-2)", border: "1px solid var(--border-strong)", color: "var(--warning)" }}>
+                <Icon name="power_settings_new" size={16} style={{ color: "var(--warning)" }} /> Close {L.listing}
               </button>
             ) : (
-              <button type="button" onClick={() => setMenuStatus("OPEN")} className="flex flex-1 items-center justify-center gap-1 rounded-xl bg-emerald-500 py-2 text-[12px] font-semibold text-white active:bg-emerald-600">
-                <Power size={13} /> Reopen {L.listing}
+              <button type="button" onClick={() => setMenuStatus("OPEN")} className="flex flex-1 items-center justify-center gap-1.5 rounded-[12px] py-2.5 text-[13px] font-bold text-white active:opacity-90" style={{ background: "var(--success)" }}>
+                <Icon name="power_settings_new" size={16} style={{ color: "#fff" }} /> Reopen {L.listing}
               </button>
             )}
             {/* Delete stays owner-only. */}
             {isOwner && (
-              <button type="button" onClick={deleteMenu} aria-label="Delete" className="flex h-9 w-10 items-center justify-center rounded-xl border border-slate-700 bg-slate-800 text-slate-400 active:bg-slate-700 active:text-red-300">
-                <Trash2 size={15} />
+              <button type="button" onClick={deleteMenu} aria-label="Delete" className="flex h-[42px] w-[46px] items-center justify-center rounded-[12px] active:opacity-90" style={{ background: "var(--surface-2)", border: "1px solid var(--border-strong)", color: "var(--text-3)" }}>
+                <Icon name="delete" size={18} style={{ color: "var(--text-3)" }} />
               </button>
             )}
           </div>
@@ -479,91 +452,82 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
           <CoManagers menuId={menu.id} L={L} managers={menu.managers ?? []} canRemove={isOwner} token={token} onChange={refresh} />
 
           {/* Dishes with sold-out toggles */}
-          <section className="mb-4">
-            <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">{L.itemPlural}</h2>
-            <ul className="space-y-1.5">
+          <section className="mb-5">
+            <p className="one-mono mb-2.5 text-[10px] font-semibold" style={{ color: "var(--text-3)", letterSpacing: "0.12em" }}>{L.itemPlural.toUpperCase()}</p>
+            <div className="flex flex-col gap-2">
               {menu.items.map((d) => (
-                <li key={d.id} className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-800/60 px-3 py-2">
-                  <span className="flex-1 truncate text-sm text-white">{d.name}</span>
-                  <span className="text-[12px] tabular-nums text-slate-300">{formatUnitPrice(d.price, d.unit)}</span>
+                <div key={d.id} className="flex items-center gap-2 rounded-[12px] px-3.5 py-2.5" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+                  <span className="flex-1 truncate text-[14px]" style={{ color: "var(--text)" }}>{d.name}</span>
+                  <span className="text-[12px] tabular-nums" style={{ color: "var(--text-2)" }}>{formatUnitPrice(d.price, d.unit)}</span>
                   <button
                     type="button"
                     onClick={() => toggleSoldOut(d)}
-                    className={clsx(
-                      "rounded-full px-2 py-0.5 text-[10px] font-bold",
-                      d.soldOut ? "bg-red-500/20 text-red-300" : "bg-emerald-500/20 text-emerald-300"
-                    )}
+                    className="rounded-full px-2.5 py-1 text-[10px] font-bold"
+                    style={d.soldOut ? { background: "var(--danger-soft)", color: "var(--danger)" } : { background: "var(--success-soft)", color: "var(--success)" }}
                   >
                     {d.soldOut ? "SOLD OUT" : "Available"}
                   </button>
-                </li>
+                </div>
               ))}
-            </ul>
+            </div>
           </section>
 
           {/* Orders */}
           <section className="pb-4">
-            <div className="mb-2 flex items-center justify-between gap-2">
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                Orders ({menu.orders.length})
-              </h2>
-              <div className="flex items-center gap-3">
+            <div className="mb-2.5 flex items-center justify-between gap-2">
+              <p className="one-mono text-[10px] font-semibold" style={{ color: "var(--text-3)", letterSpacing: "0.12em" }}>
+                ORDERS ({menu.orders.length})
+              </p>
+              <div className="flex items-center gap-3.5">
                 {menu.orders.some((o) => o.status !== "CANCELLED") && (
-                  <button
-                    type="button"
-                    onClick={() => void shareOrderList()}
-                    className="inline-flex items-center gap-1 text-[12px] font-medium text-emerald-300 active:text-emerald-200"
-                  >
-                    <Share2 size={13} /> Share list
+                  <button type="button" onClick={() => void shareOrderList()} className="flex items-center gap-1 text-[12px] font-semibold active:opacity-80" style={{ color: "var(--success)" }}>
+                    <Icon name="share" size={14} style={{ color: "var(--success)" }} /> Share list
                   </button>
                 )}
-                <button
-                  type="button"
-                  onClick={() => setShowManual((s) => !s)}
-                  className="inline-flex items-center gap-1 text-[12px] font-medium text-indigo-300 active:text-indigo-200"
-                >
-                  <Plus size={13} /> Offline order
+                <button type="button" onClick={() => setShowManual((s) => !s)} className="flex items-center gap-1 text-[12px] font-semibold active:opacity-80" style={{ color: "var(--accent)" }}>
+                  <Icon name="add" size={15} style={{ color: "var(--accent)" }} /> Offline order
                 </button>
               </div>
             </div>
 
             {showManual && (
-              <div className="mb-3 space-y-2.5 rounded-2xl border border-indigo-700/40 bg-indigo-900/10 p-3">
-                <p className="text-[11px] text-slate-400">
+              <div className="mb-3 flex flex-col gap-2.5 rounded-[16px] p-3.5" style={{ background: "var(--accent-soft)", border: "1px solid color-mix(in srgb, var(--accent) 30%, var(--border))" }}>
+                <p className="text-[12px]" style={{ color: "var(--text-2)" }}>
                   Log a WhatsApp / phone order so everything stays in one place.
                 </p>
                 <input
                   value={mName}
                   onChange={(e) => setMName(e.target.value)}
                   placeholder="Buyer's name (e.g. Mrs. Sharma B2-301)"
-                  className="w-full rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none"
+                  className="one-input w-full rounded-[12px] px-3.5 py-2.5 text-[14px] outline-none"
                 />
-                <div className="space-y-1.5">
+                <div className="flex flex-col gap-1.5">
                   {menu.items.map((d) => (
                     <div key={d.id} className="flex items-center gap-2">
-                      <span className="flex-1 text-[13px] text-slate-200">{d.name} <span className="text-slate-500">· {formatUnitPrice(d.price, d.unit)}</span></span>
+                      <span className="flex-1 text-[13px]" style={{ color: "var(--text)" }}>{d.name} <span style={{ color: "var(--text-3)" }}>· {formatUnitPrice(d.price, d.unit)}</span></span>
                       <div className="flex items-center gap-1.5">
                         {(mCart[d.id] ?? 0) > 0 && (
                           <>
-                            <button type="button" onClick={() => setMQty(d.id, -1)} className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-700 text-white active:bg-slate-600"><Minus size={13} /></button>
-                            <span className="w-5 text-center text-sm font-bold tabular-nums text-white">{mCart[d.id]}</span>
+                            <button type="button" onClick={() => setMQty(d.id, -1)} className="flex h-7 w-7 items-center justify-center rounded-full text-white active:opacity-90" style={{ background: "var(--surface-3)", color: "var(--text)" }}><Icon name="remove" size={14} style={{ color: "var(--text)" }} /></button>
+                            <span className="w-5 text-center text-[14px] font-bold tabular-nums" style={{ color: "var(--text)" }}>{mCart[d.id]}</span>
                           </>
                         )}
-                        <button type="button" onClick={() => setMQty(d.id, 1)} className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-500 text-white active:bg-indigo-600"><Plus size={13} /></button>
+                        <button type="button" onClick={() => setMQty(d.id, 1)} className="flex h-7 w-7 items-center justify-center rounded-full text-white active:opacity-90" style={{ background: "var(--accent-strong)" }}><Icon name="add" size={14} style={{ color: "#fff" }} /></button>
                       </div>
                     </div>
                   ))}
                 </div>
-                <label className="flex items-center gap-2 text-[13px] text-slate-300">
+                <label className="flex items-center gap-2 text-[13px]" style={{ color: "var(--text-2)" }}>
                   <input type="checkbox" checked={mPaid} onChange={(e) => setMPaid(e.target.checked)} />
                   Already paid
                 </label>
-                {mErr && <p className="text-[11px] text-red-300">{mErr}</p>}
+                {mErr && <p className="text-[12px]" style={{ color: "var(--danger)" }}>{mErr}</p>}
                 <button
                   type="button"
                   onClick={() => void addManualOrder()}
                   disabled={mBusy}
-                  className="w-full rounded-xl bg-indigo-500 py-2.5 text-sm font-semibold text-white active:bg-indigo-600 disabled:opacity-50"
+                  className="w-full rounded-[12px] py-2.5 text-[14px] font-bold text-white active:opacity-90 disabled:opacity-50"
+                  style={{ background: "var(--accent-strong)" }}
                 >
                   {mBusy ? "Adding…" : `Add order${mCount > 0 ? ` · ₹${mTotal}` : ""}`}
                 </button>
@@ -571,11 +535,11 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
             )}
 
             {menu.orders.length === 0 ? (
-              <p className="rounded-2xl border border-dashed border-slate-700 px-4 py-6 text-center text-[11px] text-slate-500">
+              <p className="rounded-[16px] px-4 py-6 text-center text-[12px]" style={{ border: "1.5px dashed var(--border-strong)", color: "var(--text-3)" }}>
                 No orders yet.
               </p>
             ) : (
-              <ul className="space-y-2">
+              <div className="flex flex-col gap-2">
                 {menu.orders.map((o) => (
                   <ChefOrderCard
                     key={o.id}
@@ -586,7 +550,7 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
                     onCancel={() => orderAction(o.id, "cancel")}
                   />
                 ))}
-              </ul>
+              </div>
             )}
           </section>
         </>
@@ -597,99 +561,98 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
         <>
           {myOrders.length > 0 && (
             <section className="mb-4">
-              <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Your orders</h2>
-              <ul className="space-y-2">
+              <p className="one-mono mb-2.5 text-[10px] font-semibold" style={{ color: "var(--text-3)", letterSpacing: "0.12em" }}>YOUR ORDERS</p>
+              <div className="flex flex-col gap-2">
                 {myOrders.map((o) => (
-                  <li key={o.id} className="rounded-2xl border border-slate-700 bg-slate-800/60 p-3">
+                  <div key={o.id} className="rounded-[16px] p-3.5" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
                     <div className="flex items-baseline justify-between">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{o.status}</span>
-                      <span className="text-sm font-bold tabular-nums text-white">₹{o.totalAmount}</span>
+                      <span className="one-mono text-[11px] font-bold" style={{ color: "var(--text-3)", letterSpacing: "0.08em" }}>{o.status}</span>
+                      <span className="text-[15px] font-bold tabular-nums" style={{ color: "var(--text)" }}>₹{o.totalAmount}</span>
                     </div>
-                    <p className="mt-0.5 text-[11px] text-slate-400">
+                    <p className="mt-1 text-[12px]" style={{ color: "var(--text-2)" }}>
                       {o.items.map(lineText).join(", ")}
                     </p>
-                    <div className="mt-2">
+                    <div className="mt-2.5">
                       {o.chefPaid ? (
-                        <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-300">PAID ✓ confirmed</span>
+                        <span className="rounded-full px-2.5 py-1 text-[10px] font-bold" style={{ background: "var(--success-soft)", color: "var(--success)" }}>PAID ✓ confirmed</span>
                       ) : o.buyerPaid ? (
                         <span className="inline-flex items-center gap-2">
-                          <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-200">PAID — awaiting confirm</span>
-                          <button type="button" onClick={() => orderAction(o.id, "unclaim_paid")} disabled={busyOrderId === o.id} className="text-[10px] text-slate-500 active:text-slate-300">undo</button>
+                          <span className="rounded-full px-2.5 py-1 text-[10px] font-bold" style={{ background: "var(--warning-soft)", color: "var(--warning)" }}>PAID — awaiting confirm</span>
+                          <button type="button" onClick={() => orderAction(o.id, "unclaim_paid")} disabled={busyOrderId === o.id} className="text-[10px] active:opacity-70" style={{ color: "var(--text-3)" }}>undo</button>
                         </span>
                       ) : o.status !== "CANCELLED" ? (
                         <div className="flex gap-1.5">
-                          <button type="button" onClick={() => orderAction(o.id, "claim_paid")} disabled={busyOrderId === o.id} className="rounded-full bg-indigo-500 px-2.5 py-0.5 text-[10px] font-bold text-white active:bg-indigo-600 disabled:opacity-50">I've paid</button>
+                          <button type="button" onClick={() => orderAction(o.id, "claim_paid")} disabled={busyOrderId === o.id} className="rounded-full px-3 py-1 text-[10px] font-bold text-white active:opacity-90 disabled:opacity-50" style={{ background: "var(--accent-strong)" }}>I've paid</button>
                           {o.status === "PLACED" && (
-                            <button type="button" onClick={() => orderAction(o.id, "cancel")} disabled={busyOrderId === o.id} className="rounded-full border border-slate-700 px-2.5 py-0.5 text-[10px] font-bold text-slate-400 active:bg-slate-800">Cancel</button>
+                            <button type="button" onClick={() => orderAction(o.id, "cancel")} disabled={busyOrderId === o.id} className="rounded-full px-3 py-1 text-[10px] font-bold active:opacity-80" style={{ border: "1px solid var(--border)", color: "var(--text-3)" }}>Cancel</button>
                           )}
                         </div>
                       ) : null}
                     </div>
-                  </li>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </section>
           )}
 
           {menu.orderable ? (
             <>
               <section className="mb-3">
-                <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">{isMarket ? "On offer" : "Menu"}</h2>
-                <ul className="space-y-2">
+                <p className="one-mono mb-2.5 text-[10px] font-semibold" style={{ color: "var(--text-3)", letterSpacing: "0.12em" }}>{isMarket ? "ON OFFER" : "MENU"}</p>
+                <div className="flex flex-col gap-2.5">
                   {menu.items.map((d) => (
-                    <li key={d.id} className={clsx("flex gap-3 rounded-2xl border border-slate-700 bg-slate-800/60 p-2", d.soldOut && "opacity-50")}>
+                    <div key={d.id} className="flex gap-3 rounded-[16px] p-2.5" style={{ background: "var(--surface)", border: "1px solid var(--border)", opacity: d.soldOut ? 0.5 : 1 }}>
                       {d.imageUrl && (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={d.imageUrl} alt="" className="h-16 w-16 flex-shrink-0 rounded-lg object-cover" />
+                        <img src={d.imageUrl} alt="" className="h-[66px] w-[66px] flex-shrink-0 rounded-[12px] object-cover" />
                       )}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-white">{d.name}</p>
-                        {d.description && <p className="mt-0.5 line-clamp-2 text-[11px] text-slate-400">{d.description}</p>}
-                        <p className="mt-0.5 text-[12px] font-semibold text-slate-200">{formatUnitPrice(d.price, d.unit)}</p>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[15px] font-bold" style={{ color: "var(--text)" }}>{d.name}</p>
+                        {d.description && <p className="mt-0.5 line-clamp-2 text-[12px]" style={{ color: "var(--text-3)" }}>{d.description}</p>}
+                        <p className="mt-1 text-[14px] font-bold" style={{ color: "var(--text)" }}>{formatUnitPrice(d.price, d.unit)}</p>
                       </div>
                       {d.soldOut ? (
-                        <span className="self-center rounded-full bg-red-500/20 px-2 py-0.5 text-[10px] font-bold text-red-300">SOLD OUT</span>
-                      ) : (
-                        <div className="flex items-center gap-2 self-center">
-                          {(cart[d.id] ?? 0) > 0 && (
-                            <>
-                              <button type="button" onClick={() => setQty(d.id, -1)} className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-700 text-white active:bg-slate-600"><Minus size={13} /></button>
-                              <span className="w-5 text-center text-sm font-bold tabular-nums text-white">{cart[d.id]}</span>
-                            </>
-                          )}
-                          <button type="button" onClick={() => setQty(d.id, 1)} className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-500 text-white active:bg-indigo-600"><Plus size={13} /></button>
+                        <span className="self-center rounded-full px-2.5 py-1 text-[10px] font-bold" style={{ background: "var(--danger-soft)", color: "var(--danger)" }}>SOLD OUT</span>
+                      ) : (cart[d.id] ?? 0) > 0 ? (
+                        <div className="flex items-center gap-2.5 self-center rounded-full p-1.5" style={{ background: "var(--accent-soft)" }}>
+                          <button type="button" onClick={() => setQty(d.id, -1)} className="flex h-7 w-7 items-center justify-center rounded-full active:opacity-90" style={{ background: "var(--surface)", color: "var(--accent)" }}><Icon name="remove" size={16} style={{ color: "var(--accent)" }} /></button>
+                          <span className="w-3.5 text-center text-[15px] font-extrabold tabular-nums" style={{ color: "var(--accent)" }}>{cart[d.id]}</span>
+                          <button type="button" onClick={() => setQty(d.id, 1)} className="flex h-7 w-7 items-center justify-center rounded-full text-white active:opacity-90" style={{ background: "var(--accent-strong)" }}><Icon name="add" size={16} style={{ color: "#fff" }} /></button>
                         </div>
+                      ) : (
+                        <button type="button" onClick={() => setQty(d.id, 1)} className="flex h-[38px] w-[38px] flex-shrink-0 items-center justify-center self-center rounded-full text-white active:opacity-90" style={{ background: "var(--accent-strong)", boxShadow: "0 4px 12px var(--accent-soft)" }}><Icon name="add" size={22} style={{ color: "#fff" }} /></button>
                       )}
-                    </li>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </section>
 
               {cartCount > 0 && (
-                <section className="mb-4 space-y-2">
+                <section className="mb-4 flex flex-col gap-2.5">
                   <textarea
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                     placeholder={isMarket ? "Note for the seller (optional)" : "Note for the chef (optional) — e.g. less spicy"}
                     rows={2}
-                    className="w-full resize-none rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none"
+                    className="one-input w-full resize-none rounded-[12px] px-3.5 py-2.5 text-[14px] outline-none"
                   />
-                  {error && <p className="rounded-lg border border-red-700/60 bg-red-900/20 px-3 py-1.5 text-[11px] text-red-200">{error}</p>}
+                  {error && <p className="rounded-[10px] px-3 py-2 text-[12px]" style={{ background: "var(--danger-soft)", color: "var(--danger)", border: "1px solid color-mix(in srgb, var(--danger) 40%, transparent)" }}>{error}</p>}
                   <button
                     type="button"
                     onClick={placeOrder}
                     disabled={placing}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-500 py-3 text-sm font-semibold text-white active:bg-indigo-600 disabled:opacity-50"
+                    className="flex w-full items-center justify-center gap-2 rounded-[12px] py-3.5 text-[15px] font-bold text-white active:opacity-90 disabled:opacity-50"
+                    style={{ background: "var(--accent-strong)", boxShadow: "0 6px 16px var(--accent-soft)" }}
                   >
-                    {placing ? <Loader2 size={16} className="animate-spin" /> : <ShoppingCart size={16} />}
+                    {placing ? <Loader2 size={17} className="animate-spin" /> : <Icon name="shopping_cart" size={18} style={{ color: "#fff" }} />}
                     Place order · {cartCount} item{cartCount !== 1 ? "s" : ""} · ₹{cartTotal}
                   </button>
                 </section>
               )}
             </>
           ) : (
-            <div className="rounded-2xl border border-dashed border-slate-700 px-4 py-6 text-center text-sm text-slate-500">
-              <EmptyIcon size={24} className="mx-auto mb-2 text-slate-600" />
+            <div className="flex flex-col items-center gap-2 rounded-[16px] px-4 py-8 text-center text-[14px]" style={{ border: "1.5px dashed var(--border-strong)", color: "var(--text-3)" }}>
+              <Icon name={emptyIcon} size={26} style={{ color: "var(--text-3)" }} />
               This {L.listing} isn't taking orders right now.
             </div>
           )}
@@ -770,56 +733,54 @@ function CoManagers({
   }
 
   return (
-    <div className="mb-4 rounded-2xl border border-slate-700 bg-slate-800/40 p-3">
+    <div className="mb-4 rounded-[16px] p-3.5" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
       <div className="flex items-center justify-between">
-        <h2 className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400">
-          <Users size={13} /> Co-managers
-        </h2>
+        <p className="one-mono flex items-center gap-1.5 text-[10px] font-semibold" style={{ color: "var(--text-2)", letterSpacing: "0.12em" }}>
+          <Icon name="group" size={14} style={{ color: "var(--text-2)" }} /> CO-MANAGERS
+        </p>
         {!adding && (
-          <button type="button" onClick={() => setAdding(true)} className="inline-flex items-center gap-1 text-[12px] font-medium text-indigo-300 active:text-indigo-200">
-            <UserPlus size={13} /> Add
+          <button type="button" onClick={() => setAdding(true)} className="flex items-center gap-1 text-[12px] font-semibold active:opacity-80" style={{ color: "var(--accent)" }}>
+            <Icon name="person_add" size={14} style={{ color: "var(--accent)" }} /> Add
           </button>
         )}
       </div>
-      <p className="mt-1 text-[11px] text-slate-500">
+      <p className="mt-1.5 text-[11.5px] leading-snug" style={{ color: "var(--text-3)" }}>
         They can edit {L.itemPlural}, manage orders, and add other co-managers. Only the owner can remove them or delete it.
       </p>
 
       {managers.length > 0 && (
-        <ul className="mt-2 space-y-1.5">
+        <div className="mt-2.5 flex flex-col gap-1.5">
           {managers.map((m) => (
-            <li key={m.id} className="flex items-center justify-between rounded-xl bg-slate-900/60 px-3 py-2">
-              <span className="text-[13px] text-slate-200">{m.name} <span className="text-slate-500">· B{m.block}-{m.flatNumber}</span></span>
+            <div key={m.id} className="flex items-center justify-between rounded-[12px] px-3 py-2" style={{ background: "var(--surface)" }}>
+              <span className="text-[13px]" style={{ color: "var(--text)" }}>{m.name} <span style={{ color: "var(--text-3)" }}>· B{m.block}-{m.flatNumber}</span></span>
               {canRemove && (
-                <button type="button" onClick={() => remove(m.id)} disabled={busy} className="text-slate-500 active:text-red-300 disabled:opacity-50"><X size={15} /></button>
+                <button type="button" onClick={() => remove(m.id)} disabled={busy} className="flex active:opacity-70 disabled:opacity-50"><Icon name="close" size={16} style={{ color: "var(--text-3)" }} /></button>
               )}
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
 
       {adding && (
-        <div className="mt-2 space-y-2">
+        <div className="mt-2.5 flex flex-col gap-2">
           <input
             autoFocus
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search a resident by name…"
-            className="w-full rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none"
+            className="one-input w-full rounded-[12px] px-3.5 py-2.5 text-[14px] outline-none"
           />
-          {err && <p className="text-[11px] text-red-300">{err}</p>}
+          {err && <p className="text-[12px]" style={{ color: "var(--danger)" }}>{err}</p>}
           {results.length > 0 && (
-            <ul className="overflow-hidden rounded-xl border border-slate-700">
+            <div className="overflow-hidden rounded-[12px]" style={{ border: "1px solid var(--border)" }}>
               {results.map((r) => (
-                <li key={r.id}>
-                  <button type="button" onClick={() => add(r.id)} disabled={busy} className="w-full px-3 py-2 text-left text-[13px] text-slate-200 active:bg-slate-700 disabled:opacity-50">
-                    {r.name} <span className="text-slate-500">· B{r.block}-{r.flatNumber}</span>
-                  </button>
-                </li>
+                <button key={r.id} type="button" onClick={() => add(r.id)} disabled={busy} className="block w-full px-3.5 py-2.5 text-left text-[13px] active:opacity-80 disabled:opacity-50" style={{ color: "var(--text)" }}>
+                  {r.name} <span style={{ color: "var(--text-3)" }}>· B{r.block}-{r.flatNumber}</span>
+                </button>
               ))}
-            </ul>
+            </div>
           )}
-          <button type="button" onClick={() => { setAdding(false); setQ(""); setResults([]); setErr(null); }} className="text-[11px] text-slate-500 active:text-slate-300">Cancel</button>
+          <button type="button" onClick={() => { setAdding(false); setQ(""); setResults([]); setErr(null); }} className="self-start text-[11px] active:opacity-70" style={{ color: "var(--text-3)" }}>Cancel</button>
         </div>
       )}
     </div>
@@ -842,52 +803,52 @@ function ChefOrderCard({
   onCancel: () => void;
 }) {
   return (
-    <li className={clsx("rounded-2xl border p-3", order.status === "CANCELLED" ? "border-slate-700 bg-slate-800/30 opacity-70" : "border-slate-700 bg-slate-800/60")}>
+    <div className="rounded-[16px] p-3.5" style={{ background: "var(--surface)", border: "1px solid var(--border)", opacity: order.status === "CANCELLED" ? 0.7 : 1 }}>
       <div className="flex items-baseline justify-between gap-2">
-        <span className="truncate text-sm font-semibold text-white">
+        <span className="truncate text-[14px] font-bold" style={{ color: "var(--text)" }}>
           {order.manual
             ? order.manualBuyerName || "Offline order"
             : order.buyer
               ? `${order.buyer.name} · B${order.buyer.block}-${order.buyer.flatNumber}`
               : "Order"}
           {order.manual && (
-            <span className="ml-1.5 rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-bold text-amber-200">OFFLINE</span>
+            <span className="ml-1.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold" style={{ background: "var(--warning-soft)", color: "var(--warning)" }}>OFFLINE</span>
           )}
         </span>
-        <span className="shrink-0 text-sm font-bold tabular-nums text-white">₹{order.totalAmount}</span>
+        <span className="shrink-0 text-[14px] font-bold tabular-nums" style={{ color: "var(--text)" }}>₹{order.totalAmount}</span>
       </div>
-      <p className="mt-0.5 text-[11px] text-slate-400">
+      <p className="mt-0.5 text-[12px]" style={{ color: "var(--text-2)" }}>
         {order.items.map(lineText).join(", ")}
       </p>
-      {order.note && <p className="mt-1 rounded-lg bg-slate-900/50 px-2 py-1 text-[11px] italic text-slate-400">“{order.note}”</p>}
-      <div className="mt-2 flex flex-wrap items-center gap-1.5">
-        <span className={clsx("rounded-full px-2 py-0.5 text-[10px] font-bold", order.status === "CONFIRMED" ? "bg-emerald-500/20 text-emerald-300" : order.status === "CANCELLED" ? "bg-red-500/20 text-red-300" : "bg-slate-700 text-slate-300")}>{order.status}</span>
+      {order.note && <p className="mt-1.5 rounded-[8px] px-2.5 py-1.5 text-[12px] italic" style={{ background: "var(--surface-2)", color: "var(--text-2)" }}>“{order.note}”</p>}
+      <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+        <span className="rounded-full px-2 py-0.5 text-[10px] font-bold" style={order.status === "CONFIRMED" ? { background: "var(--success-soft)", color: "var(--success)" } : order.status === "CANCELLED" ? { background: "var(--danger-soft)", color: "var(--danger)" } : { background: "var(--surface-3)", color: "var(--text-2)" }}>{order.status}</span>
         {order.chefPaid ? (
           <span className="inline-flex items-center gap-2">
-            <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-300">{order.manual ? "PAID ✓" : "RECEIVED ✓"}</span>
-            <button type="button" onClick={onUnconfirm} disabled={busy} className="text-[10px] text-slate-500 active:text-slate-300">undo</button>
+            <span className="rounded-full px-2 py-0.5 text-[10px] font-bold" style={{ background: "var(--success-soft)", color: "var(--success)" }}>{order.manual ? "PAID ✓" : "RECEIVED ✓"}</span>
+            <button type="button" onClick={onUnconfirm} disabled={busy} className="text-[10px] active:opacity-70" style={{ color: "var(--text-3)" }}>undo</button>
           </span>
         ) : order.manual ? (
           order.status !== "CANCELLED" ? (
-            <button type="button" onClick={onConfirm} disabled={busy} className="rounded-full bg-emerald-500 px-2.5 py-0.5 text-[10px] font-bold text-white active:bg-emerald-600 disabled:opacity-50">
+            <button type="button" onClick={onConfirm} disabled={busy} className="rounded-full px-3 py-0.5 text-[10px] font-bold text-white active:opacity-90 disabled:opacity-50" style={{ background: "var(--success)" }}>
               {busy ? "…" : "Mark paid"}
             </button>
           ) : null
         ) : order.buyerPaid ? (
-          <button type="button" onClick={onConfirm} disabled={busy} className="rounded-full bg-emerald-500 px-2.5 py-0.5 text-[10px] font-bold text-white active:bg-emerald-600 disabled:opacity-50">
+          <button type="button" onClick={onConfirm} disabled={busy} className="rounded-full px-3 py-0.5 text-[10px] font-bold text-white active:opacity-90 disabled:opacity-50" style={{ background: "var(--success)" }}>
             {busy ? "…" : "Confirm received"}
           </button>
         ) : (
-          <span className="rounded-full bg-slate-700 px-2 py-0.5 text-[10px] text-slate-400">unpaid</span>
+          <span className="rounded-full px-2 py-0.5 text-[10px]" style={{ background: "var(--surface-3)", color: "var(--text-3)" }}>unpaid</span>
         )}
         {order.buyer?.phone && (
-          <a href={`tel:${order.buyer.phone}`} className="inline-flex items-center gap-0.5 rounded-full bg-slate-900 px-2 py-0.5 text-[10px] text-indigo-300"><Phone size={9} /> call</a>
+          <a href={`tel:${order.buyer.phone}`} className="flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[10px]" style={{ background: "var(--surface-2)", color: "var(--accent)" }}><Icon name="call" size={11} style={{ color: "var(--accent)" }} /> call</a>
         )}
         {order.status !== "CANCELLED" && (
-          <button type="button" onClick={onCancel} disabled={busy} className="ml-auto text-[10px] text-slate-500 active:text-red-300">cancel</button>
+          <button type="button" onClick={onCancel} disabled={busy} className="ml-auto text-[10px] active:opacity-70" style={{ color: "var(--text-3)" }}>cancel</button>
         )}
       </div>
-    </li>
+    </div>
   );
 }
 
