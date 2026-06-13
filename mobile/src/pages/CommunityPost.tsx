@@ -5,7 +5,7 @@ import clsx from "clsx";
 import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
-import { Avatar, timeAgo } from "./Community";
+import { Avatar, timeAgo, sharePost } from "./Community";
 
 type Author = {
   id: string;
@@ -201,7 +201,7 @@ export default function CommunityPost() {
                   <Icon name="mode_comment" size={25} style={{ color: "var(--text-2)" }} />
                   <span className="text-[14px] font-bold" style={{ color: "var(--text)" }}>{post.commentCount}</span>
                 </div>
-                <button onClick={() => navigate("/messages")} className="ml-2 flex p-1 active:opacity-70" aria-label="Share via message">
+                <button onClick={() => void sharePost(post)} className="ml-2 flex p-1 active:opacity-70" aria-label="Share post">
                   <Icon name="send" size={25} style={{ color: "var(--text-2)" }} />
                 </button>
               </div>

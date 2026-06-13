@@ -2,10 +2,27 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import clsx from "clsx";
+import { Share } from "@capacitor/share";
 import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
 import { API_BASE_URL } from "../config";
 import { useAuth } from "../auth/AuthProvider";
+
+// Open the native share sheet for a post (clipboard fallback on web / failure).
+export async function sharePost(post: { id: string; content: string; author: { name: string } }) {
+  const url = `${API_BASE_URL}/community/${post.id}`;
+  const snippet = post.content?.trim().slice(0, 80);
+  const text = snippet ? `${post.author.name}: ${snippet}` : `${post.author.name} shared a post`;
+  try {
+    await Share.share({ title: "Community post", text, url, dialogTitle: "Share post" });
+  } catch {
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      /* nothing else we can do */
+    }
+  }
+}
 
 type Author = {
   id: string;
@@ -442,9 +459,9 @@ function PostCard({
           <Icon name="mode_comment" size={24} style={{ color: "var(--text-2)" }} />
           <span className="text-[13px] font-bold" style={{ color: "var(--text)" }}>{post.commentCount}</span>
         </Link>
-        <Link to="/messages" className="ml-1.5 flex p-1 active:opacity-70" aria-label="Share via message">
+        <button onClick={() => void sharePost(post)} className="ml-1.5 flex p-1 active:opacity-70" aria-label="Share post">
           <Icon name="send" size={24} style={{ color: "var(--text-2)" }} />
-        </Link>
+        </button>
       </div>
 
       {/* Caption */}
