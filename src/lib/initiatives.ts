@@ -25,7 +25,17 @@ export interface ValidatedInitiative {
   title: string;
   body: string;
   imageUrl: string | null;
+  youtubeUrl: string | null;
   commentsCloseAt: Date;
+}
+
+/** Extract the 11-char video id from any common YouTube URL (or null). */
+export function youtubeId(url: string | null | undefined): string | null {
+  if (!url) return null;
+  const m = url.match(
+    /(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+  );
+  return m ? m[1] : null;
 }
 
 export function validateInitiative(
@@ -50,7 +60,16 @@ export function validateInitiative(
 
   const imageUrl = typeof r.imageUrl === "string" && r.imageUrl.trim() ? r.imageUrl.trim() : null;
 
-  return { ok: true, data: { title, body, imageUrl, commentsCloseAt } };
+  let youtubeUrl: string | null = null;
+  if (typeof r.youtubeUrl === "string" && r.youtubeUrl.trim()) {
+    const raw = r.youtubeUrl.trim();
+    if (!youtubeId(raw)) {
+      return { ok: false, error: "That doesn't look like a YouTube link" };
+    }
+    youtubeUrl = raw;
+  }
+
+  return { ok: true, data: { title, body, imageUrl, youtubeUrl, commentsCloseAt } };
 }
 
 /** Validate a comment/reply body. */

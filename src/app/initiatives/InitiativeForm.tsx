@@ -17,6 +17,7 @@ export default function InitiativeForm({ initiativeId }: { initiativeId?: string
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [youtubeUrl, setYoutubeUrl] = useState("");
   const [commentsCloseAt, setCommentsCloseAt] = useState(defaultDeadline());
   const [loading, setLoading] = useState(editing);
   const [busy, setBusy] = useState(false);
@@ -39,6 +40,7 @@ export default function InitiativeForm({ initiativeId }: { initiativeId?: string
           setTitle(d.title ?? "");
           setBody(d.body ?? "");
           setImageUrl(d.imageUrl ?? null);
+          setYoutubeUrl(d.youtubeUrl ?? "");
           setCommentsCloseAt(toLocalInput(d.commentsCloseAt));
         } else if (res.status === 403) {
           router.push("/initiatives");
@@ -80,6 +82,7 @@ export default function InitiativeForm({ initiativeId }: { initiativeId?: string
         title: title.trim(),
         body: body.trim(),
         imageUrl,
+        youtubeUrl: youtubeUrl.trim() || null,
         commentsCloseAt: closeDate.toISOString(),
       };
       const res = editing
@@ -129,6 +132,11 @@ export default function InitiativeForm({ initiativeId }: { initiativeId?: string
               </button>
             )}
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void upload(f); e.target.value = ""; }} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">YouTube video <span className="text-gray-400 dark:text-gray-500 font-normal">(optional)</span></label>
+            <input value={youtubeUrl} onChange={(e) => setYoutubeUrl(e.target.value)} placeholder="Paste a YouTube link" className={inputCls} />
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Add a walkthrough or explainer video.</p>
           </div>
 
           {err && <p className="bg-red-50 dark:bg-red-900/30 border border-red-200 text-red-700 rounded-lg px-3 py-2 text-sm">{err}</p>}

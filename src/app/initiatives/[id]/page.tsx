@@ -8,6 +8,7 @@ import {
   ArrowLeft, Megaphone, Heart, MessageSquare, Lock, ShieldCheck,
   Trash2, Pencil, Send, CornerDownRight,
 } from "lucide-react";
+import { youtubeId } from "@/lib/initiatives";
 
 interface Comment {
   id: string;
@@ -25,6 +26,7 @@ interface InitiativeDetail {
   title: string;
   body: string;
   imageUrl: string | null;
+  youtubeUrl: string | null;
   status: "OPEN" | "CLOSED" | "ARCHIVED";
   commentsCloseAt: string;
   isOpen: boolean;
@@ -123,6 +125,18 @@ export default function InitiativeDetailPage() {
         {data.imageUrl && (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={data.imageUrl} alt="" className="mt-3 w-full rounded-lg border border-gray-200 dark:border-gray-700 object-cover" />
+        )}
+
+        {youtubeId(data.youtubeUrl) && (
+          <div className="mt-3 aspect-video w-full overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+            <iframe
+              src={`https://www.youtube.com/embed/${youtubeId(data.youtubeUrl)}`}
+              title="Initiative video"
+              className="h-full w-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
         )}
 
         <p className="mt-3 text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-relaxed">{data.body}</p>

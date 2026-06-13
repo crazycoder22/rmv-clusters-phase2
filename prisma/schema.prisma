@@ -2083,6 +2083,7 @@ model Initiative {
   title           String
   body            String
   imageUrl        String?
+  youtubeUrl      String?
   status          InitiativeStatus    @default(OPEN)
   commentsCloseAt DateTime
   comments        InitiativeComment[]

@@ -69,6 +69,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     title: initiative.title,
     body: initiative.body,
     imageUrl: initiative.imageUrl,
+    youtubeUrl: initiative.youtubeUrl,
     status: initiative.status,
     commentsCloseAt: initiative.commentsCloseAt.toISOString(),
     isOpen,
@@ -118,13 +119,14 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 
   // content fields — validate together only if any provided
-  if ("title" in body || "body" in body || "commentsCloseAt" in body || "imageUrl" in body) {
+  if ("title" in body || "body" in body || "commentsCloseAt" in body || "imageUrl" in body || "youtubeUrl" in body) {
     const v = validateInitiative(
       {
         title: body.title,
         body: body.body,
         commentsCloseAt: body.commentsCloseAt,
         imageUrl: body.imageUrl,
+        youtubeUrl: body.youtubeUrl,
       },
       // allow keeping an existing (possibly past) deadline only when it's unchanged;
       // validateInitiative requires a future deadline, so callers editing other
@@ -135,6 +137,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     data.title = v.data.title;
     data.body = v.data.body;
     data.imageUrl = v.data.imageUrl;
+    // Only touch youtubeUrl when the caller actually sent it, so an edit from a
+    // client that doesn't know the field can't wipe an existing video link.
+    if ("youtubeUrl" in body) data.youtubeUrl = v.data.youtubeUrl;
     data.commentsCloseAt = v.data.commentsCloseAt;
   }
 

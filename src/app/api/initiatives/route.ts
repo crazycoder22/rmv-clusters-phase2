@@ -60,6 +60,7 @@ export async function POST(request: Request) {
       title: v.data.title,
       body: v.data.body,
       imageUrl: v.data.imageUrl,
+      youtubeUrl: v.data.youtubeUrl,
       commentsCloseAt: v.data.commentsCloseAt,
     },
   });
