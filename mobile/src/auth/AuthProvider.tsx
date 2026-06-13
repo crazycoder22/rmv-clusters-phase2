@@ -73,8 +73,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const stored = await Preferences.get({ key: STORAGE_KEY });
         if (cancelled) return;
         if (stored.value) {
-          setSession(JSON.parse(stored.value) as Session);
+          const restored = JSON.parse(stored.value) as Session;
+          setSession(restored);
           setStatus("signedIn");
+          // Validate the saved JWT in the background. If the server rejects
+          // it (expired after 30 days, or otherwise invalid) we clear the
+          // session so the app drops to the login screen — instead of
+          // appearing "logged in" while every API call 401s (e.g. opening a
+          // shared post link showed a dead "Unauthorized"). Network errors
+          // are ignored so offline launches keep working from cache.
+          void (async () => {
+            try {
+              const res = await apiFetch("/api/me", { token: restored.token });
+              if (!cancelled && res.status === 401) {
+                await Preferences.remove({ key: STORAGE_KEY });
+                if (cancelled) return;
+                setSession(null);
+                setError({
+                  reason: "invalid_token",
+                  message: "Your session expired. Please sign in again.",
+                });
+                setStatus("signedOut");
+              }
+            } catch {
+              // offline / transient — keep the cached session
+            }
+          })();
         } else {
           setStatus("signedOut");
         }
