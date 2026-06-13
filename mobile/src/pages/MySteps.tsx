@@ -1,17 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  Activity,
-  ArrowLeft,
-  Calendar,
-  Flame,
-  Loader2,
-  RefreshCw,
-  Target,
-  TrendingUp,
-} from "lucide-react";
-import clsx from "clsx";
+import { Loader2 } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
+import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
 import {
@@ -88,12 +79,7 @@ export default function MySteps() {
   async function pickSource(next: StepSource) {
     if (next === source) return;
     await updateUser({ stepSource: next });
-    await apiFetch("/api/me", {
-      method: "PATCH",
-      token,
-      body: JSON.stringify({ stepSource: next }),
-    });
-    // Sync immediately from the new source.
+    await apiFetch("/api/me", { method: "PATCH", token, body: JSON.stringify({ stepSource: next }) });
     setSyncing(true);
     const res = await syncPersonalSteps({ token, source: next, force: true });
     if (res.ok) await load();
@@ -103,11 +89,7 @@ export default function MySteps() {
   async function saveGoal() {
     const n = Math.max(0, Math.min(200000, parseInt(goalDraft, 10) || 0));
     await updateUser({ dailyStepGoal: n });
-    await apiFetch("/api/me", {
-      method: "PATCH",
-      token,
-      body: JSON.stringify({ dailyStepGoal: n }),
-    });
+    await apiFetch("/api/me", { method: "PATCH", token, body: JSON.stringify({ dailyStepGoal: n }) });
     setGoalDraft("");
     await load();
   }
@@ -130,120 +112,139 @@ export default function MySteps() {
 
   const goal = data?.goal ?? user?.dailyStepGoal ?? 0;
   const today = data?.today ?? 0;
-  const goalPct = goal > 0 ? Math.min(100, Math.round((today / goal) * 100)) : 0;
+  const streak = data?.streak ?? 0;
+
+  // Bar fill colour per the design — goal ratio when a goal is set, else
+  // absolute thresholds. Green at/above goal, warning past 60%, muted else.
+  function barColor(steps: number): string {
+    if (steps === 0) return "var(--text-3)";
+    if (goal > 0) {
+      const r = steps / goal;
+      return r >= 1 ? "var(--success)" : r >= 0.6 ? "var(--warning)" : "var(--text-3)";
+    }
+    return steps >= 10000 ? "var(--success)" : steps >= 5000 ? "var(--warning)" : "var(--text-3)";
+  }
 
   return (
-    <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)]">
-      <header className="flex items-center gap-2 py-4">
-        <Link to="/more" className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 active:bg-slate-800">
-          <ArrowLeft size={20} />
+    <div className="one-surface flex flex-1 flex-col px-[18px] pt-[env(safe-area-inset-top,0px)] pb-8" style={{ background: "var(--bg)", color: "var(--text)" }}>
+      <header className="flex items-start gap-3.5 py-3">
+        <Link to="/community" className="mt-0.5 flex active:opacity-70" aria-label="Back">
+          <Icon name="arrow_back" size={23} style={{ color: "var(--text-2)" }} />
         </Link>
         <div className="min-w-0 flex-1">
-          <h1 className="text-lg font-semibold text-white">My steps</h1>
-          <p className="truncate text-[11px] text-slate-500">
+          <h1 className="text-[24px] font-extrabold leading-tight tracking-tight" style={{ color: "var(--text)" }}>My steps</h1>
+          <p className="mt-0.5 truncate text-[13px]" style={{ color: "var(--text-3)" }}>
             {data?.source ? SOURCE_LABEL[data.source as StepSource] ?? data.source : "Personal tracker"} · last {WINDOW_DAYS} days
           </p>
         </div>
         {native && (
-          <button type="button" onClick={() => void doSync()} disabled={syncing} aria-label="Sync now" className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 active:bg-slate-800 disabled:opacity-50">
-            {syncing ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
+          <button type="button" onClick={() => void doSync()} disabled={syncing} aria-label="Sync now" className="mt-0.5 flex active:opacity-70 disabled:opacity-50">
+            {syncing ? <Loader2 size={20} className="animate-spin" style={{ color: "var(--text-2)" }} /> : <Icon name="refresh" size={22} style={{ color: "var(--text-2)" }} />}
           </button>
         )}
       </header>
 
       {loading ? (
-        <div className="flex justify-center py-10 text-slate-500"><Loader2 size={20} className="animate-spin" /></div>
+        <div className="flex justify-center py-12"><Loader2 size={22} className="animate-spin" style={{ color: "var(--text-3)" }} /></div>
       ) : (
         <>
-          {/* Today hero + streak */}
-          <section className="mb-3 rounded-2xl border border-slate-700 bg-gradient-to-br from-indigo-500/15 to-emerald-500/15 p-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-[10px] uppercase tracking-wider text-slate-400">Today</p>
-                <p className="mt-0.5 text-4xl font-bold tabular-nums text-white">{today.toLocaleString()}</p>
-                <p className="mt-1 text-[11px] text-slate-300"><Activity size={11} className="-mt-0.5 mr-0.5 inline" /> steps</p>
-              </div>
-              {(data?.streak ?? 0) > 0 && (
-                <div className="flex items-center gap-1 rounded-full bg-orange-500/15 px-2.5 py-1 text-orange-300">
-                  <Flame size={14} className="fill-orange-400 text-orange-400" />
-                  <span className="text-sm font-bold">{data?.streak}</span>
-                  <span className="text-[10px]">day streak</span>
+          {/* Today hero */}
+          <div className="relative overflow-hidden rounded-[20px] p-[18px]" style={{ background: "linear-gradient(150deg, #16314a 0%, #10243a 48%, #0f2e2a 100%)", border: "1px solid var(--border-strong)" }}>
+            <div className="flex items-start justify-between gap-2.5">
+              <span className="one-mono text-[11px] font-semibold" style={{ color: "#9fb8c9", letterSpacing: "0.14em" }}>TODAY</span>
+              {streak > 0 && (
+                <div className="flex items-center gap-1.5 rounded-full px-3 py-1.5" style={{ background: "rgba(245,158,11,0.16)", border: "1px solid rgba(245,158,11,0.3)" }}>
+                  <span className="text-[14px] leading-none">🔥</span>
+                  <span className="text-[13px] font-extrabold" style={{ color: "#f59e0b" }}>{streak}</span>
+                  <span className="text-[13px] font-semibold" style={{ color: "#e7b98a" }}>day streak</span>
                 </div>
               )}
             </div>
-            {goal > 0 && (
-              <div className="mt-3">
-                <div className="mb-1 flex justify-between text-[10px] text-slate-400">
-                  <span>Goal {goal.toLocaleString()}</span>
-                  <span>{goalPct}%</span>
-                </div>
-                <div className="h-2 overflow-hidden rounded-full bg-slate-900">
-                  <div className={clsx("h-full rounded-full", goalPct >= 100 ? "bg-emerald-500" : "bg-indigo-400")} style={{ width: `${Math.max(2, goalPct)}%` }} />
-                </div>
-              </div>
-            )}
-          </section>
+            <div className="mt-2 text-[48px] font-extrabold leading-[1.04] tracking-tight text-white">{today.toLocaleString("en-IN")}</div>
+            <div className="mt-1 flex items-center gap-1.5">
+              <Icon name="monitoring" size={18} style={{ color: "#9fb8c9" }} />
+              <span className="text-[15px]" style={{ color: "#bcccdb" }}>steps</span>
+            </div>
+          </div>
 
-          {/* Stats */}
-          <section className="mb-3 grid grid-cols-3 gap-2">
-            <Stat value={data?.average ?? 0} label="avg / day" icon={TrendingUp} />
-            <Stat value={data?.best ?? 0} label="best day" icon={Activity} />
-            <Stat value={data?.total ?? 0} label={`${WINDOW_DAYS}-day total`} icon={Calendar} />
-          </section>
+          {/* Stat tiles */}
+          <div className="mt-3 flex gap-2.5">
+            <Stat ms="trending_up" value={data?.average ?? 0} label="AVG / DAY" />
+            <Stat ms="monitoring" value={data?.best ?? 0} label="BEST DAY" />
+            <Stat ms="calendar_month" value={data?.total ?? 0} label={`${WINDOW_DAYS}-DAY TOTAL`} />
+          </div>
 
-          {/* Source picker (native only) */}
+          {/* Step source */}
           {native && sources.length > 0 && (
-            <section className="mb-3">
-              <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500">Step source</p>
-              <div className="flex flex-wrap gap-2">
-                {sources.map((s) => (
-                  <button key={s} onClick={() => void pickSource(s)} className={clsx("rounded-full px-3 py-1.5 text-xs font-medium", s === source ? "bg-indigo-600 text-white" : "border border-slate-700 bg-slate-800/60 text-slate-300")}>
-                    {SOURCE_LABEL[s]}
-                  </button>
-                ))}
+            <>
+              <p className="one-mono mb-3 mt-[22px] px-1 text-[11px] font-semibold" style={{ color: "var(--text-3)", letterSpacing: "0.12em" }}>STEP SOURCE</p>
+              <div className="flex gap-2.5">
+                {sources.map((s) => {
+                  const on = s === source;
+                  return (
+                    <button
+                      key={s}
+                      onClick={() => void pickSource(s)}
+                      className="rounded-full px-4 py-2.5 text-[14.5px] font-bold"
+                      style={on
+                        ? { background: "var(--accent-strong)", color: "#fff", boxShadow: "0 6px 16px var(--accent-soft)" }
+                        : { background: "var(--surface)", color: "var(--text-2)", border: "1px solid var(--border-strong)" }}
+                    >
+                      {SOURCE_LABEL[s]}
+                    </button>
+                  );
+                })}
               </div>
-            </section>
+            </>
           )}
 
-          {/* Goal editor */}
-          <section className="mb-3 flex items-center gap-2 rounded-2xl border border-slate-700 bg-slate-800/60 px-3 py-2.5">
-            <Target size={16} className="text-indigo-300" />
-            <span className="text-sm text-slate-200">Daily goal</span>
+          {/* Daily goal */}
+          <div className="mt-[18px] flex items-center gap-3 rounded-[16px] p-3.5" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+            <Icon name="target" size={24} fill style={{ color: "var(--accent)" }} />
+            <span className="flex-1 text-[16px] font-bold" style={{ color: "var(--text)" }}>Daily goal</span>
             <input
               inputMode="numeric"
               value={goalDraft}
               onChange={(e) => setGoalDraft(e.target.value.replace(/\D/g, ""))}
-              placeholder={goal > 0 ? goal.toLocaleString() : "e.g. 8000"}
-              className="ml-auto w-24 rounded-lg border border-slate-700 bg-slate-900/60 px-2 py-1.5 text-right text-sm text-white placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none"
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void saveGoal(); } }}
+              placeholder={goal > 0 ? goal.toLocaleString("en-IN") : "e.g. 8000"}
+              className="w-[88px] rounded-[10px] px-2 py-2.5 text-center text-[14px] outline-none"
+              style={{ background: "var(--surface-2)", border: "1px solid var(--border-strong)", color: "var(--text)" }}
             />
-            <button onClick={() => void saveGoal()} disabled={!goalDraft} className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50">Set</button>
-          </section>
+            <button onClick={() => void saveGoal()} disabled={!goalDraft} className="rounded-[10px] px-4 py-2.5 text-[14px] font-bold text-white disabled:opacity-50" style={{ background: "var(--accent-strong)" }}>Set</button>
+          </div>
+          <p className="mx-1 mt-2 text-[12px]" style={{ color: "var(--text-3)" }}>
+            Goal: <span className="font-bold" style={{ color: "var(--text-2)" }}>{(goal || 0).toLocaleString("en-IN")}</span> steps · bars turn <span className="font-bold" style={{ color: "var(--success)" }}>green</span> when you hit it.
+          </p>
 
-          {note && <p className="mb-3 rounded-lg border border-amber-700/40 bg-amber-900/20 px-3 py-1.5 text-[11px] text-amber-200">{note}</p>}
+          {note && <p className="mt-3 rounded-[12px] px-3.5 py-2.5 text-[12px]" style={{ background: "var(--warning-soft)", color: "var(--warning)" }}>{note}</p>}
 
-          {/* 30-day history */}
-          <section className="mb-4">
-            <h2 className="mb-2 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500"><Calendar size={11} /> Daily history</h2>
-            <div className="space-y-0.5">
-              {dayRows.map((d, i) => {
-                const isToday = d.iso === todayStr;
-                const widthPct = (d.steps / maxSteps) * 100;
-                return (
-                  <div key={d.iso} className={clsx("flex items-center gap-2 rounded-lg px-2 py-1.5", isToday ? "bg-indigo-500/15" : i % 2 === 0 ? "bg-slate-800/40" : "bg-slate-800/20")}>
-                    <div className="w-16 flex-shrink-0"><p className="text-[11px] font-medium text-slate-200">{isToday ? "Today" : fmtShortDate(d.iso)}</p></div>
-                    <div className="flex-1">
-                      <div className="h-2 overflow-hidden rounded-full bg-slate-900">
-                        <div className={clsx("h-full rounded-full", d.steps === 0 ? "bg-slate-700" : goal > 0 && d.steps >= goal ? "bg-emerald-500" : d.steps >= 10000 ? "bg-emerald-500" : d.steps >= 5000 ? "bg-amber-500" : "bg-slate-500")} style={{ width: `${Math.max(2, widthPct)}%` }} />
-                      </div>
-                    </div>
-                    <span className={clsx("w-16 flex-shrink-0 text-right font-mono text-[11px] tabular-nums", d.steps === 0 ? "text-slate-600" : "text-white")}>{d.steps > 0 ? d.steps.toLocaleString() : "—"}</span>
+          {/* Daily history */}
+          <div className="mx-1 mb-3 mt-[22px] flex items-center gap-2" style={{ color: "var(--text-3)" }}>
+            <Icon name="calendar_today" size={16} style={{ color: "var(--text-3)" }} />
+            <span className="one-mono text-[11px] font-semibold" style={{ letterSpacing: "0.12em" }}>DAILY HISTORY</span>
+          </div>
+          <div className="flex flex-col gap-0.5">
+            {dayRows.map((d) => {
+              const isToday = d.iso === todayStr;
+              const widthPct = Math.max(6, Math.round((d.steps / maxSteps) * 100));
+              return (
+                <div key={d.iso} className="flex items-center gap-3 rounded-[11px] px-3 py-2.5" style={isToday ? { background: "var(--accent-soft)" } : undefined}>
+                  <span className="w-[84px] flex-shrink-0 text-[14px]" style={{ color: isToday ? "var(--text)" : "var(--text-2)", fontWeight: isToday ? 700 : 600 }}>
+                    {isToday ? "Today" : fmtShortDate(d.iso)}
+                  </span>
+                  <div className="h-[11px] flex-1 overflow-hidden rounded-full" style={{ background: "var(--surface-3)" }}>
+                    <div className="h-full rounded-full" style={{ width: `${widthPct}%`, background: barColor(d.steps) }} />
                   </div>
-                );
-              })}
-            </div>
-          </section>
+                  <span className="w-[58px] flex-shrink-0 text-right text-[14px] font-bold tabular-nums" style={{ color: d.steps === 0 ? "var(--text-3)" : "var(--text)" }}>
+                    {d.steps > 0 ? d.steps.toLocaleString("en-IN") : "—"}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
 
-          <p className="pb-4 text-center text-[10px] text-slate-500">
+          <p className="pt-4 text-center text-[11px]" style={{ color: "var(--text-3)" }}>
             {native ? "Tap ↻ to sync the latest from your device." : "Steps sync from the OneRMV app on your phone."}
           </p>
         </>
@@ -252,12 +253,12 @@ export default function MySteps() {
   );
 }
 
-function Stat({ value, label, icon: Icon }: { value: number; label: string; icon: typeof Activity }) {
+function Stat({ ms, value, label }: { ms: string; value: number; label: string }) {
   return (
-    <div className="rounded-2xl border border-slate-700 bg-slate-800/60 p-3">
-      <Icon size={11} className="mb-0.5 text-slate-400" />
-      <p className="text-base font-bold leading-tight tabular-nums text-white">{value.toLocaleString()}</p>
-      <p className="text-[9px] uppercase tracking-wider text-slate-500">{label}</p>
+    <div className="flex-1 rounded-[15px] p-[13px_11px]" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+      <Icon name={ms} size={18} style={{ color: "var(--text-3)" }} />
+      <p className="mt-2 text-[19px] font-extrabold tracking-tight tabular-nums" style={{ color: "var(--text)" }}>{value.toLocaleString("en-IN")}</p>
+      <p className="mt-0.5 text-[10.5px] font-semibold" style={{ color: "var(--text-3)", letterSpacing: "0.05em" }}>{label}</p>
     </div>
   );
 }
