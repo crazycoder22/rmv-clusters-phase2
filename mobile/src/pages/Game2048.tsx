@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Layers, RotateCcw, Trophy } from "lucide-react";
-import clsx from "clsx";
+import Icon from "../components/Icon";
 import {
   type Board,
   type Direction,
@@ -139,28 +138,33 @@ export default function Game2048() {
   };
 
   return (
-    <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)] pb-[max(1rem,env(safe-area-inset-bottom,0px))]">
+    <div
+      className="one-surface flex flex-1 flex-col px-[18px] pt-[env(safe-area-inset-top,0px)] pb-[max(1rem,env(safe-area-inset-bottom,0px))]"
+      style={{ background: "var(--bg)", color: "var(--text)" }}
+    >
       <header className="flex items-center justify-between py-4">
         <Link
-          to="/"
-          className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 hover:bg-slate-800"
+          to="/games"
+          className="flex h-9 w-9 items-center justify-center rounded-full"
+          style={{ color: "var(--text-2)" }}
         >
-          <ArrowLeft size={20} />
+          <Icon name="arrow_back" size={22} />
         </Link>
-        <h1 className="text-lg font-semibold text-white">2048</h1>
+        <h1 className="text-[18px] font-bold" style={{ color: "var(--text)" }}>2048</h1>
         <div className="h-9 w-9" />
       </header>
 
+      {/* Game / Leaderboard segmented */}
       <div className="mb-4 flex justify-center">
-        <div className="flex items-center rounded-lg bg-slate-800 p-0.5">
-          <TabButton active={tab === "game"} onClick={() => setTab("game")}>
-            <Layers size={14} /> Game
+        <div
+          className="flex rounded-[12px] p-1"
+          style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
+        >
+          <TabButton active={tab === "game"} onClick={() => setTab("game")} icon="style">
+            Game
           </TabButton>
-          <TabButton
-            active={tab === "leaderboard"}
-            onClick={() => setTab("leaderboard")}
-          >
-            <Trophy size={14} /> Leaderboard
+          <TabButton active={tab === "leaderboard"} onClick={() => setTab("leaderboard")} icon="emoji_events">
+            Leaderboard
           </TabButton>
         </div>
       </div>
@@ -169,58 +173,67 @@ export default function Game2048() {
         <Game2048Leaderboard currentPlayerId={playerId} />
       ) : (
         <>
-          <div className="mb-4 grid grid-cols-3 gap-2">
+          <div className="mb-4 grid grid-cols-3 gap-2.5">
             <ScoreCard label="SCORE" value={score} />
             <ScoreCard label="BEST" value={best} />
             <ScoreCard label="MOVES" value={moves} />
           </div>
 
-          <div
-            onTouchStart={onTouchStart}
-            onTouchEnd={onTouchEnd}
-            className="mx-auto grid aspect-square w-full max-w-sm grid-cols-4 gap-2 rounded-xl border border-slate-700 bg-slate-800 p-2 touch-none"
-          >
-            {board.flat().map((v, i) => (
-              <Tile key={i} value={v} />
-            ))}
+          <div className="relative mx-auto w-full max-w-sm">
+            <div
+              onTouchStart={onTouchStart}
+              onTouchEnd={onTouchEnd}
+              className="grid aspect-square w-full grid-cols-4 gap-2.5 rounded-[16px] p-2.5 touch-none"
+              style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+            >
+              {board.flat().map((v, i) => (
+                <Tile key={i} value={v} />
+              ))}
+            </div>
+
+            {over && (
+              <div
+                className="absolute inset-0 flex flex-col items-center justify-center gap-1 rounded-[16px] px-6 text-center"
+                style={{ background: "rgba(10,15,28,0.82)", backdropFilter: "blur(2px)" }}
+              >
+                <div className="text-[40px]">{won ? "🏆" : "💥"}</div>
+                <h2 className="text-[22px] font-extrabold text-white">
+                  {won ? "You reached 2048!" : "Game over"}
+                </h2>
+                <p className="mt-1 text-[13.5px]" style={{ color: "rgba(255,255,255,0.7)" }}>
+                  Final score{" "}
+                  <span className="one-mono font-bold text-white">{score}</span> · Best tile{" "}
+                  <span className="one-mono font-bold text-white">{highestTile}</span>
+                </p>
+                <button
+                  onClick={handleRestart}
+                  className="mt-4 inline-flex items-center gap-2 rounded-[12px] px-5 py-2.5 text-[14px] font-bold text-white"
+                  style={{ background: "var(--accent-strong)" }}
+                >
+                  <Icon name="refresh" size={16} />
+                  New Game
+                </button>
+              </div>
+            )}
           </div>
 
-          <p className="mt-3 text-center text-xs text-slate-500">
+          <p className="mt-3 text-center text-[12px]" style={{ color: "var(--text-3)" }}>
             Swipe to move tiles. Merge matching tiles to build 2048.
           </p>
 
           <div className="mt-4 flex justify-center">
             <button
               onClick={handleRestart}
-              className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-300 active:bg-slate-700"
+              className="flex items-center gap-2 rounded-[12px] px-5 py-2.5 text-[14px] font-bold"
+              style={{ background: "var(--surface-2)", border: "1px solid var(--border-strong)", color: "var(--text)" }}
             >
-              <RotateCcw size={15} />
+              <Icon name="refresh" size={16} />
               New Game
             </button>
           </div>
 
-          {over && (
-            <div className="mt-5 rounded-2xl border border-slate-700 bg-slate-800/80 p-5 text-center">
-              <div className="text-4xl">{won ? "🏆" : "💥"}</div>
-              <h2 className="mt-2 text-xl font-bold text-white">
-                {won ? "You reached 2048!" : "Game Over"}
-              </h2>
-              <p className="mt-1 text-sm text-slate-400">
-                Score <span className="font-mono font-bold">{score}</span> · Best
-                tile <span className="font-mono font-bold">{highestTile}</span>
-              </p>
-              <button
-                onClick={handleRestart}
-                className="mt-4 inline-flex items-center gap-2 rounded-lg bg-indigo-500 px-5 py-2 text-sm font-medium text-white active:bg-indigo-600"
-              >
-                <RotateCcw size={14} />
-                Play again
-              </button>
-            </div>
-          )}
-
           {won && !over && (
-            <p className="mt-3 text-center text-sm text-amber-300">
+            <p className="mt-3 text-center text-[13px] font-semibold" style={{ color: "var(--warning)" }}>
               You reached 2048! Keep going for a higher score.
             </p>
           )}
@@ -233,20 +246,21 @@ export default function Game2048() {
 function TabButton({
   active,
   onClick,
+  icon,
   children,
 }: {
   active: boolean;
   onClick: () => void;
+  icon: string;
   children: React.ReactNode;
 }) {
   return (
     <button
       onClick={onClick}
-      className={clsx(
-        "flex items-center gap-1.5 rounded-md px-4 py-1.5 text-sm font-medium transition-colors",
-        active ? "bg-slate-700 text-white shadow-sm" : "text-slate-400"
-      )}
+      className="flex items-center gap-1.5 rounded-[9px] px-[18px] py-[7px] text-[13.5px] font-bold transition-colors"
+      style={active ? { background: "var(--surface-3)", color: "var(--text)", boxShadow: "0 1px 6px rgba(0,0,0,0.25)" } : { background: "transparent", color: "var(--text-3)" }}
     >
+      <Icon name={icon} size={15} />
       {children}
     </button>
   );
@@ -254,47 +268,47 @@ function TabButton({
 
 function ScoreCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-lg bg-slate-800 px-3 py-2 text-center">
-      <p className="text-[10px] font-bold tracking-wider text-slate-500">
+    <div
+      className="rounded-[12px] px-3 py-2.5 text-center"
+      style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
+    >
+      <p className="one-mono text-[10px] font-bold tracking-wider" style={{ color: "var(--text-3)" }}>
         {label}
       </p>
-      <p className="font-mono text-lg font-bold text-white">{value}</p>
+      <p className="one-mono text-[19px] font-bold" style={{ color: "var(--text)" }}>{value}</p>
     </div>
   );
 }
 
-const TILE_STYLES: Record<number, string> = {
-  0: "bg-slate-700/60",
-  2: "bg-[#eee4da] text-[#776e65]",
-  4: "bg-[#ede0c8] text-[#776e65]",
-  8: "bg-[#f2b179] text-white",
-  16: "bg-[#f59563] text-white",
-  32: "bg-[#f67c5f] text-white",
-  64: "bg-[#f65e3b] text-white",
-  128: "bg-[#edcf72] text-white",
-  256: "bg-[#edcc61] text-white",
-  512: "bg-[#edc850] text-white",
-  1024: "bg-[#edc53f] text-white",
-  2048: "bg-[#edc22e] text-white",
+// Classic 2048 tile palette — kept across themes so the board reads as 2048.
+const TILE_STYLES: Record<number, { bg: string; fg: string }> = {
+  2: { bg: "#eee4da", fg: "#776e65" },
+  4: { bg: "#ede0c8", fg: "#776e65" },
+  8: { bg: "#f2b179", fg: "#ffffff" },
+  16: { bg: "#f59563", fg: "#ffffff" },
+  32: { bg: "#f67c5f", fg: "#ffffff" },
+  64: { bg: "#f65e3b", fg: "#ffffff" },
+  128: { bg: "#edcf72", fg: "#ffffff" },
+  256: { bg: "#edcc61", fg: "#ffffff" },
+  512: { bg: "#edc850", fg: "#ffffff" },
+  1024: { bg: "#edc53f", fg: "#ffffff" },
+  2048: { bg: "#edc22e", fg: "#ffffff" },
 };
 
 function Tile({ value }: { value: number }) {
-  const cls = TILE_STYLES[value] ?? "bg-black text-white";
+  const tile = value === 0 ? null : (TILE_STYLES[value] ?? { bg: "#3c3a32", fg: "#ffffff" });
   const size =
     value >= 1024
-      ? "text-xl"
+      ? "text-[20px]"
       : value >= 128
-        ? "text-2xl"
+        ? "text-[24px]"
         : value >= 16
-          ? "text-3xl"
-          : "text-4xl";
+          ? "text-[28px]"
+          : "text-[32px]";
   return (
     <div
-      className={clsx(
-        "flex aspect-square items-center justify-center rounded-md font-bold select-none",
-        cls,
-        size
-      )}
+      className={`flex aspect-square items-center justify-center rounded-[10px] font-bold select-none ${size}`}
+      style={tile ? { background: tile.bg, color: tile.fg } : { background: "var(--surface-3)" }}
     >
       {value !== 0 ? value : ""}
     </div>
