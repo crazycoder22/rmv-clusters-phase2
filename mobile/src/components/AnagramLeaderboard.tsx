@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { Trophy } from "lucide-react";
-import clsx from "clsx";
+import Icon from "./Icon";
 import { apiFetch } from "../lib/api";
 
 type Scope = "daily" | "weekly";
@@ -25,11 +24,9 @@ type WeeklyEntry = {
   daysPlayed: number;
 };
 
-export default function AnagramLeaderboard({
-  currentPlayerId,
-}: {
-  currentPlayerId: string | null;
-}) {
+const MEDAL = ["#f5b50a", "#c4ccd6", "#cd7f3a"];
+
+export default function AnagramLeaderboard({ currentPlayerId }: { currentPlayerId: string | null }) {
   const [scope, setScope] = useState<Scope>("daily");
   const [daily, setDaily] = useState<DailyEntry[]>([]);
   const [weekly, setWeekly] = useState<WeeklyEntry[]>([]);
@@ -47,10 +44,7 @@ export default function AnagramLeaderboard({
           setWeekly(data.leaderboard ?? []);
           if (data.weekStart && data.weekEnd) {
             const fmt = (s: string) =>
-              new Date(s + "T00:00:00+05:30").toLocaleDateString("en-IN", {
-                day: "numeric",
-                month: "short",
-              });
+              new Date(s + "T00:00:00+05:30").toLocaleDateString("en-IN", { day: "numeric", month: "short" });
             setWeekLabel(`${fmt(data.weekStart)} – ${fmt(data.weekEnd)}`);
           }
         } else {
@@ -69,143 +63,83 @@ export default function AnagramLeaderboard({
   const empty = scope === "daily" ? daily.length === 0 : weekly.length === 0;
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-center">
-        <div className="flex items-center rounded-lg bg-slate-800 p-0.5">
-          <Btn active={scope === "daily"} onClick={() => setScope("daily")}>
-            Today
-          </Btn>
-          <Btn active={scope === "weekly"} onClick={() => setScope("weekly")}>
-            Weekly
-          </Btn>
-        </div>
+    <div className="flex flex-col items-center">
+      {/* Today / Weekly */}
+      <div className="flex rounded-[12px] p-1" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+        {([["daily", "Today"], ["weekly", "Weekly"]] as const).map(([key, label]) => {
+          const on = scope === key;
+          return (
+            <button
+              key={key}
+              onClick={() => setScope(key)}
+              className="rounded-[9px] px-[22px] py-[7px] text-[13.5px] font-bold transition-colors"
+              style={on ? { background: "var(--surface-3)", color: "var(--text)", boxShadow: "0 1px 6px rgba(0,0,0,0.25)" } : { background: "transparent", color: "var(--text-3)" }}
+            >
+              {label}
+            </button>
+          );
+        })}
       </div>
-
       {scope === "weekly" && weekLabel && (
-        <p className="-mt-2 text-center text-xs text-slate-500">{weekLabel}</p>
+        <p className="mt-2 text-[13px]" style={{ color: "var(--text-3)" }}>{weekLabel}</p>
       )}
 
       {loading ? (
-        <p className="py-8 text-center text-sm text-slate-500">Loading…</p>
+        <p className="py-8 text-[14px]" style={{ color: "var(--text-3)" }}>Loading…</p>
       ) : empty ? (
-        <div className="py-10 text-center">
-          <Trophy size={32} className="mx-auto mb-2 text-slate-600" />
-          <p className="text-sm text-slate-400">No scores yet.</p>
-          <p className="mt-1 text-xs text-slate-500">Be the first!</p>
-        </div>
-      ) : scope === "daily" ? (
-        <div className="overflow-hidden rounded-2xl border border-slate-700 bg-slate-800/60">
-          {daily.map((e) => {
-            const badge =
-              e.rank === 1
-                ? "🥇"
-                : e.rank === 2
-                  ? "🥈"
-                  : e.rank === 3
-                    ? "🥉"
-                    : String(e.rank);
-            return (
-              <div
-                key={e.playerId}
-                className={clsx(
-                  "grid grid-cols-[auto_1fr_auto_auto] items-center gap-3 border-b border-slate-700 px-4 py-3 last:border-0",
-                  e.playerId === currentPlayerId && "bg-indigo-500/10"
-                )}
-              >
-                <span className="w-6 text-center text-sm font-bold">
-                  {badge}
-                </span>
-                <div>
-                  <p className="text-sm font-medium text-slate-100">
-                    {e.name}
-                    {e.playerId === currentPlayerId && (
-                      <span className="ml-1.5 text-xs text-indigo-400">
-                        (You)
-                      </span>
-                    )}
-                  </p>
-                  <p className="text-[11px] text-slate-500">
-                    Block {e.block}, {e.flatNumber}
-                  </p>
-                </div>
-                <span className="font-mono text-sm font-bold text-amber-300">
-                  {e.score}
-                </span>
-                <span className="font-mono text-xs text-slate-400">
-                  {e.wordsFound}w
-                </span>
-              </div>
-            );
-          })}
+        <div className="flex flex-col items-center gap-2 py-10 text-center">
+          <Icon name="emoji_events" size={36} style={{ color: "var(--text-3)" }} />
+          <p className="text-[14px]" style={{ color: "var(--text-2)" }}>No scores yet.</p>
+          <p className="text-[12px]" style={{ color: "var(--text-3)" }}>Be the first!</p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-slate-700 bg-slate-800/60">
-          {weekly.map((e) => {
-            const badge =
-              e.rank === 1
-                ? "🥇"
-                : e.rank === 2
-                  ? "🥈"
-                  : e.rank === 3
-                    ? "🥉"
-                    : String(e.rank);
+        <div className="mt-3.5 w-full overflow-hidden rounded-[16px]" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+          {(scope === "daily" ? daily : weekly).map((e, i, arr) => {
+            const you = e.playerId === currentPlayerId;
+            const points = scope === "daily" ? (e as DailyEntry).score : (e as WeeklyEntry).totalScore;
+            const trail = scope === "daily" ? `${(e as DailyEntry).wordsFound}w` : `${(e as WeeklyEntry).daysPlayed}d`;
             return (
               <div
                 key={e.playerId}
-                className={clsx(
-                  "grid grid-cols-[auto_1fr_auto_auto] items-center gap-3 border-b border-slate-700 px-4 py-3 last:border-0",
-                  e.playerId === currentPlayerId && "bg-indigo-500/10"
-                )}
+                className="flex items-center gap-2.5 px-3.5 py-3"
+                style={{ borderBottom: i < arr.length - 1 ? "1px solid var(--border)" : "none", background: you ? "var(--accent-soft)" : "transparent" }}
               >
-                <span className="w-6 text-center text-sm font-bold">
-                  {badge}
-                </span>
-                <div>
-                  <p className="text-sm font-medium text-slate-100">
-                    {e.name}
-                    {e.playerId === currentPlayerId && (
-                      <span className="ml-1.5 text-xs text-indigo-400">
-                        (You)
-                      </span>
-                    )}
-                  </p>
-                  <p className="text-[11px] text-slate-500">
-                    Block {e.block}, {e.flatNumber}
-                  </p>
+                <div className="flex w-6 flex-shrink-0 justify-center">
+                  <RankBadge rank={e.rank} />
                 </div>
-                <span className="font-mono text-sm font-bold text-amber-300">
-                  {e.totalScore}
-                </span>
-                <span className="font-mono text-xs text-slate-400">
-                  {e.daysPlayed}d
-                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[15px] font-bold" style={{ color: "var(--text)" }}>
+                    {e.name}
+                    {you && <span className="ml-1.5 text-[12px] font-semibold" style={{ color: "var(--accent)" }}>(You)</span>}
+                  </p>
+                  <p className="truncate text-[12px]" style={{ color: "var(--text-3)" }}>Block {e.block}, {e.flatNumber}</p>
+                </div>
+                <span className="one-mono text-[15px] font-bold" style={{ color: "var(--warning)" }}>{points}</span>
+                <span className="one-mono w-9 text-right text-[13px]" style={{ color: "var(--text-3)" }}>{trail}</span>
               </div>
             );
           })}
         </div>
       )}
+
+      <div className="mt-3.5 flex items-center gap-2 text-[12px]" style={{ color: "var(--text-3)" }}>
+        <Icon name="info" size={15} style={{ color: "var(--text-3)" }} />
+        Points come from words found — pangrams count double.
+      </div>
     </div>
   );
 }
 
-function Btn({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={clsx(
-        "rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
-        active ? "bg-slate-700 text-white shadow-sm" : "text-slate-400"
-      )}
-    >
-      {children}
-    </button>
-  );
+function RankBadge({ rank }: { rank: number }) {
+  if (rank <= 3) {
+    return (
+      <span
+        className="one-mono flex h-[22px] w-[22px] items-center justify-center rounded-full text-[12px] font-bold"
+        style={{ background: MEDAL[rank - 1], color: "#1a1206" }}
+      >
+        {rank}
+      </span>
+    );
+  }
+  return <span className="one-mono text-[14px] font-semibold" style={{ color: "var(--text-2)" }}>{rank}</span>;
 }

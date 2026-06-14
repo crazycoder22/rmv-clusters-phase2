@@ -1,16 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  ArrowLeft,
-  Crown,
-  Delete as DeleteIcon,
-  Layers,
-  Loader2,
-  RotateCcw,
-  Send,
-  Trophy,
-} from "lucide-react";
-import clsx from "clsx";
+import { Loader2 } from "lucide-react";
+import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
 import AnagramLeaderboard from "../components/AnagramLeaderboard";
@@ -116,9 +107,7 @@ export default function Anagram() {
               }
             : g
         );
-        flashToast(
-          data.isPangram ? `🌟 Pangram +${data.score}` : `+${data.score}`
-        );
+        flashToast(data.isPangram ? `🌟 Pangram +${data.score}` : `+${data.score}`);
         setInput("");
       } else {
         flashToast(REASON_TEXT[data.reason] ?? "Invalid", true);
@@ -135,37 +124,38 @@ export default function Anagram() {
   };
 
   return (
-    <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)]">
-      <header className="flex items-center justify-between py-4">
-        <div className="flex items-center gap-2">
-          <Link
-            to="/games"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 hover:bg-slate-800"
-          >
-            <ArrowLeft size={20} />
-          </Link>
-          <h1 className="text-lg font-semibold text-white">Anagram</h1>
-        </div>
+    <div
+      className="one-surface flex flex-1 flex-col px-[18px] pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)]"
+      style={{ background: "var(--bg)", color: "var(--text)" }}
+    >
+      <header className="flex items-center gap-2.5 py-3">
+        <Link to="/games" className="flex active:opacity-70" aria-label="Back">
+          <Icon name="arrow_back" size={23} style={{ color: "var(--text)" }} />
+        </Link>
+        <h1 className="text-[22px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>Anagram</h1>
       </header>
 
-      <div className="mb-4 flex justify-center">
-        <div className="flex items-center rounded-lg bg-slate-800 p-0.5">
-          <TabBtn active={tab === "game"} onClick={() => setTab("game")}>
-            <Layers size={14} /> Game
-          </TabBtn>
-          <TabBtn
-            active={tab === "leaderboard"}
-            onClick={() => setTab("leaderboard")}
-          >
-            <Trophy size={14} /> Leaderboard
-          </TabBtn>
-        </div>
+      {/* Game / Leaderboard segmented */}
+      <div className="mb-2.5 flex rounded-[14px] p-1" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+        {([["game", "style", "Game"], ["leaderboard", "emoji_events", "Leaderboard"]] as const).map(([key, ms, label]) => {
+          const on = tab === key;
+          return (
+            <button
+              key={key}
+              onClick={() => setTab(key)}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-[10px] py-2.5 text-[14px] font-bold transition-colors"
+              style={on ? { background: "var(--surface-3)", color: "var(--text)", boxShadow: "0 1px 6px rgba(0,0,0,0.25)" } : { background: "transparent", color: "var(--text-3)" }}
+            >
+              <Icon name={ms} size={18} style={{ color: on ? "var(--text)" : "var(--text-3)" }} />{label}
+            </button>
+          );
+        })}
       </div>
 
       {tab === "leaderboard" ? (
         <AnagramLeaderboard currentPlayerId={playerId} />
       ) : !game ? (
-        <p className="py-10 text-center text-sm text-slate-500">Loading…</p>
+        <div className="flex justify-center py-12"><Loader2 size={22} className="animate-spin" style={{ color: "var(--text-3)" }} /></div>
       ) : (
         <GameView
           game={game}
@@ -181,28 +171,6 @@ export default function Anagram() {
         />
       )}
     </div>
-  );
-}
-
-function TabBtn({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={clsx(
-        "flex items-center gap-1.5 rounded-md px-4 py-1.5 text-sm font-medium transition-colors",
-        active ? "bg-slate-700 text-white shadow-sm" : "text-slate-400"
-      )}
-    >
-      {children}
-    </button>
   );
 }
 
@@ -231,48 +199,49 @@ function GameView({
 }) {
   const sorted = useMemo(() => [...game.foundWords].sort(), [game.foundWords]);
   const isPangram = (w: string) => game.letters.every((l) => w.includes(l));
+  const required = game.required.toUpperCase();
 
   return (
-    <div className="space-y-4">
-      {/* Score chip */}
-      <div className="flex justify-center">
-        <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1">
-          <Crown size={12} className="text-amber-400" />
-          <span className="text-xs font-semibold text-amber-200">
-            {game.rank}
-          </span>
-          <span className="text-[11px] text-amber-300/80">
-            · {game.score}/{game.maxScore} ({game.pct}%)
-          </span>
-        </div>
+    <div className="flex flex-col items-center">
+      {/* Rank pill */}
+      <div
+        className="mb-3.5 inline-flex items-center gap-2 rounded-full px-4 py-2"
+        style={{ background: "var(--warning-soft)", border: "1px solid color-mix(in srgb, var(--warning) 45%, transparent)" }}
+      >
+        <Icon name="workspace_premium" size={17} fill style={{ color: "var(--warning)" }} />
+        <span className="text-[13.5px] font-bold" style={{ color: "var(--warning)" }}>
+          {game.rank} · {game.score}/{game.maxScore} ({game.pct}%)
+        </span>
       </div>
 
-      {/* Input */}
-      <div className="relative">
+      {/* Word input */}
+      <div className="relative w-full">
         <div
-          className={clsx(
-            "h-12 rounded-xl border-2 bg-slate-900 flex items-center justify-center text-xl font-bold uppercase tracking-widest transition-colors",
-            input.length === 0
-              ? "border-slate-700 text-slate-600"
-              : "border-indigo-400 text-white"
-          )}
+          className="flex min-h-[60px] items-center justify-center rounded-[16px] px-4 py-2"
+          style={{ border: "1px dashed var(--border-strong)", background: "var(--surface-2)" }}
         >
-          {input || "type a word…"}
+          {input.length === 0 ? (
+            <span className="text-[22px] font-extrabold" style={{ letterSpacing: "0.06em", color: "var(--text-3)", opacity: 0.7 }}>TYPE A WORD…</span>
+          ) : (
+            <div className="flex items-center">
+              {input.toUpperCase().split("").map((ch, i) => (
+                <span key={i} className="text-[28px] font-extrabold leading-none" style={{ letterSpacing: "0.04em", color: ch === required ? "var(--warning)" : "var(--text)" }}>{ch}</span>
+              ))}
+            </div>
+          )}
         </div>
         {toast && (
           <div
-            className={clsx(
-              "absolute left-1/2 -translate-x-1/2 -top-3 text-[11px] font-bold px-3 py-1 rounded-full shadow",
-              toastError ? "bg-red-500 text-white" : "bg-green-500 text-white"
-            )}
+            className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-1 text-[11px] font-bold text-white shadow"
+            style={{ background: toastError ? "var(--danger)" : "var(--success)" }}
           >
             {toast}
           </div>
         )}
       </div>
 
-      {/* Letter hex (3-col grid, required at centre) */}
-      <div className="mx-auto grid grid-cols-3 gap-2 max-w-[240px]">
+      {/* Letter cluster (centre highlighted) */}
+      <div className="mx-auto mt-5 grid max-w-[240px] grid-cols-3 gap-2.5">
         <LetterCell letter={orderedOuter[0]} onClick={onLetter} />
         <LetterCell letter={orderedOuter[1]} onClick={onLetter} />
         <span />
@@ -284,60 +253,51 @@ function GameView({
         <LetterCell letter={orderedOuter[5]} onClick={onLetter} />
       </div>
 
-      {/* Action buttons */}
-      <div className="flex items-center justify-center gap-2">
+      {/* Controls */}
+      <div className="mt-5 flex items-center justify-center gap-2.5">
         <button
           onClick={onDelete}
-          className="px-3 py-2 rounded-lg border border-slate-700 bg-slate-800 text-xs text-slate-300 active:bg-slate-700 inline-flex items-center gap-1"
+          className="inline-flex items-center gap-1.5 rounded-[13px] px-4 py-2.5 text-[14px] font-bold active:opacity-90"
+          style={{ background: "var(--surface)", border: "1px solid var(--border-strong)", color: "var(--text)" }}
         >
-          <DeleteIcon size={12} />
-          Delete
+          <Icon name="backspace" size={18} style={{ color: "var(--text)" }} />Delete
         </button>
         <button
           onClick={onShuffle}
-          className="px-3 py-2 rounded-lg border border-slate-700 bg-slate-800 text-xs text-slate-300 active:bg-slate-700 inline-flex items-center gap-1"
+          className="inline-flex items-center gap-1.5 rounded-[13px] px-4 py-2.5 text-[14px] font-bold active:opacity-90"
+          style={{ background: "var(--surface)", border: "1px solid var(--border-strong)", color: "var(--text)" }}
         >
-          <RotateCcw size={12} />
-          Shuffle
+          <Icon name="refresh" size={18} style={{ color: "var(--text)" }} />Shuffle
         </button>
         <button
           onClick={onSubmit}
           disabled={submitting || input.length < 1}
-          className="px-4 py-2 rounded-lg bg-indigo-500 text-xs font-semibold text-white active:bg-indigo-600 disabled:opacity-40 inline-flex items-center gap-1"
+          className="inline-flex items-center gap-1.5 rounded-[13px] px-[18px] py-2.5 text-[14px] font-bold text-white active:opacity-90 disabled:opacity-40"
+          style={{ background: "var(--accent-strong)" }}
         >
-          {submitting ? (
-            <Loader2 size={12} className="animate-spin" />
-          ) : (
-            <Send size={12} />
-          )}
-          Enter
+          {submitting ? <Loader2 size={16} className="animate-spin" /> : <Icon name="send" size={18} style={{ color: "#fff" }} />}Enter
         </button>
       </div>
 
       {/* Found words */}
-      <div className="rounded-2xl border border-slate-700 bg-slate-800/60 p-4">
-        <p className="text-xs font-semibold text-slate-200 mb-2">
+      <div className="mt-5 w-full rounded-[16px] p-[15px]" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+        <p className="mb-2.5 text-[15px] font-extrabold" style={{ color: "var(--text)" }}>
           {sorted.length} {sorted.length === 1 ? "word" : "words"} found
         </p>
         {sorted.length === 0 ? (
-          <p className="text-xs italic text-slate-500">
-            No words yet. Centre letter must appear in every word.
-          </p>
+          <p className="text-[13.5px] italic" style={{ color: "var(--text-3)" }}>No words yet. Centre letter must appear in every word.</p>
         ) : (
           <div className="flex flex-wrap gap-1.5">
             {sorted.map((w) => {
               const p = isPangram(w);
+              const label = w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
               return (
                 <span
                   key={w}
-                  className={clsx(
-                    "inline-block px-2 py-0.5 rounded text-xs",
-                    p
-                      ? "bg-amber-500/30 text-amber-200 font-bold"
-                      : "bg-slate-700 text-slate-300"
-                  )}
+                  className="inline-flex items-center rounded-full px-2.5 py-1 text-[13px] font-bold"
+                  style={p ? { background: "var(--warning-soft)", color: "var(--warning)", border: "1px solid color-mix(in srgb, var(--warning) 40%, transparent)" } : { background: "var(--accent-soft)", color: "var(--accent)" }}
                 >
-                  {w}
+                  {label}
                 </span>
               );
             })}
@@ -345,7 +305,7 @@ function GameView({
         )}
       </div>
 
-      <p className="text-center text-[11px] text-slate-500">
+      <p className="mt-3.5 text-center text-[12px] leading-relaxed" style={{ color: "var(--text-3)" }}>
         New letters daily at midnight IST · pangrams (use all 7) earn +7 bonus
       </p>
     </div>
@@ -365,12 +325,12 @@ function LetterCell({
   return (
     <button
       onClick={() => onClick(letter)}
-      className={clsx(
-        "h-16 rounded-xl text-2xl font-extrabold uppercase transition-transform active:scale-95",
+      className="flex h-[68px] items-center justify-center rounded-[16px] text-[26px] font-extrabold uppercase transition-transform active:scale-95"
+      style={
         required
-          ? "bg-amber-400 text-amber-950 shadow-md shadow-amber-500/30"
-          : "bg-slate-700 text-slate-100 active:bg-slate-600"
-      )}
+          ? { background: "var(--warning)", color: "#1a1206", boxShadow: "0 4px 16px color-mix(in srgb, var(--warning) 45%, transparent)" }
+          : { background: "var(--surface-3)", color: "var(--text)", boxShadow: "0 2px 8px rgba(0,0,0,0.25)" }
+      }
     >
       {letter}
     </button>
