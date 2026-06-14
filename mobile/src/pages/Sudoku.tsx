@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Clock, Delete, Layers, Trophy } from "lucide-react";
-import clsx from "clsx";
+import Icon from "../components/Icon";
 import {
   type Difficulty,
   formatTime,
@@ -201,28 +200,33 @@ export default function Sudoku() {
   }, [tab, handleNumber, handleErase, selected]);
 
   return (
-    <div className="flex flex-1 flex-col px-3 pt-[env(safe-area-inset-top,0px)] pb-[max(1rem,env(safe-area-inset-bottom,0px))]">
+    <div
+      className="one-surface flex flex-1 flex-col px-[16px] pt-[env(safe-area-inset-top,0px)] pb-[max(1rem,env(safe-area-inset-bottom,0px))]"
+      style={{ background: "var(--bg)", color: "var(--text)" }}
+    >
       <header className="flex items-center justify-between py-4">
         <Link
-          to="/"
-          className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 hover:bg-slate-800"
+          to="/games"
+          className="flex h-9 w-9 items-center justify-center rounded-full"
+          style={{ color: "var(--text-2)" }}
         >
-          <ArrowLeft size={20} />
+          <Icon name="arrow_back" size={22} />
         </Link>
-        <h1 className="text-lg font-semibold text-white">Sudoku</h1>
+        <h1 className="text-[18px] font-bold" style={{ color: "var(--text)" }}>Sudoku</h1>
         <div className="h-9 w-9" />
       </header>
 
-      <div className="mb-3 flex justify-center">
-        <div className="flex items-center rounded-lg bg-slate-800 p-0.5">
-          <TabButton active={tab === "game"} onClick={() => setTab("game")}>
-            <Layers size={14} /> Game
+      {/* Game / Leaderboard segmented */}
+      <div className="mb-4 flex justify-center">
+        <div
+          className="flex w-full rounded-[14px] p-1"
+          style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
+        >
+          <TabButton active={tab === "game"} onClick={() => setTab("game")} icon="style">
+            Game
           </TabButton>
-          <TabButton
-            active={tab === "leaderboard"}
-            onClick={() => setTab("leaderboard")}
-          >
-            <Trophy size={14} /> Leaderboard
+          <TabButton active={tab === "leaderboard"} onClick={() => setTab("leaderboard")} icon="emoji_events">
+            Leaderboard
           </TabButton>
         </div>
       </div>
@@ -234,34 +238,35 @@ export default function Sudoku() {
           onDifficultyChange={setDifficulty}
         />
       ) : (
-        <>
-          <div className="mb-3 flex justify-center gap-2">
-            {DIFFICULTIES.map(({ value, label }) => (
-              <button
-                key={value}
-                onClick={() => setDifficulty(value)}
-                className={clsx(
-                  "rounded-full border px-3 py-1 text-xs font-semibold transition-colors",
-                  difficulty === value
-                    ? "border-indigo-500 bg-indigo-500 text-white"
-                    : "border-slate-700 bg-slate-800 text-slate-400"
-                )}
-              >
-                {label}
-              </button>
-            ))}
+        <div className="flex flex-col items-center">
+          {/* difficulty */}
+          <div className="mb-3 flex gap-2.5">
+            {DIFFICULTIES.map(({ value, label }) => {
+              const on = difficulty === value;
+              return (
+                <button
+                  key={value}
+                  onClick={() => setDifficulty(value)}
+                  className="rounded-full px-[18px] py-2 text-[13.5px] font-bold transition-colors"
+                  style={on ? { background: "var(--accent-strong)", color: "#fff", boxShadow: "0 2px 10px rgba(99,102,241,0.4)" } : { background: "var(--surface-2)", color: "var(--text-2)", border: "1px solid var(--border)" }}
+                >
+                  {label}
+                </button>
+              );
+            })}
           </div>
 
           {gameLoading ? (
-            <div className="py-16 text-center text-sm text-slate-500">
+            <div className="py-16 text-center text-[14px]" style={{ color: "var(--text-3)" }}>
               Loading puzzle…
             </div>
           ) : (
             <>
+              {/* timer */}
               {!completed && (
-                <div className="mb-3 flex items-center justify-center gap-1.5 text-slate-400">
-                  <Clock size={15} />
-                  <span className="font-mono text-sm">
+                <div className="mb-3.5 flex items-center gap-2">
+                  <Icon name="schedule" size={18} style={{ color: "var(--text-3)" }} />
+                  <span className="one-mono text-[17px] font-bold" style={{ color: "var(--text-2)" }}>
                     {formatTime(timeSeconds)}
                   </span>
                 </div>
@@ -276,40 +281,68 @@ export default function Sudoku() {
               />
 
               {completed ? (
-                <div className="mt-5 rounded-2xl border border-green-500/30 bg-green-500/10 p-5 text-center">
-                  <p className="text-lg font-semibold text-green-300">
-                    🎉 Puzzle Complete!
+                <div
+                  className="mt-5 w-full rounded-[16px] p-5 text-center"
+                  style={{ background: "var(--success-soft)", border: "1px solid var(--success)" }}
+                >
+                  <p className="text-[18px] font-extrabold" style={{ color: "var(--success)" }}>
+                    🎉 Puzzle complete!
                   </p>
-                  <p className="mt-1 text-sm text-green-200/80">
-                    {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}{" "}
-                    ·{" "}
-                    <span className="font-mono font-bold">
-                      {formatTime(savedTime ?? 0)}
-                    </span>
+                  <p className="mt-1 text-[14px]" style={{ color: "var(--text-2)" }}>
+                    {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)} ·{" "}
+                    <span className="one-mono font-bold">{formatTime(savedTime ?? 0)}</span>
                   </p>
                   <button
                     onClick={() => setTab("leaderboard")}
-                    className="mt-3 inline-flex items-center gap-2 rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white active:bg-indigo-600"
+                    className="mt-4 inline-flex items-center gap-2 rounded-[12px] px-5 py-2.5 text-[14px] font-bold text-white"
+                    style={{ background: "var(--accent-strong)" }}
                   >
-                    <Trophy size={14} />
-                    See Leaderboard
+                    <Icon name="emoji_events" size={16} />
+                    See leaderboard
                   </button>
                 </div>
               ) : (
                 <>
-                  <div className="mt-4">
-                    <NumberPad
-                      onNumber={handleNumber}
-                      onErase={handleErase}
-                      disabled={completed}
-                    />
+                  {/* feedback */}
+                  <div className="flex h-[22px] items-center justify-center">
+                    {submitError && (
+                      <span className="text-[13.5px] font-bold" style={{ color: "#f87171" }}>
+                        Some numbers conflict — check the red cells.
+                      </span>
+                    )}
                   </div>
 
-                  <div className="mt-4 flex items-center justify-center gap-3">
+                  {/* number pad */}
+                  <div className="grid w-full grid-cols-9 gap-1.5">
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
+                      <button
+                        key={n}
+                        onClick={() => handleNumber(n)}
+                        className="flex aspect-square items-center justify-center rounded-[11px] text-[17px] font-bold"
+                        style={{ background: "var(--surface-2)", border: "1px solid var(--border-strong)", color: "var(--text)" }}
+                      >
+                        {n}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* erase */}
+                  <button
+                    onClick={handleErase}
+                    className="mt-3 inline-flex items-center gap-2 rounded-[12px] px-5 py-2.5 text-[14px] font-bold"
+                    style={{ background: "var(--surface-2)", border: "1px solid var(--border-strong)", color: "var(--text)" }}
+                  >
+                    <Icon name="backspace" size={18} />
+                    Erase
+                  </button>
+
+                  {/* submit / reset */}
+                  <div className="mt-4 flex gap-3">
                     <button
                       onClick={handleSubmit}
                       disabled={grid.some((v) => v === 0)}
-                      className="rounded-lg bg-green-500 px-5 py-2 text-sm font-semibold text-white transition-colors active:bg-green-600 disabled:opacity-40"
+                      className="rounded-[12px] px-8 py-3 text-[15px] font-bold text-white transition-opacity disabled:opacity-40"
+                      style={{ background: "var(--success)" }}
                     >
                       Submit
                     </button>
@@ -323,23 +356,17 @@ export default function Sudoku() {
                           void handleReset();
                         }
                       }}
-                      className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-300 active:bg-slate-700"
+                      className="rounded-[12px] px-7 py-3 text-[15px] font-bold"
+                      style={{ background: "var(--surface-2)", border: "1px solid var(--border-strong)", color: "var(--text)" }}
                     >
                       Reset
                     </button>
                   </div>
-
-                  {submitError && (
-                    <p className="mt-3 text-center text-sm text-red-400">
-                      Not quite right — some cells have errors. Check rows,
-                      columns, and boxes for duplicates.
-                    </p>
-                  )}
                 </>
               )}
             </>
           )}
-        </>
+        </div>
       )}
     </div>
   );
@@ -348,20 +375,21 @@ export default function Sudoku() {
 function TabButton({
   active,
   onClick,
+  icon,
   children,
 }: {
   active: boolean;
   onClick: () => void;
+  icon: string;
   children: React.ReactNode;
 }) {
   return (
     <button
       onClick={onClick}
-      className={clsx(
-        "flex items-center gap-1.5 rounded-md px-4 py-1.5 text-sm font-medium transition-colors",
-        active ? "bg-slate-700 text-white shadow-sm" : "text-slate-400"
-      )}
+      className="flex flex-1 items-center justify-center gap-1.5 rounded-[10px] py-2.5 text-[14px] font-bold transition-colors"
+      style={active ? { background: "var(--surface-3)", color: "var(--text)", boxShadow: "0 1px 6px rgba(0,0,0,0.25)" } : { background: "transparent", color: "var(--text-3)" }}
     >
+      <Icon name={icon} size={18} />
       {children}
     </button>
   );
@@ -382,9 +410,13 @@ function Grid({
 }) {
   const peers = selected !== null ? getPeerIndices(selected) : new Set<number>();
   const errors = getErrorCells(grid, puzzle);
+  const selVal = selected !== null ? grid[selected] : 0;
 
   return (
-    <div className="mx-auto grid w-full max-w-sm grid-cols-9 border-2 border-slate-300">
+    <div
+      className="grid w-full max-w-sm grid-cols-9 overflow-hidden rounded-[8px]"
+      style={{ border: "2px solid var(--strong)", background: "var(--surface)" }}
+    >
       {grid.map((val, idx) => {
         const row = Math.floor(idx / 9);
         const col = idx % 9;
@@ -392,68 +424,41 @@ function Grid({
         const isSelected = idx === selected;
         const isError = errors.has(idx);
         const isPeer = peers.has(idx);
+        const sameVal = !!selVal && val === selVal;
+
+        let background = "transparent";
+        if (completed) background = "var(--success-soft)";
+        else if (isError) background = "rgba(248,113,113,0.20)";
+        else if (isSelected) background = "var(--accent-soft)";
+        else if (sameVal) background = "rgba(124,127,242,0.16)";
+        else if (isPeer) background = "rgba(124,127,242,0.07)";
+
+        let color = isLocked ? "var(--text)" : "var(--accent)";
+        if (completed) color = "var(--success)";
+        else if (isError) color = "#f87171";
+
+        const borderRight =
+          col === 8 ? "none" : col % 3 === 2 ? "2px solid var(--strong)" : "1px solid var(--line)";
+        const borderBottom =
+          row === 8 ? "none" : row % 3 === 2 ? "2px solid var(--strong)" : "1px solid var(--line)";
+
         return (
           <div
             key={idx}
             onClick={() => onCellClick(idx)}
-            className={clsx(
-              "flex aspect-square cursor-pointer select-none items-center justify-center text-base transition-colors",
-              // Thin borders between all cells
-              "border border-slate-600",
-              // Thicker borders between 3×3 boxes
-              col % 3 === 0 && "border-l-2 border-l-slate-300",
-              col === 8 && "border-r-2 border-r-slate-300",
-              row % 3 === 0 && "border-t-2 border-t-slate-300",
-              row === 8 && "border-b-2 border-b-slate-300",
-              // Backgrounds
-              completed && "bg-green-500/20 text-green-200",
-              !completed && isSelected && "bg-indigo-500 text-white",
-              !completed && !isSelected && isError && "bg-red-500/30 text-red-300",
-              !completed && !isSelected && !isError && isPeer && "bg-indigo-500/10",
-              !completed && !isSelected && !isError && !isPeer && isLocked && "bg-slate-800/80 text-white",
-              !completed && !isSelected && !isError && !isPeer && !isLocked && "bg-slate-900 text-indigo-300",
-              isLocked && !isSelected && !isError && "font-bold"
-            )}
+            className="flex aspect-square cursor-pointer select-none items-center justify-center text-[17px]"
+            style={{
+              background,
+              color,
+              fontWeight: isLocked ? 800 : 700,
+              borderRight,
+              borderBottom,
+            }}
           >
             {val !== 0 ? val : ""}
           </div>
         );
       })}
-    </div>
-  );
-}
-
-function NumberPad({
-  onNumber,
-  onErase,
-  disabled,
-}: {
-  onNumber: (n: number) => void;
-  onErase: () => void;
-  disabled: boolean;
-}) {
-  return (
-    <div className="flex flex-col items-center gap-2">
-      <div className="mx-auto grid w-full max-w-sm grid-cols-9 gap-1">
-        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
-          <button
-            key={n}
-            onClick={() => onNumber(n)}
-            disabled={disabled}
-            className="flex aspect-square items-center justify-center rounded-lg border border-slate-700 bg-slate-800 text-base font-semibold text-slate-100 transition-colors active:bg-indigo-500 disabled:opacity-40"
-          >
-            {n}
-          </button>
-        ))}
-      </div>
-      <button
-        onClick={onErase}
-        disabled={disabled}
-        className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-4 py-1.5 text-sm text-slate-300 active:bg-red-500/20 active:text-red-300 disabled:opacity-40"
-      >
-        <Delete size={15} />
-        Erase
-      </button>
     </div>
   );
 }
