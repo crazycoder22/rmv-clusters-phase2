@@ -1,15 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  ArrowLeft,
-  Clock,
-  Layers,
-  RotateCcw,
-  Star,
-  Trophy,
-  Users,
-} from "lucide-react";
-import clsx from "clsx";
+import Icon from "../components/Icon";
 import {
   ACTIVE_DIFFICULTY,
   GRID_CONFIG,
@@ -58,7 +49,6 @@ export default function MemoryGame() {
   const [timerActive, setTimerActive] = useState(false);
   const [lockBoard, setLockBoard] = useState(false);
   const [completed, setCompleted] = useState(false);
-  const [bestToday, setBestToday] = useState<{ moves: number; time: number } | null>(null);
   const [loading, setLoading] = useState(true);
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -77,10 +67,7 @@ export default function MemoryGame() {
           setLockBoard(true);
           setMoves(data.moves ?? 0);
           setTimeSeconds(data.timeSeconds ?? 0);
-          setBestToday({ moves: data.moves, time: data.timeSeconds ?? 0 });
-          setCards((prev) =>
-            prev.map((c) => ({ ...c, matched: true, flipped: false }))
-          );
+          setCards((prev) => prev.map((c) => ({ ...c, matched: true, flipped: false })));
         }
       })
       .catch(() => {})
@@ -107,18 +94,8 @@ export default function MemoryGame() {
       if (!playerId) return;
       apiFetch("/api/memory/game", {
         method: "POST",
-        body: JSON.stringify({
-          playerId,
-          difficulty,
-          moves: finalMoves,
-          timeSeconds: finalTime,
-        }),
-      })
-        .then((r) => (r.ok ? r.json() : null))
-        .then(() => {
-          setBestToday({ moves: finalMoves, time: finalTime });
-        })
-        .catch(() => {});
+        body: JSON.stringify({ playerId, difficulty, moves: finalMoves, timeSeconds: finalTime }),
+      }).catch(() => {});
     },
     [playerId]
   );
@@ -150,16 +127,8 @@ export default function MemoryGame() {
         setTimeout(() => {
           setCards((prev) => {
             const updated = [...prev];
-            updated[first] = {
-              ...updated[first],
-              matched: true,
-              flipped: false,
-            };
-            updated[second] = {
-              ...updated[second],
-              matched: true,
-              flipped: false,
-            };
+            updated[first] = { ...updated[first], matched: true, flipped: false };
+            updated[second] = { ...updated[second], matched: true, flipped: false };
             if (updated.every((c) => c.matched)) {
               setCompleted(true);
               setTimerActive(false);
@@ -200,38 +169,39 @@ export default function MemoryGame() {
   };
 
   const stars = completed ? getStars(difficulty, moves) : 0;
+  const matchedPairs = cards.filter((c) => c.matched).length / 2;
+  const progressPct = config.pairs ? Math.round((matchedPairs / config.pairs) * 100) : 0;
 
   return (
-    <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)]">
-      <header className="flex items-center justify-between py-4">
-        <Link
-          to="/"
-          className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 hover:bg-slate-800"
-        >
-          <ArrowLeft size={20} />
+    <div
+      className="one-surface flex flex-1 flex-col px-[18px] pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)]"
+      style={{ background: "var(--bg)", color: "var(--text)" }}
+    >
+      <header className="flex items-center gap-3 py-3">
+        <Link to="/games" className="flex active:opacity-70" aria-label="Back">
+          <Icon name="arrow_back" size={23} style={{ color: "var(--text)" }} />
         </Link>
-        <h1 className="text-lg font-semibold text-white">Memory Match</h1>
-        <Link
-          to="/memory/multi"
-          className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 hover:bg-slate-800"
-          title="Multiplayer"
-        >
-          <Users size={18} />
+        <h1 className="flex-1 text-center text-[20px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>Memory Match</h1>
+        <Link to="/memory/multi" className="flex active:opacity-70" aria-label="Multiplayer">
+          <Icon name="group" size={22} style={{ color: "var(--text)" }} />
         </Link>
       </header>
 
-      <div className="mb-4 flex justify-center">
-        <div className="flex items-center rounded-lg bg-slate-800 p-0.5">
-          <TabButton active={tab === "game"} onClick={() => setTab("game")}>
-            <Layers size={14} /> Game
-          </TabButton>
-          <TabButton
-            active={tab === "leaderboard"}
-            onClick={() => setTab("leaderboard")}
-          >
-            <Trophy size={14} /> Leaderboard
-          </TabButton>
-        </div>
+      {/* Game / Leaderboard segmented */}
+      <div className="mb-2.5 flex rounded-[14px] p-1" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+        {([["game", "style", "Game"], ["leaderboard", "emoji_events", "Leaderboard"]] as const).map(([key, ms, label]) => {
+          const on = tab === key;
+          return (
+            <button
+              key={key}
+              onClick={() => setTab(key)}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-[10px] py-2.5 text-[14px] font-bold transition-colors"
+              style={on ? { background: "var(--surface-3)", color: "var(--text)", boxShadow: "0 1px 6px rgba(0,0,0,0.25)" } : { background: "transparent", color: "var(--text-3)" }}
+            >
+              <Icon name={ms} size={18} style={{ color: on ? "var(--text)" : "var(--text-3)" }} />{label}
+            </button>
+          );
+        })}
       </div>
 
       {tab === "leaderboard" ? (
@@ -242,10 +212,10 @@ export default function MemoryGame() {
           cards={cards}
           moves={moves}
           timeSeconds={timeSeconds}
-          bestToday={bestToday}
           completed={completed}
           lockBoard={lockBoard}
           stars={stars}
+          progressPct={progressPct}
           onCardClick={handleCardClick}
           onRestart={handleRestart}
           onSeeLeaderboard={() => setTab("leaderboard")}
@@ -257,37 +227,15 @@ export default function MemoryGame() {
   );
 }
 
-function TabButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={clsx(
-        "flex items-center gap-1.5 rounded-md px-4 py-1.5 text-sm font-medium transition-colors",
-        active ? "bg-slate-700 text-white shadow-sm" : "text-slate-400"
-      )}
-    >
-      {children}
-    </button>
-  );
-}
-
 function GameView({
   loading,
   cards,
   moves,
   timeSeconds,
-  bestToday,
   completed,
   lockBoard,
   stars,
+  progressPct,
   onCardClick,
   onRestart,
   onSeeLeaderboard,
@@ -296,119 +244,93 @@ function GameView({
   cards: CardState[];
   moves: number;
   timeSeconds: number;
-  bestToday: { moves: number; time: number } | null;
   completed: boolean;
   lockBoard: boolean;
   stars: number;
+  progressPct: number;
   onCardClick: (idx: number) => void;
   onRestart: () => void;
   onSeeLeaderboard: () => void;
 }) {
   return (
-    <>
-      <div className="mx-auto mb-4 inline-flex items-center gap-1.5 self-center rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-300">
-        <Trophy size={12} />
-        Daily Challenge — 5×4 · 10 pairs
+    <div className="flex flex-col items-center">
+      {/* Daily challenge pill */}
+      <div
+        className="mb-3.5 inline-flex items-center gap-2 rounded-full px-4 py-2"
+        style={{ background: "var(--warning-soft)", border: "1px solid color-mix(in srgb, var(--warning) 45%, transparent)" }}
+      >
+        <Icon name="emoji_events" size={17} fill style={{ color: "var(--warning)" }} />
+        <span className="text-[13.5px] font-bold" style={{ color: "var(--warning)" }}>Daily Challenge — 5×4 · 10 pairs</span>
       </div>
 
-      <div className="mb-5 flex items-center justify-center gap-6 text-sm">
-        <Stat icon={<Layers size={15} />} label="moves" value={String(moves)} />
-        <Stat
-          icon={<Clock size={15} />}
-          label="time"
-          value={formatTime(timeSeconds)}
-        />
-        {bestToday && (
-          <Stat
-            icon={<Trophy size={14} className="text-yellow-400" />}
-            label="best"
-            value={`${bestToday.moves}m / ${formatTime(bestToday.time)}`}
-          />
-        )}
+      {/* Stats */}
+      <div className="mb-4 flex items-center gap-7">
+        <span className="flex items-center gap-2">
+          <Icon name="style" size={18} style={{ color: "var(--text-3)" }} />
+          <span className="one-mono text-[17px] font-bold" style={{ color: "var(--text)" }}>{moves}</span>
+          <span className="text-[13px]" style={{ color: "var(--text-3)" }}>moves</span>
+        </span>
+        <span className="flex items-center gap-2">
+          <Icon name="schedule" size={18} style={{ color: "var(--text-3)" }} />
+          <span className="one-mono text-[17px] font-bold" style={{ color: "var(--text)" }}>{formatTime(timeSeconds)}</span>
+          <span className="text-[13px]" style={{ color: "var(--text-3)" }}>time</span>
+        </span>
+      </div>
+
+      {/* Progress bar */}
+      <div className="mb-4 h-[5px] w-full overflow-hidden rounded-full" style={{ background: "var(--surface-2)" }}>
+        <div className="h-full rounded-full transition-all" style={{ width: `${progressPct}%`, background: "linear-gradient(90deg, var(--accent-strong), var(--accent))" }} />
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-16 text-sm text-slate-500">
-          Loading today's game…
-        </div>
+        <div className="py-16 text-[14px]" style={{ color: "var(--text-3)" }}>Loading today's game…</div>
       ) : (
-        <div className="mx-auto grid w-full max-w-sm flex-shrink-0 grid-cols-5 gap-2">
+        <div className="grid w-full grid-cols-5 gap-2">
           {cards.map((card, idx) => (
-            <Card
-              key={card.id}
-              card={card}
-              disabled={lockBoard || completed}
-              onClick={() => onCardClick(idx)}
-            />
+            <Card key={card.id} card={card} disabled={lockBoard || completed} onClick={() => onCardClick(idx)} />
           ))}
         </div>
       )}
 
       {!completed && !loading && (
-        <div className="mt-6 flex justify-center">
-          <button
-            onClick={onRestart}
-            className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-300 active:bg-slate-700"
-          >
-            <RotateCcw size={15} />
-            Restart
-          </button>
-        </div>
+        <button
+          onClick={onRestart}
+          className="mt-[18px] inline-flex items-center gap-2 rounded-[13px] px-[22px] py-2.5 text-[14px] font-bold active:opacity-90"
+          style={{ background: "var(--surface-2)", border: "1px solid var(--border-strong)", color: "var(--text)" }}
+        >
+          <Icon name="restart_alt" size={18} style={{ color: "var(--text)" }} />Restart
+        </button>
       )}
 
       {completed && (
-        <div className="mt-6 rounded-2xl border border-slate-700 bg-slate-800/80 p-6 text-center shadow-lg">
-          <div className="text-4xl">🎉</div>
-          <h2 className="mt-3 text-xl font-bold text-white">Congratulations!</h2>
-          <div className="mt-3 flex justify-center gap-1">
+        <div
+          className="mt-[18px] w-full rounded-[18px] p-5 text-center"
+          style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "var(--shadow)" }}
+        >
+          <div className="text-[34px]">🎉</div>
+          <h2 className="mt-2 text-[19px] font-extrabold" style={{ color: "var(--text)" }}>Solved!</h2>
+          <div className="mt-2.5 flex justify-center gap-1.5">
             {[1, 2, 3].map((i) => (
-              <Star
-                key={i}
-                size={32}
-                className={clsx(
-                  "transition-all duration-300",
-                  i <= stars
-                    ? "fill-yellow-400 text-yellow-400 drop-shadow-sm"
-                    : "text-slate-600"
-                )}
-              />
+              <Icon key={i} name="star" size={30} fill={i <= stars} style={{ color: i <= stars ? "var(--star)" : "var(--text-3)" }} />
             ))}
           </div>
-          <div className="mt-4 flex justify-center gap-6 text-sm">
+          <div className="mt-4 flex items-center justify-center gap-6">
             <SummaryStat value={String(moves)} label="Moves" />
-            <Divider />
+            <span className="h-8 w-px" style={{ background: "var(--border)" }} />
             <SummaryStat value={formatTime(timeSeconds)} label="Time" />
-            <Divider />
+            <span className="h-8 w-px" style={{ background: "var(--border)" }} />
             <SummaryStat value={String(config.pairs)} label="Optimal" />
           </div>
           <button
             onClick={onSeeLeaderboard}
-            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-indigo-500 px-5 py-2.5 text-sm font-medium text-white active:bg-indigo-600"
+            className="mt-5 inline-flex items-center gap-2 rounded-[12px] px-5 py-2.5 text-[14px] font-bold text-white active:opacity-90"
+            style={{ background: "var(--accent-strong)" }}
           >
-            <Trophy size={15} />
-            See leaderboard
+            <Icon name="emoji_events" size={18} style={{ color: "#fff" }} />See leaderboard
           </button>
-          <p className="mt-3 text-xs text-slate-500">New cards at midnight IST</p>
+          <p className="mt-3 text-[12px]" style={{ color: "var(--text-3)" }}>New cards at midnight IST</p>
         </div>
       )}
-    </>
-  );
-}
-
-function Stat({
-  icon,
-  value,
-  label,
-}: {
-  icon: React.ReactNode;
-  value: string;
-  label: string;
-}) {
-  return (
-    <div className="flex items-center gap-1.5">
-      <span className="text-slate-400">{icon}</span>
-      <span className="font-mono font-semibold text-slate-200">{value}</span>
-      <span className="text-xs text-slate-500">{label}</span>
     </div>
   );
 }
@@ -416,52 +338,37 @@ function Stat({
 function SummaryStat({ value, label }: { value: string; label: string }) {
   return (
     <div>
-      <p className="text-2xl font-bold text-white">{value}</p>
-      <p className="text-xs text-slate-400">{label}</p>
+      <p className="text-[22px] font-extrabold" style={{ color: "var(--text)" }}>{value}</p>
+      <p className="text-[12px]" style={{ color: "var(--text-3)" }}>{label}</p>
     </div>
   );
 }
 
-function Divider() {
-  return <div className="w-px bg-slate-700" />;
-}
-
-function Card({
-  card,
-  disabled,
-  onClick,
-}: {
-  card: CardState;
-  disabled: boolean;
-  onClick: () => void;
-}) {
+function Card({ card, disabled, onClick }: { card: CardState; disabled: boolean; onClick: () => void }) {
   const revealed = card.flipped || card.matched;
   return (
-    <button
-      type="button"
-      disabled={disabled && !revealed}
-      onClick={onClick}
-      className="aspect-square w-full [perspective:500px]"
-    >
+    <button type="button" disabled={disabled && !revealed} onClick={onClick} className="aspect-square w-full [perspective:500px]">
       <div
         className="relative h-full w-full transition-transform duration-300 [transform-style:preserve-3d]"
-        style={{
-          transform: revealed ? "rotateY(180deg)" : "rotateY(0deg)",
-        }}
+        style={{ transform: revealed ? "rotateY(180deg)" : "rotateY(0deg)" }}
       >
-        <div className="absolute inset-0 flex items-center justify-center rounded-xl border-2 border-indigo-400/60 bg-gradient-to-br from-indigo-500 to-indigo-700 [backface-visibility:hidden]">
-          <Star className="text-white/50" size={24} />
-        </div>
+        {/* Back (hidden) */}
         <div
-          className={clsx(
-            "absolute inset-0 flex items-center justify-center rounded-xl border-2 [backface-visibility:hidden]",
-            card.matched
-              ? "scale-[1.03] border-green-400 bg-green-500/20 shadow-md shadow-green-500/20"
-              : "border-slate-600 bg-slate-100"
-          )}
-          style={{ transform: "rotateY(180deg)" }}
+          className="absolute inset-0 flex items-center justify-center rounded-[14px] [backface-visibility:hidden]"
+          style={{ background: "linear-gradient(150deg,#7c7ff2,#6366f1)", boxShadow: "0 3px 9px rgba(99,102,241,0.32)" }}
         >
-          <span className="select-none text-3xl">{card.emoji}</span>
+          <Icon name="star" size={23} style={{ color: "rgba(255,255,255,0.82)" }} />
+        </div>
+        {/* Front (revealed) */}
+        <div
+          className="absolute inset-0 flex items-center justify-center rounded-[14px] [backface-visibility:hidden]"
+          style={{
+            transform: "rotateY(180deg)",
+            background: card.matched ? "var(--success-soft)" : "var(--surface-3)",
+            border: card.matched ? "1px solid color-mix(in srgb, var(--success) 45%, transparent)" : "1px solid var(--border-strong)",
+          }}
+        >
+          <span className="select-none text-[28px]">{card.emoji}</span>
         </div>
       </div>
     </button>
