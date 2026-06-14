@@ -313,7 +313,7 @@ function Cell({
     style = {
       background: "transparent",
       color: "var(--text)",
-      border: `2px solid ${active ? "var(--border-strong)" : "var(--line)"}`,
+      border: `2px solid ${active ? "var(--strong)" : "var(--line)"}`,
     };
   }
   return (

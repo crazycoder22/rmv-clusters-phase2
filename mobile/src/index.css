@@ -29,6 +29,8 @@ body,
   --surface-3: #eef2f8;
   --border: #e5e9f1;
   --border-strong: #d2dae7;
+  --line: rgba(0, 0, 0, 0.16);
+  --strong: rgba(0, 0, 0, 0.42);
   --text: #0e1626;
   --text-2: #516079;
   --text-3: #8696ae;
@@ -72,6 +74,8 @@ html.dark {
   --surface-3: #1c2945;
   --border: rgba(255, 255, 255, 0.08);
   --border-strong: rgba(255, 255, 255, 0.16);
+  --line: rgba(255, 255, 255, 0.22);
+  --strong: rgba(207, 214, 224, 0.55);
   --text: #f3f6fb;
   --text-2: #9fb0c9;
   --text-3: #6b7c98;
