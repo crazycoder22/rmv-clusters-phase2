@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Layers, Trophy } from "lucide-react";
-import clsx from "clsx";
+import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
 import WordleLeaderboard from "../components/WordleLeaderboard";
@@ -18,6 +17,10 @@ const KEYBOARD_ROWS: string[][] = [
   ["a", "s", "d", "f", "g", "h", "j", "k", "l"],
   ["Enter", "z", "x", "c", "v", "b", "n", "m", "⌫"],
 ];
+
+// Wordle state palette — saturated tones that read in both themes.
+const CORRECT = "#15803d";
+const PRESENT = "#b08d18";
 
 export default function Wordle() {
   const { user } = useAuth();
@@ -45,6 +48,7 @@ export default function Wordle() {
         setGuesses(data.guesses ?? []);
         setWon(!!data.won);
         setCompleted(!!data.completed);
+        if (data.answer) setAnswer(data.answer);
       })
       .catch(() => {})
       .finally(() => {
@@ -63,7 +67,7 @@ export default function Wordle() {
   const submitGuess = useCallback(async () => {
     if (!playerId || submitting || completed) return;
     if (currentGuess.length !== WORD_LENGTH) {
-      showToast("5 letters, please");
+      showToast("Not enough letters");
       return;
     }
     setSubmitting(true);
@@ -136,28 +140,33 @@ export default function Wordle() {
   }
 
   return (
-    <div className="flex flex-1 flex-col px-3 pt-[env(safe-area-inset-top,0px)] pb-[max(1rem,env(safe-area-inset-bottom,0px))]">
+    <div
+      className="one-surface flex flex-1 flex-col px-[16px] pt-[env(safe-area-inset-top,0px)] pb-[max(1rem,env(safe-area-inset-bottom,0px))]"
+      style={{ background: "var(--bg)", color: "var(--text)" }}
+    >
       <header className="flex items-center justify-between py-4">
         <Link
-          to="/"
-          className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 hover:bg-slate-800"
+          to="/games"
+          className="flex h-9 w-9 items-center justify-center rounded-full"
+          style={{ color: "var(--text-2)" }}
         >
-          <ArrowLeft size={20} />
+          <Icon name="arrow_back" size={22} />
         </Link>
-        <h1 className="text-lg font-semibold text-white">Wordle</h1>
+        <h1 className="text-[18px] font-bold" style={{ color: "var(--text)" }}>Wordle</h1>
         <div className="h-9 w-9" />
       </header>
 
+      {/* Game / Leaderboard segmented */}
       <div className="mb-3 flex justify-center">
-        <div className="flex items-center rounded-lg bg-slate-800 p-0.5">
-          <TabButton active={tab === "game"} onClick={() => setTab("game")}>
-            <Layers size={14} /> Game
+        <div
+          className="flex w-full rounded-[14px] p-1"
+          style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
+        >
+          <TabButton active={tab === "game"} onClick={() => setTab("game")} icon="style">
+            Game
           </TabButton>
-          <TabButton
-            active={tab === "leaderboard"}
-            onClick={() => setTab("leaderboard")}
-          >
-            <Trophy size={14} /> Leaderboard
+          <TabButton active={tab === "leaderboard"} onClick={() => setTab("leaderboard")} icon="emoji_events">
+            Leaderboard
           </TabButton>
         </div>
       </div>
@@ -165,11 +174,18 @@ export default function Wordle() {
       {tab === "leaderboard" ? (
         <WordleLeaderboard currentPlayerId={playerId} />
       ) : loading ? (
-        <div className="py-16 text-center text-sm text-slate-500">
+        <div className="py-16 text-center text-[14px]" style={{ color: "var(--text-3)" }}>
           Loading today's game…
         </div>
       ) : (
-        <>
+        <div className="flex flex-1 flex-col items-center">
+          {/* toast */}
+          <div className="flex h-6 items-center justify-center">
+            {toast && (
+              <span className="text-[13.5px] font-bold" style={{ color: "#f87171" }}>{toast}</span>
+            )}
+          </div>
+
           <Board
             guesses={guesses}
             currentGuess={currentGuess}
@@ -177,36 +193,31 @@ export default function Wordle() {
           />
 
           {completed && (
-            <div className="mt-4 rounded-2xl border border-slate-700 bg-slate-800/80 p-5 text-center">
-              <div className="text-3xl">{won ? "🎉" : "💔"}</div>
-              <h2 className="mt-2 text-lg font-bold text-white">
-                {won
-                  ? `Solved in ${guesses.length}/${MAX_ATTEMPTS}!`
-                  : "Better luck tomorrow"}
-              </h2>
-              {!won && answer && (
-                <p className="mt-1 text-sm text-slate-400">
-                  The word was{" "}
-                  <span className="font-mono font-bold uppercase text-white">
-                    {answer}
-                  </span>
-                </p>
-              )}
-              <p className="mt-3 text-xs text-slate-500">New word at midnight IST</p>
+            <div
+              className="mt-4 flex w-full items-center gap-3 rounded-[16px] p-4"
+              style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+            >
+              <div className="min-w-0 flex-1">
+                <div className="text-[16px] font-extrabold" style={{ color: "var(--text)" }}>
+                  {won ? `Solved in ${guesses.length}/${MAX_ATTEMPTS}! 🎉` : "Out of guesses"}
+                </div>
+                <div className="mt-0.5 text-[13px]" style={{ color: "var(--text-2)" }}>
+                  {won ? (
+                    "Nicely done — new word at midnight IST."
+                  ) : answer ? (
+                    <>The word was <span className="one-mono font-bold uppercase" style={{ color: "var(--text)" }}>{answer}</span>.</>
+                  ) : (
+                    "New word at midnight IST."
+                  )}
+                </div>
+              </div>
             </div>
           )}
 
-          <div className="mt-auto">
-            {toast && (
-              <div className="mb-2 text-center">
-                <span className="inline-block rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-900">
-                  {toast}
-                </span>
-              </div>
-            )}
+          <div className="mt-auto w-full pt-4">
             <Keyboard letterStates={letterStates} onKey={handleKey} />
           </div>
-        </>
+        </div>
       )}
     </div>
   );
@@ -215,20 +226,21 @@ export default function Wordle() {
 function TabButton({
   active,
   onClick,
+  icon,
   children,
 }: {
   active: boolean;
   onClick: () => void;
+  icon: string;
   children: React.ReactNode;
 }) {
   return (
     <button
       onClick={onClick}
-      className={clsx(
-        "flex items-center gap-1.5 rounded-md px-4 py-1.5 text-sm font-medium transition-colors",
-        active ? "bg-slate-700 text-white shadow-sm" : "text-slate-400"
-      )}
+      className="flex flex-1 items-center justify-center gap-1.5 rounded-[10px] py-2.5 text-[14px] font-bold transition-colors"
+      style={active ? { background: "var(--surface-3)", color: "var(--text)", boxShadow: "0 1px 6px rgba(0,0,0,0.25)" } : { background: "transparent", color: "var(--text-3)" }}
     >
+      <Icon name={icon} size={18} />
       {children}
     </button>
   );
@@ -247,19 +259,15 @@ function Board({
   for (let i = 0; i < MAX_ATTEMPTS; i++) {
     if (i < guesses.length) {
       rows.push(
-        <div key={i} className="flex justify-center gap-1.5">
+        <div key={i} className="grid grid-cols-5 gap-1.5">
           {guesses[i].word.split("").map((letter, j) => (
-            <Cell
-              key={j}
-              letter={letter}
-              state={guesses[i].feedback[j]}
-            />
+            <Cell key={j} letter={letter} state={guesses[i].feedback[j]} />
           ))}
         </div>
       );
     } else if (i === guesses.length) {
       rows.push(
-        <div key={i} className="flex justify-center gap-1.5">
+        <div key={i} className="grid grid-cols-5 gap-1.5">
           {Array.from({ length: WORD_LENGTH }).map((_, j) => (
             <Cell
               key={j}
@@ -272,7 +280,7 @@ function Board({
       );
     } else {
       rows.push(
-        <div key={i} className="flex justify-center gap-1.5">
+        <div key={i} className="grid grid-cols-5 gap-1.5">
           {Array.from({ length: WORD_LENGTH }).map((_, j) => (
             <Cell key={j} />
           ))}
@@ -280,7 +288,7 @@ function Board({
       );
     }
   }
-  return <div className="flex flex-col gap-1.5 px-4 py-4">{rows}</div>;
+  return <div className="flex w-full max-w-[280px] flex-col gap-1.5">{rows}</div>;
 }
 
 function Cell({
@@ -294,20 +302,24 @@ function Cell({
   active?: boolean;
   submitting?: boolean;
 }) {
+  let style: React.CSSProperties;
+  if (state === "correct") {
+    style = { background: CORRECT, color: "#fff", border: `2px solid ${CORRECT}` };
+  } else if (state === "present") {
+    style = { background: PRESENT, color: "#fff", border: `2px solid ${PRESENT}` };
+  } else if (state === "absent") {
+    style = { background: "var(--surface-3)", color: "var(--text-3)", border: "2px solid var(--surface-3)" };
+  } else {
+    style = {
+      background: "transparent",
+      color: "var(--text)",
+      border: `2px solid ${active ? "var(--border-strong)" : "var(--line)"}`,
+    };
+  }
   return (
     <div
-      className={clsx(
-        "flex h-14 w-14 items-center justify-center rounded-lg border-2 text-2xl font-bold uppercase transition-all",
-        state === "correct" && "border-green-500 bg-green-500 text-white",
-        state === "present" && "border-yellow-500 bg-yellow-500 text-white",
-        state === "absent" && "border-slate-600 bg-slate-600 text-white",
-        !state &&
-          (active
-            ? "border-slate-400 text-white"
-            : submitting
-              ? "animate-pulse border-slate-500"
-              : "border-slate-700")
-      )}
+      className={`flex aspect-square items-center justify-center rounded-[10px] text-[24px] font-extrabold uppercase ${!state && submitting ? "animate-pulse" : ""}`}
+      style={style}
     >
       {letter ?? ""}
     </div>
@@ -321,31 +333,28 @@ function Keyboard({
   letterStates: Map<string, LetterResult>;
   onKey: (key: string) => void;
 }) {
-  const classFor = (key: string) => {
+  const styleFor = (key: string): React.CSSProperties => {
     const state = letterStates.get(key.toLowerCase());
-    if (state === "correct") return "bg-green-500 text-white";
-    if (state === "present") return "bg-yellow-500 text-white";
-    if (state === "absent") return "bg-slate-700 text-slate-400";
-    return "bg-slate-600 text-white active:bg-slate-500";
+    if (state === "correct") return { background: CORRECT, color: "#fff" };
+    if (state === "present") return { background: PRESENT, color: "#fff" };
+    if (state === "absent") return { background: "var(--surface-3)", color: "var(--text-3)" };
+    return { background: "var(--surface-2)", color: "var(--text)", border: "1px solid var(--border-strong)" };
   };
 
   return (
     <div className="flex flex-col items-center gap-1.5">
       {KEYBOARD_ROWS.map((row, i) => (
-        <div key={i} className="flex w-full justify-center gap-[5px] px-1">
+        <div key={i} className="flex w-full justify-center gap-[5px]">
           {row.map((key) => {
             const isWide = key === "Enter" || key === "⌫";
             return (
               <button
                 key={key}
                 onClick={() => onKey(key)}
-                className={clsx(
-                  "h-12 rounded-md text-sm font-semibold uppercase select-none transition-transform active:scale-95",
-                  classFor(key),
-                  isWide ? "min-w-[48px] flex-[1.5] text-xs" : "flex-1"
-                )}
+                className="flex h-12 items-center justify-center rounded-[8px] text-[14px] font-bold uppercase select-none transition-transform active:scale-95"
+                style={{ ...styleFor(key), flex: isWide ? 1.6 : 1 }}
               >
-                {key === "⌫" ? "⌫" : key.toUpperCase()}
+                {key === "⌫" ? <Icon name="backspace" size={20} /> : key === "Enter" ? "Enter" : key.toUpperCase()}
               </button>
             );
           })}
