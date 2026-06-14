@@ -38,10 +38,19 @@ const TABS = [
 ] as const;
 type TabKey = (typeof TABS)[number]["key"];
 
+interface LiveGame {
+  kind: "quiz" | "tambola";
+  code: string;
+  title: string;
+  status: string;
+  players: number;
+}
+
 export default function Games() {
   const { token } = useAuth();
   const navigate = useNavigate();
   const [coins, setCoins] = useState<number | null>(null);
+  const [live, setLive] = useState<LiveGame[]>([]);
   const [tab, setTab] = useState<TabKey>("all");
 
   useEffect(() => {
@@ -50,6 +59,10 @@ export default function Games() {
     apiFetch("/api/medals/me", { token })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => { if (!cancelled && d) setCoins(d.totalCoins ?? 0); })
+      .catch(() => {});
+    apiFetch("/api/games/live", { token })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (!cancelled && d) setLive(d.live ?? []); })
       .catch(() => {});
     return () => { cancelled = true; };
   }, [token]);
@@ -104,6 +117,11 @@ export default function Games() {
         })}
       </div>
 
+      {/* Live now banners (real quiz/tambola sessions) — hidden on Solo */}
+      {tab !== "solo" && live.map((g) => (
+        <LiveBanner key={g.kind + g.code} game={g} onJoin={() => navigate(`/${g.kind}/${g.code}`)} />
+      ))}
+
       {/* Section label */}
       <div className="flex items-center justify-between px-0.5 pb-2">
         <span className="one-mono text-[10px] font-semibold uppercase" style={{ color: "var(--text-3)", letterSpacing: "0.14em" }}>{sectionLabel}</span>
@@ -138,6 +156,39 @@ export default function Games() {
             <Icon name="chevron_right" size={20} className="flex-shrink-0" style={{ color: "var(--text-3)" }} />
           </Link>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function LiveBanner({ game, onJoin }: { game: LiveGame; onJoin: () => void }) {
+  const sub = game.status === "WAITING" ? "Lobby open — tap to join" : "In progress";
+  return (
+    <div className="mb-3 rounded-[20px] p-[17px]" style={{ background: "var(--banner)", border: "1px solid var(--border)" }}>
+      <div className="flex items-center gap-2">
+        <span className="relative flex h-2 w-2">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style={{ background: "var(--success)" }} />
+          <span className="relative inline-flex h-2 w-2 rounded-full" style={{ background: "var(--success)" }} />
+        </span>
+        <span className="one-mono text-[10px] font-semibold uppercase" style={{ color: "rgba(255,255,255,0.82)", letterSpacing: "0.14em" }}>Live now</span>
+      </div>
+      <div className="mt-2.5 flex items-center gap-3">
+        <div className="flex h-[50px] w-[50px] flex-shrink-0 items-center justify-center rounded-[15px]" style={{ background: "rgba(255,255,255,0.14)" }}>
+          <Icon name={game.kind === "quiz" ? "quiz" : "casino"} size={27} weight={500} style={{ color: "#fff" }} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-[19px] font-extrabold tracking-tight" style={{ color: "#fff" }}>{game.title}</div>
+          <div className="mt-0.5 text-[13px]" style={{ color: "rgba(255,255,255,0.78)" }}>{sub}</div>
+        </div>
+      </div>
+      <div className="mt-3.5 flex items-center justify-between gap-3">
+        <span className="flex items-center gap-1.5 text-[13px] font-semibold" style={{ color: "rgba(255,255,255,0.82)" }}>
+          <Icon name="group" size={16} style={{ color: "rgba(255,255,255,0.82)" }} />
+          {game.players} in
+        </span>
+        <button onClick={onJoin} className="flex items-center gap-1.5 rounded-[12px] px-5 py-2.5 text-[14px] font-bold active:opacity-90" style={{ background: "#fff", color: "#1a2a52" }}>
+          <Icon name="bolt" size={19} style={{ color: "#1a2a52" }} />Join
+        </button>
       </div>
     </div>
   );
