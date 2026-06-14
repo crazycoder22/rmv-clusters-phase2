@@ -118,7 +118,7 @@ export default function EventDashboardPage({
   if (loading) {
     return (
       <div className="max-w-5xl mx-auto px-4 py-12">
-        <p className="text-center text-gray-500">Loading dashboard...</p>
+        <p className="text-center text-gray-500 dark:text-gray-400">Loading dashboard...</p>
       </div>
     );
   }
@@ -127,7 +127,7 @@ export default function EventDashboardPage({
     return (
       <div className="max-w-5xl mx-auto px-4 py-12 text-center">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Dashboard</h1>
-        <p className="text-gray-600 mb-4">{error}</p>
+        <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
         <Link
           href={`/events/${id}/rsvp`}
           className="text-primary-600 hover:text-primary-700 font-medium text-sm"
@@ -152,7 +152,7 @@ export default function EventDashboardPage({
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">{eventTitle}</h1>
         {eventSummary && (
-          <p className="text-gray-500 text-sm">{eventSummary}</p>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">{eventSummary}</p>
         )}
         {hasStepTracking && (
           <Link
@@ -236,7 +236,7 @@ export default function EventDashboardPage({
             className={`px-3 py-1 text-sm rounded-full transition-colors ${
               sortBy === "total"
                 ? "bg-primary-100 text-primary-700 font-medium"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
             }`}
           >
             Total Steps
@@ -246,7 +246,7 @@ export default function EventDashboardPage({
             className={`px-3 py-1 text-sm rounded-full transition-colors ${
               sortBy === "average"
                 ? "bg-primary-100 text-primary-700 font-medium"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
             }`}
           >
             Avg / Day
@@ -270,7 +270,7 @@ export default function EventDashboardPage({
 
       {/* Participants / Leaderboard */}
       {filteredParticipants.length === 0 ? (
-        <p className="text-gray-500 text-center py-8">
+        <p className="text-gray-500 dark:text-gray-400 text-center py-8">
           {searchTerm ? "No participants match your search." : "No participants yet."}
         </p>
       ) : hasStepTracking ? (
@@ -304,22 +304,22 @@ export default function EventDashboardPage({
                     <td className="py-3 px-4 font-medium text-gray-900 dark:text-gray-100">
                       {p.name}
                     </td>
-                    <td className="py-3 px-4 text-gray-600">
+                    <td className="py-3 px-4 text-gray-600 dark:text-gray-300">
                       B{p.block} - {p.flatNumber}
                     </td>
                     <td className="py-3 px-4 text-right font-semibold text-gray-900 dark:text-gray-100">
                       {p.totalSteps.toLocaleString("en-IN")}
                     </td>
-                    <td className="py-3 px-4 text-right text-gray-700">
+                    <td className="py-3 px-4 text-right text-gray-700 dark:text-gray-300">
                       {p.averageDailySteps.toLocaleString("en-IN")}
                     </td>
-                    <td className="py-3 px-4 text-right text-gray-600">
+                    <td className="py-3 px-4 text-right text-gray-600 dark:text-gray-300">
                       {p.dailyGoal > 0 ? p.dailyGoal.toLocaleString("en-IN") : "\u2014"}
                     </td>
                     <td className="py-3 px-4 text-center">
                       {p.dailyGoal > 0 ? (
                         <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                          p.daysGoalMet > 0 ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"
+                          p.daysGoalMet > 0 ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300" : "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-300"
                         }`}>
                           {p.daysGoalMet} / {p.daysTracked}
                         </span>
@@ -353,28 +353,28 @@ export default function EventDashboardPage({
                     {getRankDisplay(index)}
                     <p className="font-medium text-gray-900 dark:text-gray-100">{p.name}</p>
                   </div>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
                     B{p.block} - {p.flatNumber}
                   </span>
                 </div>
                 <div className="grid grid-cols-3 gap-2 mt-3 text-center">
                   <div>
-                    <p className="text-lg font-bold text-gray-900">
+                    <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
                       {p.totalSteps.toLocaleString("en-IN")}
                     </p>
-                    <p className="text-[10px] text-gray-500 uppercase">Total</p>
+                    <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase">Total</p>
                   </div>
                   <div>
-                    <p className="text-lg font-bold text-gray-700">
+                    <p className="text-lg font-bold text-gray-700 dark:text-gray-300">
                       {p.averageDailySteps.toLocaleString("en-IN")}
                     </p>
-                    <p className="text-[10px] text-gray-500 uppercase">Avg/Day</p>
+                    <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase">Avg/Day</p>
                   </div>
                   <div>
-                    <p className="text-lg font-bold text-gray-700">
+                    <p className="text-lg font-bold text-gray-700 dark:text-gray-300">
                       {p.dailyGoal > 0 ? `${p.daysGoalMet}/${p.daysTracked}` : "\u2014"}
                     </p>
-                    <p className="text-[10px] text-gray-500 uppercase">Days Met</p>
+                    <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase">Days Met</p>
                   </div>
                 </div>
                 <button
@@ -411,13 +411,13 @@ export default function EventDashboardPage({
                     key={p.id}
                     className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
                   >
-                    <td className="py-3 px-4 text-gray-400 text-xs">
+                    <td className="py-3 px-4 text-gray-400 dark:text-gray-500 text-xs">
                       {index + 1}
                     </td>
                     <td className="py-3 px-4 font-medium text-gray-900 dark:text-gray-100">
                       {p.name}
                     </td>
-                    <td className="py-3 px-4 text-gray-600">
+                    <td className="py-3 px-4 text-gray-600 dark:text-gray-300">
                       B{p.block} - {p.flatNumber}
                     </td>
                     {customFields.map((cf) => {
@@ -425,12 +425,12 @@ export default function EventDashboardPage({
                         (fr) => fr.customFieldId === cf.id
                       );
                       return (
-                        <td key={cf.id} className="py-3 px-4 text-gray-700">
+                        <td key={cf.id} className="py-3 px-4 text-gray-700 dark:text-gray-300">
                           {response?.value || "\u2014"}
                         </td>
                       );
                     })}
-                    <td className="py-3 px-4 text-gray-500 text-xs whitespace-nowrap">
+                    <td className="py-3 px-4 text-gray-500 dark:text-gray-400 text-xs whitespace-nowrap">
                       {new Date(p.createdAt).toLocaleDateString("en-IN", {
                         day: "numeric",
                         month: "short",
@@ -451,12 +451,12 @@ export default function EventDashboardPage({
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-medium text-gray-400 bg-gray-100 rounded-full w-6 h-6 flex items-center justify-center">
+                    <span className="text-xs font-medium text-gray-500 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-full w-6 h-6 flex items-center justify-center">
                       {index + 1}
                     </span>
                     <p className="font-medium text-gray-900 dark:text-gray-100">{p.name}</p>
                   </div>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
                     B{p.block} - {p.flatNumber}
                   </span>
                 </div>
@@ -466,15 +466,15 @@ export default function EventDashboardPage({
                   );
                   if (!response) return null;
                   return (
-                    <div key={cf.id} className="text-sm text-gray-600 mt-1">
-                      <span className="font-medium text-gray-500">
+                    <div key={cf.id} className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                      <span className="font-medium text-gray-500 dark:text-gray-400">
                         {cf.label}:
                       </span>{" "}
                       {response.value}
                     </div>
                   );
                 })}
-                <p className="text-xs text-gray-400 mt-2">
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
                   Registered{" "}
                   {new Date(p.createdAt).toLocaleDateString("en-IN", {
                     day: "numeric",
@@ -518,20 +518,20 @@ function DetailsModal({
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40" onClick={onClose}>
       <div
-        className="bg-white w-full sm:max-w-lg sm:rounded-xl rounded-t-xl max-h-[85vh] overflow-y-auto shadow-xl"
+        className="bg-white dark:bg-gray-800 w-full sm:max-w-lg sm:rounded-xl rounded-t-xl max-h-[85vh] overflow-y-auto shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-5 py-4 flex items-center justify-between rounded-t-xl">
+        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-5 py-4 flex items-center justify-between rounded-t-xl">
           <div>
-            <h2 className="text-lg font-bold text-gray-900">{p.name}</h2>
-            <p className="text-xs text-gray-500">B{p.block} - {p.flatNumber}</p>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">{p.name}</h2>
+            <p className="text-xs text-gray-500 dark:text-gray-400">B{p.block} - {p.flatNumber}</p>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
-            <X size={18} className="text-gray-500" />
+            <X size={18} className="text-gray-500 dark:text-gray-400" />
           </button>
         </div>
 
@@ -630,7 +630,7 @@ function DetailsModal({
               </div>
               {/* Goal line indicator */}
               {p.dailyGoal > 0 && (
-                <div className="flex items-center gap-2 mt-2 text-[10px] text-gray-500">
+                <div className="flex items-center gap-2 mt-2 text-[10px] text-gray-500 dark:text-gray-400">
                   <span className="inline-block w-3 h-3 rounded-sm bg-green-500" /> Met Goal
                   <span className="inline-block w-3 h-3 rounded-sm bg-blue-400 ml-2" /> Below Goal
                   <span className="ml-auto">Goal: {p.dailyGoal.toLocaleString("en-IN")}</span>
@@ -643,10 +643,10 @@ function DetailsModal({
           {p.dailySteps.length > 0 && (
             <div>
               <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Daily Log</h3>
-              <div className="border border-gray-200 rounded-lg overflow-hidden">
+              <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-gray-50 border-b border-gray-200 text-gray-600">
+                    <tr className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300">
                       <th className="py-2 px-3 text-left font-medium">Date</th>
                       <th className="py-2 px-3 text-right font-medium">Steps</th>
                       {p.dailyGoal > 0 && (
@@ -658,8 +658,8 @@ function DetailsModal({
                     {[...p.dailySteps].reverse().map((d) => {
                       const metGoal = p.dailyGoal > 0 && d.steps >= p.dailyGoal;
                       return (
-                        <tr key={d.date} className="border-b border-gray-100">
-                          <td className="py-2 px-3 text-gray-600">
+                        <tr key={d.date} className="border-b border-gray-100 dark:border-gray-700">
+                          <td className="py-2 px-3 text-gray-600 dark:text-gray-300">
                             {new Date(d.date).toLocaleDateString("en-IN", {
                               weekday: "short",
                               day: "numeric",
@@ -688,7 +688,7 @@ function DetailsModal({
           )}
 
           {p.dailySteps.length === 0 && (
-            <p className="text-gray-500 text-sm text-center py-4">No step data recorded yet.</p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm text-center py-4">No step data recorded yet.</p>
           )}
         </div>
       </div>
