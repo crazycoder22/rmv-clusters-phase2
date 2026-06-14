@@ -43,7 +43,8 @@ const COMMUNITY: Tile[] = [
   { to: "/vehicles", ms: "directions_car", label: "My Vehicles" },
   { to: "/parking", ms: "local_parking", label: "Parking" },
   { to: "/polls", ms: "poll", label: "Polls" },
-  { to: "/referendums", ms: "how_to_vote", label: "Referendums" },
+  // Referendums hidden for now — re-enable by uncommenting.
+  // { to: "/referendums", ms: "how_to_vote", label: "Referendums" },
   { to: "/residents", ms: "contacts", label: "Resident Directory" },
   { to: "/videos", ms: "smart_display", label: "Videos" },
   { to: "/visits", ms: "how_to_reg", label: "Visitors" },

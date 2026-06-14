@@ -24,7 +24,6 @@ import {
   UtensilsCrossed,
   Users,
   Video,
-  Vote,
   Wrench,
   ListChecks,
   ShoppingBag,
@@ -123,7 +122,8 @@ export default function MorePage() {
           { to: "/marketplace", icon: ShoppingBag, title: "Marketplace", subtitle: "Buy, sell, give away & rent within RMV" },
           { to: "/domestic-help", icon: Sparkles, title: "Domestic Help", subtitle: "Maids, cooks, drivers — rated by neighbours" },
           { to: "/initiatives", icon: Megaphone, title: "Initiatives", subtitle: "Share feedback on community initiatives" },
-          { to: "/referendums", icon: Vote, title: "Referendums", subtitle: "Vote on community decisions" },
+          // Referendums hidden for now — re-enable by uncommenting (+ restore the Vote import).
+          // { to: "/referendums", icon: Vote, title: "Referendums", subtitle: "Vote on community decisions" },
           { to: "/duties", icon: ListChecks, title: "My duties", subtitle: "Your daily duty checklist" },
           { to: "/issues", icon: Wrench, title: "Issues", subtitle: "Report a maintenance problem" },
           { to: "/faq", icon: HelpCircle, title: "FAQ", subtitle: "Common questions, topic-wise" },
