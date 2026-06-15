@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Check, Clock, Trophy, Users, X } from "lucide-react";
-import clsx from "clsx";
+import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
 
@@ -47,12 +46,8 @@ type SessionState = {
 
 const POLL_INTERVAL_MS = 1500;
 
-const OPTION_THEMES = [
-  "bg-red-500 active:bg-red-600",
-  "bg-blue-500 active:bg-blue-600",
-  "bg-amber-500 active:bg-amber-600",
-  "bg-green-500 active:bg-green-600",
-];
+// Fixed per-position answer colours (A red, B blue, C amber, D green).
+const ANSWER_COLORS = ["#ee4d4d", "#2f6fed", "#f59e0b", "#21b257"];
 
 export default function QuizSession() {
   const { code = "" } = useParams<{ code: string }>();
@@ -66,7 +61,6 @@ export default function QuizSession() {
 
   const joinedRef = useRef(false);
 
-  // Join on mount, then start polling.
   useEffect(() => {
     if (!playerId || !code) return;
     let cancelled = false;
@@ -127,7 +121,6 @@ export default function QuizSession() {
             answerIndex,
           }),
         });
-        // State will update on the next poll.
       } catch {
         /* swallow */
       } finally {
@@ -138,32 +131,27 @@ export default function QuizSession() {
   );
 
   return (
-    <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)] pb-[max(1rem,env(safe-area-inset-bottom,0px))]">
+    <div
+      className="one-surface flex flex-1 flex-col px-[18px] pt-[env(safe-area-inset-top,0px)] pb-[max(1rem,env(safe-area-inset-bottom,0px))]"
+      style={{ background: "var(--bg)", color: "var(--text)" }}
+    >
       <header className="flex items-center justify-between py-4">
-        <Link
-          to="/quiz"
-          className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 hover:bg-slate-800"
-        >
-          <ArrowLeft size={20} />
+        <Link to="/quiz" className="flex h-9 w-9 items-center justify-center rounded-full" style={{ color: "var(--text-2)" }}>
+          <Icon name="arrow_back" size={22} />
         </Link>
-        <h1 className="font-mono text-lg font-bold tracking-widest text-white">
-          {code}
-        </h1>
+        <h1 className="one-mono text-[20px] font-bold tracking-[0.16em]" style={{ color: "var(--text)" }}>{code}</h1>
         <div className="h-9 w-9" />
       </header>
 
       {error ? (
         <div className="flex flex-1 flex-col items-center justify-center text-center">
-          <p className="text-sm text-red-400">{error}</p>
-          <Link
-            to="/quiz"
-            className="mt-4 rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white active:bg-indigo-600"
-          >
+          <p className="text-[14px]" style={{ color: "var(--danger)" }}>{error}</p>
+          <Link to="/quiz" className="mt-4 rounded-[10px] px-4 py-2 text-[14px] font-semibold text-white" style={{ background: "var(--accent-strong)" }}>
             Back to quizzes
           </Link>
         </div>
       ) : joining || !state ? (
-        <div className="flex flex-1 items-center justify-center text-sm text-slate-500">
+        <div className="flex flex-1 items-center justify-center text-[14px]" style={{ color: "var(--text-3)" }}>
           Joining…
         </div>
       ) : (
@@ -173,31 +161,14 @@ export default function QuizSession() {
   );
 }
 
-function Body({
-  state,
-  onAnswer,
-  submitting,
-}: {
-  state: SessionState;
-  onAnswer: (idx: number) => void;
-  submitting: boolean;
-}) {
+function Body({ state, onAnswer, submitting }: { state: SessionState; onAnswer: (idx: number) => void; submitting: boolean }) {
   if (state.status === "WAITING") return <Waiting state={state} />;
   if (state.status === "COMPLETED") return <Completed state={state} />;
-
-  // ACTIVE or SHOWING_RESULTS — both show question-related UI
   if (!state.question) {
-    return (
-      <div className="flex flex-1 items-center justify-center text-sm text-slate-500">
-        Loading question…
-      </div>
-    );
+    return <div className="flex flex-1 items-center justify-center text-[14px]" style={{ color: "var(--text-3)" }}>Loading question…</div>;
   }
-
   if (state.status === "ACTIVE") {
-    return (
-      <ActiveQuestion state={state} onAnswer={onAnswer} submitting={submitting} />
-    );
+    return <ActiveQuestion state={state} onAnswer={onAnswer} submitting={submitting} />;
   }
   return <QuestionResults state={state} />;
 }
@@ -206,35 +177,24 @@ function Waiting({ state }: { state: SessionState }) {
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-4 text-center">
       <div className="text-5xl">⏳</div>
-      <h2 className="mt-4 text-xl font-bold text-white">
-        {state.quizTitle}
-      </h2>
-      <p className="mt-2 text-sm text-slate-400">
-        Waiting for the host to start the quiz…
-      </p>
-      <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-slate-800 px-4 py-1.5 text-sm text-slate-300">
-        <Users size={14} />
+      <h2 className="mt-4 text-[21px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>{state.quizTitle}</h2>
+      <p className="mt-2 text-[14px]" style={{ color: "var(--text-3)" }}>Waiting for the host to start the quiz…</p>
+      <div className="mt-6 inline-flex items-center gap-2 rounded-full px-4 py-2 text-[14px]" style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text-2)" }}>
+        <Icon name="group" size={15} />
         {state.playerCount} player{state.playerCount === 1 ? "" : "s"} joined
       </div>
       {state.leaderboard.length > 0 && (
         <div className="mt-6 w-full max-w-sm">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
-            In the lobby
-          </p>
-          <div className="rounded-xl border border-slate-700 bg-slate-800/60 p-3 text-left">
+          <p className="one-mono mb-2 text-[11px] font-semibold" style={{ color: "var(--text-3)", letterSpacing: "0.12em" }}>IN THE LOBBY</p>
+          <div className="rounded-[16px] p-3 text-left" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
             {state.leaderboard.slice(0, 8).map((p) => (
-              <div
-                key={p.playerId}
-                className="flex items-center justify-between py-1 text-sm text-slate-300"
-              >
+              <div key={p.playerId} className="flex items-center justify-between py-1 text-[14px]" style={{ color: "var(--text-2)" }}>
                 <span>{p.name}</span>
-                <span className="text-xs text-slate-500">Block {p.block}</span>
+                <span className="text-[12px]" style={{ color: "var(--text-3)" }}>Block {p.block}</span>
               </div>
             ))}
             {state.playerCount > 8 && (
-              <p className="pt-1 text-center text-xs text-slate-500">
-                + {state.playerCount - 8} more
-              </p>
+              <p className="pt-1 text-center text-[12px]" style={{ color: "var(--text-3)" }}>+ {state.playerCount - 8} more</p>
             )}
           </div>
         </div>
@@ -243,66 +203,50 @@ function Waiting({ state }: { state: SessionState }) {
   );
 }
 
-function ActiveQuestion({
-  state,
-  onAnswer,
-  submitting,
-}: {
-  state: SessionState;
-  onAnswer: (idx: number) => void;
-  submitting: boolean;
-}) {
+function ActiveQuestion({ state, onAnswer, submitting }: { state: SessionState; onAnswer: (idx: number) => void; submitting: boolean }) {
   const q = state.question!;
   const hasAnswered = !!state.hasAnswered;
-  const timeLeft = useQuestionTimer(
-    state.questionStartedAt,
-    q.timeLimitSecs
-  );
+  const timeLeft = useQuestionTimer(state.questionStartedAt, q.timeLimitSecs);
+  const dimmed = hasAnswered || timeLeft <= 0;
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="mb-4 flex items-center justify-between">
-        <span className="text-xs font-semibold text-slate-400">
+      <div className="mb-3.5 flex items-center justify-between">
+        <span className="text-[14px]" style={{ color: "var(--text-2)" }}>
           Question {state.currentQuestionIdx + 1} of {state.totalQuestions}
         </span>
-        <span className="flex items-center gap-1 rounded-full bg-slate-800 px-3 py-1 text-xs font-mono text-indigo-300">
-          <Clock size={12} /> {timeLeft}s
+        <span className="flex items-center gap-1.5 rounded-full px-3 py-1.5" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+          <Icon name="schedule" size={16} style={{ color: "var(--text-2)" }} />
+          <span className="one-mono text-[14px] font-semibold" style={{ color: "var(--text)" }}>{timeLeft}s</span>
         </span>
       </div>
 
-      <div className="mb-6 rounded-2xl border border-slate-700 bg-slate-800/60 p-5">
-        <p className="text-base leading-relaxed text-white">{q.text}</p>
+      <div className="flex min-h-[96px] items-center rounded-[16px] p-[22px]" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+        <span className="text-[20px] font-semibold leading-snug" style={{ color: "var(--text)" }}>{q.text}</span>
       </div>
 
-      <div className="grid gap-3">
+      <div className="mt-4 flex flex-col gap-3">
         {q.options.map((opt, i) => (
           <button
             key={i}
-            disabled={hasAnswered || submitting || timeLeft <= 0}
+            disabled={dimmed || submitting}
             onClick={() => onAnswer(i)}
-            className={clsx(
-              "flex items-center gap-3 rounded-xl px-4 py-4 text-left text-base font-medium text-white transition-all",
-              OPTION_THEMES[i % OPTION_THEMES.length],
-              (hasAnswered || timeLeft <= 0) && "opacity-50"
-            )}
+            className="flex w-full items-center gap-3.5 rounded-[14px] p-4 text-left"
+            style={{ background: ANSWER_COLORS[i % 4], opacity: dimmed ? 0.42 : 1 }}
           >
-            <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-white/25 text-sm font-bold">
+            <span className="flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-full text-[16px] font-extrabold text-white" style={{ background: "rgba(255,255,255,0.28)" }}>
               {String.fromCharCode(65 + i)}
             </span>
-            <span className="flex-1">{opt}</span>
+            <span className="flex-1 text-[18px] font-bold text-white">{opt}</span>
           </button>
         ))}
       </div>
 
       {hasAnswered && (
-        <p className="mt-5 text-center text-sm text-slate-400">
-          Answer locked in. Waiting for others…
-        </p>
+        <p className="mt-5 text-center text-[15px]" style={{ color: "var(--text-2)" }}>Answer locked in. Waiting for others…</p>
       )}
       {timeLeft <= 0 && !hasAnswered && (
-        <p className="mt-5 text-center text-sm text-amber-400">
-          Time's up!
-        </p>
+        <p className="mt-5 text-center text-[16px] font-bold" style={{ color: "var(--warning)" }}>Time's up!</p>
       )}
     </div>
   );
@@ -317,51 +261,38 @@ function QuestionResults({ state }: { state: SessionState }) {
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="mb-4">
-        <p className="text-xs font-semibold text-slate-400">
+      <div className="mb-3.5">
+        <span className="text-[14px]" style={{ color: "var(--text-2)" }}>
           Question {state.currentQuestionIdx + 1} of {state.totalQuestions}
-        </p>
+        </span>
       </div>
 
-      <div className="mb-5 rounded-2xl border border-slate-700 bg-slate-800/60 p-5">
-        <p className="text-base leading-relaxed text-white">{q.text}</p>
+      <div className="flex min-h-[90px] items-center rounded-[16px] p-[22px]" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+        <span className="text-[20px] font-semibold leading-snug" style={{ color: "var(--text)" }}>{q.text}</span>
       </div>
 
-      <div className="mb-5 grid gap-2.5">
+      <div className="mt-4 flex flex-col gap-2.5">
         {q.options.map((opt, i) => {
           const isCorrect = i === correct;
           const isMine = my?.answerIndex === i;
+          const isWrong = isMine && !isCorrect;
           const pct = total === 0 ? 0 : Math.round((counts[i] / total) * 100);
+          const rowStyle = isCorrect
+            ? { background: "rgba(33,178,87,0.12)", border: "1.5px solid #21b257" }
+            : isWrong
+              ? { background: "rgba(238,77,77,0.12)", border: "1.5px solid #ee4d4d" }
+              : { background: "var(--surface)", border: "1px solid var(--border)" };
+          const fill = isCorrect ? "rgba(33,178,87,0.24)" : isWrong ? "rgba(238,77,77,0.24)" : "transparent";
           return (
-            <div
-              key={i}
-              className={clsx(
-                "relative overflow-hidden rounded-xl border px-4 py-3 text-sm font-medium",
-                isCorrect
-                  ? "border-green-500 bg-green-500/20 text-white"
-                  : isMine
-                    ? "border-red-500 bg-red-500/20 text-white"
-                    : "border-slate-700 bg-slate-800/40 text-slate-300"
-              )}
-            >
-              <div
-                className={clsx(
-                  "absolute inset-y-0 left-0 transition-all",
-                  isCorrect ? "bg-green-500/20" : "bg-slate-700/30"
-                )}
-                style={{ width: `${pct}%` }}
-              />
-              <div className="relative flex items-center gap-3">
-                <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-bold">
-                  {String.fromCharCode(65 + i)}
-                </span>
-                <span className="flex-1">{opt}</span>
-                {isCorrect && <Check size={16} className="text-green-400" />}
-                {!isCorrect && isMine && <X size={16} className="text-red-400" />}
-                <span className="w-10 text-right text-xs text-slate-400">
-                  {pct}%
-                </span>
-              </div>
+            <div key={i} className="relative flex items-center gap-3 overflow-hidden rounded-[14px] p-[15px]" style={rowStyle}>
+              <div className="absolute inset-y-0 left-0" style={{ width: `${pct}%`, background: fill }} />
+              <span className="relative z-[1] flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-[14px] font-bold" style={{ background: "rgba(255,255,255,0.10)", color: "var(--text-2)" }}>
+                {String.fromCharCode(65 + i)}
+              </span>
+              <span className="relative z-[1] flex-1 text-[16px] font-bold" style={{ color: "var(--text)" }}>{opt}</span>
+              {isCorrect && <Icon name="check" size={20} style={{ color: "var(--success)", position: "relative", zIndex: 1 }} />}
+              {isWrong && <Icon name="close" size={20} style={{ color: "var(--danger)", position: "relative", zIndex: 1 }} />}
+              <span className="relative z-[1] min-w-[38px] text-right text-[14px] font-bold" style={{ color: isCorrect ? "var(--text)" : "var(--text-3)" }}>{pct}%</span>
             </div>
           );
         })}
@@ -369,31 +300,27 @@ function QuestionResults({ state }: { state: SessionState }) {
 
       {my ? (
         <div
-          className={clsx(
-            "rounded-xl p-4 text-center",
-            my.isCorrect
-              ? "bg-green-500/20 text-green-300"
-              : "bg-red-500/20 text-red-300"
-          )}
+          className="mt-4 rounded-[16px] p-[18px] text-center"
+          style={my.isCorrect
+            ? { background: "rgba(33,178,87,0.10)", border: "1px solid rgba(33,178,87,0.35)" }
+            : { background: "rgba(248,113,113,0.10)", border: "1px solid rgba(248,113,113,0.35)" }}
         >
-          <p className="text-sm font-semibold">
+          <p className="text-[19px] font-extrabold" style={{ color: my.isCorrect ? "var(--success)" : "var(--danger)" }}>
             {my.isCorrect ? "Correct!" : "Incorrect"}
           </p>
-          <p className="mt-1 text-xs">
-            {my.isCorrect
-              ? `+${my.points} points`
-              : "Better luck on the next one"}
+          <p className="mt-1 text-[15px]" style={{ color: my.isCorrect ? "var(--success)" : "var(--danger)", opacity: 0.9 }}>
+            {my.isCorrect ? `+${my.points} points` : "Better luck on the next one"}
           </p>
         </div>
       ) : (
-        <p className="rounded-xl bg-slate-800/60 p-3 text-center text-xs text-slate-400">
+        <p className="mt-4 rounded-[16px] p-3 text-center text-[13px]" style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-3)" }}>
           You didn't answer in time.
         </p>
       )}
 
       {state.playerScore !== undefined && (
-        <p className="mt-4 text-center text-xs text-slate-500">
-          Your total: <span className="font-mono font-bold text-slate-300">{state.playerScore}</span>
+        <p className="mt-4 text-center text-[14px]" style={{ color: "var(--text-3)" }}>
+          Your total: <span className="font-extrabold" style={{ color: "var(--text)" }}>{state.playerScore}</span>
           {state.playerRank ? ` · Rank ${state.playerRank}` : ""}
         </p>
       )}
@@ -404,48 +331,36 @@ function QuestionResults({ state }: { state: SessionState }) {
 function Completed({ state }: { state: SessionState }) {
   return (
     <div className="flex flex-1 flex-col">
-      <div className="mb-6 text-center">
-        <div className="text-5xl">🏆</div>
-        <h2 className="mt-3 text-xl font-bold text-white">Quiz Complete!</h2>
+      <div className="mb-2 pt-2 text-center">
+        <div className="text-[60px] leading-none">🏆</div>
+        <h2 className="mt-2.5 text-[26px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>Quiz Complete!</h2>
         {state.playerScore !== undefined && (
-          <p className="mt-2 text-sm text-slate-400">
-            Your score:{" "}
-            <span className="font-mono font-bold text-white">
-              {state.playerScore}
-            </span>
+          <p className="mt-2 text-[14px]" style={{ color: "var(--text-3)" }}>
+            Your score: <span className="font-extrabold" style={{ color: "var(--text)" }}>{state.playerScore}</span>
             {state.playerRank ? ` · Rank ${state.playerRank}` : ""}
           </p>
         )}
       </div>
 
-      <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-200">
-        <Trophy size={14} /> Top {state.leaderboard.length}
-      </h3>
-      <div className="rounded-xl border border-slate-700 bg-slate-800/60">
-        {state.leaderboard.map((p) => {
-          const badge =
-            p.rank === 1
-              ? "🥇"
-              : p.rank === 2
-                ? "🥈"
-                : p.rank === 3
-                  ? "🥉"
-                  : String(p.rank);
+      <div className="mb-3 mt-6 flex items-center gap-2" style={{ color: "var(--text-3)" }}>
+        <Icon name="emoji_events" size={18} style={{ color: "var(--text-3)" }} />
+        <span className="one-mono text-[11px] font-semibold" style={{ letterSpacing: "0.14em" }}>TOP {state.leaderboard.length}</span>
+      </div>
+      <div className="overflow-hidden rounded-[18px]" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+        {state.leaderboard.map((p, i, arr) => {
+          const medal = p.rank === 1 ? "🥇" : p.rank === 2 ? "🥈" : p.rank === 3 ? "🥉" : null;
           return (
-            <div
-              key={p.playerId}
-              className="flex items-center justify-between border-b border-slate-700 px-4 py-3 last:border-0"
-            >
-              <div className="flex items-center gap-3">
-                <span className="w-6 text-center font-bold">{badge}</span>
-                <div>
-                  <p className="text-sm text-slate-100">{p.name}</p>
-                  <p className="text-[11px] text-slate-500">Block {p.block}</p>
-                </div>
+            <div key={p.playerId} className="flex items-center gap-3.5 p-[15px]" style={{ borderBottom: i < arr.length - 1 ? "1px solid var(--border)" : "none" }}>
+              {medal ? (
+                <span className="flex-shrink-0 text-[30px] leading-none">{medal}</span>
+              ) : (
+                <span className="one-mono flex w-[30px] flex-shrink-0 justify-center text-[16px] font-bold" style={{ color: "var(--text-2)" }}>{p.rank}</span>
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="text-[17px] font-bold tracking-tight" style={{ color: "var(--text)" }}>{p.name}</p>
+                <p className="mt-0.5 text-[13px]" style={{ color: "var(--text-3)" }}>Block {p.block}</p>
               </div>
-              <span className="font-mono text-sm font-bold text-green-400">
-                {p.score}
-              </span>
+              <span className="flex-shrink-0 text-[18px] font-extrabold" style={{ color: "var(--success)" }}>{p.score}</span>
             </div>
           );
         })}
@@ -454,10 +369,7 @@ function Completed({ state }: { state: SessionState }) {
   );
 }
 
-function useQuestionTimer(
-  startedAt: string | undefined,
-  timeLimitSecs: number
-): number {
+function useQuestionTimer(startedAt: string | undefined, timeLimitSecs: number): number {
   const [tick, setTick] = useState(0);
   useEffect(() => {
     const t = setInterval(() => setTick((x) => x + 1), 200);

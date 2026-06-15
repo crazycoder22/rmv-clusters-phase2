@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Gamepad2, Users } from "lucide-react";
-import clsx from "clsx";
+import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
 
 type SessionSummary = {
@@ -57,108 +56,92 @@ export default function QuizJoin() {
   );
 
   return (
-    <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)] pb-[max(1rem,env(safe-area-inset-bottom,0px))]">
+    <div
+      className="one-surface flex flex-1 flex-col px-[18px] pt-[env(safe-area-inset-top,0px)] pb-[max(1rem,env(safe-area-inset-bottom,0px))]"
+      style={{ background: "var(--bg)", color: "var(--text)" }}
+    >
       <header className="flex items-center justify-between py-4">
-        <Link
-          to="/"
-          className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 hover:bg-slate-800"
-        >
-          <ArrowLeft size={20} />
+        <Link to="/" className="flex h-9 w-9 items-center justify-center rounded-full" style={{ color: "var(--text-2)" }}>
+          <Icon name="arrow_back" size={22} />
         </Link>
-        <h1 className="text-lg font-semibold text-white">Quiz Night</h1>
+        <h1 className="text-[18px] font-bold" style={{ color: "var(--text)" }}>Quiz Night</h1>
         <div className="h-9 w-9" />
       </header>
 
-      <section className="mb-6 rounded-2xl border border-slate-700 bg-slate-800/60 p-4">
-        <h2 className="text-sm font-semibold text-slate-200">
-          Have a code?
-        </h2>
-        <p className="mt-0.5 text-xs text-slate-400">
+      {/* Have a code? */}
+      <div className="rounded-[18px] p-[18px]" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+        <h2 className="text-[20px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>Have a code?</h2>
+        <p className="mt-1.5 text-[13.5px] leading-snug" style={{ color: "var(--text-3)" }}>
           Enter the 6-character code from the host screen.
         </p>
-        <div className="mt-3 flex items-center gap-2">
+        <div className="relative mt-4">
           <input
             type="text"
             value={code}
             onChange={(e) => setCode(e.target.value.toUpperCase())}
+            onKeyDown={(e) => { if (e.key === "Enter") handleJoinCode(); }}
             placeholder="ABC123"
             maxLength={6}
             autoCapitalize="characters"
             autoCorrect="off"
-            className="flex-1 rounded-lg border border-slate-600 bg-slate-900 px-4 py-2.5 text-center font-mono text-lg font-bold tracking-[0.3em] text-white placeholder:text-slate-600 focus:border-indigo-400 focus:outline-none"
+            className="one-mono w-full rounded-[13px] py-[18px] pl-4 pr-[56px] text-center text-[22px] font-semibold tracking-[0.32em] outline-none"
+            style={{ border: "1.5px solid var(--border-strong)", color: "var(--text)", background: "transparent" }}
           />
           <button
             onClick={handleJoinCode}
-            className="rounded-lg bg-indigo-500 px-5 py-2.5 text-sm font-semibold text-white active:bg-indigo-600"
+            aria-label="Join"
+            className="absolute right-2 top-1/2 flex h-[42px] w-[42px] -translate-y-1/2 items-center justify-center rounded-[11px] active:opacity-80"
+            style={{ background: "var(--accent-strong)" }}
           >
-            Join
+            <Icon name="arrow_forward" size={22} style={{ color: "#fff" }} />
           </button>
         </div>
-        {error && (
-          <p className="mt-2 text-xs text-red-400">{error}</p>
-        )}
-      </section>
+        {error && <p className="mt-2 text-[12px]" style={{ color: "var(--danger)" }}>{error}</p>}
+      </div>
 
-      <section>
-        <h2 className="mb-3 text-sm font-semibold text-slate-200">
-          Live sessions
-        </h2>
-        {loading ? (
-          <p className="py-6 text-center text-sm text-slate-500">Loading…</p>
-        ) : joinable.length === 0 ? (
-          <div className="rounded-2xl border border-slate-700 bg-slate-800/40 py-10 text-center">
-            <Gamepad2 size={32} className="mx-auto mb-2 text-slate-600" />
-            <p className="text-sm text-slate-400">No live quizzes right now.</p>
-            <p className="mt-1 text-xs text-slate-500">
-              Wait for an admin to start one.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {joinable.map((s) => (
+      {/* Live sessions */}
+      <h2 className="mb-3 mt-[22px] px-1 text-[18px] font-bold tracking-tight" style={{ color: "var(--text)" }}>Live sessions</h2>
+      {loading ? (
+        <p className="py-6 text-center text-[14px]" style={{ color: "var(--text-3)" }}>Loading…</p>
+      ) : joinable.length === 0 ? (
+        <div className="flex flex-col items-center gap-2 rounded-[16px] py-10 text-center" style={{ border: "1px solid var(--border)", background: "var(--surface)" }}>
+          <Icon name="stadia_controller" size={32} style={{ color: "var(--text-3)" }} />
+          <p className="text-[14px]" style={{ color: "var(--text-2)" }}>No live quizzes right now.</p>
+          <p className="text-[12px]" style={{ color: "var(--text-3)" }}>Wait for an admin to start one.</p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2.5">
+          {joinable.map((s) => {
+            const live = s.status === "ACTIVE";
+            return (
               <button
                 key={s.id}
                 onClick={() => navigate(`/quiz/${s.code}`)}
-                className="flex w-full items-center gap-3 rounded-2xl border border-slate-700 bg-slate-800/60 p-4 text-left active:bg-slate-800"
+                className="flex w-full items-center gap-3 rounded-[16px] p-3.5 text-left active:opacity-80"
+                style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
               >
                 <div
-                  className={clsx(
-                    "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl text-lg",
-                    s.status === "ACTIVE"
-                      ? "bg-green-500/20 text-green-300"
-                      : "bg-amber-500/20 text-amber-300"
-                  )}
+                  className="flex h-[52px] w-[52px] flex-shrink-0 items-center justify-center rounded-[14px]"
+                  style={{ background: live ? "rgba(33,178,87,0.16)" : "var(--warning-soft)" }}
                 >
-                  {s.status === "ACTIVE" ? "🎮" : "⏳"}
+                  <Icon name="stadia_controller" size={27} style={{ color: live ? "#21b257" : "var(--warning)" }} />
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-white">
-                    {s.quizTitle}
-                  </p>
-                  <p className="mt-0.5 flex items-center gap-2 text-[11px] text-slate-400">
-                    <span className="font-mono">{s.code}</span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[15.5px] font-bold leading-tight tracking-tight" style={{ color: "var(--text)" }}>{s.quizTitle}</p>
+                  <div className="mt-1.5 flex items-center gap-1.5 text-[12px]" style={{ color: "var(--text-3)" }}>
+                    <span className="one-mono">{s.code}</span>
                     <span>·</span>
-                    <span className="flex items-center gap-1">
-                      <Users size={11} /> {s.playerCount}
-                    </span>
+                    <span className="flex items-center gap-1"><Icon name="group" size={14} /> {s.playerCount}</span>
                     <span>·</span>
-                    <span
-                      className={
-                        s.status === "ACTIVE"
-                          ? "text-green-400"
-                          : "text-amber-400"
-                      }
-                    >
-                      {s.status === "ACTIVE" ? "Live" : "Waiting"}
-                    </span>
-                  </p>
+                    <span className="font-bold" style={{ color: live ? "#21b257" : "var(--warning)" }}>{live ? "Live" : "Waiting"}</span>
+                  </div>
                 </div>
-                <span className="text-slate-500">›</span>
+                <Icon name="chevron_right" size={22} style={{ color: "var(--text-3)" }} />
               </button>
-            ))}
-          </div>
-        )}
-      </section>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
