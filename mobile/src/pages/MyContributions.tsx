@@ -76,18 +76,22 @@ export default function MyContributions() {
         <>
           {/* Total */}
           <div
-            className="relative overflow-hidden rounded-[20px] p-[18px]"
-            style={{ background: "linear-gradient(150deg, #3a2c10 0%, #2a2410 48%, #0f2e2a 100%)", border: "1px solid var(--border-strong)" }}
+            className="rounded-[22px] p-5"
+            style={{
+              background: "linear-gradient(110deg, var(--gold-soft) 0%, var(--surface) 62%)",
+              border: "1px solid rgba(231,181,61,0.40)",
+              boxShadow: "0 10px 30px rgba(176,132,38,0.12)",
+            }}
           >
-            <span className="one-mono text-[11px] font-semibold" style={{ color: "#d9c79f", letterSpacing: "0.14em" }}>
+            <span className="one-mono text-[11px] font-semibold" style={{ color: "var(--gold)", letterSpacing: "0.16em" }}>
               TOTAL CONTRIBUTED
             </span>
-            <div className="mt-2 text-[44px] font-extrabold leading-[1.04] tracking-tight text-white">
+            <div className="mt-2.5 text-[48px] font-extrabold leading-none tracking-tight" style={{ color: "var(--text)" }}>
               ₹{total.toLocaleString("en-IN")}
             </div>
-            <div className="mt-1 flex items-center gap-1.5">
-              <Icon name="volunteer_activism" size={18} style={{ color: "#d9c79f" }} />
-              <span className="text-[15px]" style={{ color: "#e2d4b6" }}>
+            <div className="mt-3.5 flex items-center gap-2.5">
+              <Icon name="volunteer_activism" size={22} style={{ color: "var(--gold)" }} />
+              <span className="text-[15px] font-medium" style={{ color: "var(--text-2)" }}>
                 across {contributions.length} {contributions.length === 1 ? "drive" : "drives"}
               </span>
             </div>
@@ -112,10 +116,10 @@ export default function MyContributions() {
                 >
                   <div className="flex items-center gap-3">
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-[15px] font-bold" style={{ color: "var(--text)" }}>
+                      <p className="truncate text-[17px] font-bold tracking-tight" style={{ color: "var(--text)" }}>
                         {c.eventTitle}
                       </p>
-                      <p className="mt-0.5 text-[12px]" style={{ color: "var(--text-3)" }}>
+                      <p className="mt-0.5 text-[13px]" style={{ color: "var(--text-3)" }}>
                         {fmtDate(c.date ?? c.registeredAt)}
                       </p>
                     </div>
