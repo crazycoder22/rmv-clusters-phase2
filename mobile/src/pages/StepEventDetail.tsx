@@ -1,18 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import {
-  Activity,
-  ArrowLeft,
-  Calendar,
-  Check,
-  Heart,
-  Loader2,
-  Pencil,
-  RefreshCw,
-  Trophy,
-  X,
-} from "lucide-react";
-import clsx from "clsx";
+import { Loader2 } from "lucide-react";
+import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
 import MyChallengeMobile from "../components/MyChallengeMobile";
@@ -173,6 +162,9 @@ export default function StepEventDetail() {
   const daysGoalMet = me?.daysGoalMet ?? 0;
   const totalSteps = me?.totalSteps ?? 0;
 
+  const pctColor =
+    goalProgress >= 100 ? "var(--success)" : goalProgress >= 60 ? "var(--warning)" : "var(--danger)";
+
   // ── Actions ─────────────────────────────────────────────────────────────
 
   async function doSync(force: boolean) {
@@ -232,26 +224,22 @@ export default function StepEventDetail() {
 
   if (loading) {
     return (
-      <div className="flex flex-1 items-center justify-center text-slate-500">
-        <Loader2 size={20} className="animate-spin" />
+      <div className="one-surface flex flex-1 items-center justify-center" style={{ background: "var(--bg)" }}>
+        <Loader2 size={22} className="animate-spin" style={{ color: "var(--text-3)" }} />
       </div>
     );
   }
 
   if (error || !event) {
     return (
-      <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)]">
-        <header className="flex items-center gap-2 py-4">
-          <button
-            type="button"
-            onClick={() => navigate("/")}
-            className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 active:bg-slate-800"
-          >
-            <ArrowLeft size={20} />
+      <div className="one-surface flex flex-1 flex-col px-[18px] pt-[env(safe-area-inset-top,0px)]" style={{ background: "var(--bg)", color: "var(--text)" }}>
+        <header className="flex items-center gap-3 py-4">
+          <button type="button" onClick={() => navigate("/")} className="flex active:opacity-70">
+            <Icon name="arrow_back" size={23} style={{ color: "var(--text-2)" }} />
           </button>
-          <h1 className="text-lg font-semibold text-white">Stepup</h1>
+          <h1 className="text-[18px] font-bold">Stepup</h1>
         </header>
-        <p className="rounded-xl border border-red-700/60 bg-red-900/20 px-4 py-3 text-xs text-red-200">
+        <p className="rounded-[12px] px-4 py-3 text-[12px]" style={{ background: "var(--danger-soft)", color: "var(--danger)" }}>
           {error}
         </p>
       </div>
@@ -259,316 +247,224 @@ export default function StepEventDetail() {
   }
 
   return (
-    <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)]">
-      <header className="flex items-center gap-2 py-4">
-        <button
-          type="button"
-          onClick={() => navigate("/")}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 active:bg-slate-800"
-        >
-          <ArrowLeft size={20} />
+    <div className="one-surface flex flex-1 flex-col px-[18px] pt-[env(safe-area-inset-top,0px)] pb-8" style={{ background: "var(--bg)", color: "var(--text)" }}>
+      <header className="flex items-center gap-3 py-3">
+        <button type="button" onClick={() => navigate("/")} className="flex active:opacity-70" aria-label="Back">
+          <Icon name="arrow_back" size={23} style={{ color: "var(--text-2)" }} />
         </button>
-        <div className="flex-1 min-w-0">
-          <h1 className="truncate text-lg font-semibold text-white">
-            {event.emoji ?? "🏃"} {event.title}
-          </h1>
-          <p className="truncate text-[11px] text-slate-500">
-            {fmtDate(event.startDate)} – {fmtDate(event.endDate)} · day{" "}
-            {daysElapsed}/{days.length}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="text-[20px] leading-none">{event.emoji ?? "🏃"}</span>
+            <span className="truncate text-[21px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>{event.title}</span>
+          </div>
+          <p className="mt-0.5 truncate text-[12.5px]" style={{ color: "var(--text-3)" }}>
+            {fmtDate(event.startDate)} – {fmtDate(event.endDate)} · day {daysElapsed}/{days.length}
           </p>
         </div>
         <Link
           to={`/steps/${id}/leaderboard`}
           aria-label="Leaderboard"
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-500/20 text-amber-300 active:bg-amber-500/30"
+          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full active:opacity-70"
+          style={{ background: "rgba(231,181,61,0.18)" }}
         >
-          <Trophy size={16} />
+          <Icon name="emoji_events" size={23} fill style={{ color: "var(--gold)" }} />
         </Link>
       </header>
 
       {/* Today + goal ring */}
-      <section className="mb-3 rounded-2xl border border-slate-700 bg-slate-800/60 p-4">
-        <div className="flex items-center justify-between">
+      <div className="rounded-[18px] p-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+        <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-[10px] uppercase tracking-wider text-slate-500">
-              Today
+            <p className="one-mono text-[11px] font-semibold" style={{ color: "var(--text-3)", letterSpacing: "0.14em" }}>TODAY</p>
+            <p className="mt-1.5 text-[46px] font-extrabold leading-none tracking-tight tabular-nums" style={{ color: "var(--text)" }}>
+              {todaySteps.toLocaleString("en-IN")}
             </p>
-            <p className="mt-0.5 text-3xl font-bold tabular-nums text-white">
-              {todaySteps.toLocaleString()}
-            </p>
-            <p className="mt-1 text-[11px] text-slate-400">
-              Goal {goal.toLocaleString()} ·{" "}
-              <span
-                className={clsx(
-                  "font-semibold",
-                  goalProgress >= 100
-                    ? "text-emerald-300"
-                    : goalProgress >= 60
-                      ? "text-amber-300"
-                      : "text-red-300"
-                )}
-              >
-                {goalProgress}%
-              </span>
+            <p className="mt-2 text-[13.5px]" style={{ color: "var(--text-2)" }}>
+              Goal {goal.toLocaleString("en-IN")} · <span className="font-bold" style={{ color: pctColor }}>{goalProgress}%</span>
             </p>
           </div>
-          <GoalRing pct={goalProgress} />
+          <GoalRing pct={goalProgress} color={pctColor} />
         </div>
-        <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-          <Mini value={totalSteps} label="total" icon={Activity} />
-          <Mini value={daysGoalMet} label="met" icon={Check} tint="emerald" />
-          <Mini
-            value={daysElapsed - daysGoalMet}
-            label="missed"
-            icon={X}
-            tint="red"
-          />
+        <div className="mt-4 flex gap-2.5">
+          <MiniTile ms="monitoring" value={totalSteps} label="TOTAL" color="var(--text)" iconColor="var(--text-2)" />
+          <MiniTile ms="check" value={daysGoalMet} label="MET" color="var(--success)" iconColor="var(--success)" />
+          <MiniTile ms="close" value={daysElapsed - daysGoalMet} label="MISSED" color="var(--danger)" iconColor="var(--danger)" />
         </div>
-      </section>
+      </div>
 
       <MyChallengeMobile eventId={event.announcementId} token={token} />
 
       {/* Sync action */}
-      <section className="mb-3 space-y-2">
+      <div className="mt-3.5">
         {healthAvailable ? (
           <button
             type="button"
             onClick={() => doSync(true)}
             disabled={syncing}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-500 py-3 text-sm font-semibold text-white active:bg-indigo-600 disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-2.5 rounded-[14px] py-4 text-[17px] font-bold text-white disabled:opacity-50"
+            style={{ background: "var(--accent)" }}
           >
-            {syncing ? (
-              <Loader2 size={14} className="animate-spin" />
-            ) : (
-              <Heart size={14} className="fill-current" />
-            )}
+            {syncing ? <Loader2 size={18} className="animate-spin" /> : <Icon name="favorite" size={21} fill />}
             Sync from Apple Health
           </button>
         ) : (
-          <div className="flex items-start gap-2 rounded-xl border border-slate-700 bg-slate-800/40 px-3 py-2.5 text-[11px] text-slate-400">
-            <Heart size={14} className="mt-0.5 flex-shrink-0 text-slate-500" />
-            <p>
-              Apple Health isn't available on this device. Tap any day below to
-              enter steps manually.
-            </p>
+          <div className="flex items-start gap-2.5 rounded-[14px] px-3.5 py-3 text-[12px]" style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-3)" }}>
+            <Icon name="favorite" size={16} style={{ color: "var(--text-3)" }} />
+            <p>Apple Health isn't available on this device. Tap any day below to enter steps manually.</p>
           </div>
         )}
         {syncMsg && (
           <p
-            className={clsx(
-              "rounded-lg border px-3 py-1.5 text-[11px]",
+            className="mt-2 rounded-[10px] px-3.5 py-2 text-[12px]"
+            style={
               syncMsg.startsWith("Synced") || syncMsg === "Up to date."
-                ? "border-emerald-700/40 bg-emerald-900/20 text-emerald-200"
-                : "border-amber-700/40 bg-amber-900/20 text-amber-200"
-            )}
+                ? { background: "var(--success-soft)", color: "var(--success)" }
+                : { background: "var(--warning-soft)", color: "var(--warning)" }
+            }
           >
             {syncMsg}
           </p>
         )}
-      </section>
+      </div>
 
-      {/* Daily grid */}
-      <section className="mb-3">
-        <h2 className="mb-2 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-          <Calendar size={11} /> Daily progress
-        </h2>
-        <div className="space-y-1">
-          {days.map((d) => {
-            const steps = myDailyMap.get(d.iso) ?? 0;
-            const met = goal > 0 && steps >= goal;
-            const isEditing = editingDate === d.iso;
-            return (
-              <div
-                key={d.iso}
-                className={clsx(
-                  "flex items-center gap-2 rounded-lg border px-3 py-2",
-                  d.isToday
-                    ? "border-indigo-500/60 bg-indigo-500/10"
-                    : d.isPast
-                      ? met
-                        ? "border-emerald-700/40 bg-slate-800/60"
-                        : steps > 0
-                          ? "border-amber-700/40 bg-slate-800/60"
-                          : "border-slate-700 bg-slate-800/40"
-                      : "border-slate-700 bg-slate-800/30"
-                )}
-              >
-                <div className="w-16 flex-shrink-0">
-                  <p className="text-[11px] font-semibold text-white">
-                    {fmtShortDate(d.date)}
-                  </p>
-                  <p className="text-[9px] uppercase tracking-wider text-slate-500">
-                    {d.isToday ? "today" : d.isPast ? "" : "upcoming"}
-                  </p>
-                </div>
-                {isEditing ? (
-                  <div className="flex flex-1 items-center gap-1.5">
-                    <input
-                      type="number"
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      autoFocus
-                      placeholder="steps"
-                      className="flex-1 rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-sm text-white focus:border-indigo-400 focus:outline-none"
-                    />
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        const n = parseInt(editValue, 10);
-                        if (await saveManualSteps(d.iso, Number.isFinite(n) ? n : 0)) {
-                          setEditingDate(null);
-                          setEditValue("");
-                        }
-                      }}
-                      className="rounded-md bg-emerald-500 px-2 py-1 text-[11px] font-semibold text-white"
-                    >
-                      Save
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
+      {/* Daily progress */}
+      <div className="mb-3 mt-5 flex items-center gap-2" style={{ color: "var(--text-3)" }}>
+        <Icon name="calendar_month" size={16} style={{ color: "var(--text-3)" }} />
+        <span className="one-mono text-[11px] font-semibold" style={{ letterSpacing: "0.14em" }}>DAILY PROGRESS</span>
+      </div>
+
+      <div className="flex flex-col gap-2.5">
+        {days.map((d) => {
+          const steps = myDailyMap.get(d.iso) ?? 0;
+          const met = goal > 0 && steps >= goal;
+          const isEditing = editingDate === d.iso;
+          const barColor = met ? "var(--success)" : steps > 0 ? "var(--warning)" : "var(--surface-3)";
+          return (
+            <div
+              key={d.iso}
+              className="flex items-center gap-3 rounded-[14px] px-3.5 py-3"
+              style={
+                d.isToday
+                  ? { background: "var(--accent-soft)", border: "1.5px solid var(--accent)" }
+                  : { background: "var(--surface)", border: "1px solid var(--border)" }
+              }
+            >
+              <div className="w-[84px] flex-shrink-0">
+                <p className="text-[15px] font-bold" style={{ color: "var(--text)" }}>{fmtShortDate(d.date)}</p>
+                <p className="one-mono mt-0.5 text-[9.5px] font-semibold" style={{ color: d.isToday ? "var(--accent)" : "var(--text-3)", letterSpacing: "0.1em" }}>
+                  {d.isToday ? "TODAY" : d.isPast ? "" : "UPCOMING"}
+                </p>
+              </div>
+              {isEditing ? (
+                <div className="flex flex-1 items-center gap-1.5">
+                  <input
+                    type="number"
+                    value={editValue}
+                    onChange={(e) => setEditValue(e.target.value)}
+                    autoFocus
+                    placeholder="steps"
+                    className="flex-1 rounded-[10px] px-2.5 py-1.5 text-[14px] outline-none"
+                    style={{ background: "var(--surface-2)", border: "1px solid var(--border-strong)", color: "var(--text)" }}
+                  />
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const n = parseInt(editValue, 10);
+                      if (await saveManualSteps(d.iso, Number.isFinite(n) ? n : 0)) {
                         setEditingDate(null);
                         setEditValue("");
-                      }}
-                      className="rounded-md bg-slate-700 px-2 py-1 text-[11px] font-semibold text-slate-200"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <div className="flex-1 min-w-0">
-                      <p
-                        className={clsx(
-                          "text-sm font-bold tabular-nums",
-                          steps === 0
-                            ? "text-slate-500"
-                            : met
-                              ? "text-emerald-300"
-                              : "text-white"
+                      }
+                    }}
+                    className="rounded-[8px] px-2.5 py-1.5 text-[12px] font-bold text-white"
+                    style={{ background: "var(--success)" }}
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setEditingDate(null); setEditValue(""); }}
+                    className="rounded-[8px] px-2.5 py-1.5 text-[12px] font-semibold"
+                    style={{ background: "var(--surface-3)", color: "var(--text-2)" }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="min-w-0 flex-1">
+                    {d.isPast || d.isToday ? (
+                      <>
+                        <p className="text-[16px] font-bold tabular-nums" style={{ color: steps === 0 ? "var(--text-3)" : met ? "var(--success)" : "var(--text)" }}>
+                          {steps > 0 ? steps.toLocaleString("en-IN") : "—"}
+                        </p>
+                        {goal > 0 && (
+                          <div className="mt-1.5 h-1 overflow-hidden rounded-full" style={{ background: "var(--surface-3)" }}>
+                            <div className="h-full rounded-full" style={{ width: `${Math.min(100, (steps / goal) * 100)}%`, background: barColor }} />
+                          </div>
                         )}
-                      >
-                        {steps > 0 ? steps.toLocaleString() : "—"}
-                      </p>
-                      {goal > 0 && (
-                        <div className="mt-1 h-1 overflow-hidden rounded-full bg-slate-900">
-                          <div
-                            className={clsx(
-                              "h-full",
-                              met
-                                ? "bg-emerald-500"
-                                : steps > 0
-                                  ? "bg-amber-500"
-                                  : "bg-slate-700"
-                            )}
-                            style={{
-                              width: `${
-                                goal > 0
-                                  ? Math.min(100, (steps / goal) * 100)
-                                  : 0
-                              }%`,
-                            }}
-                          />
-                        </div>
-                      )}
-                    </div>
-                    {(d.isPast || d.isToday) && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingDate(d.iso);
-                          setEditValue(String(steps || ""));
-                        }}
-                        aria-label="Edit"
-                        className="flex h-7 w-7 items-center justify-center rounded-full text-slate-500 active:bg-slate-700 active:text-slate-200"
-                      >
-                        <Pencil size={11} />
-                      </button>
+                      </>
+                    ) : (
+                      <span className="text-[18px]" style={{ color: "var(--text-3)" }}>—</span>
                     )}
-                  </>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </section>
+                  </div>
+                  {(d.isPast || d.isToday) && (
+                    <button
+                      type="button"
+                      onClick={() => { setEditingDate(d.iso); setEditValue(String(steps || "")); }}
+                      aria-label="Edit"
+                      className="flex flex-shrink-0 active:opacity-70"
+                    >
+                      <Icon name="edit" size={18} style={{ color: "var(--text-3)" }} />
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
+          );
+        })}
+      </div>
 
       {/* Helper foot */}
-      <section className="mb-4 flex items-start gap-2 text-[10px] text-slate-500">
-        <RefreshCw size={11} className="mt-0.5 flex-shrink-0" />
-        <p>
-          Sync runs automatically when you open the app (max once every 15 min).
-          Tap Sync above to force a refresh. Manual entries override Health
-          values for that day.
+      <div className="mt-4 flex items-start gap-2 text-[12.5px]" style={{ color: "var(--text-3)" }}>
+        <Icon name="sync" size={16} style={{ color: "var(--text-3)" }} />
+        <p className="leading-relaxed">
+          Sync runs automatically when you open the app (max once every 15 min). Tap Sync above to force a refresh. Manual entries override Health values for that day.
         </p>
-      </section>
+      </div>
     </div>
   );
 }
 
 // ── Sub-components ─────────────────────────────────────────────────────────
 
-function Mini({
-  value,
-  label,
-  icon: Icon,
-  tint = "slate",
-}: {
-  value: number;
-  label: string;
-  icon: typeof Activity;
-  tint?: "slate" | "emerald" | "red";
-}) {
-  const color =
-    tint === "emerald"
-      ? "text-emerald-300"
-      : tint === "red"
-        ? "text-red-300"
-        : "text-white";
+function MiniTile({ ms, value, label, color, iconColor }: { ms: string; value: number; label: string; color: string; iconColor: string }) {
   return (
-    <div className="rounded-lg border border-slate-700 bg-slate-900/40 py-2">
-      <Icon size={11} className={clsx("mx-auto mb-0.5", color)} />
-      <p className={clsx("text-sm font-bold tabular-nums", color)}>
-        {value.toLocaleString()}
-      </p>
-      <p className="text-[9px] uppercase tracking-wider text-slate-500">
-        {label}
-      </p>
+    <div className="flex flex-1 flex-col items-center gap-1 rounded-[12px] py-2.5" style={{ border: "1px solid var(--border)" }}>
+      <Icon name={ms} size={19} style={{ color: iconColor }} />
+      <span className="text-[17px] font-extrabold tabular-nums" style={{ color }}>{value.toLocaleString("en-IN")}</span>
+      <span className="one-mono text-[10px] font-semibold" style={{ color: "var(--text-3)", letterSpacing: "0.08em" }}>{label}</span>
     </div>
   );
 }
 
-function GoalRing({ pct }: { pct: number }) {
-  const r = 26;
+function GoalRing({ pct, color }: { pct: number; color: string }) {
+  const r = 30;
   const c = 2 * Math.PI * r;
   const offset = c - (Math.min(pct, 100) / 100) * c;
-  const color =
-    pct >= 100
-      ? "stroke-emerald-400"
-      : pct >= 60
-        ? "stroke-amber-400"
-        : "stroke-indigo-400";
   return (
-    <svg width="64" height="64" viewBox="0 0 64 64" className="flex-shrink-0">
-      <circle cx="32" cy="32" r={r} className="stroke-slate-700" strokeWidth="6" fill="none" />
+    <svg width="78" height="78" viewBox="0 0 78 78" className="flex-shrink-0">
+      <circle cx="39" cy="39" r={r} stroke="var(--surface-3)" strokeWidth="7" fill="none" />
       <circle
-        cx="32"
-        cy="32"
-        r={r}
-        className={clsx(color, "transition-all")}
-        strokeWidth="6"
+        cx="39" cy="39" r={r}
+        stroke={color}
+        strokeWidth="7"
         strokeLinecap="round"
         fill="none"
         strokeDasharray={c}
         strokeDashoffset={offset}
-        transform="rotate(-90 32 32)"
+        transform="rotate(-90 39 39)"
       />
-      <text
-        x="32"
-        y="36"
-        textAnchor="middle"
-        className="fill-white text-[12px] font-bold tabular-nums"
-      >
+      <text x="39" y="44" textAnchor="middle" fill="var(--text)" style={{ fontSize: "15px", fontWeight: 700 }}>
         {pct}%
       </text>
     </svg>
@@ -586,17 +482,11 @@ function todayIso(): string {
 }
 
 function fmtDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short",
-  });
+  return new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 }
 
 function fmtShortDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-IN", {
-    weekday: "short",
-    day: "numeric",
-  });
+  return new Date(iso).toLocaleDateString("en-IN", { weekday: "short", day: "numeric" });
 }
 
 function messageFor(reason: string): string {
@@ -608,4 +498,3 @@ function messageFor(reason: string): string {
     return "Sync only works on the iPhone app, not the web.";
   return "Could not sync. Tap to retry.";
 }
-

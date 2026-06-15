@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Check, Footprints, Loader2, UserPlus, X } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import Icon from "./Icon";
 import { apiFetch } from "../lib/api";
 
 type Partner = { id: string; name: string; block: number | null; flatNumber: string; status?: string };
@@ -82,75 +83,113 @@ export default function MyChallengeMobile({ eventId, token }: { eventId: string;
   }
 
   if (loading) return null;
-  // Render even when not registered, so a chosen partner who hasn't joined the
-  // challenge yet still sees the invite and can accept/decline it.
   if (!data || (!data.registered && !data.incomingInvite)) return null;
 
   return (
-    <section className="mb-3 space-y-2">
+    <div className="mt-3.5 flex flex-col gap-3.5">
       {data.incomingInvite && (
-        <div className="rounded-2xl border border-indigo-500/40 bg-indigo-500/10 p-3">
-          <p className="text-sm text-slate-100"><span className="font-semibold">{data.incomingInvite.from.name}</span> asked you to be their partner.</p>
-          <div className="mt-2 flex gap-2">
-            <button onClick={() => void respond("accept")} className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white"><Check size={13} /> Accept</button>
-            <button onClick={() => void respond("decline")} className="inline-flex items-center gap-1 rounded-lg border border-slate-600 px-3 py-1.5 text-xs font-medium text-slate-300"><X size={13} /> Decline</button>
+        <div className="rounded-[18px] p-4" style={{ background: "var(--accent-soft)", border: "1px solid var(--accent)" }}>
+          <p className="text-[14px]" style={{ color: "var(--text)" }}>
+            <span className="font-bold">{data.incomingInvite.from.name}</span> asked you to be their partner.
+          </p>
+          <div className="mt-3 flex gap-2">
+            <button onClick={() => void respond("accept")} className="inline-flex items-center gap-1.5 rounded-[10px] px-3.5 py-2 text-[13px] font-bold text-white" style={{ background: "var(--accent-strong)" }}>
+              <Icon name="check" size={14} /> Accept
+            </button>
+            <button onClick={() => void respond("decline")} className="inline-flex items-center gap-1.5 rounded-[10px] px-3.5 py-2 text-[13px] font-semibold" style={{ border: "1px solid var(--border-strong)", color: "var(--text-2)" }}>
+              <Icon name="close" size={14} /> Decline
+            </button>
           </div>
         </div>
       )}
 
       {data.registered && (<>
-      <div className="rounded-2xl border border-slate-700 bg-slate-800/60 p-3">
-        <h3 className="flex items-center gap-1.5 text-sm font-semibold text-white"><Footprints size={15} className="text-emerald-400" /> Running goals <span className="text-[11px] font-normal text-slate-500">optional</span></h3>
-        <div className="mt-2 space-y-2">
-          {DISTANCES.map((d) => (
-            <div key={d.key} className="flex items-center gap-2">
-              <span className="w-12 text-sm text-slate-200">{d.label}</span>
-              <NumBox value={runs[d.done] ?? 0} onChange={(v) => setRun(d.done, v)} label="done" />
-              <span className="text-slate-500">/</span>
-              <NumBox value={runs[d.goal] ?? 0} onChange={(v) => setRun(d.goal, v)} label="goal" />
-            </div>
-          ))}
+        {/* Running goals */}
+        <div className="rounded-[18px] p-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+          <div className="flex items-center gap-2.5">
+            <Icon name="directions_walk" size={21} style={{ color: "var(--success)" }} />
+            <span className="text-[18px] font-bold" style={{ color: "var(--text)" }}>Running goals</span>
+            <span className="text-[13px]" style={{ color: "var(--text-3)" }}>optional</span>
+          </div>
+          <div className="mt-4 flex flex-col gap-3.5">
+            {DISTANCES.map((d) => (
+              <div key={d.key} className="flex items-center gap-3">
+                <span className="w-[34px] flex-shrink-0 text-[16px] font-bold" style={{ color: "var(--text)" }}>{d.label}</span>
+                <NumBox value={runs[d.done] ?? 0} onChange={(v) => setRun(d.done, v)} label="DONE" />
+                <span className="text-[18px] font-medium" style={{ color: "var(--text-3)" }}>/</span>
+                <NumBox value={runs[d.goal] ?? 0} onChange={(v) => setRun(d.goal, v)} label="GOAL" />
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
 
-      <div className="rounded-2xl border border-slate-700 bg-slate-800/60 p-3">
-        <h3 className="flex items-center gap-1.5 text-sm font-semibold text-white"><UserPlus size={15} className="text-indigo-400" /> Accountability partner <span className="text-[11px] font-normal text-slate-500">optional</span></h3>
-        {partner ? (
-          <div className="mt-2 flex items-center justify-between rounded-lg bg-slate-900/50 px-3 py-2">
-            <span className="text-sm text-slate-100">{partner.name} <span className="text-[11px] text-slate-500">B{partner.block ?? "—"}-{partner.flatNumber}</span>
-              {partner.status && partner.status !== "none" && <span className="ml-2 rounded-full bg-slate-700 px-1.5 py-0.5 text-[10px]">{partner.status}</span>}
-            </span>
-            <button onClick={() => { setPartner(null); setPicking(false); }} className="text-slate-400"><X size={16} /></button>
+        {/* Accountability partner */}
+        <div className="rounded-[18px] p-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+          <div className="flex items-center gap-2.5">
+            <Icon name="person_add" size={21} style={{ color: "var(--accent)" }} />
+            <span className="text-[18px] font-bold" style={{ color: "var(--text)" }}>Accountability partner</span>
+            <span className="text-[13px]" style={{ color: "var(--text-3)" }}>optional</span>
           </div>
-        ) : picking ? (
-          <div className="mt-2">
-            <input autoFocus value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search name / flat…" className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white" />
-            <div className="mt-1 max-h-44 overflow-y-auto">
-              {results.map((rsd) => (
-                <button key={rsd.id} onClick={() => { setPartner({ ...rsd, status: "pending" }); setPicking(false); setSearch(""); setResults([]); }} className="flex w-full items-center justify-between rounded px-2 py-1.5 text-left text-sm active:bg-slate-700">
-                  <span className="text-slate-100">{rsd.name}</span><span className="text-[11px] text-slate-500">B{rsd.block ?? "—"}-{rsd.flatNumber}</span>
-                </button>
-              ))}
+          {partner ? (
+            <div className="mt-3.5 flex items-center justify-between rounded-[12px] px-3.5 py-2.5" style={{ background: "var(--surface-2)" }}>
+              <span className="text-[14px]" style={{ color: "var(--text)" }}>
+                {partner.name} <span className="text-[12px]" style={{ color: "var(--text-3)" }}>B{partner.block ?? "—"}-{partner.flatNumber}</span>
+                {partner.status && partner.status !== "none" && (
+                  <span className="ml-2 rounded-full px-2 py-0.5 text-[10px] font-semibold" style={{ background: "var(--surface-3)", color: "var(--text-2)" }}>{partner.status}</span>
+                )}
+              </span>
+              <button onClick={() => { setPartner(null); setPicking(false); }} style={{ color: "var(--text-3)" }}>
+                <Icon name="close" size={18} />
+              </button>
             </div>
-          </div>
-        ) : (
-          <button onClick={() => setPicking(true)} className="mt-2 inline-flex items-center gap-1 rounded-lg border border-slate-600 px-3 py-1.5 text-xs font-medium text-slate-300"><UserPlus size={13} /> Choose a partner</button>
-        )}
-      </div>
+          ) : picking ? (
+            <div className="mt-3.5">
+              <input
+                autoFocus value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search name / flat…"
+                className="w-full rounded-[11px] px-3.5 py-2.5 text-[14px] outline-none"
+                style={{ background: "var(--surface-2)", border: "1px solid var(--border-strong)", color: "var(--text)" }}
+              />
+              <div className="mt-1.5 max-h-44 overflow-y-auto">
+                {results.map((rsd) => (
+                  <button
+                    key={rsd.id}
+                    onClick={() => { setPartner({ ...rsd, status: "pending" }); setPicking(false); setSearch(""); setResults([]); }}
+                    className="flex w-full items-center justify-between rounded-[8px] px-2.5 py-2 text-left text-[14px] active:opacity-70"
+                  >
+                    <span style={{ color: "var(--text)" }}>{rsd.name}</span>
+                    <span className="text-[12px]" style={{ color: "var(--text-3)" }}>B{rsd.block ?? "—"}-{rsd.flatNumber}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <button onClick={() => setPicking(true)} className="mt-3.5 inline-flex items-center gap-2 rounded-[11px] px-4 py-2.5 text-[14px] font-semibold" style={{ border: "1px solid var(--border-strong)", color: "var(--text)" }}>
+              <Icon name="person_add" size={19} /> Choose a partner
+            </button>
+          )}
+        </div>
 
-      <button onClick={() => void save()} disabled={saving} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-600 py-2.5 text-sm font-semibold text-white disabled:opacity-60">
-        {saving && <Loader2 size={15} className="animate-spin" />} Save my goals
-      </button>
+        <button
+          onClick={() => void save()} disabled={saving}
+          className="flex w-full items-center justify-center gap-2 rounded-[14px] py-4 text-[17px] font-bold text-white disabled:opacity-60"
+          style={{ background: "var(--accent-strong)", boxShadow: "0 8px 20px var(--accent-soft)" }}
+        >
+          {saving && <Loader2 size={17} className="animate-spin" />} Save my goals
+        </button>
       </>)}
-    </section>
+    </div>
   );
 }
 
 function NumBox({ value, onChange, label }: { value: number; onChange: (v: string) => void; label: string }) {
   return (
-    <div className="flex flex-col items-center">
-      <input inputMode="numeric" value={value} onChange={(e) => onChange(e.target.value.replace(/\D/g, ""))} className="w-14 rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-center text-sm text-white" />
-      <span className="text-[9px] uppercase tracking-wider text-slate-500">{label}</span>
+    <div className="flex flex-1 flex-col items-center gap-1">
+      <input
+        inputMode="numeric" value={value} onChange={(e) => onChange(e.target.value.replace(/\D/g, ""))}
+        className="w-full rounded-[10px] py-2.5 text-center text-[17px] font-bold outline-none"
+        style={{ background: "transparent", border: "1px solid var(--border-strong)", color: "var(--text)" }}
+      />
+      <span className="one-mono text-[9.5px] font-semibold" style={{ color: "var(--text-3)", letterSpacing: "0.1em" }}>{label}</span>
     </div>
   );
 }

@@ -1,14 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import {
-  ArrowLeft,
-  Award,
-  Loader2,
-  Target,
-  Trophy,
-  Users,
-} from "lucide-react";
-import clsx from "clsx";
+import { Loader2 } from "lucide-react";
+import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
 
@@ -34,6 +27,13 @@ interface DashboardResponse {
   onTrackCount: number;
   totalWithGoal: number;
 }
+
+// Medal circle styling for the top three (design palette).
+const MEDAL: Record<number, { bg: string; fg: string }> = {
+  1: { bg: "#f5a623", fg: "#3a2600" },
+  2: { bg: "#b9c2cf", fg: "#1a2030" },
+  3: { bg: "#d2641f", fg: "#ffffff" },
+};
 
 export default function StepLeaderboard() {
   const { id = "" } = useParams<{ id: string }>();
@@ -63,7 +63,6 @@ export default function StepLeaderboard() {
     void fetchDashboard();
   }, [fetchDashboard]);
 
-  // Find my row to highlight it + show my rank even if I'm below the top N.
   const myRank = useMemo(() => {
     if (!data || !user) return null;
     const idx = data.stepLeaderboard.findIndex(
@@ -72,166 +71,119 @@ export default function StepLeaderboard() {
     return idx >= 0 ? idx + 1 : null;
   }, [data, user]);
 
+  const shown = data?.stepLeaderboard.slice(0, 50) ?? [];
+
   return (
-    <div className="flex flex-1 flex-col px-4 pt-[env(safe-area-inset-top,0px)]">
-      <header className="flex items-center gap-2 py-4">
-        <Link
-          to={`/steps/${id}`}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-slate-300 active:bg-slate-800"
-        >
-          <ArrowLeft size={20} />
+    <div
+      className="one-surface flex flex-1 flex-col px-[18px] pt-[env(safe-area-inset-top,0px)] pb-8"
+      style={{ background: "var(--bg)", color: "var(--text)" }}
+    >
+      <header className="flex items-start gap-3.5 py-3">
+        <Link to={`/steps/${id}`} className="mt-0.5 flex active:opacity-70" aria-label="Back">
+          <Icon name="arrow_back" size={23} style={{ color: "var(--text-2)" }} />
         </Link>
-        <div className="flex-1 min-w-0">
-          <h1 className="truncate text-lg font-semibold text-white">
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-[23px] font-extrabold leading-tight tracking-tight" style={{ color: "var(--text)" }}>
             {data?.announcement.title ?? "Leaderboard"}
           </h1>
-          <p className="truncate text-[11px] text-slate-500">
-            {data?.participants.length ?? 0} participants ·{" "}
-            {data?.onTrackCount ?? 0} on track
+          <p className="mt-0.5 truncate text-[12.5px]" style={{ color: "var(--text-3)" }}>
+            {data?.participants.length ?? 0} participants · {data?.onTrackCount ?? 0} on track
           </p>
         </div>
       </header>
 
       {loading ? (
-        <div className="flex justify-center py-10 text-slate-500">
-          <Loader2 size={20} className="animate-spin" />
+        <div className="flex justify-center py-12">
+          <Loader2 size={22} className="animate-spin" style={{ color: "var(--text-3)" }} />
         </div>
       ) : error ? (
-        <p className="rounded-xl border border-red-700/60 bg-red-900/20 px-4 py-3 text-xs text-red-200">
+        <p className="rounded-[12px] px-4 py-3 text-[12px]" style={{ background: "var(--danger-soft)", color: "var(--danger)" }}>
           {error}
         </p>
       ) : !data ? null : (
         <>
           {/* Community totals */}
-          <section className="mb-3 grid grid-cols-2 gap-2">
-            <Stat
-              value={data.totalActualSteps}
-              label="community steps"
-              icon={Award}
-              tint="bg-amber-500/15 text-amber-200"
-            />
-            <Stat
-              value={data.onTrackCount}
-              label={`on track / ${data.totalWithGoal}`}
-              icon={Target}
-              tint="bg-emerald-500/15 text-emerald-200"
-            />
-          </section>
+          <div className="flex gap-2.5">
+            <SummaryCard ms="military_tech" iconColor="var(--gold)" iconBg="rgba(231,181,61,0.16)" value={data.totalActualSteps.toLocaleString("en-IN")} label="COMMUNITY STEPS" />
+            <SummaryCard ms="my_location" iconColor="var(--success)" iconBg="var(--success-soft)" value={String(data.onTrackCount)} label={`ON TRACK / ${data.totalWithGoal}`} />
+          </div>
 
-          {/* My rank floating card (only if I'm in the list but not in top 10) */}
           {myRank && myRank > 10 && (
-            <section className="mb-3 rounded-2xl border border-indigo-500/40 bg-indigo-500/10 px-3 py-2">
-              <p className="text-[10px] uppercase tracking-wider text-indigo-200">
-                Your rank
-              </p>
-              <p className="mt-0.5 text-sm font-semibold text-white">
-                #{myRank} of {data.stepLeaderboard.length}
-              </p>
-            </section>
+            <div className="mt-3 rounded-[14px] px-3.5 py-2.5" style={{ background: "var(--accent-soft)", border: "1.5px solid var(--accent)" }}>
+              <p className="one-mono text-[10px] font-semibold" style={{ color: "var(--accent)", letterSpacing: "0.12em" }}>YOUR RANK</p>
+              <p className="mt-0.5 text-[15px] font-bold" style={{ color: "var(--text)" }}>#{myRank} of {data.stepLeaderboard.length}</p>
+            </div>
           )}
 
-          <section className="flex-1 pb-4">
-            <h2 className="mb-2 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-              <Trophy size={11} /> Leaderboard
-            </h2>
-            {data.stepLeaderboard.length === 0 ? (
-              <p className="rounded-2xl border border-dashed border-slate-700 px-4 py-6 text-center text-[11px] text-slate-500">
-                No step entries yet. Be the first to log a day!
-              </p>
-            ) : (
-              <ol className="space-y-1.5">
-                {data.stepLeaderboard.slice(0, 50).map((p, i) => {
-                  const isMe =
-                    user && p.name === user.name && p.block === user.block;
-                  const rank = i + 1;
-                  return (
-                    <li
-                      key={p.id}
-                      className={clsx(
-                        "flex items-center gap-2 rounded-xl border px-3 py-2",
-                        isMe
-                          ? "border-indigo-500/60 bg-indigo-500/10"
-                          : rank === 1
-                            ? "border-amber-700/40 bg-amber-900/10"
-                            : "border-slate-700 bg-slate-800/60"
-                      )}
-                    >
-                      <span
-                        className={clsx(
-                          "flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full font-mono text-[11px] font-bold",
-                          rank === 1
-                            ? "bg-amber-500 text-white"
-                            : rank === 2
-                              ? "bg-slate-400 text-white"
-                              : rank === 3
-                                ? "bg-amber-700 text-white"
-                                : "bg-slate-800 text-slate-300"
-                        )}
-                      >
-                        {rank}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <p className="truncate text-sm font-semibold text-white">
-                          {p.name}
-                          {isMe && (
-                            <span className="ml-1 rounded-full bg-indigo-500/30 px-1.5 py-0 text-[9px] uppercase text-indigo-200">
-                              you
-                            </span>
-                          )}
-                        </p>
-                        <p className="text-[10px] text-slate-500">
-                          B{p.block} · {p.flatNumber} ·{" "}
-                          {p.daysGoalMet}/{p.daysTracked} days met
-                        </p>
-                      </div>
-                      <span className="shrink-0 font-mono text-sm font-bold tabular-nums text-white">
-                        {p.totalSteps.toLocaleString()}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ol>
-            )}
-          </section>
+          <div className="mb-3 mt-5 flex items-center gap-2" style={{ color: "var(--text-3)" }}>
+            <Icon name="emoji_events" size={16} style={{ color: "var(--text-3)" }} />
+            <span className="one-mono text-[11px] font-semibold" style={{ letterSpacing: "0.14em" }}>LEADERBOARD</span>
+          </div>
 
-          <p className="pb-2 text-center text-[10px] text-slate-500">
-            <Users size={9} className="-mt-0.5 mr-0.5 inline" />
-            Showing top {Math.min(50, data.stepLeaderboard.length)} of{" "}
-            {data.stepLeaderboard.length}
-          </p>
+          {shown.length === 0 ? (
+            <p className="rounded-[16px] px-4 py-8 text-center text-[12px]" style={{ border: "1px dashed var(--border-strong)", color: "var(--text-3)" }}>
+              No step entries yet. Be the first to log a day!
+            </p>
+          ) : (
+            <div className="flex flex-col gap-2.5">
+              {shown.map((p, i) => {
+                const isMe = !!user && p.name === user.name && p.block === user.block;
+                const rank = i + 1;
+                const medal = MEDAL[rank];
+                return (
+                  <div
+                    key={p.id}
+                    className="flex items-center gap-3 rounded-[16px] p-3.5"
+                    style={
+                      isMe
+                        ? { background: "var(--accent-soft)", border: "1.5px solid var(--accent)" }
+                        : rank === 1
+                          ? { background: "rgba(245,166,35,0.07)", border: "1px solid rgba(245,166,35,0.55)" }
+                          : { background: "var(--surface)", border: "1px solid var(--border)" }
+                    }
+                  >
+                    <span
+                      className="flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-full text-[14px] font-extrabold"
+                      style={medal ? { background: medal.bg, color: medal.fg } : { background: "var(--surface-3)", color: "var(--text-2)" }}
+                    >
+                      {rank}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[16px] font-bold tracking-tight" style={{ color: "var(--text)" }}>
+                        {p.name}
+                        {isMe && <span className="ml-2 rounded-[6px] px-1.5 py-0.5 text-[10px] font-extrabold text-white" style={{ background: "var(--accent-strong)", letterSpacing: "0.06em" }}>YOU</span>}
+                      </p>
+                      <p className="mt-0.5 truncate text-[12px]" style={{ color: "var(--text-3)" }}>
+                        B{p.block} · {p.flatNumber} · {p.daysGoalMet}/{p.daysTracked} days met
+                      </p>
+                    </div>
+                    <span className="flex-shrink-0 text-[17px] font-extrabold tabular-nums" style={{ color: "var(--text)" }}>
+                      {p.totalSteps.toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="mt-4 flex items-center justify-center gap-2 text-[13px]" style={{ color: "var(--text-3)" }}>
+            <Icon name="group" size={16} style={{ color: "var(--text-3)" }} />
+            Showing top {shown.length} of {data.stepLeaderboard.length}
+          </div>
         </>
       )}
     </div>
   );
 }
 
-function Stat({
-  value,
-  label,
-  icon: Icon,
-  tint,
-}: {
-  value: number;
-  label: string;
-  icon: typeof Award;
-  tint: string;
-}) {
+function SummaryCard({ ms, iconColor, iconBg, value, label }: { ms: string; iconColor: string; iconBg: string; value: string; label: string }) {
   return (
-    <div className="rounded-2xl border border-slate-700 bg-slate-800/60 p-3">
-      <div
-        className={clsx(
-          "mb-1 flex h-7 w-7 items-center justify-center rounded-full",
-          tint
-        )}
-      >
-        <Icon size={14} />
+    <div className="flex-1 rounded-[16px] p-[15px_14px]" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+      <div className="mb-3.5 flex h-[38px] w-[38px] items-center justify-center rounded-full" style={{ background: iconBg }}>
+        <Icon name={ms} size={21} style={{ color: iconColor }} />
       </div>
-      <p className="text-lg font-bold leading-tight tabular-nums text-white">
-        {value.toLocaleString()}
-      </p>
-      <p className="text-[10px] uppercase tracking-wider text-slate-500">
-        {label}
-      </p>
+      <p className="text-[24px] font-extrabold tracking-tight tabular-nums" style={{ color: "var(--text)" }}>{value}</p>
+      <p className="one-mono mt-1 text-[10px] font-semibold" style={{ color: "var(--text-3)", letterSpacing: "0.1em" }}>{label}</p>
     </div>
   );
 }
