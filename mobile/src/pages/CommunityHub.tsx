@@ -37,6 +37,7 @@ const COMMUNITY: Tile[] = [
   { to: "/issues", ms: "build", label: "Issues" },
   { to: "/marketplace", ms: "storefront", label: "Marketplace" },
   { to: "/messages", ms: "chat", label: "Messages" },
+  { to: "/my-contributions", ms: "volunteer_activism", label: "My Contributions" },
   { to: "/duties", ms: "checklist", label: "My Duties" },
   { to: "/rewards", ms: "emoji_events", label: "My Rewards" },
   { to: "/my-steps", ms: "directions_walk", label: "My Steps" },

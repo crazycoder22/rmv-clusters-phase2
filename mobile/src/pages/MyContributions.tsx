@@ -18,6 +18,9 @@ type Contribution = {
   amount: number;
   paid: boolean;
   paidAt: string | null;
+  eventRaised: number;
+  eventContributors: number;
+  eventTarget: number | null;
 };
 
 type Response = {
@@ -104,29 +107,40 @@ export default function MyContributions() {
               {contributions.map((c) => (
                 <div
                   key={c.id}
-                  className="flex items-center gap-3 rounded-[16px] p-3.5"
+                  className="rounded-[16px] p-3.5"
                   style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
                 >
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[15px] font-bold" style={{ color: "var(--text)" }}>
-                      {c.eventTitle}
-                    </p>
-                    <p className="mt-0.5 text-[12px]" style={{ color: "var(--text-3)" }}>
-                      {fmtDate(c.date ?? c.registeredAt)}
-                    </p>
+                  <div className="flex items-center gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[15px] font-bold" style={{ color: "var(--text)" }}>
+                        {c.eventTitle}
+                      </p>
+                      <p className="mt-0.5 text-[12px]" style={{ color: "var(--text-3)" }}>
+                        {fmtDate(c.date ?? c.registeredAt)}
+                      </p>
+                    </div>
+                    {c.paid ? (
+                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold" style={{ background: "var(--success-soft)", color: "var(--success)" }}>
+                        <Icon name="check_circle" size={13} fill /> Received
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold" style={{ background: "var(--warning-soft)", color: "var(--warning)" }}>
+                        <Icon name="schedule" size={13} /> Pending
+                      </span>
+                    )}
+                    <span className="one-mono w-[64px] flex-shrink-0 text-right text-[15px] font-bold" style={{ color: "var(--text)" }}>
+                      ₹{c.amount.toLocaleString("en-IN")}
+                    </span>
                   </div>
-                  {c.paid ? (
-                    <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold" style={{ background: "var(--success-soft)", color: "var(--success)" }}>
-                      <Icon name="check_circle" size={13} fill /> Received
+                  {/* RMV community total for this initiative */}
+                  <div className="mt-2.5 pt-2.5 text-[11.5px]" style={{ borderTop: "1px solid var(--border)", color: "var(--text-3)" }}>
+                    RMV raised{" "}
+                    <span className="font-bold" style={{ color: "var(--text-2)" }}>
+                      ₹{c.eventRaised.toLocaleString("en-IN")}
                     </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold" style={{ background: "var(--warning-soft)", color: "var(--warning)" }}>
-                      <Icon name="schedule" size={13} /> Pending
-                    </span>
-                  )}
-                  <span className="one-mono w-[64px] flex-shrink-0 text-right text-[15px] font-bold" style={{ color: "var(--text)" }}>
-                    ₹{c.amount.toLocaleString("en-IN")}
-                  </span>
+                    {c.eventTarget ? <> of ₹{c.eventTarget.toLocaleString("en-IN")} goal</> : null} ·{" "}
+                    {c.eventContributors} {c.eventContributors === 1 ? "contributor" : "contributors"}
+                  </div>
                 </div>
               ))}
             </div>

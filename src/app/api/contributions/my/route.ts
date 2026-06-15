@@ -31,24 +31,49 @@ export async function GET(request: Request) {
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
+      eventId: true,
       contributionAmount: true,
       paid: true,
       paidAt: true,
       createdAt: true,
-      event: { select: { title: true, slug: true, startAt: true } },
+      event: { select: { title: true, slug: true, startAt: true, targetAmount: true } },
     },
   });
 
-  const contributions = regs.map((r) => ({
-    id: r.id,
-    eventTitle: r.event.title,
-    eventSlug: r.event.slug,
-    date: r.event.startAt,
-    registeredAt: r.createdAt,
-    amount: r.contributionAmount ?? 0,
-    paid: r.paid,
-    paidAt: r.paidAt,
-  }));
+  // Community-wide totals per initiative (everyone's contributions), so each
+  // entry can show "RMV raised ₹X · N contributors" against the initiative.
+  const eventIds = [...new Set(regs.map((r) => r.eventId))];
+  const totals = eventIds.length
+    ? await prisma.publicEventRegistration.groupBy({
+        by: ["eventId"],
+        where: { eventId: { in: eventIds }, contributionAmount: { gt: 0 } },
+        _sum: { contributionAmount: true },
+        _count: { _all: true },
+      })
+    : [];
+  const totalByEvent = new Map(
+    totals.map((t) => [
+      t.eventId,
+      { raised: t._sum.contributionAmount ?? 0, contributors: t._count._all },
+    ])
+  );
+
+  const contributions = regs.map((r) => {
+    const agg = totalByEvent.get(r.eventId);
+    return {
+      id: r.id,
+      eventTitle: r.event.title,
+      eventSlug: r.event.slug,
+      date: r.event.startAt,
+      registeredAt: r.createdAt,
+      amount: r.contributionAmount ?? 0,
+      paid: r.paid,
+      paidAt: r.paidAt,
+      eventRaised: agg?.raised ?? r.contributionAmount ?? 0,
+      eventContributors: agg?.contributors ?? 1,
+      eventTarget: r.event.targetAmount ?? null,
+    };
+  });
 
   const totalPledged = contributions.reduce((s, c) => s + c.amount, 0);
   const totalPaid = contributions

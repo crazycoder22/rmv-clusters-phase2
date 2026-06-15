@@ -14,6 +14,9 @@ type Contribution = {
   amount: number;
   paid: boolean;
   paidAt: string | null;
+  eventRaised: number;
+  eventContributors: number;
+  eventTarget: number | null;
 };
 
 type Response = {
@@ -95,28 +98,42 @@ export default function MyContributionsPage() {
           {contributions.map((c) => (
             <div
               key={c.id}
-              className="flex items-center gap-3 rounded-xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3"
+              className="rounded-xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3"
             >
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">
-                  {c.eventTitle}
-                </p>
-                <p className="mt-0.5 text-xs text-gray-500">
-                  {c.date ? fmtDate(c.date) : fmtDate(c.registeredAt)}
-                </p>
+              <div className="flex items-center gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">
+                    {c.eventTitle}
+                  </p>
+                  <p className="mt-0.5 text-xs text-gray-500">
+                    {c.date ? fmtDate(c.date) : fmtDate(c.registeredAt)}
+                  </p>
+                </div>
+                {c.paid ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">
+                    <CheckCircle2 size={12} /> Received
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 dark:bg-amber-900/30 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:text-amber-300">
+                    <Clock size={12} /> Pending
+                  </span>
+                )}
+                <span className="w-20 flex-shrink-0 text-right font-mono text-sm font-bold tabular-nums text-gray-900 dark:text-gray-100">
+                  ₹{c.amount.toLocaleString("en-IN")}
+                </span>
               </div>
-              {c.paid ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">
-                  <CheckCircle2 size={12} /> Received
+              {/* RMV community total for this initiative */}
+              <div className="mt-2 border-t border-gray-100 dark:border-gray-700 pt-2 text-[11px] text-gray-500 dark:text-gray-400">
+                RMV raised{" "}
+                <span className="font-semibold text-gray-700 dark:text-gray-200">
+                  ₹{c.eventRaised.toLocaleString("en-IN")}
                 </span>
-              ) : (
-                <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 dark:bg-amber-900/30 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:text-amber-300">
-                  <Clock size={12} /> Pending
-                </span>
-              )}
-              <span className="w-20 flex-shrink-0 text-right font-mono text-sm font-bold tabular-nums text-gray-900 dark:text-gray-100">
-                ₹{c.amount.toLocaleString("en-IN")}
-              </span>
+                {c.eventTarget ? (
+                  <> of ₹{c.eventTarget.toLocaleString("en-IN")} goal</>
+                ) : null}{" "}
+                · {c.eventContributors}{" "}
+                {c.eventContributors === 1 ? "contributor" : "contributors"}
+              </div>
             </div>
           ))}
         </section>
