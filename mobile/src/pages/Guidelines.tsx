@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import Icon from "../components/Icon";
+import { useGoBack } from "../lib/useGoBack";
 import guidelinesData from "../data/guidelines.json";
 
 type Rule = { title: string; description: string };
@@ -17,6 +17,7 @@ const ICONS: Record<string, string> = {
 };
 
 export default function GuidelinesPage() {
+  const goBack = useGoBack();
   const data = guidelinesData as Guidelines;
   const [expanded, setExpanded] = useState<Set<string>>(
     () => new Set(data.sections[0] ? [data.sections[0].id] : [])
@@ -36,9 +37,9 @@ export default function GuidelinesPage() {
       style={{ background: "var(--bg)", color: "var(--text)" }}
     >
       <header className="flex items-center gap-3 py-3">
-        <Link to="/community" className="flex" aria-label="Back">
+        <button type="button" onClick={goBack} className="flex" aria-label="Back">
           <Icon name="arrow_back" size={22} style={{ color: "var(--text-2)" }} />
-        </Link>
+        </button>
         <div>
           <h1 className="text-[24px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>Guidelines</h1>
           <p className="mt-px text-[12px]" style={{ color: "var(--text-3)" }}>

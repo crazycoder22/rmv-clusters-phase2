@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useGoBack } from "../lib/useGoBack";
 import { Loader2 } from "lucide-react";
 import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
@@ -74,6 +75,7 @@ function lineText(i: { qty: number; name: string; unit: string | null }): string
 export default function Food() {
   const { token } = useAuth();
   const navigate = useNavigate();
+  const goBack = useGoBack();
   const [tab, setTab] = useState<Tab>("order");
 
   const [browse, setBrowse] = useState<MenuCard[]>([]);
@@ -147,9 +149,9 @@ export default function Food() {
       style={{ background: "var(--bg)", color: "var(--text)" }}
     >
       <header className="flex items-start gap-3 py-3">
-        <Link to="/community" className="flex pt-0.5" aria-label="Back">
+        <button type="button" onClick={goBack} className="flex pt-0.5" aria-label="Back">
           <Icon name="arrow_back" size={22} style={{ color: "var(--text-2)" }} />
-        </Link>
+        </button>
         <div className="flex-1 min-w-0">
           <h1 className="text-[21px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>Food &amp; Bazaar</h1>
           <p className="truncate text-[12px]" style={{ color: "var(--text-3)" }}>

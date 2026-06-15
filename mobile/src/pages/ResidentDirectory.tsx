@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useGoBack } from "../lib/useGoBack";
 import { Loader2 } from "lucide-react";
 import Icon from "../components/Icon";
 import { apiFetch } from "../lib/api";
@@ -35,6 +36,7 @@ function roleTag(t: string): { label: string; owner: boolean } {
 export default function ResidentDirectory() {
   const { token, user } = useAuth();
   const navigate = useNavigate();
+  const goBack = useGoBack();
   const [mode, setMode] = useState<Mode>("search");
 
   // Search
@@ -148,9 +150,9 @@ export default function ResidentDirectory() {
             <Icon name="arrow_back" size={22} style={{ color: "var(--text-2)" }} />
           </button>
         ) : (
-          <Link to="/community" className="flex" aria-label="Back" style={{ color: "var(--text-2)" }}>
+          <button type="button" onClick={goBack} className="flex" aria-label="Back" style={{ color: "var(--text-2)" }}>
             <Icon name="arrow_back" size={22} style={{ color: "var(--text-2)" }} />
-          </Link>
+          </button>
         )}
         <h1 className="flex-1 text-[21px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>
           {mode === "residents" ? `Block ${activeBlock}` : "Resident Directory"}

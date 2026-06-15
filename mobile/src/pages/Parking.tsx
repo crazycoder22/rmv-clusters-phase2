@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useGoBack } from "../lib/useGoBack";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
 import Icon from "../components/Icon";
@@ -61,6 +62,7 @@ const stripe =
 export default function Parking() {
   const { token } = useAuth();
   const navigate = useNavigate();
+  const goBack = useGoBack();
   const [tab, setTab] = useState<Tab>("find");
   const [browse, setBrowse] = useState<SlotCard[]>([]);
   const [mine, setMine] = useState<SlotCard[]>([]);
@@ -116,7 +118,7 @@ export default function Parking() {
     >
       <header className="flex items-center justify-between py-3">
         <div className="flex items-center gap-2.5">
-          <button type="button" onClick={() => navigate("/community")} className="flex active:opacity-70" aria-label="Back">
+          <button type="button" onClick={goBack} className="flex active:opacity-70" aria-label="Back">
             <Icon name="arrow_back" size={24} style={{ color: "var(--text-2)" }} />
           </button>
           <Icon name="directions_car" size={26} weight={500} style={{ color: "var(--carblue)" }} />

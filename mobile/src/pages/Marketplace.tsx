@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import Icon from "../components/Icon";
+import { useGoBack } from "../lib/useGoBack";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
 import {
@@ -101,6 +102,7 @@ const SORT_LABEL: Record<string, string> = {
 };
 
 export default function Marketplace() {
+  const goBack = useGoBack();
   const { token } = useAuth();
   const [items, setItems] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
@@ -140,9 +142,9 @@ export default function Marketplace() {
       style={{ background: "var(--bg)", color: "var(--text)" }}
     >
       <header className="mb-3 flex items-center gap-3">
-        <Link to="/community" className="flex active:opacity-70" aria-label="Back">
+        <button type="button" onClick={goBack} className="flex active:opacity-70" aria-label="Back">
           <Icon name="arrow_back" size={24} style={{ color: "var(--text-2)" }} />
-        </Link>
+        </button>
         <h1 className="flex-1 text-[25px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>Marketplace</h1>
         <Link
           to="/marketplace/new"
