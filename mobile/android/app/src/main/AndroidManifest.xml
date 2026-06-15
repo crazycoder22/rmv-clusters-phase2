@@ -23,6 +23,25 @@
             <intent-filter>
                 <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
             </intent-filter>
+
+            <!-- Android App Links: open these https paths in the app instead of
+                 the browser. Verified via /.well-known/assetlinks.json on each
+                 host. Path list mirrors the iOS AASA (apple-app-site-association). -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="www.rmvclustersphase2.in" />
+                <data android:scheme="https" android:host="rmvclustersphase2.in" />
+                <data android:pathPrefix="/parking" />
+                <data android:pathPrefix="/food" />
+                <data android:pathPrefix="/initiatives" />
+                <data android:pathPrefix="/referendums" />
+                <data android:pathPrefix="/habits" />
+                <data android:pathPrefix="/community" />
+                <data android:pathPrefix="/news" />
+                <data android:pathPrefix="/duties" />
+            </intent-filter>
         </activity>
 
         <provider
