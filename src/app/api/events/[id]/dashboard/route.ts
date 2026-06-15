@@ -72,6 +72,56 @@ export async function GET(
     stepsByParticipant.get(key)!.push({ date: se.date, steps: se.steps });
   }
 
+  // Bridge from the always-on personal step tracker (ResidentDailySteps).
+  // The per-event HealthKit sync floors its read window at the event's
+  // UTC-midnight start, so early/odd hours can miss a day's steps and leave
+  // StepEntry empty. The personal sync reads full local days and is
+  // dependable — merge it in so the dashboard reflects real progress even
+  // when no event StepEntry was written. Scoped to the 14-day challenge
+  // window so pre-challenge steps never leak into the event.
+  const CHALLENGE_WINDOW_DAYS = 14;
+  const windowStart = new Date(announcement.date);
+  windowStart.setUTCHours(0, 0, 0, 0);
+  const windowEnd = new Date(windowStart);
+  windowEnd.setUTCDate(windowEnd.getUTCDate() + CHALLENGE_WINDOW_DAYS);
+
+  const residentIds = ec.rsvps.map((r) => r.residentId);
+  const personalDaily = residentIds.length
+    ? await prisma.residentDailySteps.findMany({
+        where: {
+          residentId: { in: residentIds },
+          date: { gte: windowStart, lt: windowEnd },
+        },
+        select: { residentId: true, date: true, steps: true },
+      })
+    : [];
+  const personalByResident = new Map<string, { date: Date; steps: number }[]>();
+  for (const p of personalDaily) {
+    if (!personalByResident.has(p.residentId)) personalByResident.set(p.residentId, []);
+    personalByResident.get(p.residentId)!.push({ date: p.date, steps: p.steps });
+  }
+
+  // Merge event StepEntry + personal daily steps, taking the max per date so
+  // an admin's manual correction wins when higher and personal data fills the
+  // gaps the event sync missed.
+  function mergedDaily(
+    eventKey: string,
+    residentId?: string
+  ): { date: Date; steps: number }[] {
+    const byDate = new Map<string, number>();
+    const add = (rows: { date: Date; steps: number }[]) => {
+      for (const d of rows) {
+        const k = d.date.toISOString().slice(0, 10);
+        byDate.set(k, Math.max(byDate.get(k) ?? 0, d.steps));
+      }
+    };
+    add(stepsByParticipant.get(eventKey) || []);
+    if (residentId) add(personalByResident.get(residentId) || []);
+    return [...byDate.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([k, steps]) => ({ date: new Date(k + "T00:00:00.000Z"), steps }));
+  }
+
   // Find goal field (first select-type custom field)
   const goalField = ec.customFields.find((cf) => cf.fieldType === "select");
 
@@ -81,7 +131,7 @@ export async function GET(
       ? rsvp.fieldResponses.find((fr) => fr.customFieldId === goalField.id)
       : undefined;
     const dailyGoal = parseGoal(goalResponse?.value || "0");
-    const dailySteps = stepsByParticipant.get(`r-${rsvp.id}`) || [];
+    const dailySteps = mergedDaily(`r-${rsvp.id}`, rsvp.residentId);
     const totalSteps = dailySteps.reduce((sum, d) => sum + d.steps, 0);
     const cg = rsvp.challengeGoal;
 
@@ -129,7 +179,7 @@ export async function GET(
       ? grsvp.fieldResponses.find((fr) => fr.customFieldId === goalField.id)
       : undefined;
     const dailyGoal = parseGoal(goalResponse?.value || "0");
-    const dailySteps = stepsByParticipant.get(`g-${grsvp.id}`) || [];
+    const dailySteps = mergedDaily(`g-${grsvp.id}`);
     const totalSteps = dailySteps.reduce((sum, d) => sum + d.steps, 0);
 
     return {
@@ -161,7 +211,7 @@ export async function GET(
     (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
   );
 
-  const hasStepTracking = stepEntries.length > 0;
+  const hasStepTracking = stepEntries.length > 0 || personalDaily.length > 0;
 
   // Build leaderboard sorted by total steps
   const stepLeaderboard = hasStepTracking
@@ -172,7 +222,7 @@ export async function GET(
 
   // Compute aggregate totals
   const totalStepTarget = participants.reduce((sum, p) => sum + p.dailyGoal, 0) * 12;
-  const totalActualSteps = stepEntries.reduce((sum, se) => sum + se.steps, 0);
+  const totalActualSteps = participants.reduce((sum, p) => sum + p.totalSteps, 0);
 
   // Compute "on track" count
   // Challenge: 14 days starting from event date, must meet goal on at least 12 days

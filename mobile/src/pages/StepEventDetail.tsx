@@ -179,12 +179,18 @@ export default function StepEventDetail() {
     if (!event) return;
     setSyncing(true);
     setSyncMsg(null);
-    const startISO = new Date(
+    // Floor to LOCAL midnight: the event start arrives as UTC midnight, but
+    // HealthKit buckets by local calendar day, so starting the read at the
+    // local day boundary captures the full first day's steps (otherwise an
+    // early-morning sync reads a tiny window and returns nothing).
+    const floor = new Date(
       Math.max(
         new Date(event.startDate).getTime(),
         new Date(event.rsvpCreatedAt).getTime()
       )
-    ).toISOString();
+    );
+    floor.setHours(0, 0, 0, 0);
+    const startISO = floor.toISOString();
     const endISO = new Date().toISOString();
     const out: SyncOutcome = await syncStepsFromHealth(
       { eventId: event.announcementId, startISO, endISO, token },
