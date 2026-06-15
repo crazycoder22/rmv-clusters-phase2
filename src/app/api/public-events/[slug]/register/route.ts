@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { normalizePhone } from "@/lib/phone";
 
 export const dynamic = "force-dynamic";
 
@@ -43,14 +44,8 @@ function rateLimit(ip: string): { ok: boolean; retryAfterMs?: number } {
 
 // ── Field validation helpers ───────────────────────────────────────────────
 
-/** Normalise an Indian phone to 10 digits (strips +91, 91, spaces, dashes). */
-function normalisePhone(raw: string): string | null {
-  const digits = raw.replace(/[^\d]/g, "");
-  if (digits.length === 12 && digits.startsWith("91")) return digits.slice(2);
-  if (digits.length === 11 && digits.startsWith("0")) return digits.slice(1);
-  if (digits.length === 10) return digits;
-  return null;
-}
+/** Normalise an Indian phone to 10 digits — see src/lib/phone.ts. */
+const normalisePhone = normalizePhone;
 
 // ── POST /api/public-events/[slug]/register ────────────────────────────────
 

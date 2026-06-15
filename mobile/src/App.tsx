@@ -80,6 +80,7 @@ import AdminQuizHost from "./pages/AdminQuizHost";
 import StepEventDetail from "./pages/StepEventDetail";
 import StepLeaderboard from "./pages/StepLeaderboard";
 import MySteps from "./pages/MySteps";
+import MyContributions from "./pages/MyContributions";
 import Calendar from "./pages/Calendar";
 import AdminCalendar from "./pages/AdminCalendar";
 import Habits from "./pages/Habits";
@@ -232,6 +233,7 @@ function Gate() {
           <Route path="/steps/:id" element={<StepEventDetail />} />
           <Route path="/steps/:id/leaderboard" element={<StepLeaderboard />} />
           <Route path="/my-steps" element={<MySteps />} />
+          <Route path="/my-contributions" element={<MyContributions />} />
         <Route path="/parking" element={<Parking />} />
         <Route path="/vehicles" element={<Vehicles />} />
         <Route path="/parking/slots/new" element={<ParkingSlotEdit />} />
