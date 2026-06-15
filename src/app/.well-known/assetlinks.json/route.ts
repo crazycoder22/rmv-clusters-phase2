@@ -17,10 +17,13 @@
 //      signed with our own keystore.
 
 const SHA256_FINGERPRINTS = [
+  // Play App Signing key (Play Console → App integrity) — used by Google to
+  // re-sign every build delivered from the Play Store. Required for the links
+  // to open the app for normal users.
+  "DB:D3:9D:9D:70:CD:B0:E6:D9:6D:9C:10:19:5F:EA:6E:A5:97:BE:2B:C7:96:07:6B:51:21:3C:A8:BF:BD:25:27",
   // Upload key — keytool of onermv-release.keystore (CN=Lakshman Kamath …).
+  // Covers direct-APK / internal-test builds signed with our own keystore.
   "CE:04:2C:EB:EE:A3:91:4C:E3:C4:04:04:C6:10:75:BD:7B:E4:8E:F7:D4:26:3A:5E:AF:A2:14:8D:37:46:22:A2",
-  // TODO: add the Play App Signing SHA-256 (Play Console → App integrity) so
-  // links open the app for users who installed it from the Play Store.
 ];
 
 export function GET() {
