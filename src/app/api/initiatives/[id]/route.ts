@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getAuthedResident } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { canManageAnnouncements } from "@/lib/roles";
-import { validateInitiative, type InitiativeStatusValue, type InitiativeAttachment } from "@/lib/initiatives";
+import { validateInitiative, type InitiativeStatusValue, type InitiativeAttachment, type CommentMention } from "@/lib/initiatives";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +10,7 @@ type CommentWithRel = {
   id: string;
   authorId: string;
   content: string;
+  mentions: unknown;
   isOfficial: boolean;
   createdAt: Date;
   author: { name: string; block: number | null; flatNumber: string };
@@ -20,6 +21,7 @@ function serializeComment(c: CommentWithRel, meId: string) {
   return {
     id: c.id,
     content: c.content,
+    mentions: (Array.isArray(c.mentions) ? c.mentions : []) as CommentMention[],
     isOfficial: c.isOfficial,
     createdAt: c.createdAt.toISOString(),
     author: c.author,

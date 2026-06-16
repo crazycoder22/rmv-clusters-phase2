@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { Browser } from "@capacitor/browser";
 import Icon from "../components/Icon";
+import MentionTextarea, { renderWithMentions, type CommentMention } from "../components/MentionTextarea";
 import { apiFetch } from "../lib/api";
 import { track, useDwell } from "../lib/track";
 import { useAuth } from "../auth/AuthProvider";
@@ -10,6 +11,7 @@ import { useAuth } from "../auth/AuthProvider";
 interface Comment {
   id: string;
   content: string;
+  mentions: CommentMention[];
   isOfficial: boolean;
   createdAt: string;
   author: { name: string; block: number | null; flatNumber: string };
@@ -48,6 +50,7 @@ export default function InitiativeDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState("");
+  const [feedbackMentions, setFeedbackMentions] = useState<CommentMention[]>([]);
   const [posting, setPosting] = useState(false);
   const [replyTo, setReplyTo] = useState<string | null>(null);
 
@@ -72,10 +75,11 @@ export default function InitiativeDetail() {
     if (!feedback.trim()) return;
     setPosting(true);
     try {
+      const mentionedIds = feedbackMentions.filter((m) => feedback.includes(`@${m.name}`)).map((m) => m.id);
       const res = await apiFetch(`/api/initiatives/${id}/comments`, {
-        method: "POST", token, body: JSON.stringify({ content: feedback.trim() }),
+        method: "POST", token, body: JSON.stringify({ content: feedback.trim(), mentionedIds }),
       });
-      if (res.ok) { setFeedback(""); await refresh(); }
+      if (res.ok) { setFeedback(""); setFeedbackMentions([]); await refresh(); }
     } finally {
       setPosting(false);
     }
@@ -247,10 +251,12 @@ export default function InitiativeDetail() {
       {/* Composer */}
       {data.isOpen ? (
         <div className="mt-6 rounded-[16px] p-3.5" style={{ background: "var(--surface-2)", border: "1px solid var(--border-strong)" }}>
-          <textarea
+          <MentionTextarea
             value={feedback}
-            onChange={(e) => setFeedback(e.target.value)}
-            placeholder="Share your feedback or concern…"
+            mentions={feedbackMentions}
+            onChange={(v, m) => { setFeedback(v); setFeedbackMentions(m); }}
+            token={token}
+            placeholder="Share your feedback… type @ to tag a resident"
             rows={3}
             className="w-full resize-none bg-transparent text-[14px] leading-relaxed outline-none"
             style={{ color: "var(--text)" }}
@@ -283,7 +289,7 @@ function CommentCard({ c, compact, onLike, onDelete, onReply }: { c: Comment; co
           </span>
         )}
       </div>
-      <p className="mt-1.5 whitespace-pre-wrap text-[13.5px] leading-snug" style={{ color: "var(--text-2)" }}>{c.content}</p>
+      <p className="mt-1.5 whitespace-pre-wrap text-[13.5px] leading-snug" style={{ color: "var(--text-2)" }}>{renderWithMentions(c.content, c.mentions)}</p>
       <div className="mt-2 flex items-center gap-4">
         <button onClick={onLike} className="inline-flex items-center gap-1 text-[12px] font-bold" style={{ color: c.myLiked ? "var(--like)" : "var(--text-3)" }}>
           <Icon name="favorite" size={14} fill={c.myLiked} style={{ color: c.myLiked ? "var(--like)" : "var(--text-3)" }} /> {c.likeCount > 0 ? c.likeCount : ""}
@@ -298,13 +304,15 @@ function CommentCard({ c, compact, onLike, onDelete, onReply }: { c: Comment; co
 
 function ReplyBox({ initiativeId, commentId, token, onPosted }: { initiativeId: string; commentId: string; token: string | null; onPosted: () => void }) {
   const [text, setText] = useState("");
+  const [mentions, setMentions] = useState<CommentMention[]>([]);
   const [busy, setBusy] = useState(false);
   async function submit() {
     if (!text.trim()) return;
     setBusy(true);
     try {
+      const mentionedIds = mentions.filter((m) => text.includes(`@${m.name}`)).map((m) => m.id);
       const res = await apiFetch(`/api/initiatives/${initiativeId}/comments/${commentId}`, {
-        method: "POST", token, body: JSON.stringify({ content: text.trim() }),
+        method: "POST", token, body: JSON.stringify({ content: text.trim(), mentionedIds }),
       });
       if (res.ok) onPosted();
     } finally {
@@ -313,7 +321,7 @@ function ReplyBox({ initiativeId, commentId, token, onPosted }: { initiativeId: 
   }
   return (
     <div className="rounded-[14px] p-2.5" style={{ background: "var(--surface-2)", border: "1px solid color-mix(in srgb, var(--accent) 40%, transparent)" }}>
-      <textarea value={text} onChange={(e) => setText(e.target.value)} placeholder="Committee reply…" rows={2} autoFocus className="w-full resize-none bg-transparent text-[14px] outline-none" style={{ color: "var(--text)" }} />
+      <MentionTextarea value={text} mentions={mentions} onChange={(v, m) => { setText(v); setMentions(m); }} token={token} placeholder="Committee reply… type @ to tag" rows={2} autoFocus className="w-full resize-none bg-transparent text-[14px] outline-none" style={{ color: "var(--text)" }} />
       <div className="flex justify-end">
         <button onClick={submit} disabled={busy || !text.trim()} className="inline-flex items-center gap-1 rounded-[8px] px-3 py-1.5 text-[12px] font-bold text-white active:opacity-90 disabled:opacity-50" style={{ background: "var(--accent-strong)" }}>
           <Icon name="near_me" size={13} fill style={{ color: "#fff" }} /> {busy ? "…" : "Reply"}

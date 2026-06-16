@@ -8,8 +8,9 @@ import {
   ArrowLeft, Megaphone, Heart, MessageSquare, Lock, ShieldCheck,
   Trash2, Pencil, Send, CornerDownRight, FileText,
 } from "lucide-react";
-import { youtubeId } from "@/lib/initiatives";
+import { youtubeId, type CommentMention } from "@/lib/initiatives";
 import RichTextViewer from "@/components/editor/RichTextViewer";
+import MentionInput, { renderWithMentions } from "@/components/initiatives/MentionInput";
 import { track, useDwell } from "@/lib/track-client";
 
 const looksLikeHtml = (s: string) => /<[a-z][\s\S]*>/i.test(s);
@@ -17,6 +18,7 @@ const looksLikeHtml = (s: string) => /<[a-z][\s\S]*>/i.test(s);
 interface Comment {
   id: string;
   content: string;
+  mentions: CommentMention[];
   isOfficial: boolean;
   createdAt: string;
   author: { name: string; block: number | null; flatNumber: string };
@@ -52,6 +54,7 @@ export default function InitiativeDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState("");
+  const [feedbackMentions, setFeedbackMentions] = useState<CommentMention[]>([]);
   const [posting, setPosting] = useState(false);
   const [replyTo, setReplyTo] = useState<string | null>(null);
 
@@ -80,12 +83,13 @@ export default function InitiativeDetailPage() {
     if (!feedback.trim()) return;
     setPosting(true);
     try {
+      const mentionedIds = feedbackMentions.filter((m) => feedback.includes(`@${m.name}`)).map((m) => m.id);
       const res = await fetch(`/api/initiatives/${id}/comments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: feedback.trim() }),
+        body: JSON.stringify({ content: feedback.trim(), mentionedIds }),
       });
-      if (res.ok) { setFeedback(""); await refresh(); }
+      if (res.ok) { setFeedback(""); setFeedbackMentions([]); await refresh(); }
       else alert((await res.json().catch(() => null))?.error ?? "Could not post");
     } finally {
       setPosting(false);
@@ -239,10 +243,11 @@ export default function InitiativeDetailPage() {
         {/* Compose feedback */}
         {data.isOpen ? (
           <div className="mt-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
-            <textarea
+            <MentionInput
               value={feedback}
-              onChange={(e) => setFeedback(e.target.value)}
-              placeholder="Share your feedback or concern…"
+              mentions={feedbackMentions}
+              onChange={(v, m) => { setFeedback(v); setFeedbackMentions(m); }}
+              placeholder="Share your feedback… type @ to tag a resident"
               rows={3}
               className="w-full text-sm focus:outline-none resize-none bg-transparent dark:text-gray-100"
             />
@@ -282,7 +287,7 @@ function CommentCard({
           </span>
         )}
       </div>
-      <p className="text-sm text-gray-800 dark:text-gray-200 mt-1 whitespace-pre-wrap">{c.content}</p>
+      <p className="text-sm text-gray-800 dark:text-gray-200 mt-1 whitespace-pre-wrap">{renderWithMentions(c.content, c.mentions)}</p>
       <div className="flex items-center gap-4 mt-2">
         <button
           type="button"
@@ -305,15 +310,17 @@ function CommentCard({
 
 function ReplyBox({ initiativeId, commentId, onPosted }: { initiativeId: string; commentId: string; onPosted: () => void }) {
   const [text, setText] = useState("");
+  const [mentions, setMentions] = useState<CommentMention[]>([]);
   const [busy, setBusy] = useState(false);
   async function submit() {
     if (!text.trim()) return;
     setBusy(true);
     try {
+      const mentionedIds = mentions.filter((m) => text.includes(`@${m.name}`)).map((m) => m.id);
       const res = await fetch(`/api/initiatives/${initiativeId}/comments/${commentId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: text.trim() }),
+        body: JSON.stringify({ content: text.trim(), mentionedIds }),
       });
       if (res.ok) onPosted();
       else alert((await res.json().catch(() => null))?.error ?? "Could not reply");
@@ -323,10 +330,11 @@ function ReplyBox({ initiativeId, commentId, onPosted }: { initiativeId: string;
   }
   return (
     <div className="bg-white dark:bg-gray-800 border border-blue-200 rounded-lg p-2">
-      <textarea
+      <MentionInput
         value={text}
-        onChange={(e) => setText(e.target.value)}
-        placeholder="Committee reply…"
+        mentions={mentions}
+        onChange={(v, m) => { setText(v); setMentions(m); }}
+        placeholder="Committee reply… type @ to tag"
         rows={2}
         className="w-full text-sm focus:outline-none resize-none bg-transparent dark:text-gray-100"
         autoFocus

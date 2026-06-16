@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { getAuthedResident } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "../../../../../../generated/prisma/client";
 import { canManageAnnouncements } from "@/lib/roles";
 import { sendPushToResidents } from "@/lib/push";
-import { isCommentingOpen, validateComment, type InitiativeStatusValue } from "@/lib/initiatives";
+import { isCommentingOpen, validateComment, sanitizeMentionIds, type InitiativeStatusValue, type CommentMention } from "@/lib/initiatives";
 
 // POST /api/initiatives/[id]/comments/[commentId] → committee reply to a feedback
 export async function POST(request: Request, { params }: { params: Promise<{ id: string; commentId: string }> }) {
@@ -25,9 +26,18 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "Commenting is closed for this initiative" }, { status: 400 });
   }
 
+  // Pull the whole thread (parent + existing replies) so we know who was tagged
+  // anywhere in it — those people get notified of the new reply.
   const parent = await prisma.initiativeComment.findUnique({
     where: { id: commentId },
-    select: { id: true, initiativeId: true, parentId: true, authorId: true },
+    select: {
+      id: true,
+      initiativeId: true,
+      parentId: true,
+      authorId: true,
+      mentions: true,
+      replies: { select: { authorId: true, mentions: true } },
+    },
   });
   if (!parent || parent.initiativeId !== id) {
     return NextResponse.json({ error: "Comment not found" }, { status: 404 });
@@ -41,21 +51,55 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const v = validateComment(body?.content);
   if (!v.ok) return NextResponse.json({ error: v.error }, { status: 400 });
 
+  // Resolve @mentions in this reply (canonical names from DB).
+  const mentionIds = sanitizeMentionIds(body?.mentionedIds);
+  const mentioned =
+    mentionIds.length > 0
+      ? await prisma.resident.findMany({
+          where: { id: { in: mentionIds }, isApproved: true },
+          select: { id: true, name: true },
+        })
+      : [];
+
   const reply = await prisma.initiativeComment.create({
     data: {
       initiativeId: id,
       authorId: me.id,
       parentId: commentId,
       content: v.content,
+      mentions: mentioned as unknown as Prisma.InputJsonValue,
       isOfficial: true,
     },
   });
 
-  // Notify the feedback author the committee replied (unless replying to self).
-  if (parent.authorId !== me.id) {
-    sendPushToResidents([parent.authorId], {
-      title: "🛡 Committee replied",
-      body: `On “${initiative.title}”: ${v.content.slice(0, 80)}`,
+  // ---- Notifications (dedupe with Sets; always exclude the replier) ----
+  const mentionIdsOf = (m: unknown) =>
+    (Array.isArray(m) ? (m as CommentMention[]) : []).map((x) => x.id);
+
+  // 1. People tagged in THIS reply → "mentioned you".
+  const newlyMentioned = new Set(mentioned.map((r) => r.id));
+  newlyMentioned.delete(me.id);
+  if (newlyMentioned.size > 0) {
+    sendPushToResidents([...newlyMentioned], {
+      title: "📌 You were mentioned",
+      body: `${me.name} mentioned you on “${initiative.title}”`,
+      data: { type: "initiative", id },
+    }).catch(() => {});
+  }
+
+  // 2. Everyone else involved in the thread (parent author + reply authors +
+  //    anyone tagged anywhere in the thread) → "new reply".
+  const threadParticipants = new Set<string>([
+    parent.authorId,
+    ...mentionIdsOf(parent.mentions),
+    ...parent.replies.flatMap((r) => [r.authorId, ...mentionIdsOf(r.mentions)]),
+  ]);
+  threadParticipants.delete(me.id);
+  for (const rid of newlyMentioned) threadParticipants.delete(rid);
+  if (threadParticipants.size > 0) {
+    sendPushToResidents([...threadParticipants], {
+      title: "💬 New reply",
+      body: `${me.name} replied on “${initiative.title}”`,
       data: { type: "initiative", id },
     }).catch(() => {});
   }

@@ -2129,6 +2129,7 @@ model InitiativeComment {
   parent       InitiativeComment?      @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
   replies      InitiativeComment[]     @relation("CommentReplies")
   content      String
+  mentions     Json                    @default("[]") // [{ id, name }] — tagged residents
   isOfficial   Boolean                 @default(false)
   likes        InitiativeCommentLike[]
   createdAt    DateTime                @default(now())
