@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import clsx from "clsx";
 import Icon from "../components/Icon";
+import MentionTextarea, { renderWithMentions, type CommentMention } from "../components/MentionTextarea";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
 import { Avatar, timeAgo, sharePost } from "./Community";
@@ -30,6 +31,7 @@ type Post = {
 type Comment = {
   id: string;
   content: string;
+  mentions: CommentMention[];
   author: Author;
   createdAt: string;
 };
@@ -43,6 +45,7 @@ export default function CommunityPost() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [text, setText] = useState("");
+  const [mentions, setMentions] = useState<CommentMention[]>([]);
   const [posting, setPosting] = useState(false);
 
   const refresh = useCallback(async () => {
@@ -92,15 +95,17 @@ export default function CommunityPost() {
     if (!content) return;
     setPosting(true);
     try {
+      const mentionedIds = mentions.filter((m) => content.includes(`@${m.name}`)).map((m) => m.id);
       const res = await apiFetch(`/api/feed/${id}/comments`, {
         method: "POST",
         token,
-        body: JSON.stringify({ content }),
+        body: JSON.stringify({ content, mentionedIds }),
       });
       if (!res.ok) return;
       const newComment = (await res.json()) as Comment;
       setComments((prev) => [...prev, newComment]);
       setText("");
+      setMentions([]);
       if (post) setPost({ ...post, commentCount: post.commentCount + 1 });
     } finally {
       setPosting(false);
@@ -238,7 +243,7 @@ export default function CommunityPost() {
                         <div className="min-w-0 flex-1">
                           <p className="text-[13.5px] leading-snug" style={{ color: "var(--text)" }}>
                             <span className="font-bold">{c.author.name}</span>{" "}
-                            <span className="whitespace-pre-wrap">{c.content}</span>
+                            <span className="whitespace-pre-wrap">{renderWithMentions(c.content, c.mentions)}</span>
                           </p>
                           <div className="mt-1.5 flex items-center gap-4 text-[11.5px] font-bold" style={{ color: "var(--text-3)" }}>
                             <span>{timeAgo(c.createdAt)}</span>
@@ -263,22 +268,19 @@ export default function CommunityPost() {
       {/* Composer */}
       {post && (
         <div className="flex-shrink-0" style={{ background: "var(--surface)", borderTop: "1px solid var(--border)" }}>
-          <div className="flex items-center gap-2.5 px-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] pt-3">
+          <div className="flex items-end gap-2.5 px-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] pt-3">
             <Avatar name={user?.name ?? ""} imageUrl={user?.imageUrl ?? null} size={36} />
-            <div className="flex flex-1 items-center rounded-full px-3.5" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
-              <input
-                type="text"
+            <div className="flex-1">
+              <MentionTextarea
                 value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder="Add a comment…"
-                className="flex-1 bg-transparent py-2.5 text-[13.5px] outline-none"
-                style={{ color: "var(--text)" }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    submitComment();
-                  }
-                }}
+                mentions={mentions}
+                onChange={(v, m) => { setText(v); setMentions(m); }}
+                token={token}
+                dropUp
+                rows={1}
+                placeholder="Add a comment… @ to tag"
+                className="w-full resize-none rounded-[20px] px-3.5 py-2.5 text-[13.5px] outline-none"
+                style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text)" }}
               />
             </div>
             <button

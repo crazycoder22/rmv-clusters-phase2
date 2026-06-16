@@ -52,6 +52,7 @@ export default function MentionTextarea({
   className,
   style,
   autoFocus,
+  dropUp,
 }: {
   value: string;
   mentions: CommentMention[];
@@ -62,6 +63,7 @@ export default function MentionTextarea({
   className?: string;
   style?: React.CSSProperties;
   autoFocus?: boolean;
+  dropUp?: boolean;
 }) {
   const ref = useRef<HTMLTextAreaElement>(null);
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -127,7 +129,7 @@ export default function MentionTextarea({
       />
       {tok && tok.query.trim().length >= 1 && hits.length > 0 && (
         <div
-          className="absolute left-0 right-0 top-full z-20 mt-1 max-h-56 overflow-y-auto rounded-[12px]"
+          className={`absolute left-0 right-0 z-20 max-h-56 overflow-y-auto rounded-[12px] ${dropUp ? "bottom-full mb-1" : "top-full mt-1"}`}
           style={{ background: "var(--surface)", border: "1px solid var(--border-strong)", boxShadow: "0 12px 30px rgba(0,0,0,0.25)" }}
         >
           {hits.map((h) => (

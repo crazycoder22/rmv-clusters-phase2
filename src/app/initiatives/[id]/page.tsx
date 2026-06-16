@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { youtubeId, type CommentMention } from "@/lib/initiatives";
 import RichTextViewer from "@/components/editor/RichTextViewer";
-import MentionInput, { renderWithMentions } from "@/components/initiatives/MentionInput";
+import MentionInput, { renderWithMentions } from "@/components/MentionInput";
 import { track, useDwell } from "@/lib/track-client";
 
 const looksLikeHtml = (s: string) => /<[a-z][\s\S]*>/i.test(s);

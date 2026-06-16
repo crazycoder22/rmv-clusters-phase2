@@ -692,6 +692,7 @@ model PostComment {
   authorId  String
   author    Resident @relation(fields: [authorId], references: [id], onDelete: Cascade)
   content   String
+  mentions  Json     @default("[]") // [{ id, name }] — tagged residents
   createdAt DateTime @default(now())
 
   @@index([postId])

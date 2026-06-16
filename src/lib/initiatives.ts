@@ -7,32 +7,12 @@ export const MAX_BODY = 5000;
 export const MAX_COMMENT = 2000;
 export const MAX_ATTACHMENTS = 5;
 export const MAX_ATTACHMENT_NAME = 200;
-export const MAX_MENTIONS = 10;
 
 export type InitiativeStatusValue = "OPEN" | "CLOSED" | "ARCHIVED";
 
-/** A resident tagged (@mentioned) in a comment. Name is resolved server-side. */
-export interface CommentMention {
-  id: string;
-  name: string;
-}
-
-/**
- * Normalize a client-supplied list of mentioned resident IDs: keep non-empty
- * strings, dedupe, cap at MAX_MENTIONS. Names + existence are resolved against
- * the DB in the route — never trust client-supplied names.
- */
-export function sanitizeMentionIds(raw: unknown): string[] {
-  if (!Array.isArray(raw)) return [];
-  const seen = new Set<string>();
-  for (const item of raw) {
-    if (typeof item !== "string") continue;
-    const id = item.trim();
-    if (id) seen.add(id);
-    if (seen.size >= MAX_MENTIONS) break;
-  }
-  return [...seen];
-}
+// @-mention helpers live in the shared module (also used by community feed
+// comments). Re-exported here so existing initiative imports keep working.
+export { MAX_MENTIONS, type CommentMention, sanitizeMentionIds } from "./mentions";
 
 /** A supporting document (PDF) attached to an initiative. */
 export interface InitiativeAttachment {

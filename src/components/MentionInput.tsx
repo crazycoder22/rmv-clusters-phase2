@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { CommentMention } from "@/lib/initiatives";
+import type { CommentMention } from "@/lib/mentions";
 
 interface ResidentHit {
   id: string;
@@ -48,6 +48,7 @@ export default function MentionInput({
   rows = 3,
   className,
   autoFocus,
+  dropUp,
 }: {
   value: string;
   mentions: CommentMention[];
@@ -56,6 +57,7 @@ export default function MentionInput({
   rows?: number;
   className?: string;
   autoFocus?: boolean;
+  dropUp?: boolean;
 }) {
   const ref = useRef<HTMLTextAreaElement>(null);
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -120,7 +122,7 @@ export default function MentionInput({
         className={className}
       />
       {token && token.query.trim().length >= 1 && hits.length > 0 && (
-        <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-56 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
+        <div className={`absolute left-0 right-0 z-20 max-h-56 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800 ${dropUp ? "bottom-full mb-1" : "top-full mt-1"}`}>
           {hits.map((h) => (
             <button
               key={h.id}

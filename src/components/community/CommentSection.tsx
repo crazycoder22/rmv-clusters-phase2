@@ -2,10 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { Send, Trash2, Loader2 } from "lucide-react";
+import MentionInput, { renderWithMentions } from "@/components/MentionInput";
+import type { CommentMention } from "@/lib/mentions";
 
 interface Comment {
   id: string;
   content: string;
+  mentions: CommentMention[];
   createdAt: string;
   author: {
     id: string;
@@ -44,6 +47,7 @@ export default function CommentSection({
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const [newComment, setNewComment] = useState("");
+  const [mentions, setMentions] = useState<CommentMention[]>([]);
   const [posting, setPosting] = useState(false);
 
   useEffect(() => {
@@ -57,15 +61,17 @@ export default function CommentSection({
     if (!newComment.trim() || posting) return;
     setPosting(true);
     try {
+      const mentionedIds = mentions.filter((m) => newComment.includes(`@${m.name}`)).map((m) => m.id);
       const res = await fetch(`/api/feed/${postId}/comments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: newComment.trim() }),
+        body: JSON.stringify({ content: newComment.trim(), mentionedIds }),
       });
       if (res.ok) {
         const comment = await res.json();
         setComments((prev) => [...prev, comment]);
         setNewComment("");
+        setMentions([]);
         onCommentCountChange(1);
       }
     } catch {
@@ -125,7 +131,7 @@ export default function CommentSection({
                           {timeAgo(c.createdAt)}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-700 dark:text-gray-300 mt-0.5">{c.content}</p>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 mt-0.5 whitespace-pre-wrap">{renderWithMentions(c.content, c.mentions)}</p>
                     </div>
                   </div>
                   {(c.author.id === currentUserId || isAdmin) && (
@@ -145,19 +151,21 @@ export default function CommentSection({
       )}
 
       {/* Add comment input */}
-      <div className="flex gap-2">
-        <input
-          type="text"
-          value={newComment}
-          onChange={(e) => setNewComment(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSubmit()}
-          placeholder="Write a comment..."
-          className="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm dark:text-gray-100 dark:placeholder:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
+      <div className="flex items-end gap-2">
+        <div className="flex-1">
+          <MentionInput
+            value={newComment}
+            mentions={mentions}
+            onChange={(v, m) => { setNewComment(v); setMentions(m); }}
+            placeholder="Write a comment… type @ to tag"
+            rows={1}
+            className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm dark:text-gray-100 dark:placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+          />
+        </div>
         <button
           onClick={handleSubmit}
           disabled={!newComment.trim() || posting}
-          className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg disabled:opacity-50 transition-colors"
+          className="p-2 mb-px text-primary-600 hover:bg-primary-50 rounded-lg disabled:opacity-50 transition-colors"
         >
           <Send size={16} />
         </button>
