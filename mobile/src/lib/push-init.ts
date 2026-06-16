@@ -105,6 +105,9 @@ export async function initPushNotifications(
             navigate(data?.id ? `/parking/${data.id}` : "/parking");
           } else if (type === "duty") {
             navigate("/duties");
+          } else if (type === "new_resident") {
+            // New registration awaiting approval → open admin Residents.
+            navigate("/admin/residents");
           } else if (type === "message" && data?.id) {
             navigate(`/messages/${data.id}`);
           } else if (type === "group_poll" && data?.groupId && data?.id) {

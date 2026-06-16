@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { isValidResidentType } from "@/lib/resident-types";
+import { sendPushToResidents } from "@/lib/push";
+
+// Roles that can approve a new registration (mirrors canManageResidents /
+// isAdmin in @/lib/roles — ADMIN-level and above).
+const RESIDENT_MANAGER_ROLES = ["ADMIN", "COMMUNITY_ADMIN", "SUPERADMIN"];
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -69,6 +74,29 @@ export async function POST(request: Request) {
       googleImage: session.user.image ?? null,
     },
   });
+
+  // Notify residents who can approve (admins/committee): in-app bell (web) +
+  // push (mobile). Best-effort — never block the registration response.
+  try {
+    const managers = await prisma.resident.findMany({
+      where: { isApproved: true, roles: { some: { name: { in: RESIDENT_MANAGER_ROLES } } } },
+      select: { id: true },
+    });
+    const managerIds = managers.map((m) => m.id);
+    if (managerIds.length > 0) {
+      const msg = `New registration: ${resident.name || "A resident"} (Block ${resident.block}, ${resident.flatNumber}) — review in Residents.`;
+      await prisma.notification.createMany({
+        data: managerIds.map((residentId) => ({ residentId, message: msg })),
+      });
+      await sendPushToResidents(managerIds, {
+        title: "🆕 New registration",
+        body: `${resident.name || "A new resident"} · Block ${resident.block}, ${resident.flatNumber} — tap to review`,
+        data: { type: "new_resident" },
+      });
+    }
+  } catch (err) {
+    console.error("[new-registration notify] failed:", err);
+  }
 
   return NextResponse.json(
     { success: true, id: resident.id },

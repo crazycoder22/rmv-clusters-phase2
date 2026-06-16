@@ -220,7 +220,7 @@ export default function NotificationBell() {
                         ? (n.message || `Survey: ${n.survey.title}`)
                         : n.poll
                         ? (n.message || `Poll: ${n.poll.title}`)
-                        : "Notification"}
+                        : (n.message || "Notification")}
                     </p>
                   </div>
                   <div className="flex items-center gap-2 mt-1">
@@ -228,12 +228,12 @@ export default function NotificationBell() {
                       className={`inline-block px-1.5 py-0.5 text-[10px] font-medium rounded capitalize ${getCategoryColor(
                         n.medalAward || n.medalAwardId
                           ? "medal"
-                          : n.announcement?.category ?? (n.marketplaceListing ? "marketplace" : n.survey ? "poll" : n.poll ? "poll" : n.reviewDoc ? "review" : n.post ? "community" : n.task ? "task" : n.issue ? "issue" : "visitor")
+                          : n.announcement?.category ?? (n.marketplaceListing ? "marketplace" : n.survey ? "poll" : n.poll ? "poll" : n.reviewDoc ? "review" : n.post ? "community" : n.task ? "task" : n.issue ? "issue" : n.message ? "update" : "visitor")
                       )}`}
                     >
                       {n.medalAward || n.medalAwardId
                         ? "medal"
-                        : n.announcement?.category ?? (n.marketplaceListing ? "marketplace" : n.survey ? "survey" : n.poll ? "poll" : n.reviewDoc ? "review" : n.post ? "community" : n.task ? "task" : n.issue ? "issue" : "visitor")}
+                        : n.announcement?.category ?? (n.marketplaceListing ? "marketplace" : n.survey ? "survey" : n.poll ? "poll" : n.reviewDoc ? "review" : n.post ? "community" : n.task ? "task" : n.issue ? "issue" : n.message ? "update" : "visitor")}
                     </span>
                     <span className="text-[10px] text-gray-400 dark:text-gray-500">
                       {timeAgo(n.createdAt)}
