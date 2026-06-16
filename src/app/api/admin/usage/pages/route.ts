@@ -47,7 +47,7 @@ export async function GET(request: Request) {
         distinct: ["entityId", "residentId"],
         select: { entityId: true },
       }),
-      prisma.pageView.findMany({ where: { createdAt: { gte: since } }, select: { createdAt: true } }),
+      prisma.pageView.findMany({ where: { createdAt: { gte: since } }, select: { createdAt: true, platform: true } }),
     ]);
 
   // ── Per-page (feature + pageKey) ──
@@ -124,19 +124,24 @@ export async function GET(request: Request) {
     .sort((a, b) => a.date.localeCompare(b.date));
 
   // ── Hourly profile (usage by time of day, IST, last 7 days) ──
-  // Buckets every page-view into its IST hour 0–23, over a rolling week, so we
-  // can see the daily usage shape (when residents actually open the app).
+  // Buckets every page-view into its IST hour 0–23, split by platform, over a
+  // rolling week, so we can see the daily usage shape AND which platform drives
+  // each hour (when residents actually open the app, and from where).
   const since7 = new Date(Date.now() - 7 * 86_400_000);
   const istHour = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kolkata", hour: "2-digit", hour12: false });
-  const hourCounts = new Array(24).fill(0) as number[];
+  const hourSplits: PlatformSplit[] = Array.from({ length: 24 }, emptySplit);
   const hourDays = new Set<string>();
   for (const r of trendRows) {
     if (r.createdAt < since7) continue;
     const h = Number(istHour.format(r.createdAt).slice(0, 2)) % 24;
-    hourCounts[h] += 1;
+    addPlatform(hourSplits[h], r.platform, 1);
     hourDays.add(istDay.format(r.createdAt));
   }
-  const hourly = hourCounts.map((count, hour) => ({ hour, count }));
+  const hourly = hourSplits.map((s, hour) => ({
+    hour,
+    ...s,
+    count: s.web + s.ios + s.android + s.app,
+  }));
 
   return NextResponse.json({ features, initiatives, trend, hourly, hourlyDays: hourDays.size });
 }

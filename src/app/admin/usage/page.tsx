@@ -40,9 +40,10 @@ type PageData = {
   features: FeatureRow[];
   initiatives: InitiativeRow[];
   trend: { date: string; count: number }[];
-  hourly: { hour: number; count: number }[];
+  hourly: HourBucket[];
   hourlyDays: number;
 };
+type HourBucket = { hour: number; count: number } & PlatformSplit;
 
 const PLAT: Record<string, { label: string; emoji: string; cls: string }> = {
   web: { label: "Website", emoji: "🌐", cls: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300" },
@@ -253,10 +254,19 @@ function fmtHour(h: number): string {
   return `${h12}${period}`;
 }
 
-function HourlyStrip({ hourly, days }: { hourly: { hour: number; count: number }[]; days: number }) {
+const PLAT_BAR: Record<keyof PlatformSplit, { color: string; label: string }> = {
+  web: { color: "#3b82f6", label: "Website" },
+  ios: { color: "#64748b", label: "iOS" },
+  android: { color: "#22c55e", label: "Android" },
+  app: { color: "#6366f1", label: "App" },
+};
+const PLAT_ORDER: (keyof PlatformSplit)[] = ["web", "ios", "android", "app"];
+
+function HourlyStrip({ hourly, days }: { hourly: HourBucket[]; days: number }) {
   const max = Math.max(...hourly.map((h) => h.count), 1);
   const total = hourly.reduce((s, h) => s + h.count, 0);
   const peak = hourly.reduce((a, b) => (b.count > a.count ? b : a), hourly[0]);
+  const totals = PLAT_ORDER.map((p) => ({ p, n: hourly.reduce((s, h) => s + h[p], 0) })).filter((x) => x.n > 0);
   return (
     <div className="mb-6">
       <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
@@ -266,20 +276,32 @@ function HourlyStrip({ hourly, days }: { hourly: { hour: number; count: number }
           {peak.count > 0 ? ` · busiest ${fmtHour(peak.hour)}–${fmtHour((peak.hour + 1) % 24)}` : ""}
         </span>
       </h3>
+      {/* Platform legend */}
+      <div className="flex flex-wrap gap-x-4 gap-y-1 mb-2">
+        {totals.map(({ p, n }) => (
+          <span key={p} className="inline-flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+            <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: PLAT_BAR[p].color }} />
+            {PLAT_BAR[p].label} <span className="tabular-nums text-gray-400 dark:text-gray-500">{n}</span>
+          </span>
+        ))}
+      </div>
       <div className="rounded-xl border border-gray-200 dark:border-gray-700 p-3 bg-white dark:bg-gray-800">
         <div className="flex items-end gap-0.5 h-28">
-          {hourly.map((h) => (
-            <div
-              key={h.hour}
-              className="flex-1 flex items-end h-full"
-              title={`${fmtHour(h.hour)}–${fmtHour((h.hour + 1) % 24)}: ${h.count} open${h.count === 1 ? "" : "s"}`}
-            >
-              <div
-                className={`w-full rounded-sm min-h-[2px] ${h.hour === peak.hour && peak.count > 0 ? "bg-blue-600 dark:bg-blue-400" : "bg-blue-500/60 dark:bg-blue-400/50"}`}
-                style={{ height: `${(h.count / max) * 100}%` }}
-              />
-            </div>
-          ))}
+          {hourly.map((h) => {
+            const segs = PLAT_ORDER.map((p) => ({ p, n: h[p] })).filter((x) => x.n > 0);
+            const tip = `${fmtHour(h.hour)}–${fmtHour((h.hour + 1) % 24)}: ${h.count} open${h.count === 1 ? "" : "s"}` +
+              (segs.length ? ` (${segs.map((s) => `${PLAT_BAR[s.p].label} ${s.n}`).join(", ")})` : "");
+            return (
+              <div key={h.hour} className="flex-1 flex items-end h-full" title={tip}>
+                {/* Total column height ∝ count; inside, segments ∝ platform share (stacked) */}
+                <div className="w-full flex flex-col-reverse min-h-[2px]" style={{ height: `${(h.count / max) * 100}%` }}>
+                  {segs.map((s) => (
+                    <div key={s.p} style={{ height: `${(s.n / h.count) * 100}%`, backgroundColor: PLAT_BAR[s.p].color }} />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
         {/* x-axis ticks every 6 hours */}
         <div className="flex mt-1.5">
@@ -293,7 +315,7 @@ function HourlyStrip({ hourly, days }: { hourly: { hour: number; count: number }
         </div>
       </div>
       <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5">
-        Each bar is one hour (IST), counting page opens across the last 7 days. The shape shows when residents are most active.
+        Each bar is one hour (IST), stacked by platform, counting page opens across the last 7 days. The shape shows when residents are most active and from which platform.
       </p>
     </div>
   );
