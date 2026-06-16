@@ -5,8 +5,42 @@
 export const MAX_TITLE = 150;
 export const MAX_BODY = 5000;
 export const MAX_COMMENT = 2000;
+export const MAX_ATTACHMENTS = 5;
+export const MAX_ATTACHMENT_NAME = 200;
 
 export type InitiativeStatusValue = "OPEN" | "CLOSED" | "ARCHIVED";
+
+/** A supporting document (PDF) attached to an initiative. */
+export interface InitiativeAttachment {
+  url: string;
+  name: string;
+}
+
+/**
+ * Normalize/validate an attachments array from a request body. Returns the
+ * cleaned list, or an error. Absent/empty → []. Used by validateInitiative.
+ */
+export function parseAttachments(
+  raw: unknown
+): { ok: true; data: InitiativeAttachment[] } | { ok: false; error: string } {
+  if (raw === undefined || raw === null) return { ok: true, data: [] };
+  if (!Array.isArray(raw)) return { ok: false, error: "Invalid documents" };
+  if (raw.length > MAX_ATTACHMENTS) {
+    return { ok: false, error: `Attach at most ${MAX_ATTACHMENTS} documents` };
+  }
+  const out: InitiativeAttachment[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") return { ok: false, error: "Invalid documents" };
+    const r = item as Record<string, unknown>;
+    const url = typeof r.url === "string" ? r.url.trim() : "";
+    if (!url) return { ok: false, error: "A document is missing its file" };
+    let name = typeof r.name === "string" ? r.name.trim() : "";
+    if (!name) name = "Document";
+    if (name.length > MAX_ATTACHMENT_NAME) name = name.slice(0, MAX_ATTACHMENT_NAME);
+    out.push({ url, name });
+  }
+  return { ok: true, data: out };
+}
 
 /**
  * The single source of truth for "can someone still comment?".
@@ -26,6 +60,7 @@ export interface ValidatedInitiative {
   body: string;
   imageUrl: string | null;
   youtubeUrl: string | null;
+  attachments: InitiativeAttachment[];
   commentsCloseAt: Date;
 }
 
@@ -72,7 +107,10 @@ export function validateInitiative(
     youtubeUrl = raw;
   }
 
-  return { ok: true, data: { title, body, imageUrl, youtubeUrl, commentsCloseAt } };
+  const att = parseAttachments(r.attachments);
+  if (!att.ok) return { ok: false, error: att.error };
+
+  return { ok: true, data: { title, body, imageUrl, youtubeUrl, attachments: att.data, commentsCloseAt } };
 }
 
 /** Validate a comment/reply body. */

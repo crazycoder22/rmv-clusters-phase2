@@ -6,7 +6,7 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft, Megaphone, Heart, MessageSquare, Lock, ShieldCheck,
-  Trash2, Pencil, Send, CornerDownRight,
+  Trash2, Pencil, Send, CornerDownRight, FileText,
 } from "lucide-react";
 import { youtubeId } from "@/lib/initiatives";
 import RichTextViewer from "@/components/editor/RichTextViewer";
@@ -31,6 +31,7 @@ interface InitiativeDetail {
   body: string;
   imageUrl: string | null;
   youtubeUrl: string | null;
+  attachments: { url: string; name: string }[];
   status: "OPEN" | "CLOSED" | "ARCHIVED";
   commentsCloseAt: string;
   isOpen: boolean;
@@ -151,6 +152,31 @@ export default function InitiativeDetailPage() {
           <RichTextViewer html={data.body} className="mt-3 text-gray-800 dark:text-gray-200 leading-relaxed" />
         ) : (
           <p className="mt-3 text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-relaxed">{data.body}</p>
+        )}
+
+        {/* Supporting documents */}
+        {data.attachments?.length > 0 && (
+          <div className="mt-4">
+            <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+              <FileText size={14} /> Documents ({data.attachments.length})
+            </h2>
+            <ul className="space-y-2">
+              {data.attachments.map((a, i) => (
+                <li key={`${a.url}-${i}`}>
+                  <a
+                    href={a.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2.5 hover:border-blue-400 transition-colors"
+                  >
+                    <FileText size={20} className="text-red-600 shrink-0" />
+                    <span className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate flex-1">{a.name}</span>
+                    <span className="text-xs text-blue-600 shrink-0">Preview</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
 
         {/* Open/closed banner */}

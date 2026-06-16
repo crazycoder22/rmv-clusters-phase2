@@ -24,6 +24,7 @@ interface InitiativeDetail {
   body: string;
   imageUrl: string | null;
   youtubeUrl: string | null;
+  attachments: { url: string; name: string }[];
   status: "OPEN" | "CLOSED" | "ARCHIVED";
   commentsCloseAt: string;
   isOpen: boolean;
@@ -171,6 +172,30 @@ export default function InitiativeDetail() {
 
       {/* Image */}
       {data.imageUrl && <img src={data.imageUrl} alt="" className="mt-3.5 w-full rounded-[14px] object-cover" style={{ border: "1px solid var(--border)" }} />}
+
+      {/* Documents */}
+      {data.attachments?.length > 0 && (
+        <div className="mt-[18px]">
+          <div className="mb-2.5 flex items-center gap-2" style={{ color: "var(--text-3)" }}>
+            <Icon name="description" size={17} style={{ color: "var(--text-3)" }} />
+            <span className="text-[12px] font-bold tracking-wide">DOCUMENTS ({data.attachments.length})</span>
+          </div>
+          <div className="flex flex-col gap-2">
+            {data.attachments.map((a, i) => (
+              <button
+                key={`${a.url}-${i}`}
+                onClick={() => { Browser.open({ url: a.url }).catch(() => window.open(a.url, "_blank")); }}
+                className="flex items-center gap-2.5 rounded-[12px] px-3.5 py-3 text-left active:opacity-90"
+                style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+              >
+                <Icon name="picture_as_pdf" size={22} style={{ color: "#ff3b30" }} />
+                <span className="flex-1 truncate text-[14px] font-semibold" style={{ color: "var(--text)" }}>{a.name}</span>
+                <span className="text-[12px] font-bold" style={{ color: "var(--accent)" }}>Preview</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Deadline */}
       {data.isOpen ? (

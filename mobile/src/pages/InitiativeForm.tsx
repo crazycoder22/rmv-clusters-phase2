@@ -8,12 +8,19 @@ import { API_BASE_URL } from "../config";
 import { useAuth } from "../auth/AuthProvider";
 
 const MAX_TITLE = 150;
+const MAX_ATTACHMENTS = 5;
+
+interface Attachment {
+  url: string;
+  name: string;
+}
 
 interface Detail {
   title: string;
   body: string;
   imageUrl: string | null;
   youtubeUrl: string | null;
+  attachments: Attachment[];
   commentsCloseAt: string;
   canManage: boolean;
 }
@@ -32,12 +39,15 @@ export default function InitiativeForm() {
   const [body, setBody] = useState("");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [youtubeUrl, setYoutubeUrl] = useState("");
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [commentsCloseAt, setCommentsCloseAt] = useState(defaultDeadline());
   const [loading, setLoading] = useState(editing);
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [docUploading, setDocUploading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const docRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -51,6 +61,7 @@ export default function InitiativeForm() {
           setBody(d.body ?? "");
           setImageUrl(d.imageUrl ?? null);
           setYoutubeUrl(d.youtubeUrl ?? "");
+          setAttachments(Array.isArray(d.attachments) ? d.attachments : []);
           setCommentsCloseAt(toLocalInput(d.commentsCloseAt));
         }
       } finally {
@@ -80,6 +91,35 @@ export default function InitiativeForm() {
     }
   }
 
+  async function uploadDocs(files: FileList) {
+    setErr(null);
+    const room = MAX_ATTACHMENTS - attachments.length;
+    if (room <= 0) { setErr(`You can attach at most ${MAX_ATTACHMENTS} documents`); return; }
+    const picked = Array.from(files).slice(0, room);
+    setDocUploading(true);
+    try {
+      for (const file of picked) {
+        const fd = new FormData();
+        fd.append("file", file);
+        const res = await fetch(`${API_BASE_URL}/api/upload`, {
+          method: "POST",
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+          body: fd,
+        });
+        const data = await res.json().catch(() => null);
+        if (res.ok && data?.url) {
+          setAttachments((prev) => [...prev, { url: data.url, name: file.name }]);
+        } else {
+          setErr(data?.error ?? "Could not upload document");
+        }
+      }
+    } catch {
+      setErr("Could not upload document");
+    } finally {
+      setDocUploading(false);
+    }
+  }
+
   async function submit() {
     setErr(null);
     if (!title.trim()) { setErr("Give the initiative a title"); return; }
@@ -98,6 +138,7 @@ export default function InitiativeForm() {
         body: body.trim(),
         imageUrl,
         youtubeUrl: youtubeUrl.trim() || null,
+        attachments,
         commentsCloseAt: closeDate.toISOString(),
       };
       const res = await apiFetch(editing ? `/api/initiatives/${id}` : "/api/initiatives", {
@@ -176,6 +217,32 @@ export default function InitiativeForm() {
           )}
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void upload(f); e.target.value = ""; }} />
         </div>
+
+        {/* Documents (PDF) */}
+        <label className={`${lbl} mt-[18px]`} style={{ color: "var(--text-2)" }}>
+          Documents <span className="font-normal" style={{ color: "var(--text-3)" }}>(PDF, optional)</span>
+        </label>
+        {attachments.length > 0 && (
+          <div className="mb-2.5 flex flex-col gap-2">
+            {attachments.map((a, i) => (
+              <div key={`${a.url}-${i}`} className="flex items-center gap-2.5 rounded-[12px] px-3.5 py-3" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+                <Icon name="picture_as_pdf" size={20} style={{ color: "#ff3b30" }} />
+                <span className="flex-1 truncate text-[14px]" style={{ color: "var(--text)" }}>{a.name}</span>
+                <button onClick={() => setAttachments((prev) => prev.filter((_, j) => j !== i))} aria-label="Remove document"><Icon name="close" size={18} style={{ color: "var(--text-3)" }} /></button>
+              </div>
+            ))}
+          </div>
+        )}
+        {attachments.length < MAX_ATTACHMENTS ? (
+          <button onClick={() => docRef.current?.click()} disabled={docUploading} className="inline-flex items-center gap-2 rounded-[12px] px-4 py-3 text-[14px] font-semibold disabled:opacity-60" style={{ border: "1.5px dashed var(--border-strong)", color: "var(--text-2)" }}>
+            {docUploading ? <Loader2 size={17} className="animate-spin" /> : <Icon name="upload_file" size={19} style={{ color: "var(--text-2)" }} />}
+            {docUploading ? "Uploading…" : "Add PDF"}
+          </button>
+        ) : (
+          <p className="text-[12px]" style={{ color: "var(--text-3)" }}>Maximum {MAX_ATTACHMENTS} documents.</p>
+        )}
+        <input ref={docRef} type="file" accept="application/pdf" multiple className="hidden" onChange={(e) => { if (e.target.files?.length) void uploadDocs(e.target.files); e.target.value = ""; }} />
+        <p className="mt-1.5 text-[12px] leading-relaxed" style={{ color: "var(--text-3)" }}>Attach supporting documents — residents can preview them.</p>
 
         {err && <p className="mt-4 rounded-[12px] px-3.5 py-2.5 text-[13px]" style={{ background: "var(--danger-soft)", color: "var(--danger)" }}>{err}</p>}
 

@@ -4,11 +4,17 @@ import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Upload, X } from "lucide-react";
+import { ArrowLeft, Upload, X, FileText } from "lucide-react";
 import RichTextEditor from "@/components/editor/RichTextEditor";
 
 const MAX_TITLE = 150;
 const MAX_BODY = 5000;
+const MAX_ATTACHMENTS = 5;
+
+interface Attachment {
+  url: string;
+  name: string;
+}
 
 export default function InitiativeForm({ initiativeId }: { initiativeId?: string }) {
   const { status } = useSession();
@@ -19,12 +25,15 @@ export default function InitiativeForm({ initiativeId }: { initiativeId?: string
   const [body, setBody] = useState("");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [youtubeUrl, setYoutubeUrl] = useState("");
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [commentsCloseAt, setCommentsCloseAt] = useState(defaultDeadline());
   const [loading, setLoading] = useState(editing);
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [docUploading, setDocUploading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const docRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -42,6 +51,7 @@ export default function InitiativeForm({ initiativeId }: { initiativeId?: string
           setBody(d.body ?? "");
           setImageUrl(d.imageUrl ?? null);
           setYoutubeUrl(d.youtubeUrl ?? "");
+          setAttachments(Array.isArray(d.attachments) ? d.attachments : []);
           setCommentsCloseAt(toLocalInput(d.commentsCloseAt));
         } else if (res.status === 403) {
           router.push("/initiatives");
@@ -67,6 +77,29 @@ export default function InitiativeForm({ initiativeId }: { initiativeId?: string
     }
   }
 
+  async function uploadDocs(files: FileList) {
+    setErr(null);
+    const room = MAX_ATTACHMENTS - attachments.length;
+    if (room <= 0) { setErr(`You can attach at most ${MAX_ATTACHMENTS} documents`); return; }
+    const picked = Array.from(files).slice(0, room);
+    setDocUploading(true);
+    try {
+      for (const file of picked) {
+        const fd = new FormData();
+        fd.append("file", file);
+        const res = await fetch("/api/upload", { method: "POST", body: fd });
+        const data = await res.json().catch(() => null);
+        if (res.ok && data?.url) {
+          setAttachments((prev) => [...prev, { url: data.url, name: file.name }]);
+        } else {
+          setErr(data?.error ?? "Could not upload document");
+        }
+      }
+    } finally {
+      setDocUploading(false);
+    }
+  }
+
   async function submit() {
     setErr(null);
     if (!title.trim()) { setErr("Give the initiative a title"); return; }
@@ -84,6 +117,7 @@ export default function InitiativeForm({ initiativeId }: { initiativeId?: string
         body: body.trim(),
         imageUrl,
         youtubeUrl: youtubeUrl.trim() || null,
+        attachments,
         commentsCloseAt: closeDate.toISOString(),
       };
       const res = editing
@@ -138,6 +172,29 @@ export default function InitiativeForm({ initiativeId }: { initiativeId?: string
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">YouTube video <span className="text-gray-400 dark:text-gray-500 font-normal">(optional)</span></label>
             <input value={youtubeUrl} onChange={(e) => setYoutubeUrl(e.target.value)} placeholder="Paste a YouTube link" className={inputCls} />
             <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Add a walkthrough or explainer video.</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Documents <span className="text-gray-400 dark:text-gray-500 font-normal">(PDF, optional)</span></label>
+            {attachments.length > 0 && (
+              <ul className="space-y-2 mb-2">
+                {attachments.map((a, i) => (
+                  <li key={`${a.url}-${i}`} className="flex items-center gap-2 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2">
+                    <FileText size={16} className="text-red-600 shrink-0" />
+                    <span className="text-sm text-gray-700 dark:text-gray-200 truncate flex-1">{a.name}</span>
+                    <button type="button" onClick={() => setAttachments((prev) => prev.filter((_, j) => j !== i))} className="text-gray-400 dark:text-gray-500 hover:text-red-600 shrink-0"><X size={15} /></button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {attachments.length < MAX_ATTACHMENTS ? (
+              <button type="button" onClick={() => docRef.current?.click()} disabled={docUploading} className="inline-flex items-center gap-1.5 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-60">
+                <Upload size={15} /> {docUploading ? "Uploading…" : "Add PDF"}
+              </button>
+            ) : (
+              <p className="text-xs text-gray-400 dark:text-gray-500">Maximum {MAX_ATTACHMENTS} documents.</p>
+            )}
+            <input ref={docRef} type="file" accept="application/pdf" multiple className="hidden" onChange={(e) => { if (e.target.files?.length) void uploadDocs(e.target.files); e.target.value = ""; }} />
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Attach supporting documents (budgets, quotes, drafts). Residents can preview them.</p>
           </div>
 
           {err && <p className="bg-red-50 dark:bg-red-900/30 border border-red-200 text-red-700 rounded-lg px-3 py-2 text-sm">{err}</p>}

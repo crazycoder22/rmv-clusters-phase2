@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { getAuthedResident } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "../../../generated/prisma/client";
 import { canManageAnnouncements } from "@/lib/roles";
 import { sendPushToResidents } from "@/lib/push";
-import { validateInitiative } from "@/lib/initiatives";
+import { validateInitiative, type InitiativeAttachment } from "@/lib/initiatives";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,7 @@ export async function GET(request: Request) {
       isOpen: i.status === "OPEN" && i.commentsCloseAt.getTime() > now.getTime(),
       commentCount: i._count.comments,
       imageUrl: i.imageUrl,
+      attachmentCount: (i.attachments as unknown as InitiativeAttachment[]).length,
       author: i.author,
       createdAt: i.createdAt.toISOString(),
     })),
@@ -61,6 +63,7 @@ export async function POST(request: Request) {
       body: v.data.body,
       imageUrl: v.data.imageUrl,
       youtubeUrl: v.data.youtubeUrl,
+      attachments: v.data.attachments as unknown as Prisma.InputJsonValue,
       commentsCloseAt: v.data.commentsCloseAt,
     },
   });

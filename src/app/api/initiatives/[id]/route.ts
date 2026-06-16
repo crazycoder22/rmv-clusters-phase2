@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getAuthedResident } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { canManageAnnouncements } from "@/lib/roles";
-import { validateInitiative, type InitiativeStatusValue } from "@/lib/initiatives";
+import { validateInitiative, type InitiativeStatusValue, type InitiativeAttachment } from "@/lib/initiatives";
 
 export const dynamic = "force-dynamic";
 
@@ -70,6 +70,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     body: initiative.body,
     imageUrl: initiative.imageUrl,
     youtubeUrl: initiative.youtubeUrl,
+    attachments: initiative.attachments as unknown as InitiativeAttachment[],
     status: initiative.status,
     commentsCloseAt: initiative.commentsCloseAt.toISOString(),
     isOpen,
@@ -119,7 +120,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 
   // content fields — validate together only if any provided
-  if ("title" in body || "body" in body || "commentsCloseAt" in body || "imageUrl" in body || "youtubeUrl" in body) {
+  if ("title" in body || "body" in body || "commentsCloseAt" in body || "imageUrl" in body || "youtubeUrl" in body || "attachments" in body) {
     const v = validateInitiative(
       {
         title: body.title,
@@ -127,6 +128,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         commentsCloseAt: body.commentsCloseAt,
         imageUrl: body.imageUrl,
         youtubeUrl: body.youtubeUrl,
+        attachments: body.attachments,
       },
       // allow keeping an existing (possibly past) deadline only when it's unchanged;
       // validateInitiative requires a future deadline, so callers editing other
@@ -140,6 +142,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     // Only touch youtubeUrl when the caller actually sent it, so an edit from a
     // client that doesn't know the field can't wipe an existing video link.
     if ("youtubeUrl" in body) data.youtubeUrl = v.data.youtubeUrl;
+    // Same guard for attachments — an old client that doesn't send the field
+    // must not wipe existing documents.
+    if ("attachments" in body) data.attachments = v.data.attachments;
     data.commentsCloseAt = v.data.commentsCloseAt;
   }
 
