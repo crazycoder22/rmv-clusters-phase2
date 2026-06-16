@@ -75,7 +75,7 @@ export default function EventDashboardPage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<"name" | "total" | "average">("total");
+  const [sortBy, setSortBy] = useState<"daysMet" | "name" | "total" | "average">("daysMet");
   const [selectedParticipant, setSelectedParticipant] = useState<DashboardParticipant | null>(null);
 
   useEffect(() => {
@@ -122,7 +122,10 @@ export default function EventDashboardPage({
   const sortedLeaderboard = [...stepLeaderboard].sort((a, b) => {
     if (sortBy === "name") return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
     if (sortBy === "average") return b.averageDailySteps - a.averageDailySteps;
-    return b.totalSteps - a.totalSteps;
+    if (sortBy === "total") return b.totalSteps - a.totalSteps;
+    // daysMet (default): most goal-days met first, then alphabetical so the
+    // people keeping their promise stay at the top.
+    return (b.daysGoalMet - a.daysGoalMet) || a.name.toLowerCase().localeCompare(b.name.toLowerCase());
   });
   const displayList = hasStepTracking ? sortedLeaderboard : participants;
   const filteredParticipants = searchTerm
@@ -218,7 +221,8 @@ export default function EventDashboardPage({
         <div className="flex flex-wrap items-center justify-between gap-5 mb-5">
           <div className="flex items-center gap-3">
             <span className="text-sm font-semibold" style={{ color: "var(--text-2)" }}>Sort by</span>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
+              <SortPill active={sortBy === "daysMet"} onClick={() => setSortBy("daysMet")}>Days Met</SortPill>
               <SortPill active={sortBy === "name"} onClick={() => setSortBy("name")}>Name</SortPill>
               <SortPill active={sortBy === "total"} onClick={() => setSortBy("total")}>Total Steps</SortPill>
               <SortPill active={sortBy === "average"} onClick={() => setSortBy("average")}>Avg / Day</SortPill>
