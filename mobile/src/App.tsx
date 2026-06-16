@@ -10,6 +10,7 @@ import MemoryGame from "./pages/MemoryGame";
 import Wordle from "./pages/Wordle";
 import Sudoku from "./pages/Sudoku";
 import Game2048 from "./pages/Game2048";
+import Crossword from "./pages/Crossword";
 import QuizJoin from "./pages/QuizJoin";
 import QuizSession from "./pages/QuizSession";
 import TambolaJoin from "./pages/TambolaJoin";
@@ -153,6 +154,7 @@ function Gate() {
           <Route path="/wordle" element={<Wordle />} />
           <Route path="/sudoku" element={<Sudoku />} />
           <Route path="/2048" element={<Game2048 />} />
+          <Route path="/crossword" element={<Crossword />} />
           <Route path="/quiz" element={<QuizJoin />} />
           <Route path="/quiz/:code" element={<QuizSession />} />
           <Route path="/tambola" element={<TambolaJoin />} />

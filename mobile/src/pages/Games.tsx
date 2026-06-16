@@ -24,6 +24,7 @@ const GAMES: Game[] = [
   { to: "/memory", ms: "dashboard", title: "Memory Match", subtitle: "Daily 5×4 card challenge", cat: "both", tags: ["daily", "2p"], meta: "Multiplayer inside", metaIcon: "group" },
   { to: "/wordle", ms: "abc", title: "Wordle", subtitle: "Guess the 5-letter word", cat: "solo", tags: ["daily"], meta: "Resets at midnight", metaIcon: "schedule" },
   { to: "/anagram", ms: "spellcheck", title: "Anagram", subtitle: "Find words from 7 letters", cat: "solo", tags: ["daily"], meta: "Resets at midnight", metaIcon: "schedule" },
+  { to: "/crossword", ms: "grid_on", title: "Crossword", subtitle: "Daily 5×5 mini puzzle", cat: "solo", tags: ["daily"], meta: "Resets at midnight", metaIcon: "schedule" },
   { to: "/sudoku", ms: "grid_3x3", title: "Sudoku", subtitle: "Daily 9×9 number puzzle", cat: "solo", tags: [], meta: "3 difficulty levels", metaIcon: "tune" },
   { to: "/2048", ms: "grid_4x4", title: "2048", subtitle: "Swipe to merge the tiles", cat: "solo", tags: [] },
   { to: "/quiz", ms: "quiz", title: "Quiz Night", subtitle: "Join the live community quiz", cat: "live", tags: ["live"], meta: "Join with a code", metaIcon: "vpn_key" },
