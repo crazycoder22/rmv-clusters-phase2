@@ -2,8 +2,22 @@
 
 import { useState, useEffect, use } from "react";
 import Link from "next/link";
-import { ArrowLeft, Search, Users, X, TrendingUp, Target, Calendar, Flame, CheckCircle } from "lucide-react";
+import { useSession } from "next-auth/react";
+import {
+  ArrowLeft,
+  Search,
+  Users,
+  X,
+  TrendingUp,
+  Target,
+  Calendar,
+  Flame,
+  CheckCircle,
+} from "lucide-react";
 import type { CustomFieldType } from "@/types";
+
+const ORANGE = "#f59e0b";
+const CHALLENGE_DAYS = 14;
 
 interface StepDayEntry {
   date: string;
@@ -43,9 +57,12 @@ export default function EventDashboardPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const { data: session } = useSession();
+  const myName = session?.user?.name ?? null;
 
   const [eventTitle, setEventTitle] = useState("");
   const [eventSummary, setEventSummary] = useState("");
+  const [eventDate, setEventDate] = useState<string | null>(null);
   const [customFields, setCustomFields] = useState<CustomFieldType[]>([]);
   const [participants, setParticipants] = useState<DashboardParticipant[]>([]);
   const [totalParticipants, setTotalParticipants] = useState(0);
@@ -58,7 +75,7 @@ export default function EventDashboardPage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<"total" | "average">("total");
+  const [sortBy, setSortBy] = useState<"name" | "total" | "average">("total");
   const [selectedParticipant, setSelectedParticipant] = useState<DashboardParticipant | null>(null);
 
   useEffect(() => {
@@ -73,6 +90,7 @@ export default function EventDashboardPage({
         const data = await res.json();
         setEventTitle(data.announcement.title);
         setEventSummary(data.announcement.summary);
+        setEventDate(data.announcement.date ?? null);
         setCustomFields(data.eventConfig.customFields || []);
         setParticipants(data.participants);
         setTotalParticipants(data.totalParticipants);
@@ -88,16 +106,24 @@ export default function EventDashboardPage({
         setLoading(false);
       }
     }
-
     fetchDashboard();
   }, [id]);
 
-  // Sort leaderboard
-  const sortedLeaderboard = [...stepLeaderboard].sort((a, b) =>
-    sortBy === "total" ? b.totalSteps - a.totalSteps : b.averageDailySteps - a.averageDailySteps
-  );
+  // Challenge day / live indicator
+  const start = eventDate ? new Date(eventDate) : null;
+  const dayNum = start
+    ? Math.min(CHALLENGE_DAYS, Math.max(1, Math.floor((Date.now() - start.getTime()) / 86400000) + 1))
+    : null;
+  const isLive = start
+    ? Date.now() >= start.getTime() && Date.now() < start.getTime() + CHALLENGE_DAYS * 86400000
+    : false;
 
-  // Filter participants by search term
+  // Sort + filter (step path)
+  const sortedLeaderboard = [...stepLeaderboard].sort((a, b) => {
+    if (sortBy === "name") return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+    if (sortBy === "average") return b.averageDailySteps - a.averageDailySteps;
+    return b.totalSteps - a.totalSteps;
+  });
   const displayList = hasStepTracking ? sortedLeaderboard : participants;
   const filteredParticipants = searchTerm
     ? displayList.filter(
@@ -108,30 +134,23 @@ export default function EventDashboardPage({
       )
     : displayList;
 
-  const getRankDisplay = (index: number) => {
-    if (index === 0) return <span className="text-lg">🥇</span>;
-    if (index === 1) return <span className="text-lg">🥈</span>;
-    if (index === 2) return <span className="text-lg">🥉</span>;
-    return <span className="text-xs text-gray-400">{index + 1}</span>;
-  };
+  const topSteps =
+    stepLeaderboard.length > 0 ? Math.max(...stepLeaderboard.map((p) => p.totalSteps)) : 0;
 
   if (loading) {
     return (
-      <div className="max-w-5xl mx-auto px-4 py-12">
-        <p className="text-center text-gray-500 dark:text-gray-400">Loading dashboard...</p>
+      <div className="max-w-[1180px] mx-auto px-6 py-12" style={{ color: "var(--text-3)" }}>
+        <p className="text-center text-sm">Loading dashboard…</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="max-w-5xl mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Dashboard</h1>
-        <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
-        <Link
-          href={`/events/${id}/rsvp`}
-          className="text-primary-600 hover:text-primary-700 font-medium text-sm"
-        >
+      <div className="max-w-[1180px] mx-auto px-6 py-12 text-center">
+        <h1 className="text-2xl font-bold mb-2" style={{ color: "var(--text)" }}>Dashboard</h1>
+        <p className="mb-4" style={{ color: "var(--text-2)" }}>{error}</p>
+        <Link href={`/events/${id}/rsvp`} className="text-sm font-medium" style={{ color: "var(--accent)" }}>
           &larr; Back to Event
         </Link>
       </div>
@@ -139,559 +158,399 @@ export default function EventDashboardPage({
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
-      {/* Header */}
+    <div className="max-w-[1180px] mx-auto px-5 sm:px-8 py-10" style={{ color: "var(--text)" }}>
+      {/* Back */}
       <Link
         href={`/events/${id}/rsvp`}
-        className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 mb-4"
+        className="inline-flex items-center gap-2 text-sm font-semibold mb-7"
+        style={{ color: "var(--text-2)" }}
       >
-        <ArrowLeft size={16} />
-        Back to Event
+        <ArrowLeft size={20} /> Back to Event
       </Link>
 
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">{eventTitle}</h1>
-        {eventSummary && (
-          <p className="text-gray-500 dark:text-gray-400 text-sm">{eventSummary}</p>
-        )}
+      {/* Challenge header */}
+      <div className="flex flex-wrap items-end justify-between gap-6 mb-8">
+        <div className="max-w-[640px]">
+          <div className="flex items-center gap-3">
+            <span className="text-3xl leading-none">🏃</span>
+            <h1 className="text-3xl sm:text-[38px] font-extrabold tracking-tight leading-tight" style={{ color: "var(--text)" }}>
+              {eventTitle}
+            </h1>
+          </div>
+          {eventSummary && (
+            <p className="mt-3.5 text-base leading-relaxed" style={{ color: "var(--text-2)" }}>{eventSummary}</p>
+          )}
+          {hasStepTracking && dayNum !== null && (
+            <div className="mt-3.5 flex items-center gap-2 font-mono text-xs tracking-wider" style={{ color: "var(--text-3)" }}>
+              <span className="inline-flex w-[7px] h-[7px] rounded-full" style={{ background: isLive ? "var(--success)" : "var(--text-3)" }} />
+              DAY {dayNum} OF {CHALLENGE_DAYS}{isLive ? " · LIVE" : ""}
+            </div>
+          )}
+        </div>
         {hasStepTracking && (
           <Link
             href={`/steps/${id}`}
-            className="inline-flex items-center gap-1.5 mt-3 bg-primary-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-primary-700"
+            className="inline-flex items-center gap-2.5 font-bold text-base text-white px-6 py-3.5 rounded-[13px] whitespace-nowrap"
+            style={{ background: "var(--accent-strong)", boxShadow: "0 10px 26px var(--accent-soft)" }}
           >
-            🏃 Enter my steps
+            <span className="text-lg leading-none">🏃</span> Enter my steps
           </Link>
         )}
       </div>
 
-      {/* Summary Cards */}
-      <div className={`grid gap-4 mb-6 ${hasStepTracking ? "grid-cols-2 sm:grid-cols-3" : ""}`}>
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 flex items-center gap-3">
-          <div className="bg-primary-50 rounded-full p-2">
-            <Users size={20} className="text-primary-600" />
+      {/* Summary cards */}
+      {hasStepTracking ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 mb-9">
+          <StatCard icon={<Users size={24} />} tint="var(--accent-soft)" ic="var(--accent)" value={totalParticipants.toLocaleString("en-IN")} label="Participants" />
+          <StatCard icon={<Flame size={24} />} tint="rgba(245,158,11,0.16)" ic={ORANGE} value={topSteps.toLocaleString("en-IN")} label="Top Steps" />
+          <StatCard icon={<CheckCircle size={24} />} tint="var(--success-soft)" ic="var(--success)" value={`${onTrackCount} / ${totalWithGoal}`} label="On Track" />
+          <StatCard icon={<Target size={24} />} tint="var(--accent-soft)" ic="var(--accent)" value={totalStepTarget > 0 ? totalStepTarget.toLocaleString("en-IN") : "—"} label="Total Step Target" />
+          <StatCard icon={<TrendingUp size={24} />} tint="var(--accent-soft)" ic="var(--accent)" value={totalActualSteps.toLocaleString("en-IN")} label="Total Actual Steps" />
+        </div>
+      ) : (
+        <div className="mb-8">
+          <StatCard icon={<Users size={24} />} tint="var(--accent-soft)" ic="var(--accent)" value={totalParticipants.toLocaleString("en-IN")} label="Participants" />
+        </div>
+      )}
+
+      {/* Controls */}
+      {hasStepTracking && stepLeaderboard.length > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-5 mb-5">
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-semibold" style={{ color: "var(--text-2)" }}>Sort by</span>
+            <div className="flex gap-2">
+              <SortPill active={sortBy === "name"} onClick={() => setSortBy("name")}>Name</SortPill>
+              <SortPill active={sortBy === "total"} onClick={() => setSortBy("total")}>Total Steps</SortPill>
+              <SortPill active={sortBy === "average"} onClick={() => setSortBy("average")}>Avg / Day</SortPill>
+            </div>
           </div>
-          <div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{totalParticipants}</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Participants</p>
+          <div className="relative flex-1 min-w-[280px] max-w-[420px]">
+            <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "var(--text-3)" }} />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search by name, block, or flat…"
+              className="w-full rounded-[13px] py-3 pl-12 pr-4 text-sm outline-none"
+              style={{ border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text)" }}
+            />
           </div>
         </div>
-        {hasStepTracking && (
+      )}
+
+      {/* Leaderboard / participants */}
+      {hasStepTracking ? (
+        filteredParticipants.length === 0 ? (
+          <div className="rounded-[20px] p-10 text-center text-sm" style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-3)" }}>
+            {searchTerm ? `No participants match “${searchTerm}”.` : "No participants yet."}
+          </div>
+        ) : (
           <>
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 flex items-center gap-3">
-              <div className="bg-orange-50 rounded-full p-2">
-                <Flame size={20} className="text-orange-600" />
+            {/* Desktop table */}
+            <div className="hidden sm:block rounded-[20px] overflow-hidden" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+              <div
+                className="grid items-center px-6 py-4 font-mono text-[11px] tracking-wider"
+                style={{ gridTemplateColumns: "1fr 130px 130px 120px 132px", borderBottom: "1px solid var(--border)", color: "var(--text-3)" }}
+              >
+                <div>PARTICIPANT</div>
+                <div className="text-right">TOTAL</div>
+                <div className="text-right">AVG / DAY</div>
+                <div className="text-center">DAYS MET</div>
+                <div />
               </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  {stepLeaderboard.length > 0
-                    ? Math.max(...stepLeaderboard.map((p) => p.totalSteps)).toLocaleString("en-IN")
-                    : 0}
-                </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Top Steps</p>
-              </div>
+              {filteredParticipants.map((p) => {
+                const you = !!myName && p.name === myName;
+                return (
+                  <div
+                    key={p.id}
+                    className="grid items-center px-6 py-4"
+                    style={{ gridTemplateColumns: "1fr 130px 130px 120px 132px", borderTop: "1px solid var(--border)", background: you ? "var(--accent-soft)" : "transparent" }}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="font-bold text-base truncate" style={{ color: "var(--text)" }}>{p.name}</span>
+                      {you && <span className="text-[10px] font-extrabold tracking-wider text-white px-1.5 py-0.5 rounded-md flex-shrink-0" style={{ background: "var(--accent-strong)" }}>YOU</span>}
+                      <span className="font-mono text-[11px] flex-shrink-0" style={{ color: "var(--text-3)" }}>B{p.block} · {p.flatNumber}</span>
+                    </div>
+                    <div className="text-right font-extrabold text-[17px]" style={{ color: "var(--text)" }}>{p.totalSteps.toLocaleString("en-IN")}</div>
+                    <div className="text-right font-semibold text-[15px]" style={{ color: "var(--text-2)" }}>{p.averageDailySteps.toLocaleString("en-IN")}</div>
+                    <div className="text-center font-bold text-[15px]" style={{ color: p.dailyGoal > 0 && p.daysGoalMet === p.daysTracked && p.daysTracked > 0 ? "var(--success)" : "var(--text-2)" }}>
+                      {p.dailyGoal > 0 ? `${p.daysGoalMet}/${p.daysTracked}` : "—"}
+                    </div>
+                    <div className="text-right">
+                      <button onClick={() => setSelectedParticipant(p)} className="font-semibold text-[13.5px] px-4 py-2 rounded-[10px]" style={{ border: "1px solid var(--border-strong)", color: "var(--accent)", background: "transparent" }}>
+                        View Details
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 flex items-center gap-3">
-              <div className="bg-green-50 rounded-full p-2">
-                <CheckCircle size={20} className="text-green-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  {onTrackCount} / {totalWithGoal}
-                </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">On Track</p>
-              </div>
+
+            {/* Mobile cards */}
+            <div className="sm:hidden space-y-3">
+              {filteredParticipants.map((p) => {
+                const you = !!myName && p.name === myName;
+                return (
+                  <div key={p.id} className="rounded-[16px] p-4" style={{ background: you ? "var(--accent-soft)" : "var(--surface)", border: "1px solid var(--border)" }}>
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <p className="font-bold truncate" style={{ color: "var(--text)" }}>{p.name}</p>
+                        {you && <span className="text-[10px] font-extrabold text-white px-1.5 py-0.5 rounded-md" style={{ background: "var(--accent-strong)" }}>YOU</span>}
+                      </div>
+                      <span className="font-mono text-[11px] flex-shrink-0" style={{ color: "var(--text-3)" }}>B{p.block} · {p.flatNumber}</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div><p className="text-lg font-extrabold" style={{ color: "var(--text)" }}>{p.totalSteps.toLocaleString("en-IN")}</p><p className="text-[10px] uppercase" style={{ color: "var(--text-3)" }}>Total</p></div>
+                      <div><p className="text-lg font-bold" style={{ color: "var(--text-2)" }}>{p.averageDailySteps.toLocaleString("en-IN")}</p><p className="text-[10px] uppercase" style={{ color: "var(--text-3)" }}>Avg/Day</p></div>
+                      <div><p className="text-lg font-bold" style={{ color: "var(--text-2)" }}>{p.dailyGoal > 0 ? `${p.daysGoalMet}/${p.daysTracked}` : "—"}</p><p className="text-[10px] uppercase" style={{ color: "var(--text-3)" }}>Days Met</p></div>
+                    </div>
+                    <button onClick={() => setSelectedParticipant(p)} className="w-full mt-3 py-2 text-[13px] font-semibold rounded-[10px]" style={{ border: "1px solid var(--border-strong)", color: "var(--accent)" }}>
+                      View Details
+                    </button>
+                  </div>
+                );
+              })}
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 flex items-center gap-3">
-              <div className="bg-purple-50 rounded-full p-2">
-                <Target size={20} className="text-purple-600" />
-              </div>
-              <div>
-                <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  {totalStepTarget > 0 ? totalStepTarget.toLocaleString("en-IN") : "\u2014"}
-                </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Total Step Target</p>
-              </div>
-            </div>
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 flex items-center gap-3">
-              <div className="bg-blue-50 rounded-full p-2">
-                <TrendingUp size={20} className="text-blue-600" />
-              </div>
-              <div>
-                <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  {totalActualSteps > 0 ? totalActualSteps.toLocaleString("en-IN") : "0"}
-                </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Total Actual Steps</p>
-              </div>
+
+            <div className="flex items-center justify-center gap-2 mt-5" style={{ color: "var(--text-3)" }}>
+              <Users size={18} />
+              <span className="text-[13.5px]">Showing {filteredParticipants.length} of {displayList.length} participants</span>
             </div>
           </>
-        )}
-      </div>
-
-      {/* Sort Toggle (step tracking only) */}
-      {hasStepTracking && stepLeaderboard.length > 0 && (
-        <div className="flex items-center gap-2 mb-4">
-          <span className="text-sm text-gray-500 dark:text-gray-400">Sort by:</span>
-          <button
-            onClick={() => setSortBy("total")}
-            className={`px-3 py-1 text-sm rounded-full transition-colors ${
-              sortBy === "total"
-                ? "bg-primary-100 text-primary-700 font-medium"
-                : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-            }`}
-          >
-            Total Steps
-          </button>
-          <button
-            onClick={() => setSortBy("average")}
-            className={`px-3 py-1 text-sm rounded-full transition-colors ${
-              sortBy === "average"
-                ? "bg-primary-100 text-primary-700 font-medium"
-                : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-            }`}
-          >
-            Avg / Day
-          </button>
-        </div>
-      )}
-
-      {/* Search */}
-      {totalParticipants > 5 && (
-        <div className="relative mb-4">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by name, block, or flat..."
-            className="w-full pl-9 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-800 dark:text-gray-100"
-          />
-        </div>
-      )}
-
-      {/* Participants / Leaderboard */}
-      {filteredParticipants.length === 0 ? (
-        <p className="text-gray-500 dark:text-gray-400 text-center py-8">
-          {searchTerm ? "No participants match your search." : "No participants yet."}
-        </p>
-      ) : hasStepTracking ? (
-        <>
-          {/* Step Leaderboard - Desktop */}
-          <div className="hidden sm:block overflow-x-auto bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-200 dark:border-gray-600 text-left text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700">
-                  <th className="py-3 px-4 font-medium w-12 text-center">Rank</th>
-                  <th className="py-3 px-4 font-medium">Name</th>
-                  <th className="py-3 px-4 font-medium">Block / Flat</th>
-                  <th className="py-3 px-4 font-medium text-right">Total Steps</th>
-                  <th className="py-3 px-4 font-medium text-right">Avg / Day</th>
-                  <th className="py-3 px-4 font-medium text-right">Goal</th>
-                  <th className="py-3 px-4 font-medium text-center">Days Met</th>
-                  <th className="py-3 px-4 font-medium w-20"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredParticipants.map((p, index) => (
-                  <tr
-                    key={p.id}
-                    className={`border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 ${
-                      index < 3 ? "bg-yellow-50/30" : ""
-                    }`}
-                  >
-                    <td className="py-3 px-4 text-center">
-                      {getRankDisplay(index)}
-                    </td>
-                    <td className="py-3 px-4 font-medium text-gray-900 dark:text-gray-100">
-                      {p.name}
-                    </td>
-                    <td className="py-3 px-4 text-gray-600 dark:text-gray-300">
-                      B{p.block} - {p.flatNumber}
-                    </td>
-                    <td className="py-3 px-4 text-right font-semibold text-gray-900 dark:text-gray-100">
-                      {p.totalSteps.toLocaleString("en-IN")}
-                    </td>
-                    <td className="py-3 px-4 text-right text-gray-700 dark:text-gray-300">
-                      {p.averageDailySteps.toLocaleString("en-IN")}
-                    </td>
-                    <td className="py-3 px-4 text-right text-gray-600 dark:text-gray-300">
-                      {p.dailyGoal > 0 ? p.dailyGoal.toLocaleString("en-IN") : "\u2014"}
-                    </td>
-                    <td className="py-3 px-4 text-center">
-                      {p.dailyGoal > 0 ? (
-                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                          p.daysGoalMet > 0 ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300" : "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-300"
-                        }`}>
-                          {p.daysGoalMet} / {p.daysTracked}
-                        </span>
-                      ) : "\u2014"}
-                    </td>
-                    <td className="py-3 px-4">
-                      <button
-                        onClick={() => setSelectedParticipant(p)}
-                        className="text-xs text-primary-600 hover:text-primary-700 font-medium"
-                      >
-                        Details
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Step Leaderboard - Mobile */}
-          <div className="sm:hidden space-y-3">
-            {filteredParticipants.map((p, index) => (
-              <div
-                key={p.id}
-                className={`bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 ${
-                  index < 3 ? "border-yellow-300" : ""
-                }`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    {getRankDisplay(index)}
-                    <p className="font-medium text-gray-900 dark:text-gray-100">{p.name}</p>
-                  </div>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
-                    B{p.block} - {p.flatNumber}
-                  </span>
-                </div>
-                <div className="grid grid-cols-3 gap-2 mt-3 text-center">
-                  <div>
-                    <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                      {p.totalSteps.toLocaleString("en-IN")}
-                    </p>
-                    <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase">Total</p>
-                  </div>
-                  <div>
-                    <p className="text-lg font-bold text-gray-700 dark:text-gray-300">
-                      {p.averageDailySteps.toLocaleString("en-IN")}
-                    </p>
-                    <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase">Avg/Day</p>
-                  </div>
-                  <div>
-                    <p className="text-lg font-bold text-gray-700 dark:text-gray-300">
-                      {p.dailyGoal > 0 ? `${p.daysGoalMet}/${p.daysTracked}` : "\u2014"}
-                    </p>
-                    <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase">Days Met</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setSelectedParticipant(p)}
-                  className="w-full mt-3 py-1.5 text-xs text-primary-600 hover:bg-primary-50 rounded-md font-medium transition-colors"
-                >
-                  View Details
-                </button>
-              </div>
-            ))}
-          </div>
-        </>
+        )
       ) : (
-        <>
-          {/* Default Participant Table - Desktop */}
-          <div className="hidden sm:block overflow-x-auto bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-200 dark:border-gray-600 text-left text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700">
-                  <th className="py-3 px-4 font-medium w-10">#</th>
-                  <th className="py-3 px-4 font-medium">Name</th>
-                  <th className="py-3 px-4 font-medium">Block / Flat</th>
-                  {customFields.map((cf) => (
-                    <th key={cf.id} className="py-3 px-4 font-medium">
-                      {cf.label}
-                    </th>
-                  ))}
-                  <th className="py-3 px-4 font-medium">Registered</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredParticipants.map((p, index) => (
-                  <tr
-                    key={p.id}
-                    className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
-                  >
-                    <td className="py-3 px-4 text-gray-400 dark:text-gray-500 text-xs">
-                      {index + 1}
-                    </td>
-                    <td className="py-3 px-4 font-medium text-gray-900 dark:text-gray-100">
-                      {p.name}
-                    </td>
-                    <td className="py-3 px-4 text-gray-600 dark:text-gray-300">
-                      B{p.block} - {p.flatNumber}
-                    </td>
-                    {customFields.map((cf) => {
-                      const response = p.fieldResponses.find(
-                        (fr) => fr.customFieldId === cf.id
-                      );
-                      return (
-                        <td key={cf.id} className="py-3 px-4 text-gray-700 dark:text-gray-300">
-                          {response?.value || "\u2014"}
-                        </td>
-                      );
-                    })}
-                    <td className="py-3 px-4 text-gray-500 dark:text-gray-400 text-xs whitespace-nowrap">
-                      {new Date(p.createdAt).toLocaleDateString("en-IN", {
-                        day: "numeric",
-                        month: "short",
-                      })}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Default Participant Cards - Mobile */}
-          <div className="sm:hidden space-y-3">
-            {filteredParticipants.map((p, index) => (
-              <div
-                key={p.id}
-                className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-medium text-gray-500 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-full w-6 h-6 flex items-center justify-center">
-                      {index + 1}
-                    </span>
-                    <p className="font-medium text-gray-900 dark:text-gray-100">{p.name}</p>
-                  </div>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
-                    B{p.block} - {p.flatNumber}
-                  </span>
-                </div>
-                {customFields.map((cf) => {
-                  const response = p.fieldResponses.find(
-                    (fr) => fr.customFieldId === cf.id
-                  );
-                  if (!response) return null;
-                  return (
-                    <div key={cf.id} className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                      <span className="font-medium text-gray-500 dark:text-gray-400">
-                        {cf.label}:
-                      </span>{" "}
-                      {response.value}
-                    </div>
-                  );
-                })}
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
-                  Registered{" "}
-                  {new Date(p.createdAt).toLocaleDateString("en-IN", {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                  })}
-                </p>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-
-      {/* Result count when searching */}
-      {searchTerm && filteredParticipants.length > 0 && (
-        <p className="text-xs text-gray-400 mt-3 text-center">
-          Showing {filteredParticipants.length} of {displayList.length} participants
-        </p>
-      )}
-
-      {/* Details Modal */}
-      {selectedParticipant && (
-        <DetailsModal
-          participant={selectedParticipant}
-          onClose={() => setSelectedParticipant(null)}
+        <RegistrationTable
+          participants={filteredParticipants}
+          customFields={customFields}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          showSearch={totalParticipants > 5}
         />
+      )}
+
+      {selectedParticipant && (
+        <DetailsModal participant={selectedParticipant} onClose={() => setSelectedParticipant(null)} />
       )}
     </div>
   );
 }
 
-function DetailsModal({
-  participant: p,
-  onClose,
+function StatCard({ icon, tint, ic, value, label }: { icon: React.ReactNode; tint: string; ic: string; value: string; label: string }) {
+  return (
+    <div className="rounded-[18px] p-5 flex flex-col gap-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+      <div className="w-[46px] h-[46px] rounded-[13px] flex items-center justify-center" style={{ background: tint, color: ic }}>{icon}</div>
+      <div>
+        <div className="text-[28px] font-extrabold tracking-tight leading-none" style={{ color: "var(--text)" }}>{value}</div>
+        <div className="text-[13.5px] mt-1.5 leading-tight" style={{ color: "var(--text-2)" }}>{label}</div>
+      </div>
+    </div>
+  );
+}
+
+function SortPill({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      className="px-[18px] py-2.5 rounded-full font-semibold text-sm"
+      style={active
+        ? { background: "var(--accent-soft)", color: "var(--accent)", border: "1px solid transparent" }
+        : { background: "var(--surface)", color: "var(--text-2)", border: "1px solid var(--border)" }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function RegistrationTable({
+  participants, customFields, searchTerm, setSearchTerm, showSearch,
 }: {
-  participant: DashboardParticipant;
-  onClose: () => void;
+  participants: DashboardParticipant[];
+  customFields: CustomFieldType[];
+  searchTerm: string;
+  setSearchTerm: (s: string) => void;
+  showSearch: boolean;
 }) {
-  const maxSteps = Math.max(...p.dailySteps.map((d) => d.steps), p.dailyGoal || 1);
+  return (
+    <>
+      {showSearch && (
+        <div className="relative mb-4 max-w-[420px]">
+          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "var(--text-3)" }} />
+          <input
+            type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search by name, block, or flat…"
+            className="w-full rounded-[13px] py-3 pl-12 pr-4 text-sm outline-none"
+            style={{ border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text)" }}
+          />
+        </div>
+      )}
+      <div className="rounded-[20px] overflow-x-auto" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-left font-mono text-[11px] tracking-wider" style={{ color: "var(--text-3)", borderBottom: "1px solid var(--border)" }}>
+              <th className="py-4 px-5 font-medium w-10">#</th>
+              <th className="py-4 px-5 font-medium">NAME</th>
+              <th className="py-4 px-5 font-medium">BLOCK / FLAT</th>
+              {customFields.map((cf) => <th key={cf.id} className="py-4 px-5 font-medium uppercase">{cf.label}</th>)}
+              <th className="py-4 px-5 font-medium">REGISTERED</th>
+            </tr>
+          </thead>
+          <tbody>
+            {participants.map((p, index) => (
+              <tr key={p.id} style={{ borderTop: "1px solid var(--border)" }}>
+                <td className="py-3.5 px-5 text-xs" style={{ color: "var(--text-3)" }}>{index + 1}</td>
+                <td className="py-3.5 px-5 font-semibold" style={{ color: "var(--text)" }}>{p.name}</td>
+                <td className="py-3.5 px-5" style={{ color: "var(--text-2)" }}>B{p.block} · {p.flatNumber}</td>
+                {customFields.map((cf) => {
+                  const r = p.fieldResponses.find((fr) => fr.customFieldId === cf.id);
+                  return <td key={cf.id} className="py-3.5 px-5" style={{ color: "var(--text-2)" }}>{r?.value || "—"}</td>;
+                })}
+                <td className="py-3.5 px-5 text-xs whitespace-nowrap" style={{ color: "var(--text-3)" }}>
+                  {new Date(p.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {participants.length === 0 && (
+          <p className="py-10 text-center text-sm" style={{ color: "var(--text-3)" }}>
+            {searchTerm ? "No participants match your search." : "No participants yet."}
+          </p>
+        )}
+      </div>
+    </>
+  );
+}
+
+function DetailsModal({ participant: p, onClose }: { participant: DashboardParticipant; onClose: () => void }) {
+  const scaleMax = Math.max((p.dailyGoal || 1) * 1.12, Math.max(...p.dailySteps.map((d) => d.steps), 1) * 1.08);
+  const chartH = 178;
+  const goalBottom = p.dailyGoal > 0 ? Math.round((p.dailyGoal / scaleMax) * chartH) : 0;
+  const fmtDate = (iso: string, weekday = false) =>
+    new Date(iso).toLocaleDateString("en-IN", weekday ? { weekday: "short", day: "numeric", month: "short" } : { day: "numeric", month: "short" });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-8" style={{ background: "rgba(5,8,15,0.62)", backdropFilter: "blur(3px)" }} onClick={onClose}>
       <div
-        className="bg-white dark:bg-gray-800 w-full sm:max-w-lg sm:rounded-xl rounded-t-xl max-h-[85vh] overflow-y-auto shadow-xl"
+        className="w-full sm:max-w-[720px] max-h-[88vh] overflow-y-auto rounded-t-[24px] sm:rounded-[24px]"
+        style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 40px 90px rgba(0,0,0,0.45)" }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Modal Header */}
-        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-5 py-4 flex items-center justify-between rounded-t-xl">
+        {/* Header */}
+        <div className="sticky top-0 z-[1] flex items-start justify-between gap-4 px-7 py-5" style={{ background: "var(--surface)", borderBottom: "1px solid var(--border)" }}>
           <div>
-            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">{p.name}</h2>
-            <p className="text-xs text-gray-500 dark:text-gray-400">B{p.block} - {p.flatNumber}</p>
+            <div className="text-2xl font-extrabold tracking-tight" style={{ color: "var(--text)" }}>{p.name}</div>
+            <div className="font-mono text-xs mt-1" style={{ color: "var(--text-3)" }}>B{p.block} · {p.flatNumber}</div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-          >
-            <X size={18} className="text-gray-500 dark:text-gray-400" />
+          <button onClick={onClose} className="w-[38px] h-[38px] rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "var(--surface-2)", color: "var(--text-2)" }}>
+            <X size={22} />
           </button>
         </div>
 
-        <div className="px-5 py-4 space-y-5">
-          {/* Summary Stats */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-blue-50 rounded-lg p-3">
-              <div className="flex items-center gap-1.5 mb-1">
-                <TrendingUp size={14} className="text-blue-600" />
-                <span className="text-[10px] uppercase text-blue-600 font-medium">Total Steps</span>
-              </div>
-              <p className="text-xl font-bold text-blue-900">{p.totalSteps.toLocaleString("en-IN")}</p>
-            </div>
-            <div className="bg-green-50 rounded-lg p-3">
-              <div className="flex items-center gap-1.5 mb-1">
-                <Target size={14} className="text-green-600" />
-                <span className="text-[10px] uppercase text-green-600 font-medium">Days Goal Met</span>
-              </div>
-              <p className="text-xl font-bold text-green-900">
-                {p.dailyGoal > 0 ? `${p.daysGoalMet} / ${p.daysTracked}` : "\u2014"}
-              </p>
-            </div>
-            <div className="bg-purple-50 rounded-lg p-3">
-              <div className="flex items-center gap-1.5 mb-1">
-                <Calendar size={14} className="text-purple-600" />
-                <span className="text-[10px] uppercase text-purple-600 font-medium">Avg / Day</span>
-              </div>
-              <p className="text-xl font-bold text-purple-900">{p.averageDailySteps.toLocaleString("en-IN")}</p>
-            </div>
-            <div className="bg-orange-50 rounded-lg p-3">
-              <div className="flex items-center gap-1.5 mb-1">
-                <Flame size={14} className="text-orange-600" />
-                <span className="text-[10px] uppercase text-orange-600 font-medium">Best Day</span>
-              </div>
-              <p className="text-xl font-bold text-orange-900">
-                {p.bestDay ? p.bestDay.steps.toLocaleString("en-IN") : "\u2014"}
-              </p>
-              {p.bestDay && (
-                <p className="text-[10px] text-orange-600">
-                  {new Date(p.bestDay.date).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
-                </p>
-              )}
-            </div>
+        <div className="px-7 py-6">
+          {/* Stat tiles */}
+          <div className="grid grid-cols-2 gap-3.5">
+            <ModalTile bg="var(--accent-soft)" ic="var(--accent-strong)" icon={<TrendingUp size={20} />} label="TOTAL STEPS" value={p.totalSteps.toLocaleString("en-IN")} />
+            <ModalTile bg="var(--success-soft)" ic="var(--success)" icon={<Target size={20} />} label="DAYS GOAL MET" value={p.dailyGoal > 0 ? `${p.daysGoalMet} / ${p.daysTracked}` : "—"} />
+            <ModalTile bg="var(--accent-soft)" ic="var(--accent)" icon={<Calendar size={20} />} label="AVG / DAY" value={p.averageDailySteps.toLocaleString("en-IN")} />
+            <ModalTile bg="rgba(245,158,11,0.12)" ic={ORANGE} icon={<Flame size={20} />} label="BEST DAY" value={p.bestDay ? p.bestDay.steps.toLocaleString("en-IN") : "—"} sub={p.bestDay ? fmtDate(p.bestDay.date) : undefined} />
           </div>
 
-          {/* Mini Step-Up: running goals + accountability partner */}
+          {/* Run / partner badges */}
           {(p.runs || p.partner) && (
-            <div className="flex flex-wrap items-center gap-1.5">
-              {p.runs &&
-                ([["5K", "k5"], ["10K", "k10"], ["20K", "k20"]] as const).map(([lbl, key]) => {
-                  const r = p.runs![key];
-                  if (!r.goal && !r.done) return null;
-                  return (
-                    <span key={key} className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 text-[11px] font-medium">
-                      🏃 {lbl} {r.done}/{r.goal}
-                    </span>
-                  );
-                })}
+            <div className="flex flex-wrap items-center gap-2.5 mt-4">
+              {p.runs && ([["5K", "k5"], ["10K", "k10"], ["20K", "k20"]] as const).map(([lbl, key]) => {
+                const r = p.runs![key];
+                if (!r.goal && !r.done) return null;
+                return (
+                  <span key={key} className="inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-[13.5px] font-bold" style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text)" }}>
+                    🏃 {lbl} {r.done}/{r.goal}
+                  </span>
+                );
+              })}
               {p.partner && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 text-[11px] font-medium">
-                  🤝 {p.partner.name}
-                  {p.partner.status !== "accepted" ? ` (${p.partner.status})` : ""}
+                <span className="inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-[13.5px] font-bold" style={{ background: "var(--accent-soft)", color: "var(--accent)" }}>
+                  🤝 {p.partner.name}{p.partner.status !== "accepted" ? ` (${p.partner.status})` : ""}
                 </span>
               )}
             </div>
           )}
 
-          {/* Bar Chart */}
+          {/* Daily steps chart */}
           {p.dailySteps.length > 0 && (
-            <div>
-              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">Daily Steps</h3>
-              <div className="flex items-end gap-1 h-32">
+            <div className="mt-7">
+              <div className="flex items-center justify-between mb-4">
+                <div className="text-[17px] font-bold" style={{ color: "var(--text)" }}>Daily Steps</div>
+                {p.dailyGoal > 0 && <div className="font-mono text-[11px] tracking-wider" style={{ color: "var(--text-3)" }}>GOAL {p.dailyGoal.toLocaleString("en-IN")}</div>}
+              </div>
+              <div className="relative flex items-end gap-3 sm:gap-[18px] px-1" style={{ height: 210, borderBottom: "1px solid var(--border)" }}>
+                {p.dailyGoal > 0 && (
+                  <div className="absolute left-0 right-0" style={{ bottom: goalBottom, borderTop: "1.5px dashed var(--text-3)", opacity: 0.55 }} />
+                )}
                 {p.dailySteps.map((d) => {
-                  const height = Math.max((d.steps / maxSteps) * 100, 2);
-                  const metGoal = p.dailyGoal > 0 && d.steps >= p.dailyGoal;
+                  const met = p.dailyGoal > 0 && d.steps >= p.dailyGoal;
+                  const h = Math.max(Math.round((d.steps / scaleMax) * chartH), 2);
                   return (
-                    <div
-                      key={d.date}
-                      className="flex-1 flex flex-col items-center justify-end h-full relative group"
-                    >
-                      {/* Tooltip */}
-                      <div className="absolute bottom-full mb-1 hidden group-hover:block bg-gray-800 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap z-10">
-                        {d.steps.toLocaleString("en-IN")} steps
-                        <br />
-                        {new Date(d.date).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
-                      </div>
-                      <div
-                        className={`w-full rounded-t transition-all ${
-                          metGoal ? "bg-green-500" : "bg-blue-400"
-                        }`}
-                        style={{ height: `${height}%`, minHeight: "2px" }}
-                      />
+                    <div key={d.date} className="flex-1 flex flex-col items-center justify-end h-full">
+                      <div className="font-bold text-sm mb-1.5" style={{ color: "var(--text)" }}>{d.steps.toLocaleString("en-IN")}</div>
+                      <div className="w-full max-w-[120px] rounded-t-lg" style={{ height: h, background: met ? "var(--success)" : "var(--accent)" }} />
                     </div>
                   );
                 })}
               </div>
-              {/* Goal line indicator */}
-              {p.dailyGoal > 0 && (
-                <div className="flex items-center gap-2 mt-2 text-[10px] text-gray-500 dark:text-gray-400">
-                  <span className="inline-block w-3 h-3 rounded-sm bg-green-500" /> Met Goal
-                  <span className="inline-block w-3 h-3 rounded-sm bg-blue-400 ml-2" /> Below Goal
-                  <span className="ml-auto">Goal: {p.dailyGoal.toLocaleString("en-IN")}</span>
-                </div>
-              )}
+              <div className="flex justify-between mt-2.5">
+                {p.dailySteps.map((d) => (
+                  <div key={d.date} className="flex-1 text-center text-[12.5px]" style={{ color: "var(--text-3)" }}>{fmtDate(d.date, true)}</div>
+                ))}
+              </div>
+              <div className="flex items-center gap-5 mt-4 text-[13px]" style={{ color: "var(--text-2)" }}>
+                <span className="flex items-center gap-2"><span className="w-[13px] h-[13px] rounded-[3px]" style={{ background: "var(--success)" }} />Met Goal</span>
+                <span className="flex items-center gap-2"><span className="w-[13px] h-[13px] rounded-[3px]" style={{ background: "var(--accent)" }} />Below Goal</span>
+              </div>
             </div>
           )}
 
-          {/* Daily Log Table */}
+          {/* Daily log */}
           {p.dailySteps.length > 0 && (
-            <div>
-              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Daily Log</h3>
-              <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300">
-                      <th className="py-2 px-3 text-left font-medium">Date</th>
-                      <th className="py-2 px-3 text-right font-medium">Steps</th>
-                      {p.dailyGoal > 0 && (
-                        <th className="py-2 px-3 text-center font-medium">Goal</th>
-                      )}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[...p.dailySteps].reverse().map((d) => {
-                      const metGoal = p.dailyGoal > 0 && d.steps >= p.dailyGoal;
-                      return (
-                        <tr key={d.date} className="border-b border-gray-100 dark:border-gray-700">
-                          <td className="py-2 px-3 text-gray-600 dark:text-gray-300">
-                            {new Date(d.date).toLocaleDateString("en-IN", {
-                              weekday: "short",
-                              day: "numeric",
-                              month: "short",
-                            })}
-                          </td>
-                          <td className="py-2 px-3 text-right font-medium text-gray-900 dark:text-gray-100">
-                            {d.steps.toLocaleString("en-IN")}
-                          </td>
-                          {p.dailyGoal > 0 && (
-                            <td className="py-2 px-3 text-center">
-                              {metGoal ? (
-                                <span className="text-green-600 text-xs font-medium">&#10003;</span>
-                              ) : (
-                                <span className="text-red-400 text-xs">&#10007;</span>
-                              )}
-                            </td>
-                          )}
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+            <div className="mt-7">
+              <div className="text-[17px] font-bold mb-3.5" style={{ color: "var(--text)" }}>Daily Log</div>
+              <div className="rounded-[14px] overflow-hidden" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+                <div className="grid px-[18px] py-3.5 font-semibold text-sm" style={{ gridTemplateColumns: "1fr 120px 90px", borderBottom: "1px solid var(--border)", color: "var(--text-2)" }}>
+                  <div>Date</div><div className="text-right">Steps</div><div className="text-center">Goal</div>
+                </div>
+                {[...p.dailySteps].reverse().map((d, i) => {
+                  const met = p.dailyGoal > 0 && d.steps >= p.dailyGoal;
+                  return (
+                    <div key={d.date} className="grid items-center px-[18px] py-3.5" style={{ gridTemplateColumns: "1fr 120px 90px", borderTop: i > 0 ? "1px solid var(--border)" : "none" }}>
+                      <div className="font-semibold text-[15px]" style={{ color: "var(--text)" }}>{fmtDate(d.date, true)}</div>
+                      <div className="text-right font-bold text-[15px]" style={{ color: "var(--text)" }}>{d.steps.toLocaleString("en-IN")}</div>
+                      <div className="text-center">
+                        {p.dailyGoal > 0 ? (met ? <CheckCircle size={20} style={{ color: "var(--success)", display: "inline" }} /> : <X size={20} style={{ color: "var(--danger)", display: "inline" }} />) : <span style={{ color: "var(--text-3)" }}>—</span>}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
 
           {p.dailySteps.length === 0 && (
-            <p className="text-gray-500 dark:text-gray-400 text-sm text-center py-4">No step data recorded yet.</p>
+            <p className="text-sm text-center py-4" style={{ color: "var(--text-3)" }}>No step data recorded yet.</p>
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function ModalTile({ bg, ic, icon, label, value, sub }: { bg: string; ic: string; icon: React.ReactNode; label: string; value: string; sub?: string }) {
+  return (
+    <div className="rounded-[16px] p-[18px]" style={{ background: bg, border: "1px solid transparent" }}>
+      <div className="flex items-center gap-2" style={{ color: ic }}>
+        {icon}
+        <span className="font-mono text-[11px] tracking-wider font-semibold">{label}</span>
+      </div>
+      <div className="text-[34px] font-extrabold tracking-tight mt-2.5 leading-none" style={{ color: "var(--text)" }}>{value}</div>
+      {sub && <div className="text-[13px] mt-1.5 font-semibold" style={{ color: ic }}>{sub}</div>}
     </div>
   );
 }
