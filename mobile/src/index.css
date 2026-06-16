@@ -61,6 +61,13 @@ body,
   --flame: #ea580c;
   --gold: #a06f12;
   --gold-soft: #f6eccd;
+  /* Crossword (OneRMV Crossword Leaderboard) */
+  --cw-black: #9ba3af;
+  --cw-active: #e7e9fc;
+  --cw-cellnum: #9398c8;
+  --cw-gold: #f0b429;
+  --cw-silver: #c2c9d4;
+  --cw-bronze: #cd7f32;
   --coin: #c79220;
   --target: #0f9d6e;
   --shadow: 0 8px 28px rgba(16, 28, 51, 0.1);
@@ -106,6 +113,13 @@ html.dark {
   --flame: #fb923c;
   --gold: #fbbf24;
   --gold-soft: rgba(176, 132, 38, 0.34);
+  /* Crossword (OneRMV Crossword Leaderboard) */
+  --cw-black: #2b3650;
+  --cw-active: rgba(124, 127, 242, 0.24);
+  --cw-cellnum: #8089c4;
+  --cw-gold: #e7b53d;
+  --cw-silver: #b9c2cf;
+  --cw-bronze: #d2641f;
   --coin: #f5c542;
   --target: #34d399;
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);

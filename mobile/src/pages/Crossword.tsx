@@ -271,7 +271,7 @@ export default function Crossword() {
 
       <div className="mb-3 flex justify-center">
         <div className="flex w-full rounded-[14px] p-1" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
-          <TabButton active={tab === "game"} onClick={() => setTab("game")} icon="grid_on">Game</TabButton>
+          <TabButton active={tab === "game"} onClick={() => setTab("game")} icon="grid_view">Game</TabButton>
           <TabButton active={tab === "leaderboard"} onClick={() => setTab("leaderboard")} icon="emoji_events">Leaderboard</TabButton>
         </div>
       </div>
@@ -285,13 +285,13 @@ export default function Crossword() {
           {/* Scrollable: timer + grid + clue lists */}
           <div className="flex flex-1 flex-col items-center overflow-y-auto">
             {/* Timer + result */}
-            <div className="mb-3 flex items-center gap-2">
-              <Icon name="schedule" size={17} style={{ color: completed ? "var(--success)" : "var(--text-3)" }} />
-              <span className="one-mono text-[15px] font-bold" style={{ color: completed ? "var(--success)" : "var(--text-2)" }}>{formatTime(timeSeconds)}</span>
+            <div className="mb-4 flex items-center justify-center gap-2.5">
+              <Icon name="schedule" size={20} style={{ color: completed ? "var(--success)" : "var(--text-2)" }} />
+              <span className="one-mono text-[22px] font-semibold" style={{ color: completed ? "var(--success)" : "var(--text)", letterSpacing: "0.06em" }}>{formatTime(timeSeconds)}</span>
               {completed && (
                 <>
-                  <span className="text-[14px] font-bold" style={{ color: "var(--success)" }}>· Solved!</span>
-                  <button onClick={share} className="ml-1 flex items-center gap-1 rounded-[9px] px-2.5 py-1 text-[12px] font-bold text-white active:opacity-90" style={{ background: "var(--accent-strong)" }}>
+                  <span className="text-[14px] font-bold" style={{ color: "var(--success)" }}>Solved!</span>
+                  <button onClick={share} className="ml-0.5 flex items-center gap-1 rounded-[10px] px-3 py-1.5 text-[12px] font-bold text-white active:opacity-90" style={{ background: "var(--accent-strong)" }}>
                     <Icon name="ios_share" size={14} style={{ color: "#fff" }} />Share
                   </button>
                 </>
@@ -303,10 +303,10 @@ export default function Crossword() {
               {toast && <span className="text-[13px] font-bold" style={{ color: "var(--accent)" }}>{toast}</span>}
             </div>
 
-            {/* Grid */}
+            {/* Grid — 1.5px gaps reveal the grid-line colour behind the cells */}
             <div
-              className="grid w-full max-w-[300px] overflow-hidden rounded-[8px]"
-              style={{ gridTemplateColumns: `repeat(${cols}, 1fr)`, border: "2px solid var(--strong)", background: "var(--surface)" }}
+              className="grid w-full max-w-[300px] overflow-hidden"
+              style={{ gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: "1.5px", background: "var(--border-strong)", border: "1.5px solid var(--border-strong)", borderRadius: "14px" }}
             >
               {grid.map((row, r) =>
                 row.map((cell, c) => {
@@ -317,13 +317,10 @@ export default function Crossword() {
                   const letter = completed && solution ? solution[r][c] : currentGrid[r]?.[c] ?? "";
 
                   let background = "var(--surface)";
-                  if (isBlack) background = "var(--strong)";
+                  if (isBlack) background = "var(--cw-black)";
                   else if (completed) background = "var(--success-soft)";
-                  else if (isSelected) background = "var(--accent-soft)";
-                  else if (inWord) background = "rgba(124,127,242,0.12)";
-
-                  const borderRight = c === cols - 1 ? "none" : "1px solid var(--line)";
-                  const borderBottom = r === grid.length - 1 ? "none" : "1px solid var(--line)";
+                  else if (isSelected) background = "var(--cw-active)";
+                  else if (inWord) background = "var(--accent-soft)";
 
                   return (
                     <div
@@ -333,13 +330,11 @@ export default function Crossword() {
                       style={{
                         background,
                         color: completed ? "var(--success)" : "var(--text)",
-                        borderRight,
-                        borderBottom,
                         cursor: isBlack ? "default" : "pointer",
                       }}
                     >
                       {!isBlack && num > 0 && (
-                        <span className="absolute left-[2px] top-[1px] text-[8px] font-bold leading-none" style={{ color: "var(--text-3)" }}>{num}</span>
+                        <span className="one-mono absolute left-[5px] top-[4px] text-[10px] font-semibold leading-none" style={{ color: "var(--cw-cellnum)" }}>{num}</span>
                       )}
                       {!isBlack && letter}
                     </div>
@@ -393,7 +388,7 @@ function ClueColumn({
 }) {
   return (
     <div>
-      <h3 className="mb-1.5 one-mono text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--text-3)" }}>{title}</h3>
+      <h3 className="mb-2.5 one-mono text-[11px] font-semibold uppercase" style={{ color: "var(--text-3)", letterSpacing: "0.14em" }}>{title}</h3>
       <div className="flex flex-col gap-1">
         {clues.map((cl) => {
           const active = activeClue === cl;
@@ -401,7 +396,7 @@ function ClueColumn({
             <button
               key={`${cl.number}-${cl.direction}`}
               onClick={() => onPick(cl)}
-              className="rounded-[8px] px-2 py-1.5 text-left text-[12px] leading-snug active:opacity-80"
+              className="rounded-[9px] px-2.5 py-2 text-left text-[14px] leading-[1.3] active:opacity-80"
               style={active
                 ? { background: "var(--accent-soft)", color: "var(--accent)", fontWeight: 600 }
                 : { background: "transparent", color: "var(--text-2)" }}

@@ -12,7 +12,8 @@ type Entry = {
   date: string;
 };
 
-const MEDAL = ["#f5b50a", "#c4ccd6", "#cd7f3a"];
+const MEDAL_BG = ["var(--cw-gold)", "var(--cw-silver)", "var(--cw-bronze)"];
+const MEDAL_FG = ["#3a2600", "#1a2030", "#ffffff"];
 
 function formatTime(s: number): string {
   const m = Math.floor(s / 60);
@@ -61,43 +62,55 @@ export default function CrosswordLeaderboard({
   }
 
   return (
-    <div className="flex flex-col items-center">
-      <div className="w-full overflow-hidden rounded-[16px]" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+    <div className="px-0.5">
+      <div className="overflow-hidden rounded-[18px]" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+        {/* Header */}
         <div
-          className="grid grid-cols-[24px_1fr_64px] items-center gap-2.5 px-3.5 py-2.5 text-[10.5px] font-bold uppercase tracking-wider"
-          style={{ borderBottom: "1px solid var(--border)", background: "var(--surface-2)", color: "var(--text-3)" }}
+          className="grid items-center px-[18px] py-3.5 one-mono text-[11px] uppercase"
+          style={{ gridTemplateColumns: "44px 1fr auto", letterSpacing: "0.12em", color: "var(--text-3)", borderBottom: "1px solid var(--border)" }}
         >
-          <span className="text-center">#</span>
-          <span>Player</span>
-          <span className="text-right">Time</span>
+          <div>#</div>
+          <div>Player</div>
+          <div className="text-right">Time</div>
         </div>
-        {entries.map((e, i, arr) => {
+
+        {/* Rows */}
+        {entries.map((e, i) => {
           const you = e.playerId === currentPlayerId;
           return (
             <div
               key={e.playerId}
-              className="grid grid-cols-[24px_1fr_64px] items-center gap-2.5 px-3.5 py-3"
-              style={{ borderBottom: i < arr.length - 1 ? "1px solid var(--border)" : "none", background: you ? "var(--accent-soft)" : "transparent" }}
+              className="grid items-center gap-1.5 px-[18px] py-4"
+              style={{
+                gridTemplateColumns: "44px 1fr auto",
+                borderTop: i > 0 ? "1px solid var(--border)" : "none",
+                background: you ? "var(--accent-soft)" : "transparent",
+              }}
             >
-              <div className="flex justify-center">
-                <RankBadge rank={i + 1} />
-              </div>
+              <RankBadge rank={i + 1} />
               <div className="min-w-0">
-                <p className="truncate text-[14.5px] font-bold" style={{ color: "var(--text)" }}>
+                <div className="truncate text-[17px] font-bold" style={{ color: "var(--text)", letterSpacing: "-0.01em" }}>
                   {e.name}
-                  {you && <span className="ml-1.5 text-[12px] font-semibold" style={{ color: "var(--accent)" }}>(You)</span>}
-                </p>
-                <p className="truncate text-[12px]" style={{ color: "var(--text-3)" }}>Block {e.block}{e.flatNumber ? `, ${e.flatNumber}` : ""}</p>
+                  {you && <span className="ml-1.5 text-[13px] font-semibold" style={{ color: "var(--accent)" }}>(You)</span>}
+                </div>
+                <div className="mt-0.5 truncate text-[13px]" style={{ color: "var(--text-3)" }}>
+                  Block {e.block}{e.flatNumber ? `, ${e.flatNumber}` : ""}
+                </div>
               </div>
-              <span className="one-mono text-right text-[15px] font-bold" style={{ color: "var(--success)" }}>{formatTime(e.timeSeconds)}</span>
+              <div className="one-mono text-right text-[19px] font-bold" style={{ color: "var(--success)", letterSpacing: "0.04em" }}>
+                {formatTime(e.timeSeconds)}
+              </div>
             </div>
           );
         })}
       </div>
 
-      <div className="mt-3.5 flex items-center gap-2 text-[12px]" style={{ color: "var(--text-3)" }}>
-        <Icon name="info" size={15} style={{ color: "var(--text-3)" }} />
-        Fastest solves of today's puzzle. New puzzle at midnight IST.
+      {/* Note */}
+      <div className="mt-4 flex items-start gap-2.5 px-1">
+        <Icon name="info" size={17} style={{ color: "var(--text-3)" }} />
+        <span className="text-[13px] leading-relaxed" style={{ color: "var(--text-3)" }}>
+          Fastest solves of today's puzzle. New puzzle at midnight IST.
+        </span>
       </div>
     </div>
   );
@@ -106,13 +119,13 @@ export default function CrosswordLeaderboard({
 function RankBadge({ rank }: { rank: number }) {
   if (rank <= 3) {
     return (
-      <span
-        className="one-mono flex h-[22px] w-[22px] items-center justify-center rounded-full text-[12px] font-bold"
-        style={{ background: MEDAL[rank - 1], color: "#1a1206" }}
+      <div
+        className="flex h-[30px] w-[30px] items-center justify-center rounded-full text-[14px] font-extrabold"
+        style={{ background: MEDAL_BG[rank - 1], color: MEDAL_FG[rank - 1] }}
       >
         {rank}
-      </span>
+      </div>
     );
   }
-  return <span className="one-mono text-[14px] font-semibold" style={{ color: "var(--text-2)" }}>{rank}</span>;
+  return <div className="one-mono text-[15px] font-semibold" style={{ color: "var(--text-2)" }}>{rank}</div>;
 }
