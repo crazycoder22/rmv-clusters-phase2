@@ -108,19 +108,35 @@ export async function GET(request: Request) {
     .sort((a, b) => b.totalOpens - a.totalOpens);
 
   // ── Daily trend (last 30 days, IST-bucketed) ──
+  const istDay = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
   const dayMap = new Map<string, number>();
   for (const r of trendRows) {
-    const ymd = new Intl.DateTimeFormat("en-CA", {
-      timeZone: "Asia/Kolkata",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }).format(r.createdAt);
+    const ymd = istDay.format(r.createdAt);
     dayMap.set(ymd, (dayMap.get(ymd) ?? 0) + 1);
   }
   const trend = [...dayMap.entries()]
     .map(([date, count]) => ({ date, count }))
     .sort((a, b) => a.date.localeCompare(b.date));
 
-  return NextResponse.json({ features, initiatives, trend });
+  // ── Hourly profile (usage by time of day, IST, last 7 days) ──
+  // Buckets every page-view into its IST hour 0–23, over a rolling week, so we
+  // can see the daily usage shape (when residents actually open the app).
+  const since7 = new Date(Date.now() - 7 * 86_400_000);
+  const istHour = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kolkata", hour: "2-digit", hour12: false });
+  const hourCounts = new Array(24).fill(0) as number[];
+  const hourDays = new Set<string>();
+  for (const r of trendRows) {
+    if (r.createdAt < since7) continue;
+    const h = Number(istHour.format(r.createdAt).slice(0, 2)) % 24;
+    hourCounts[h] += 1;
+    hourDays.add(istDay.format(r.createdAt));
+  }
+  const hourly = hourCounts.map((count, hour) => ({ hour, count }));
+
+  return NextResponse.json({ features, initiatives, trend, hourly, hourlyDays: hourDays.size });
 }

@@ -40,6 +40,8 @@ type PageData = {
   features: FeatureRow[];
   initiatives: InitiativeRow[];
   trend: { date: string; count: number }[];
+  hourly: { hour: number; count: number }[];
+  hourlyDays: number;
 };
 
 const PLAT: Record<string, { label: string; emoji: string; cls: string }> = {
@@ -232,11 +234,68 @@ function PageViews({ data }: { data: PageData }) {
             </>
           )}
 
+          {/* Usage by time of day */}
+          {data.hourly?.some((h) => h.count > 0) && (
+            <HourlyStrip hourly={data.hourly} days={data.hourlyDays} />
+          )}
+
           {/* Daily trend */}
           {data.trend.length > 0 && <TrendStrip trend={data.trend} />}
         </>
       )}
     </section>
+  );
+}
+
+function fmtHour(h: number): string {
+  const period = h < 12 ? "am" : "pm";
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}${period}`;
+}
+
+function HourlyStrip({ hourly, days }: { hourly: { hour: number; count: number }[]; days: number }) {
+  const max = Math.max(...hourly.map((h) => h.count), 1);
+  const total = hourly.reduce((s, h) => s + h.count, 0);
+  const peak = hourly.reduce((a, b) => (b.count > a.count ? b : a), hourly[0]);
+  return (
+    <div className="mb-6">
+      <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+        Usage by time of day{" "}
+        <span className="text-xs font-normal text-gray-400 dark:text-gray-500">
+          · last 7 days{days > 0 ? ` · ${days} day${days === 1 ? "" : "s"} of data` : ""} · {total} opens
+          {peak.count > 0 ? ` · busiest ${fmtHour(peak.hour)}–${fmtHour((peak.hour + 1) % 24)}` : ""}
+        </span>
+      </h3>
+      <div className="rounded-xl border border-gray-200 dark:border-gray-700 p-3 bg-white dark:bg-gray-800">
+        <div className="flex items-end gap-0.5 h-28">
+          {hourly.map((h) => (
+            <div
+              key={h.hour}
+              className="flex-1 flex items-end h-full"
+              title={`${fmtHour(h.hour)}–${fmtHour((h.hour + 1) % 24)}: ${h.count} open${h.count === 1 ? "" : "s"}`}
+            >
+              <div
+                className={`w-full rounded-sm min-h-[2px] ${h.hour === peak.hour && peak.count > 0 ? "bg-blue-600 dark:bg-blue-400" : "bg-blue-500/60 dark:bg-blue-400/50"}`}
+                style={{ height: `${(h.count / max) * 100}%` }}
+              />
+            </div>
+          ))}
+        </div>
+        {/* x-axis ticks every 6 hours */}
+        <div className="flex mt-1.5">
+          {hourly.map((h) => (
+            <div key={h.hour} className="flex-1 text-center">
+              {h.hour % 6 === 0 && (
+                <span className="text-[10px] text-gray-400 dark:text-gray-500">{fmtHour(h.hour)}</span>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+      <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5">
+        Each bar is one hour (IST), counting page opens across the last 7 days. The shape shows when residents are most active.
+      </p>
+    </div>
   );
 }
 
