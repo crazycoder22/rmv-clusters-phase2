@@ -13,6 +13,7 @@ import {
   Calendar,
   Flame,
   CheckCircle,
+  BarChart3,
 } from "lucide-react";
 import type { CustomFieldType } from "@/types";
 
@@ -140,6 +141,16 @@ export default function EventDashboardPage({
   const topSteps =
     stepLeaderboard.length > 0 ? Math.max(...stepLeaderboard.map((p) => p.totalSteps)) : 0;
 
+  // Logged-in resident's own row (matched by name) — powers the "Your progress" card.
+  const me = myName ? stepLeaderboard.find((p) => p.name === myName) ?? null : null;
+  const meInitials = me
+    ? me.name.split(/\s+/).map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase()
+    : "";
+  const meDaysMetColor =
+    me && me.dailyGoal > 0 && me.daysGoalMet === me.daysTracked && me.daysTracked > 0
+      ? "var(--success)"
+      : "var(--text)";
+
   if (loading) {
     return (
       <div className="max-w-[1180px] mx-auto px-6 py-12" style={{ color: "var(--text-3)" }}>
@@ -213,6 +224,53 @@ export default function EventDashboardPage({
       ) : (
         <div className="mb-8">
           <StatCard icon={<Users size={24} />} tint="var(--accent-soft)" ic="var(--accent)" value={totalParticipants.toLocaleString("en-IN")} label="Participants" />
+        </div>
+      )}
+
+      {/* Your progress */}
+      {hasStepTracking && me && (
+        <div
+          className="flex flex-wrap items-center justify-between gap-5 sm:gap-6 rounded-[20px] px-5 sm:px-[26px] py-5 sm:py-[22px] mb-8"
+          style={{
+            background: "linear-gradient(180deg,var(--accent-soft),transparent),var(--surface)",
+            border: "1.5px solid var(--accent-strong)",
+            boxShadow: "0 14px 40px var(--accent-soft)",
+          }}
+        >
+          <div className="flex items-center gap-4 sm:gap-[18px] min-w-0">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-[16px] flex items-center justify-center font-extrabold text-lg sm:text-xl text-white flex-shrink-0" style={{ background: "var(--accent-strong)" }}>
+              {meInitials}
+            </div>
+            <div className="min-w-0">
+              <div className="font-mono text-[11px] tracking-[0.14em] font-semibold" style={{ color: "var(--accent)" }}>YOUR PROGRESS</div>
+              <div className="flex items-center gap-2.5 mt-1">
+                <span className="font-extrabold text-xl sm:text-[22px] tracking-tight truncate" style={{ color: "var(--text)" }}>{me.name}</span>
+                <span className="text-[10px] font-extrabold tracking-wider text-white px-1.5 py-0.5 rounded-md flex-shrink-0" style={{ background: "var(--accent-strong)" }}>YOU</span>
+              </div>
+              <div className="font-mono text-[11.5px] mt-1" style={{ color: "var(--text-3)" }}>B{me.block} · {me.flatNumber}</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-6 sm:gap-[30px] flex-wrap">
+            <div className="text-center">
+              <div className="font-extrabold text-2xl leading-none tracking-tight" style={{ color: "var(--text)" }}>{me.totalSteps.toLocaleString("en-IN")}</div>
+              <div className="font-mono text-[10px] tracking-widest mt-1.5" style={{ color: "var(--text-3)" }}>TOTAL</div>
+            </div>
+            <div className="text-center">
+              <div className="font-extrabold text-2xl leading-none tracking-tight" style={{ color: "var(--text)" }}>{me.averageDailySteps.toLocaleString("en-IN")}</div>
+              <div className="font-mono text-[10px] tracking-widest mt-1.5" style={{ color: "var(--text-3)" }}>AVG / DAY</div>
+            </div>
+            <div className="text-center">
+              <div className="font-extrabold text-2xl leading-none tracking-tight" style={{ color: meDaysMetColor }}>{me.dailyGoal > 0 ? `${me.daysGoalMet}/${me.daysTracked}` : "—"}</div>
+              <div className="font-mono text-[10px] tracking-widest mt-1.5" style={{ color: "var(--text-3)" }}>DAYS MET</div>
+            </div>
+            <button
+              onClick={() => setSelectedParticipant(me)}
+              className="inline-flex items-center gap-2 font-bold text-[14.5px] text-white px-5 py-3 rounded-[12px] whitespace-nowrap"
+              style={{ background: "var(--accent-strong)" }}
+            >
+              <BarChart3 size={19} /> View my details
+            </button>
+          </div>
         </div>
       )}
 
