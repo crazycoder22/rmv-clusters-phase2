@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import clsx from "clsx";
 import { Share } from "@capacitor/share";
 import Icon from "../components/Icon";
+import YouTubeCard from "../components/YouTubeCard";
 import { apiFetch } from "../lib/api";
 import { API_BASE_URL } from "../config";
 import { useAuth } from "../auth/AuthProvider";
@@ -448,6 +449,9 @@ function PostCard({
           )}
         </Link>
       )}
+
+      {/* Video */}
+      <YouTubeCard url={post.videoUrl} />
 
       {/* Actions */}
       <div className="flex items-center gap-1.5 px-3 pb-1.5 pt-2.5">

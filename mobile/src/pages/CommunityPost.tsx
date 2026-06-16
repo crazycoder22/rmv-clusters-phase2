@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import clsx from "clsx";
 import Icon from "../components/Icon";
+import YouTubeCard from "../components/YouTubeCard";
 import MentionTextarea, { renderWithMentions, type CommentMention } from "../components/MentionTextarea";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
@@ -195,6 +196,9 @@ export default function CommunityPost() {
                   </div>
                 )
               )}
+
+              {/* video */}
+              {post.videoUrl && <YouTubeCard url={post.videoUrl} className="mt-3 rounded-[18px]" />}
 
               {/* actions */}
               <div className="flex items-center gap-1.5 pb-1 pt-3">
