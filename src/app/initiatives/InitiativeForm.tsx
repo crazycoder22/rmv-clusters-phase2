@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Upload, X, FileText } from "lucide-react";
@@ -36,8 +36,11 @@ export default function InitiativeForm({ initiativeId }: { initiativeId?: string
   const docRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
-  }, [status, router]);
+    // No /login page — start Google sign-in and return to this form after.
+    if (status === "unauthenticated") {
+      signIn("google", { callbackUrl: editing ? `/initiatives/${initiativeId}/edit` : "/initiatives/new" });
+    }
+  }, [status, editing, initiativeId]);
 
   useEffect(() => {
     if (!initiativeId) return;

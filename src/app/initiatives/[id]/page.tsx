@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -59,8 +59,9 @@ export default function InitiativeDetailPage() {
   const [replyTo, setReplyTo] = useState<string | null>(null);
 
   useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
-  }, [status, router]);
+    // Not a real /login page — trigger Google sign-in and return here after.
+    if (status === "unauthenticated") signIn("google", { callbackUrl: `/initiatives/${id}` });
+  }, [status, id]);
 
   const refresh = useCallback(async () => {
     try {

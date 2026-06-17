@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useSession, signIn } from "next-auth/react";
 import Link from "next/link";
 import { Megaphone, Plus, MessageSquare, Clock, Lock } from "lucide-react";
 import { track } from "@/lib/track-client";
@@ -21,14 +20,14 @@ interface InitiativeCard {
 
 export default function InitiativesPage() {
   const { status } = useSession();
-  const router = useRouter();
   const [items, setItems] = useState<InitiativeCard[]>([]);
   const [canCreate, setCanCreate] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
-  }, [status, router]);
+    // No /login page — kick off Google sign-in and return to the list after.
+    if (status === "unauthenticated") signIn("google", { callbackUrl: "/initiatives" });
+  }, [status]);
 
   const refresh = useCallback(async () => {
     setLoading(true);
