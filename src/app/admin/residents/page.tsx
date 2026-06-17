@@ -58,6 +58,41 @@ function AdminResidentsContent() {
 
   const [editing, setEditing] = useState<Resident | null>(null);
 
+  const [autoApprove, setAutoApprove] = useState<boolean | null>(null);
+  const [savingFlag, setSavingFlag] = useState(false);
+
+  useEffect(() => {
+    if (!hasAccess) return;
+    fetch("/api/admin/settings")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d) setAutoApprove(!!d.autoApproveRegistrations); })
+      .catch(() => {});
+  }, [hasAccess]);
+
+  const toggleAutoApprove = useCallback(async () => {
+    if (autoApprove === null || savingFlag) return;
+    const next = !autoApprove;
+    setSavingFlag(true);
+    setAutoApprove(next); // optimistic
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ autoApproveRegistrations: next }),
+      });
+      if (res.ok) {
+        const d = await res.json();
+        setAutoApprove(!!d.autoApproveRegistrations);
+      } else {
+        setAutoApprove(!next); // rollback
+      }
+    } catch {
+      setAutoApprove(!next);
+    } finally {
+      setSavingFlag(false);
+    }
+  }, [autoApprove, savingFlag]);
+
   const runSearch = useCallback(async () => {
     if (!hasAccess) return;
     setLoading(true);
@@ -134,6 +169,28 @@ function AdminResidentsContent() {
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
         Search by block, flat, name, email or phone. Click <strong>Edit</strong> to update details.
       </p>
+
+      {/* Registration approval toggle */}
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-6 flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Auto-approve new registrations</h2>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed">
+            {autoApprove
+              ? "On — new residents are approved instantly and can use the app right away. Admins are still notified."
+              : "Off — new residents stay pending until an admin approves them here."}
+          </p>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={!!autoApprove}
+          disabled={autoApprove === null || savingFlag}
+          onClick={toggleAutoApprove}
+          className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${autoApprove ? "bg-green-600" : "bg-gray-300 dark:bg-gray-600"}`}
+        >
+          <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${autoApprove ? "translate-x-5" : "translate-x-0.5"}`} />
+        </button>
+      </div>
 
       {/* Search form */}
       <form

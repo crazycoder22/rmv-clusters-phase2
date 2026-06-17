@@ -90,6 +90,40 @@ export default function AdminResidents() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [showNew, setShowNew] = useState(false);
 
+  const [autoApprove, setAutoApprove] = useState<boolean | null>(null);
+  const [savingFlag, setSavingFlag] = useState(false);
+
+  useEffect(() => {
+    apiFetch("/api/admin/settings", { token })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d) setAutoApprove(!!d.autoApproveRegistrations); })
+      .catch(() => {});
+  }, [token]);
+
+  const toggleAutoApprove = useCallback(async () => {
+    if (autoApprove === null || savingFlag) return;
+    const next = !autoApprove;
+    setSavingFlag(true);
+    setAutoApprove(next);
+    try {
+      const res = await apiFetch("/api/admin/settings", {
+        method: "PATCH",
+        token,
+        body: JSON.stringify({ autoApproveRegistrations: next }),
+      });
+      if (res.ok) {
+        const d = await res.json();
+        setAutoApprove(!!d.autoApproveRegistrations);
+      } else {
+        setAutoApprove(!next);
+      }
+    } catch {
+      setAutoApprove(!next);
+    } finally {
+      setSavingFlag(false);
+    }
+  }, [autoApprove, savingFlag, token]);
+
   // Fetch pending list once on mount and after every approve/reject.
   const refreshPending = useCallback(async () => {
     setPendingLoading(true);
@@ -245,6 +279,31 @@ export default function AdminResidents() {
           {showNew ? "Close" : "New"}
         </button>
       </header>
+
+      {/* Auto-approve registrations toggle */}
+      <div className="mb-3 flex items-start justify-between gap-3 rounded-2xl border border-slate-700 bg-slate-800/60 p-3">
+        <div className="min-w-0">
+          <p className="text-[13px] font-semibold text-white">Auto-approve registrations</p>
+          <p className="mt-0.5 text-[11px] leading-relaxed text-slate-400">
+            {autoApprove
+              ? "On — new residents join instantly. Admins are still notified."
+              : "Off — new residents stay pending until approved here."}
+          </p>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={!!autoApprove}
+          disabled={autoApprove === null || savingFlag}
+          onClick={toggleAutoApprove}
+          className={clsx(
+            "relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors disabled:opacity-50",
+            autoApprove ? "bg-emerald-500" : "bg-slate-600"
+          )}
+        >
+          <span className={clsx("inline-block h-5 w-5 transform rounded-full bg-white transition-transform", autoApprove ? "translate-x-5" : "translate-x-0.5")} />
+        </button>
+      </div>
 
       {showNew && (
         <NewResidentForm

@@ -2570,3 +2570,13 @@ model MygateComplaint {
   @@index([mygateCreatedAt])
   @@map("mygate_complaints")
 }
+
+// ── Global app settings (admin-toggleable key/value flags) ───────────────────
+// e.g. key "autoApproveRegistrations" -> value "true"/"false".
+model AppSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("app_settings")
+}

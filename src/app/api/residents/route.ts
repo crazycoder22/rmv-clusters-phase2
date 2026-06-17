@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { isValidResidentType } from "@/lib/resident-types";
 import { sendPushToResidents } from "@/lib/push";
+import { AUTO_APPROVE_REGISTRATIONS, getBoolSetting } from "@/lib/settings";
 
 // Roles that can approve a new registration (mirrors canManageResidents /
 // isAdmin in @/lib/roles — ADMIN-level and above).
@@ -62,6 +63,10 @@ export async function POST(request: Request) {
     );
   }
 
+  // Open-registration window: when the admin flag is on, new signups are
+  // approved automatically (no manual review).
+  const autoApprove = await getBoolSetting(AUTO_APPROVE_REGISTRATIONS);
+
   // RESIDENT role is implicit — no roles connection needed
   const resident = await prisma.resident.create({
     data: {
@@ -72,11 +77,13 @@ export async function POST(request: Request) {
       flatNumber,
       residentType,
       googleImage: session.user.image ?? null,
+      isApproved: autoApprove,
     },
   });
 
   // Notify residents who can approve (admins/committee): in-app bell (web) +
-  // push (mobile). Best-effort — never block the registration response.
+  // push (mobile). Copy differs for auto-approved vs awaiting-review. Both
+  // deep-link to admin Residents on tap. Best-effort — never block signup.
   try {
     const managers = await prisma.resident.findMany({
       where: { isApproved: true, roles: { some: { name: { in: RESIDENT_MANAGER_ROLES } } } },
@@ -84,13 +91,18 @@ export async function POST(request: Request) {
     });
     const managerIds = managers.map((m) => m.id);
     if (managerIds.length > 0) {
-      const msg = `New registration: ${resident.name || "A resident"} (Block ${resident.block}, ${resident.flatNumber}) — review in Residents.`;
+      const who = `${resident.name || "A resident"} (Block ${resident.block}, ${resident.flatNumber})`;
+      const msg = autoApprove
+        ? `Auto-approved: ${who} has joined the community.`
+        : `New registration: ${who} — review in Residents.`;
       await prisma.notification.createMany({
         data: managerIds.map((residentId) => ({ residentId, message: msg })),
       });
       await sendPushToResidents(managerIds, {
-        title: "🆕 New registration",
-        body: `${resident.name || "A new resident"} · Block ${resident.block}, ${resident.flatNumber} — tap to review`,
+        title: autoApprove ? "✅ New resident auto-approved" : "🆕 New registration",
+        body: autoApprove
+          ? `${resident.name || "A new resident"} · Block ${resident.block}, ${resident.flatNumber} joined automatically`
+          : `${resident.name || "A new resident"} · Block ${resident.block}, ${resident.flatNumber} — tap to review`,
         data: { type: "new_resident" },
       });
     }
