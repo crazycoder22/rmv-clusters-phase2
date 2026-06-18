@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
+import { useRequireSignIn } from "@/hooks/useRequireSignIn";
 import Link from "next/link";
 import {
   ArrowLeft, Vote, Lock, CheckCircle2, Users, Trophy, ShieldAlert,
@@ -72,9 +73,7 @@ export default function ReferendumDetailPage() {
     }
   }
 
-  useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
-  }, [status, router]);
+  useRequireSignIn(status);
 
   const refresh = useCallback(async () => {
     try {

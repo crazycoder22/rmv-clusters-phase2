@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import Link from "next/link";
 import {
   ArrowLeft, Clock, CheckCircle2, ClipboardList, BarChart3,
@@ -265,7 +265,7 @@ export default function SurveyPage({ params }: { params: Promise<{ id: string }>
           </div>
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
             Please fill in your details before taking the survey.{" "}
-            <Link href="/login" className="text-primary-600 dark:text-primary-400 hover:underline">Sign in</Link> to skip this step.
+            <button type="button" onClick={() => signIn("google", { callbackUrl: typeof window !== "undefined" ? window.location.pathname : "/" })} className="text-primary-600 dark:text-primary-400 hover:underline">Sign in</button> to skip this step.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

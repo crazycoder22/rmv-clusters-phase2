@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useRequireSignIn } from "@/hooks/useRequireSignIn";
 import Link from "next/link";
 import { ArrowLeft, Upload, X, IndianRupee } from "lucide-react";
 import { MAX_RATE } from "@/lib/parking";
@@ -29,7 +30,7 @@ export default function SlotForm({ slotId }: { slotId?: string }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const photoRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { if (status === "unauthenticated") router.push("/login"); }, [status, router]);
+  useRequireSignIn(status);
 
   useEffect(() => {
     if (!slotId) return;

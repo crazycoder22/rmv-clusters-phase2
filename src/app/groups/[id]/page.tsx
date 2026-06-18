@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
+import { useRequireSignIn } from "@/hooks/useRequireSignIn";
 import Link from "next/link";
 import {
   ArrowLeft, Users, Plus, Settings, X, Search, Trash2,
@@ -53,9 +54,7 @@ export default function GroupHomePage() {
   const [pollOpen, setPollOpen] = useState(false);
   const [membersOpen, setMembersOpen] = useState(false);
 
-  useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
-  }, [status, router]);
+  useRequireSignIn(status);
 
   const refresh = useCallback(async () => {
     try {

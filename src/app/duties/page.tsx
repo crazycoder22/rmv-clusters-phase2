@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRequireSignIn } from "@/hooks/useRequireSignIn";
 import { ListChecks, CheckCircle2, Circle, Sun, Moon } from "lucide-react";
 
 interface DutyItem {
@@ -24,14 +24,11 @@ interface DutyChecklistView {
 
 export default function DutiesPage() {
   const { status } = useSession();
-  const router = useRouter();
   const [checklists, setChecklists] = useState<DutyChecklistView[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
-  }, [status, router]);
+  useRequireSignIn(status);
 
   const refresh = useCallback(async () => {
     setLoading(true);

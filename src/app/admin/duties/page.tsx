@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRequireSignIn } from "@/hooks/useRequireSignIn";
 import {
   ListChecks, Plus, Sun, Moon, Trash2, Pencil, X, Search, CheckCircle2,
   Circle, ClipboardList, Settings2,
@@ -32,8 +32,7 @@ interface StatusRow {
 }
 
 export default function AdminDutiesPage() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
+  const { status } = useSession();
   const [tab, setTab] = useState<"board" | "config">("board");
   const [loading, setLoading] = useState(true);
   const [forbidden, setForbidden] = useState(false);
@@ -43,9 +42,7 @@ export default function AdminDutiesPage() {
   const [boardDate, setBoardDate] = useState(todayIso());
   const [editing, setEditing] = useState<ChecklistRow | "new" | null>(null);
 
-  useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
-  }, [status, router]);
+  useRequireSignIn(status);
 
   const loadConfig = useCallback(async () => {
     const res = await fetch("/api/admin/duty-checklists");

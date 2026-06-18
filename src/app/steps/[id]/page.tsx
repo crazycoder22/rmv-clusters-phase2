@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import MyChallenge from "./MyChallenge";
-import { useRouter, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
+import { useRequireSignIn } from "@/hooks/useRequireSignIn";
 import Link from "next/link";
 import { ArrowLeft, Flame, Target, Check, Trophy, Pencil } from "lucide-react";
 
@@ -25,7 +26,6 @@ interface DashParticipant {
 
 export default function StepEventPage() {
   const { status } = useSession();
-  const router = useRouter();
   const params = useParams<{ id: string }>();
   const id = params?.id ?? "";
 
@@ -37,9 +37,7 @@ export default function StepEventPage() {
   const [editVal, setEditVal] = useState("");
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
-  }, [status, router]);
+  useRequireSignIn(status);
 
   const load = useCallback(async () => {
     setLoading(true);

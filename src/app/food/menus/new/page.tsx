@@ -1,15 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRequireSignIn } from "@/hooks/useRequireSignIn";
 import MenuForm from "../../MenuForm";
 
 export default function NewMenuPage() {
   const { status } = useSession();
-  const router = useRouter();
-  useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
-  }, [status, router]);
+  useRequireSignIn(status);
   return <MenuForm />;
 }

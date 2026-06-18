@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRequireSignIn } from "@/hooks/useRequireSignIn";
 import Link from "next/link";
 import { Car, Plus, MapPin, Clock, CheckCircle2, IndianRupee } from "lucide-react";
 
@@ -53,7 +53,6 @@ type Tab = "find" | "slots" | "bookings";
 
 export default function ParkingPage() {
   const { status } = useSession();
-  const router = useRouter();
   const [tab, setTab] = useState<Tab>("find");
 
   const [browse, setBrowse] = useState<SlotCard[]>([]);
@@ -63,9 +62,7 @@ export default function ParkingPage() {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
-  }, [status, router]);
+  useRequireSignIn(status);
 
   const refresh = useCallback(async () => {
     setLoading(true);

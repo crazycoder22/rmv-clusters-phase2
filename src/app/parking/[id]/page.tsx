@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
+import { useRequireSignIn } from "@/hooks/useRequireSignIn";
 import Link from "next/link";
 import QRCodeLib from "qrcode";
 import { QRCodeSVG } from "qrcode.react";
@@ -40,7 +41,7 @@ export default function ParkingSlotPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => { if (status === "unauthenticated") router.push("/login"); }, [status, router]);
+  useRequireSignIn(status);
 
   const refresh = useCallback(async () => {
     try {

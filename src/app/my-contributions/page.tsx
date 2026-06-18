@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRequireSignIn } from "@/hooks/useRequireSignIn";
 import { HandCoins, CheckCircle2, Clock, IndianRupee } from "lucide-react";
 
 type Contribution = {
@@ -28,13 +28,10 @@ type Response = {
 
 export default function MyContributionsPage() {
   const { status } = useSession();
-  const router = useRouter();
   const [data, setData] = useState<Response | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
-  }, [status, router]);
+  useRequireSignIn(status);
 
   const load = useCallback(async () => {
     const r = await fetch("/api/contributions/my");

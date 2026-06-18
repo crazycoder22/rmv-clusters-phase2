@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useRequireSignIn } from "@/hooks/useRequireSignIn";
 import Link from "next/link";
 import { ArrowLeft, Upload, X, Plus, Trash2 } from "lucide-react";
 
@@ -30,9 +31,7 @@ export default function ReferendumForm({ referendumId }: { referendumId?: string
   const [err, setErr] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
-  }, [status, router]);
+  useRequireSignIn(status);
 
   useEffect(() => {
     if (!referendumId) return;

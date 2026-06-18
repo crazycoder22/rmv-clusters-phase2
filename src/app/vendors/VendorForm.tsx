@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useRequireSignIn } from "@/hooks/useRequireSignIn";
 import Link from "next/link";
 import { ArrowLeft, ImagePlus, Plus, Trash2, X } from "lucide-react";
 import { MARKET_UNITS } from "@/lib/market";
@@ -37,7 +38,7 @@ export default function VendorForm({ vendorId }: { vendorId?: string }) {
   const [err, setErr] = useState<string | null>(null);
   const photoRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { if (status === "unauthenticated") router.push("/login"); }, [status, router]);
+  useRequireSignIn(status);
 
   const load = useCallback(async () => {
     if (!vendorId) return;

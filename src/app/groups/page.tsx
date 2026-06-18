@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useRequireSignIn } from "@/hooks/useRequireSignIn";
 import Link from "next/link";
 import { Users, Plus, X } from "lucide-react";
 
@@ -22,9 +23,7 @@ export default function GroupsPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
-  }, [status, router]);
+  useRequireSignIn(status);
 
   const refresh = useCallback(async () => {
     setLoading(true);

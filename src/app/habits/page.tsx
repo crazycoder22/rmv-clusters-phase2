@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRequireSignIn } from "@/hooks/useRequireSignIn";
 import Link from "next/link";
 import {
   Target,
@@ -55,7 +55,6 @@ interface ResidentHit {
 
 export default function HabitsPage() {
   const { status } = useSession();
-  const router = useRouter();
 
   const [owned, setOwned] = useState<OwnedHabit[]>([]);
   const [partnering, setPartnering] = useState<PartnerHabit[]>([]);
@@ -64,9 +63,7 @@ export default function HabitsPage() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [showNew, setShowNew] = useState(false);
 
-  useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
-  }, [status, router]);
+  useRequireSignIn(status);
 
   const refresh = useCallback(async () => {
     setLoading(true);

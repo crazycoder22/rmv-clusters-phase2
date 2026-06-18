@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRequireSignIn } from "@/hooks/useRequireSignIn";
 import { Activity, Calendar, Flame, Target, TrendingUp } from "lucide-react";
 
 type StepsResponse = {
@@ -21,14 +21,11 @@ const WINDOW_DAYS = 30;
 
 export default function MyStepsPage() {
   const { status } = useSession();
-  const router = useRouter();
   const [data, setData] = useState<StepsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [goalDraft, setGoalDraft] = useState("");
 
-  useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
-  }, [status, router]);
+  useRequireSignIn(status);
 
   const load = useCallback(async () => {
     const r = await fetch(`/api/me/steps?days=${WINDOW_DAYS}`);

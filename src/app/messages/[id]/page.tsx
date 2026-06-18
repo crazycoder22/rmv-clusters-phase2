@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
+import { useRequireSignIn } from "@/hooks/useRequireSignIn";
 import Link from "next/link";
 import { ArrowLeft, Send, Trash2 } from "lucide-react";
 import { Avatar } from "../page";
@@ -35,9 +36,7 @@ export default function MessageThreadPage() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const atBottomRef = useRef(true);
 
-  useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
-  }, [status, router]);
+  useRequireSignIn(status);
 
   const refresh = useCallback(async (silent = false) => {
     try {

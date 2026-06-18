@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRequireSignIn } from "@/hooks/useRequireSignIn";
 import Link from "next/link";
 import { Vote, Plus, Clock, Lock, CheckCircle2, Users } from "lucide-react";
 
@@ -22,14 +22,11 @@ interface ReferendumCard {
 
 export default function ReferendumsPage() {
   const { status } = useSession();
-  const router = useRouter();
   const [items, setItems] = useState<ReferendumCard[]>([]);
   const [canCreate, setCanCreate] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
-  }, [status, router]);
+  useRequireSignIn(status);
 
   const refresh = useCallback(async () => {
     setLoading(true);

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useRequireSignIn } from "@/hooks/useRequireSignIn";
 import Link from "next/link";
 import { MessageCircle, Plus, Search, X } from "lucide-react";
 
@@ -28,9 +29,7 @@ export default function MessagesPage() {
   const [loading, setLoading] = useState(true);
   const [pickerOpen, setPickerOpen] = useState(false);
 
-  useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
-  }, [status, router]);
+  useRequireSignIn(status);
 
   const refresh = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);

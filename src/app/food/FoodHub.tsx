@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRequireSignIn } from "@/hooks/useRequireSignIn";
 import Link from "next/link";
 import {
   UtensilsCrossed,
@@ -72,7 +72,6 @@ function lineText(i: { qty: number; name: string; unit: string | null }): string
 
 export default function FoodHub() {
   const { status } = useSession();
-  const router = useRouter();
   const [tab, setTab] = useState<Tab>("order");
 
   const [browse, setBrowse] = useState<MenuCard[]>([]);
@@ -83,9 +82,7 @@ export default function FoodHub() {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
-  }, [status, router]);
+  useRequireSignIn(status);
 
   // Deep-link a tab via ?tab= (e.g. coming from a vendor detail back-link).
   useEffect(() => {

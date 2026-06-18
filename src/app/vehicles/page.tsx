@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRequireSignIn } from "@/hooks/useRequireSignIn";
 import { Car, Bike, Zap, ParkingCircle, BarChart3, Loader2 } from "lucide-react";
 
 interface Vehicle {
@@ -22,15 +22,12 @@ interface Stats {
 
 export default function VehiclesPage() {
   const { status } = useSession();
-  const router = useRouter();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [flat, setFlat] = useState<{ block: number; flatNumber: string } | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
-  }, [status, router]);
+  useRequireSignIn(status);
 
   const refresh = useCallback(async () => {
     setLoading(true);

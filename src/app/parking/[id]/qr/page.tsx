@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useRequireSignIn } from "@/hooks/useRequireSignIn";
 import { QRCodeSVG } from "qrcode.react";
 import { Printer, Car, MapPin, IndianRupee } from "lucide-react";
 
@@ -24,9 +25,7 @@ export default function ParkingQRPage() {
   const [origin, setOrigin] = useState("");
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
-  }, [status, router]);
+  useRequireSignIn(status);
 
   useEffect(() => {
     setOrigin(window.location.origin);
