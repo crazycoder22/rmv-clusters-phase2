@@ -14,6 +14,7 @@ import {
   Flame,
   CheckCircle,
   BarChart3,
+  Share2,
 } from "lucide-react";
 import type { CustomFieldType } from "@/types";
 
@@ -78,6 +79,7 @@ export default function EventDashboardPage({
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"daysMet" | "name" | "total" | "average">("daysMet");
   const [selectedParticipant, setSelectedParticipant] = useState<DashboardParticipant | null>(null);
+  const [shareMsg, setShareMsg] = useState("");
 
   useEffect(() => {
     async function fetchDashboard() {
@@ -151,6 +153,55 @@ export default function EventDashboardPage({
       ? "var(--success)"
       : "var(--text)";
 
+  // Build a WhatsApp-friendly text summary of the challenge to share.
+  function buildShareSummary(): string {
+    const lines: string[] = [];
+    const dayTag = hasStepTracking && dayNum !== null ? ` — Day ${dayNum}/${CHALLENGE_DAYS}` : "";
+    lines.push(`🏃 ${eventTitle}${dayTag}`);
+    lines.push("");
+    lines.push(`👥 Participants: ${totalParticipants.toLocaleString("en-IN")}`);
+    lines.push(`👟 Total steps: ${totalActualSteps.toLocaleString("en-IN")}`);
+    if (totalWithGoal > 0) lines.push(`✅ On track: ${onTrackCount}/${totalWithGoal}`);
+    if (topSteps > 0) lines.push(`🔥 Top steps: ${topSteps.toLocaleString("en-IN")}`);
+
+    const top = [...stepLeaderboard].sort((a, b) => b.totalSteps - a.totalSteps).slice(0, 5);
+    if (top.length > 0) {
+      lines.push("");
+      lines.push("🏆 Top 5");
+      const medals = ["🥇", "🥈", "🥉", "4.", "5."];
+      top.forEach((p, i) => {
+        const days = p.dailyGoal > 0 ? ` (${p.daysGoalMet}/${p.daysTracked} days met)` : "";
+        lines.push(`${medals[i]} ${p.name} — ${p.totalSteps.toLocaleString("en-IN")}${days}`);
+      });
+    }
+
+    if (typeof window !== "undefined") {
+      lines.push("");
+      lines.push(window.location.href);
+    }
+    return lines.join("\n");
+  }
+
+  async function handleShare() {
+    const text = buildShareSummary();
+    try {
+      if (typeof navigator !== "undefined" && navigator.share) {
+        await navigator.share({ title: eventTitle, text });
+        return; // native share sheet handled it
+      }
+    } catch (e) {
+      // user dismissed the share sheet — stop, don't also copy
+      if ((e as Error).name === "AbortError") return;
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      setShareMsg("Summary copied — paste it anywhere to share");
+    } catch {
+      setShareMsg("Couldn't copy the summary");
+    }
+    setTimeout(() => setShareMsg(""), 3000);
+  }
+
   if (loading) {
     return (
       <div className="max-w-[1180px] mx-auto px-6 py-12" style={{ color: "var(--text-3)" }}>
@@ -202,13 +253,22 @@ export default function EventDashboardPage({
           )}
         </div>
         {hasStepTracking && (
-          <Link
-            href={`/steps/${id}`}
-            className="inline-flex items-center gap-2.5 font-bold text-base text-white px-6 py-3.5 rounded-[13px] whitespace-nowrap"
-            style={{ background: "var(--accent-strong)", boxShadow: "0 10px 26px var(--accent-soft)" }}
-          >
-            <span className="text-lg leading-none">🏃</span> Enter my steps
-          </Link>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleShare}
+              className="inline-flex items-center gap-2 font-bold text-base px-5 py-3.5 rounded-[13px] whitespace-nowrap"
+              style={{ border: "1px solid var(--border-strong)", color: "var(--accent)", background: "var(--surface)" }}
+            >
+              <Share2 size={19} /> Share
+            </button>
+            <Link
+              href={`/steps/${id}`}
+              className="inline-flex items-center gap-2.5 font-bold text-base text-white px-6 py-3.5 rounded-[13px] whitespace-nowrap"
+              style={{ background: "var(--accent-strong)", boxShadow: "0 10px 26px var(--accent-soft)" }}
+            >
+              <span className="text-lg leading-none">🏃</span> Enter my steps
+            </Link>
+          </div>
         )}
       </div>
 
@@ -392,6 +452,15 @@ export default function EventDashboardPage({
 
       {selectedParticipant && (
         <DetailsModal participant={selectedParticipant} onClose={() => setSelectedParticipant(null)} />
+      )}
+
+      {shareMsg && (
+        <div
+          className="fixed left-1/2 -translate-x-1/2 bottom-6 z-[60] px-5 py-3 rounded-[12px] text-sm font-semibold text-white"
+          style={{ background: "var(--accent-strong)", boxShadow: "0 12px 30px rgba(0,0,0,0.3)" }}
+        >
+          {shareMsg}
+        </div>
       )}
     </div>
   );
