@@ -160,20 +160,13 @@ export default function EventDashboardPage({
     lines.push(`🏃 ${eventTitle}${dayTag}`);
     lines.push("");
     lines.push(`👥 Participants: ${totalParticipants.toLocaleString("en-IN")}`);
+    if (totalStepTarget > 0) lines.push(`🎯 Total goal: ${totalStepTarget.toLocaleString("en-IN")} steps`);
     lines.push(`👟 Total steps: ${totalActualSteps.toLocaleString("en-IN")}`);
-    if (totalWithGoal > 0) lines.push(`✅ On track: ${onTrackCount}/${totalWithGoal}`);
-    if (topSteps > 0) lines.push(`🔥 Top steps: ${topSteps.toLocaleString("en-IN")}`);
-
-    const top = [...stepLeaderboard].sort((a, b) => b.totalSteps - a.totalSteps).slice(0, 5);
-    if (top.length > 0) {
-      lines.push("");
-      lines.push("🏆 Top 5");
-      const medals = ["🥇", "🥈", "🥉", "4.", "5."];
-      top.forEach((p, i) => {
-        const days = p.dailyGoal > 0 ? ` (${p.daysGoalMet}/${p.daysTracked} days met)` : "";
-        lines.push(`${medals[i]} ${p.name} — ${p.totalSteps.toLocaleString("en-IN")}${days}`);
-      });
+    if (totalStepTarget > 0) {
+      const pct = Math.round((totalActualSteps / totalStepTarget) * 100);
+      lines.push(`📈 Progress: ${pct}% of goal`);
     }
+    if (totalWithGoal > 0) lines.push(`✅ On track: ${onTrackCount}/${totalWithGoal}`);
 
     if (typeof window !== "undefined") {
       lines.push("");

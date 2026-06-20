@@ -33,6 +33,7 @@ const sourceSerif = Source_Serif_4({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.rmvclustersphase2.in"),
   title: {
     default: siteData.name,
     template: `%s | ${siteData.name}`,
