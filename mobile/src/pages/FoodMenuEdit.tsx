@@ -27,6 +27,8 @@ interface DishDraft {
   unit: string | null;
   imageUrl: string | null;
   soldOut?: boolean;
+  stockQty?: string; // optional total available (MARKET)
+  maxPerPerson?: string; // optional per-person cap (MARKET)
 }
 
 interface Manager {
@@ -58,7 +60,7 @@ export default function FoodMenuEdit({ kind: kindProp = "KITCHEN" }: { kind?: Fo
   const [orderByAt, setOrderByAt] = useState(""); // datetime-local string
   const [pickupInfo, setPickupInfo] = useState("");
   const [dishes, setDishes] = useState<DishDraft[]>([
-    { name: "", description: "", price: "", unit: isMarket ? "kg" : null, imageUrl: null },
+    { name: "", description: "", price: "", unit: isMarket ? "kg" : null, imageUrl: null, stockQty: "", maxPerPerson: "" },
   ]);
   const [managers, setManagers] = useState<Manager[]>([]);
   const [loading, setLoading] = useState(isEdit);
@@ -83,7 +85,7 @@ export default function FoodMenuEdit({ kind: kindProp = "KITCHEN" }: { kind?: Fo
       setOrderByAt(m.orderByAt ? toLocalInput(m.orderByAt) : "");
       setPickupInfo(m.pickupInfo ?? "");
       setDishes(
-        (m.items ?? []).map((d: { id: string; name: string; description: string | null; price: number; unit: string | null; imageUrl: string | null; soldOut: boolean }) => ({
+        (m.items ?? []).map((d: { id: string; name: string; description: string | null; price: number; unit: string | null; imageUrl: string | null; soldOut: boolean; stockQty: number | null; maxPerPerson: number | null }) => ({
           id: d.id,
           name: d.name,
           description: d.description ?? "",
@@ -91,6 +93,8 @@ export default function FoodMenuEdit({ kind: kindProp = "KITCHEN" }: { kind?: Fo
           unit: d.unit ?? (mk ? "kg" : null),
           imageUrl: d.imageUrl,
           soldOut: d.soldOut,
+          stockQty: d.stockQty != null ? String(d.stockQty) : "",
+          maxPerPerson: d.maxPerPerson != null ? String(d.maxPerPerson) : "",
         }))
       );
     } finally {
@@ -106,7 +110,7 @@ export default function FoodMenuEdit({ kind: kindProp = "KITCHEN" }: { kind?: Fo
     setDishes((prev) => prev.map((d, idx) => (idx === i ? { ...d, ...patch } : d)));
   }
   function addDish() {
-    setDishes((prev) => [...prev, { name: "", description: "", price: "", unit: isMarket ? "kg" : null, imageUrl: null }]);
+    setDishes((prev) => [...prev, { name: "", description: "", price: "", unit: isMarket ? "kg" : null, imageUrl: null, stockQty: "", maxPerPerson: "" }]);
   }
   function removeDish(i: number) {
     setDishes((prev) => prev.filter((_, idx) => idx !== i));
@@ -127,6 +131,9 @@ export default function FoodMenuEdit({ kind: kindProp = "KITCHEN" }: { kind?: Fo
         unit: isMarket ? d.unit : null,
         imageUrl: d.imageUrl,
         soldOut: d.soldOut,
+        // Optional limited-quantity controls (MARKET). Empty → null (no limit).
+        stockQty: isMarket && d.stockQty?.trim() ? Number(d.stockQty) : null,
+        maxPerPerson: isMarket && d.maxPerPerson?.trim() ? Number(d.maxPerPerson) : null,
       }))
       .filter((d) => d.name);
     if (cleanDishes.length === 0) {
@@ -405,6 +412,18 @@ function DishRow({
           </button>
         )}
       </div>
+      {isMarket && (
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <p className="mb-1 text-[11px]" style={{ color: "var(--text-3)" }}>Total stock (optional)</p>
+            <input type="number" inputMode="numeric" value={dish.stockQty ?? ""} onChange={(e) => onChange({ stockQty: e.target.value })} placeholder="e.g. 60" className="one-input w-full rounded-[10px] px-3 py-2.5 text-[14px]" />
+          </div>
+          <div>
+            <p className="mb-1 text-[11px]" style={{ color: "var(--text-3)" }}>Max per person (optional)</p>
+            <input type="number" inputMode="numeric" value={dish.maxPerPerson ?? ""} onChange={(e) => onChange({ maxPerPerson: e.target.value })} placeholder="e.g. 5" className="one-input w-full rounded-[10px] px-3 py-2.5 text-[14px]" />
+          </div>
+        </div>
+      )}
       <input value={dish.description} onChange={(e) => onChange({ description: e.target.value })} placeholder="Short description (optional)" className="one-input w-full rounded-[10px] px-3 py-2.5 text-[14px]" />
     </div>
   );

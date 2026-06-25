@@ -19,6 +19,10 @@ interface Dish {
   unit: string | null;
   imageUrl: string | null;
   soldOut: boolean;
+  stockQty?: number | null; // total available (null = unlimited)
+  maxPerPerson?: number | null; // per-person cap (null = none)
+  remaining?: number | null; // stock left (null = unlimited)
+  myRemaining?: number | null; // how many more I can order (null = no cap)
 }
 
 interface OrderLine {
@@ -130,9 +134,16 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
   }, [cart, menu]);
   const cartCount = Object.values(cart).reduce((s, q) => s + q, 0);
 
+  // Most a buyer can add of one item = min(stock left, their per-person remaining).
+  function dishMax(d: Dish): number {
+    return Math.min(d.remaining ?? Infinity, d.myRemaining ?? Infinity);
+  }
+
   function setQty(dishId: string, delta: number) {
+    const d = menu?.items.find((x) => x.id === dishId);
+    const max = d ? dishMax(d) : Infinity;
     setCart((prev) => {
-      const next = Math.max(0, (prev[dishId] ?? 0) + delta);
+      const next = Math.max(0, Math.min(max, (prev[dishId] ?? 0) + delta));
       const copy = { ...prev };
       if (next === 0) delete copy[dishId];
       else copy[dishId] = next;
@@ -457,7 +468,13 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
             <div className="flex flex-col gap-2">
               {menu.items.map((d) => (
                 <div key={d.id} className="flex items-center gap-2 rounded-[12px] px-3.5 py-2.5" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
-                  <span className="flex-1 truncate text-[14px]" style={{ color: "var(--text)" }}>{d.name}</span>
+                  <span className="flex-1 truncate text-[14px]" style={{ color: "var(--text)" }}>
+                    {d.name}
+                    {d.maxPerPerson != null && <span className="ml-1.5 text-[10px]" style={{ color: "var(--text-3)" }}>· max {d.maxPerPerson}/person</span>}
+                  </span>
+                  {d.stockQty != null && (
+                    <span className="text-[11px] font-bold tabular-nums" style={{ color: "var(--warning)" }}>{d.remaining ?? d.stockQty}/{d.stockQty}</span>
+                  )}
                   <span className="text-[12px] tabular-nums" style={{ color: "var(--text-2)" }}>{formatUnitPrice(d.price, d.unit)}</span>
                   <button
                     type="button"
@@ -600,8 +617,12 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
               <section className="mb-3">
                 <p className="one-mono mb-2.5 text-[10px] font-semibold" style={{ color: "var(--text-3)", letterSpacing: "0.12em" }}>{isMarket ? "ON OFFER" : "MENU"}</p>
                 <div className="flex flex-col gap-2.5">
-                  {menu.items.map((d) => (
-                    <div key={d.id} className="flex gap-3 rounded-[16px] p-2.5" style={{ background: "var(--surface)", border: "1px solid var(--border)", opacity: d.soldOut ? 0.5 : 1 }}>
+                  {menu.items.map((d) => {
+                    const have = cart[d.id] ?? 0;
+                    const max = dishMax(d);
+                    const out = d.soldOut || d.remaining === 0 || max <= 0;
+                    return (
+                    <div key={d.id} className="flex gap-3 rounded-[16px] p-2.5" style={{ background: "var(--surface)", border: "1px solid var(--border)", opacity: out ? 0.5 : 1 }}>
                       {d.imageUrl && (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={d.imageUrl} alt="" className="h-[66px] w-[66px] flex-shrink-0 rounded-[12px] object-cover" />
@@ -610,20 +631,27 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
                         <p className="text-[15px] font-bold" style={{ color: "var(--text)" }}>{d.name}</p>
                         {d.description && <p className="mt-0.5 line-clamp-2 text-[12px]" style={{ color: "var(--text-3)" }}>{d.description}</p>}
                         <p className="mt-1 text-[14px] font-bold" style={{ color: "var(--text)" }}>{formatUnitPrice(d.price, d.unit)}</p>
+                        {!out && d.remaining != null && d.remaining > 0 && (
+                          <p className="mt-0.5 text-[11px] font-bold" style={{ color: "var(--warning)" }}>Only {d.remaining} left</p>
+                        )}
+                        {d.maxPerPerson != null && (
+                          <p className="mt-0.5 text-[10.5px]" style={{ color: "var(--text-3)" }}>Max {d.maxPerPerson} per person</p>
+                        )}
                       </div>
-                      {d.soldOut ? (
+                      {out ? (
                         <span className="self-center rounded-full px-2.5 py-1 text-[10px] font-bold" style={{ background: "var(--danger-soft)", color: "var(--danger)" }}>SOLD OUT</span>
-                      ) : (cart[d.id] ?? 0) > 0 ? (
+                      ) : have > 0 ? (
                         <div className="flex items-center gap-2.5 self-center rounded-full p-1.5" style={{ background: "var(--accent-soft)" }}>
                           <button type="button" onClick={() => setQty(d.id, -1)} className="flex h-7 w-7 items-center justify-center rounded-full active:opacity-90" style={{ background: "var(--surface)", color: "var(--accent)" }}><Icon name="remove" size={16} style={{ color: "var(--accent)" }} /></button>
-                          <span className="w-3.5 text-center text-[15px] font-extrabold tabular-nums" style={{ color: "var(--accent)" }}>{cart[d.id]}</span>
-                          <button type="button" onClick={() => setQty(d.id, 1)} className="flex h-7 w-7 items-center justify-center rounded-full text-white active:opacity-90" style={{ background: "var(--accent-strong)" }}><Icon name="add" size={16} style={{ color: "#fff" }} /></button>
+                          <span className="w-3.5 text-center text-[15px] font-extrabold tabular-nums" style={{ color: "var(--accent)" }}>{have}</span>
+                          <button type="button" disabled={have >= max} onClick={() => setQty(d.id, 1)} className="flex h-7 w-7 items-center justify-center rounded-full text-white active:opacity-90 disabled:opacity-40" style={{ background: "var(--accent-strong)" }}><Icon name="add" size={16} style={{ color: "#fff" }} /></button>
                         </div>
                       ) : (
                         <button type="button" onClick={() => setQty(d.id, 1)} className="flex h-[38px] w-[38px] flex-shrink-0 items-center justify-center self-center rounded-full text-white active:opacity-90" style={{ background: "var(--accent-strong)", boxShadow: "0 4px 12px var(--accent-soft)" }}><Icon name="add" size={22} style={{ color: "#fff" }} /></button>
                       )}
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </section>
 
