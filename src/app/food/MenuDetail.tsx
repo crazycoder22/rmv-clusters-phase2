@@ -36,6 +36,10 @@ interface Dish {
   unit: string | null;
   imageUrl: string | null;
   soldOut: boolean;
+  stockQty?: number | null; // total available (null = unlimited)
+  maxPerPerson?: number | null; // per-person cap (null = none)
+  remaining?: number | null; // stock left (null = unlimited)
+  myRemaining?: number | null; // how many more *I* can order (null = no cap)
 }
 interface OrderLine {
   name: string;
@@ -146,9 +150,17 @@ export default function MenuDetail({ section = "KITCHEN" }: { section?: FoodKind
   }, [cart, menu]);
   const cartCount = Object.values(cart).reduce((s, q) => s + q, 0);
 
+  // The most a buyer can add of one item right now = min(stock left, their own
+  // remaining under the per-person cap). Infinity when neither limit is set.
+  function dishMax(d: Dish): number {
+    return Math.min(d.remaining ?? Infinity, d.myRemaining ?? Infinity);
+  }
+
   function setQty(dishId: string, delta: number) {
+    const d = menu?.items.find((x) => x.id === dishId);
+    const max = d ? dishMax(d) : Infinity;
     setCart((prev) => {
-      const next = Math.max(0, (prev[dishId] ?? 0) + delta);
+      const next = Math.max(0, Math.min(max, (prev[dishId] ?? 0) + delta));
       const copy = { ...prev };
       if (next === 0) delete copy[dishId];
       else copy[dishId] = next;
@@ -408,7 +420,13 @@ export default function MenuDetail({ section = "KITCHEN" }: { section?: FoodKind
             <div className="space-y-2">
               {menu.items.map((d) => (
                 <div key={d.id} className="flex items-center gap-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2.5">
-                  <span className="flex-1 text-gray-900 dark:text-gray-100">{d.name}</span>
+                  <span className="flex-1 text-gray-900 dark:text-gray-100">
+                    {d.name}
+                    {d.maxPerPerson != null && <span className="ml-2 text-[11px] text-gray-400 dark:text-gray-500">· max {d.maxPerPerson}/person</span>}
+                  </span>
+                  {d.stockQty != null && (
+                    <span className="text-xs font-semibold text-amber-600">{d.remaining ?? d.stockQty}/{d.stockQty} left</span>
+                  )}
                   <span className="text-sm text-gray-600 dark:text-gray-300">{formatUnitPrice(d.price, d.unit)}</span>
                   <button type="button" onClick={() => toggleSoldOut(d)} className={`text-xs font-semibold rounded-full px-2.5 py-1 ${d.soldOut ? "text-red-700 bg-red-100" : "text-green-700 bg-green-100"}`}>
                     {d.soldOut ? "Sold out" : "Available"}
@@ -535,8 +553,12 @@ export default function MenuDetail({ section = "KITCHEN" }: { section?: FoodKind
               <>
                 <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mt-6 mb-2">{isMarket ? "On offer" : "Menu"}</h2>
                 <div className="space-y-2">
-                  {menu.items.map((d) => (
-                    <div key={d.id} className={`flex gap-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 ${d.soldOut ? "opacity-50" : ""}`}>
+                  {menu.items.map((d) => {
+                    const have = cart[d.id] ?? 0;
+                    const max = dishMax(d);
+                    const out = d.soldOut || d.remaining === 0 || max <= 0;
+                    return (
+                    <div key={d.id} className={`flex gap-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 ${out ? "opacity-50" : ""}`}>
                       {d.imageUrl && (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={d.imageUrl} alt="" className="h-20 w-20 rounded-lg object-cover flex-shrink-0" />
@@ -545,22 +567,29 @@ export default function MenuDetail({ section = "KITCHEN" }: { section?: FoodKind
                         <p className="font-semibold text-gray-900 dark:text-gray-100">{d.name}</p>
                         {d.description && <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{d.description}</p>}
                         <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mt-0.5">{formatUnitPrice(d.price, d.unit)}</p>
+                        {!out && d.remaining != null && d.remaining > 0 && (
+                          <p className="text-xs font-semibold text-amber-600 mt-0.5">Only {d.remaining} left</p>
+                        )}
+                        {d.maxPerPerson != null && (
+                          <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">Max {d.maxPerPerson} per person</p>
+                        )}
                       </div>
-                      {d.soldOut ? (
+                      {out ? (
                         <span className="self-center text-xs font-semibold text-red-700 bg-red-100 rounded-full px-2 py-0.5">Sold out</span>
                       ) : (
                         <div className="flex items-center gap-2 self-center">
-                          {(cart[d.id] ?? 0) > 0 && (
+                          {have > 0 && (
                             <>
                               <button type="button" onClick={() => setQty(d.id, -1)} className="h-8 w-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200"><Minus size={15} /></button>
-                              <span className="w-5 text-center font-bold">{cart[d.id]}</span>
+                              <span className="w-5 text-center font-bold">{have}</span>
                             </>
                           )}
-                          <button type="button" onClick={() => setQty(d.id, 1)} className="h-8 w-8 flex items-center justify-center rounded-full bg-blue-600 text-white hover:bg-blue-700"><Plus size={15} /></button>
+                          <button type="button" disabled={have >= max} onClick={() => setQty(d.id, 1)} className={`h-8 w-8 flex items-center justify-center rounded-full bg-blue-600 text-white hover:bg-blue-700 ${have >= max ? "opacity-40 cursor-not-allowed" : ""}`}><Plus size={15} /></button>
                         </div>
                       )}
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 {cartCount > 0 && (

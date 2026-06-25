@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthedResident } from "@/lib/api-auth";
 import { isAdmin } from "@/lib/roles";
-import { round2, isMenuOrderable, isMenuManager } from "@/lib/food";
+import { round2, isMenuOrderable, isMenuManager, parseLimit } from "@/lib/food";
 import { MARKET_UNIT_VALUES } from "@/lib/market";
 
 export const dynamic = "force-dynamic";
@@ -70,6 +70,23 @@ export async function GET(
       }))
     : [];
 
+  // Stock + per-person remaining, from non-cancelled order quantities.
+  const itemIds = menu.items.map((it) => it.id);
+  const [soldRows, mineRows] = await Promise.all([
+    prisma.foodOrderItem.groupBy({
+      by: ["menuItemId"],
+      where: { menuItemId: { in: itemIds }, order: { status: { not: "CANCELLED" } } },
+      _sum: { qty: true },
+    }),
+    prisma.foodOrderItem.groupBy({
+      by: ["menuItemId"],
+      where: { menuItemId: { in: itemIds }, order: { buyerId: me.id, status: { not: "CANCELLED" } } },
+      _sum: { qty: true },
+    }),
+  ]);
+  const soldBy = new Map(soldRows.map((r) => [r.menuItemId, r._sum.qty ?? 0]));
+  const mineBy = new Map(mineRows.map((r) => [r.menuItemId, r._sum.qty ?? 0]));
+
   return NextResponse.json({
     id: menu.id,
     title: menu.title,
@@ -103,6 +120,12 @@ export async function GET(
       unit: it.unit,
       imageUrl: it.imageUrl,
       soldOut: it.soldOut,
+      stockQty: it.stockQty,
+      maxPerPerson: it.maxPerPerson,
+      // remaining stock (null = unlimited); the caller's own remaining under the
+      // per-person cap (null = no cap).
+      remaining: it.stockQty != null ? Math.max(0, it.stockQty - (soldBy.get(it.id) ?? 0)) : null,
+      myRemaining: it.maxPerPerson != null ? Math.max(0, it.maxPerPerson - (mineBy.get(it.id) ?? 0)) : null,
     })),
     orders: orders.map((o) => ({
       id: o.id,
@@ -198,6 +221,8 @@ export async function PATCH(
         unit?: string | null;
         imageUrl?: string | null;
         soldOut?: boolean;
+        stockQty?: number | null;
+        maxPerPerson?: number | null;
       };
       const unit = cleanUnit(it.unit);
       if (it.id) {
@@ -214,6 +239,8 @@ export async function PATCH(
               ? { imageUrl: it.imageUrl?.trim() || null }
               : {}),
             ...(typeof it.soldOut === "boolean" ? { soldOut: it.soldOut } : {}),
+            ...(it.stockQty !== undefined ? { stockQty: parseLimit(it.stockQty) } : {}),
+            ...(it.maxPerPerson !== undefined ? { maxPerPerson: parseLimit(it.maxPerPerson) } : {}),
             sortOrder: idx,
           },
         });
@@ -226,6 +253,8 @@ export async function PATCH(
             price: round2(Number(it.price) || 0),
             unit,
             imageUrl: it.imageUrl?.trim() || null,
+            stockQty: parseLimit(it.stockQty),
+            maxPerPerson: parseLimit(it.maxPerPerson),
             sortOrder: idx,
           },
         });

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthedResident } from "@/lib/api-auth";
 import { sendPushToResidents } from "@/lib/push";
-import { round2, MAX_OPEN_MENUS, MAX_COMANAGERS, isMenuOrderable } from "@/lib/food";
+import { round2, MAX_OPEN_MENUS, MAX_COMANAGERS, isMenuOrderable, parseLimit } from "@/lib/food";
 import { asKind, KIND_LABELS, MARKET_UNIT_VALUES } from "@/lib/market";
 import { ymdToInstant, isValidYmd } from "@/lib/habits";
 
@@ -106,6 +106,8 @@ export async function POST(request: Request) {
       price?: number;
       unit?: string | null;
       imageUrl?: string | null;
+      stockQty?: number | null;
+      maxPerPerson?: number | null;
     }>;
   };
   const kind = asKind(rawKind);
@@ -134,6 +136,8 @@ export async function POST(request: Request) {
       // MARKET items carry a selling unit; KITCHEN items never do.
       unit: isMarket ? (it.unit?.trim() || null) : null,
       imageUrl: it.imageUrl?.trim() || null,
+      stockQty: parseLimit(it.stockQty),
+      maxPerPerson: parseLimit(it.maxPerPerson),
       sortOrder: idx,
     }))
     .filter((it) => it.name);

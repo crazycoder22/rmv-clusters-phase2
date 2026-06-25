@@ -2027,6 +2027,12 @@ model FoodMenuItem {
   unit        String?                         // MARKET selling unit ("kg", "dozen"…); null for KITCHEN
   imageUrl    String?
   soldOut     Boolean         @default(false)
+  // Optional limited-quantity controls (used mainly by MARKET/Bazaar items).
+  // stockQty: total units available across ALL orders — auto sold-out at 0;
+  // null = unlimited. maxPerPerson: cap a single buyer can order across all
+  // their orders for this item; null = no per-person cap (global MAX still applies).
+  stockQty     Int?
+  maxPerPerson Int?
   sortOrder   Int             @default(0)
   orderItems  FoodOrderItem[]
 

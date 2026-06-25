@@ -5,6 +5,16 @@ export const MAX_QTY_PER_ITEM = 50;
 export const MAX_COMANAGERS = 5; // nominated co-managers per listing
 
 /**
+ * Parse an optional limit field (stockQty / maxPerPerson) from a form/body.
+ * Returns a positive integer, or null for "no limit" (empty, 0, or invalid).
+ */
+export function parseLimit(raw: unknown): number | null {
+  if (raw === null || raw === undefined || raw === "") return null;
+  const n = Math.floor(Number(raw));
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+/**
  * Whether a resident is a nominated co-manager of a listing. Works with the
  * prisma client or a transaction client (anything with `foodMenuManager`).
  * The owner (chefId) is NOT a co-manager — callers OR this with the owner check.

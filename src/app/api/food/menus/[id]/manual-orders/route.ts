@@ -48,8 +48,18 @@ export async function POST(
       if (menu.status === "ARCHIVED") return { error: "This listing is archived", code: 409 };
 
       const ids = cart.lines.map((l) => l.menuItemId);
+      // Lock the menu's item rows so offline + app orders can't oversell stock.
+      await tx.$queryRaw`SELECT id FROM "FoodMenuItem" WHERE "menuId" = ${menuId} FOR UPDATE`;
       const dishes = await tx.foodMenuItem.findMany({ where: { id: { in: ids }, menuId } });
       const byId = new Map(dishes.map((d) => [d.id, d]));
+
+      // Already-ordered totals (non-cancelled) for the shared stock pool.
+      const soldRows = await tx.foodOrderItem.groupBy({
+        by: ["menuItemId"],
+        where: { menuItemId: { in: ids }, order: { status: { not: "CANCELLED" } } },
+        _sum: { qty: true },
+      });
+      const soldBy = new Map(soldRows.map((r) => [r.menuItemId, r._sum.qty ?? 0]));
 
       const lineData: {
         menuItemId: string;
@@ -61,6 +71,20 @@ export async function POST(
       for (const line of cart.lines) {
         const dish = byId.get(line.menuItemId);
         if (!dish) return { error: "An item is no longer available", code: 409 };
+        // Offline buyers aren't tracked by account, so the per-person cap is
+        // enforced per single logged order here (the seller self-polices repeats).
+        if (dish.maxPerPerson != null && line.qty > dish.maxPerPerson) {
+          return { error: `Limit ${dish.maxPerPerson} ${dish.name} per person`, code: 409 };
+        }
+        if (dish.stockQty != null) {
+          const remaining = dish.stockQty - (soldBy.get(dish.id) ?? 0);
+          if (line.qty > remaining) {
+            return {
+              error: remaining > 0 ? `Only ${remaining} ${dish.name} left` : `"${dish.name}" is sold out`,
+              code: 409,
+            };
+          }
+        }
         lineData.push({
           menuItemId: dish.id,
           nameSnapshot: dish.name,
@@ -89,6 +113,17 @@ export async function POST(
           items: { create: lineData },
         },
       });
+
+      // Auto-mark any stocked item that just hit zero remaining as sold out.
+      for (const line of cart.lines) {
+        const dish = byId.get(line.menuItemId);
+        if (dish?.stockQty != null && !dish.soldOut) {
+          const sold = (soldBy.get(dish.id) ?? 0) + line.qty;
+          if (sold >= dish.stockQty) {
+            await tx.foodMenuItem.update({ where: { id: dish.id }, data: { soldOut: true } });
+          }
+        }
+      }
       return { id: order.id };
     });
 
