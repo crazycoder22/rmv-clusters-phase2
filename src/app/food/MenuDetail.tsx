@@ -771,7 +771,7 @@ function ChefOrderCard({ order, busy, onAction }: { order: Order; busy: boolean;
         ) : order.buyerPaid ? (
           <button type="button" onClick={() => onAction("confirm_paid")} disabled={busy} className="text-xs font-semibold bg-green-600 text-white rounded-md px-3 py-1 hover:bg-green-700 disabled:opacity-50">Confirm received</button>
         ) : order.status !== "CANCELLED" ? (
-          <button type="button" onClick={() => onAction("confirm_paid")} disabled={busy} className="text-xs font-semibold border border-green-300 dark:border-green-800 text-green-700 dark:text-green-400 rounded-md px-3 py-1 hover:bg-green-50 dark:hover:bg-green-900/20 disabled:opacity-50">Mark paid (cash)</button>
+          <button type="button" onClick={() => onAction("confirm_paid")} disabled={busy} className="text-xs font-semibold border border-green-300 dark:border-green-800 text-green-700 dark:text-green-400 rounded-md px-3 py-1 hover:bg-green-50 dark:hover:bg-green-900/20 disabled:opacity-50">Mark paid</button>
         ) : (
           <span className="text-xs text-gray-400 dark:text-gray-500">unpaid</span>
         )}
