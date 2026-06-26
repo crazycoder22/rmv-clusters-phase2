@@ -49,6 +49,7 @@ interface Order {
   buyer?: { name: string; block: number; flatNumber: string; phone: string };
   manual?: boolean;
   manualBuyerName?: string | null;
+  manualBuyerFlat?: string | null;
 }
 
 interface MenuDetail {
@@ -94,6 +95,7 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
   // Offline ("manual") order the chef logs on a buyer's behalf.
   const [showManual, setShowManual] = useState(false);
   const [mName, setMName] = useState("");
+  const [mFlat, setMFlat] = useState("");
   const [mCart, setMCart] = useState<Record<string, number>>({});
   const [mPaid, setMPaid] = useState(false);
   const [mBusy, setMBusy] = useState(false);
@@ -215,13 +217,13 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
       const res = await apiFetch(`/api/food/menus/${menu.id}/manual-orders`, {
         method: "POST",
         token,
-        body: JSON.stringify({ buyerName: mName.trim(), items, paid: mPaid }),
+        body: JSON.stringify({ buyerName: mName.trim(), buyerFlat: mFlat.trim() || null, items, paid: mPaid }),
       });
       if (!res.ok) {
         setMErr((await res.json().catch(() => null))?.error ?? "Could not add order");
         return;
       }
-      setMName(""); setMCart({}); setMPaid(false); setShowManual(false);
+      setMName(""); setMFlat(""); setMCart({}); setMPaid(false); setShowManual(false);
       await refresh();
     } finally {
       setMBusy(false);
@@ -512,12 +514,20 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
                 <p className="text-[12px]" style={{ color: "var(--text-2)" }}>
                   Log a WhatsApp / phone order so everything stays in one place.
                 </p>
-                <input
-                  value={mName}
-                  onChange={(e) => setMName(e.target.value)}
-                  placeholder="Buyer's name (e.g. Mrs. Sharma B2-301)"
-                  className="one-input w-full rounded-[12px] px-3.5 py-2.5 text-[14px] outline-none"
-                />
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    value={mName}
+                    onChange={(e) => setMName(e.target.value)}
+                    placeholder="Buyer's name"
+                    className="one-input w-full rounded-[12px] px-3.5 py-2.5 text-[14px] outline-none"
+                  />
+                  <input
+                    value={mFlat}
+                    onChange={(e) => setMFlat(e.target.value)}
+                    placeholder="Flat / Block"
+                    className="one-input w-full rounded-[12px] px-3.5 py-2.5 text-[14px] outline-none"
+                  />
+                </div>
                 <div className="flex flex-col gap-1.5">
                   {menu.items.map((d) => (
                     <div key={d.id} className="flex items-center gap-2">
@@ -835,7 +845,7 @@ function ChefOrderCard({
       <div className="flex items-baseline justify-between gap-2">
         <span className="truncate text-[14px] font-bold" style={{ color: "var(--text)" }}>
           {order.manual
-            ? order.manualBuyerName || "Offline order"
+            ? `${order.manualBuyerName || "Offline order"}${order.manualBuyerFlat ? ` · ${order.manualBuyerFlat}` : ""}`
             : order.buyer
               ? `${order.buyer.name} · B${order.buyer.block}-${order.buyer.flatNumber}`
               : "Order"}
@@ -897,7 +907,7 @@ function buildOrderListText(menu: MenuDetail): string {
   active.forEach((o, i) => {
     const who = o.buyer
       ? `${o.buyer.name} (B${o.buyer.block}-${o.buyer.flatNumber})`
-      : `${o.manualBuyerName ?? "Offline"} (offline)`;
+      : `${o.manualBuyerName ?? "Offline"}${o.manualBuyerFlat ? ` (${o.manualBuyerFlat})` : ""} (offline)`;
     const pay = o.chefPaid ? "✅ paid" : o.buyerPaid ? "⏳ paid (unconfirmed)" : "❌ unpaid";
     lines.push(`${i + 1}. ${who}`);
     lines.push(`   ${o.items.map(lineText).join(", ")} · ₹${o.totalAmount} · ${pay}`);

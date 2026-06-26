@@ -26,6 +26,10 @@ export async function POST(
   if (!buyerName) {
     return NextResponse.json({ error: "Who is this order for?" }, { status: 400 });
   }
+  const buyerFlat =
+    typeof body?.buyerFlat === "string" && body.buyerFlat.trim()
+      ? body.buyerFlat.trim().slice(0, 40)
+      : null;
   const cart = validateCart(body?.items);
   if ("error" in cart) {
     return NextResponse.json({ error: cart.error }, { status: 400 });
@@ -102,6 +106,7 @@ export async function POST(
           menuId,
           buyerId: null,
           manualBuyerName: buyerName,
+          manualBuyerFlat: buyerFlat,
           note,
           totalAmount: total,
           // Mirror the offline payment state the chef knows about.

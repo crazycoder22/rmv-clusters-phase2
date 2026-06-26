@@ -58,6 +58,7 @@ interface Order {
   buyer?: { name: string; block: number; flatNumber: string; phone: string };
   manual?: boolean;
   manualBuyerName?: string | null;
+  manualBuyerFlat?: string | null;
 }
 interface MenuDetailData {
   id: string;
@@ -106,6 +107,7 @@ export default function MenuDetail({ section = "KITCHEN" }: { section?: FoodKind
   // Offline ("manual") order the chef logs on a buyer's behalf.
   const [showManual, setShowManual] = useState(false);
   const [mName, setMName] = useState("");
+  const [mFlat, setMFlat] = useState("");
   const [mCart, setMCart] = useState<Record<string, number>>({});
   const [mPaid, setMPaid] = useState(false);
   const [mBusy, setMBusy] = useState(false);
@@ -227,6 +229,7 @@ export default function MenuDetail({ section = "KITCHEN" }: { section?: FoodKind
       const items = Object.entries(mCart).map(([menuItemId, qty]) => ({ menuItemId, qty }));
       const res = await api(`/api/food/menus/${menu.id}/manual-orders`, "POST", {
         buyerName: mName.trim(),
+        buyerFlat: mFlat.trim() || null,
         items,
         paid: mPaid,
       });
@@ -234,7 +237,7 @@ export default function MenuDetail({ section = "KITCHEN" }: { section?: FoodKind
         setMErr((await res.json().catch(() => null))?.error ?? "Could not add order");
         return;
       }
-      setMName(""); setMCart({}); setMPaid(false); setShowManual(false);
+      setMName(""); setMFlat(""); setMCart({}); setMPaid(false); setShowManual(false);
       await refresh();
     } finally {
       setMBusy(false);
@@ -462,12 +465,20 @@ export default function MenuDetail({ section = "KITCHEN" }: { section?: FoodKind
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   Log an order that came in over WhatsApp / phone so everything stays in one place.
                 </p>
-                <input
-                  value={mName}
-                  onChange={(e) => setMName(e.target.value)}
-                  placeholder="Buyer's name (e.g. Mrs. Sharma, B2-301)"
-                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800"
-                />
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    value={mName}
+                    onChange={(e) => setMName(e.target.value)}
+                    placeholder="Buyer's name"
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800"
+                  />
+                  <input
+                    value={mFlat}
+                    onChange={(e) => setMFlat(e.target.value)}
+                    placeholder="Flat / Block (optional)"
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800"
+                  />
+                </div>
                 <div className="space-y-1.5">
                   {menu.items.map((d) => (
                     <div key={d.id} className="flex items-center gap-2">
@@ -744,7 +755,7 @@ function ChefOrderCard({ order, busy, onAction }: { order: Order; busy: boolean;
       <div className="flex items-start justify-between gap-2">
         <span className="font-semibold text-gray-900 dark:text-gray-100">
           {order.manual
-            ? order.manualBuyerName || "Offline order"
+            ? `${order.manualBuyerName || "Offline order"}${order.manualBuyerFlat ? ` · ${order.manualBuyerFlat}` : ""}`
             : order.buyer
               ? `${order.buyer.name} · ${order.buyer.block}-${order.buyer.flatNumber}`
               : "Order"}
@@ -805,7 +816,7 @@ function buildOrderListText(menu: MenuDetailData): string {
   active.forEach((o, i) => {
     const who = o.buyer
       ? `${o.buyer.name} (B${o.buyer.block}-${o.buyer.flatNumber})`
-      : `${o.manualBuyerName ?? "Offline"} (offline)`;
+      : `${o.manualBuyerName ?? "Offline"}${o.manualBuyerFlat ? ` (${o.manualBuyerFlat})` : ""} (offline)`;
     const pay = o.chefPaid ? "✅ paid" : o.buyerPaid ? "⏳ paid (unconfirmed)" : "❌ unpaid";
     lines.push(`${i + 1}. ${who}`);
     lines.push(`   ${o.items.map(lineText).join(", ")} · ₹${o.totalAmount} · ${pay}`);

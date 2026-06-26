@@ -2049,6 +2049,7 @@ model FoodOrder {
   buyerId         String?
   buyer           Resident?   @relation("FoodOrdersByBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
   manualBuyerName String?     // free-text buyer for offline/manual orders
+  manualBuyerFlat String?     // free-text flat/block for an offline buyer not in the system
   status      FoodOrderStatus @default(PLACED)
   note        String?
   totalAmount Float           // server-computed snapshot at order time
