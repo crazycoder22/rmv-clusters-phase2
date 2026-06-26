@@ -63,6 +63,7 @@ export default function FoodMenuEdit({ kind: kindProp = "KITCHEN" }: { kind?: Fo
     { name: "", description: "", price: "", unit: isMarket ? "kg" : null, imageUrl: null, stockQty: "", maxPerPerson: "" },
   ]);
   const [managers, setManagers] = useState<Manager[]>([]);
+  const [notify, setNotify] = useState(true); // broadcast a push to residents on publish
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -176,6 +177,7 @@ export default function FoodMenuEdit({ kind: kindProp = "KITCHEN" }: { kind?: Fo
             pickupInfo: pickupInfo.trim() || null,
             items: cleanDishes,
             managerIds: managers.map((m) => m.id),
+            notify,
           }),
         });
         if (!res.ok) {
@@ -253,6 +255,16 @@ export default function FoodMenuEdit({ kind: kindProp = "KITCHEN" }: { kind?: Fo
 
         {/* Co-managers — only on create (added from the detail page once it exists). */}
         {!isEdit && <ManagersField L={L} managers={managers} setManagers={setManagers} token={token} />}
+
+        {!isEdit && (
+          <label className="flex items-start gap-2.5 pt-3 text-[14px]" style={{ borderTop: "1px solid var(--border)", color: "var(--text-2)" }}>
+            <input type="checkbox" checked={notify} onChange={(e) => setNotify(e.target.checked)} className="mt-0.5" />
+            <span>
+              Notify all residents
+              <span className="block text-[12px]" style={{ color: "var(--text-3)" }}>Sends a push when you publish. Uncheck to publish quietly.</span>
+            </span>
+          </label>
+        )}
 
         {err && <p className="rounded-[11px] px-3.5 py-2.5 text-[13px]" style={{ background: "var(--danger-soft)", border: "1px solid color-mix(in srgb, var(--danger) 40%, transparent)", color: "var(--danger)" }}>{err}</p>}
 

@@ -49,6 +49,7 @@ export default function MenuForm({ menuId, kind: kindProp = "KITCHEN" }: { menuI
     { name: "", description: "", price: "", unit: isMarket ? "kg" : null, imageUrl: null, stockQty: "", maxPerPerson: "" },
   ]);
   const [managers, setManagers] = useState<Manager[]>([]);
+  const [notify, setNotify] = useState(true); // broadcast a push to residents on publish
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -131,7 +132,7 @@ export default function MenuForm({ menuId, kind: kindProp = "KITCHEN" }: { menuI
         pickupInfo: pickupInfo.trim() || null,
         orderByAt: orderByAt ? new Date(orderByAt).toISOString() : null,
         items: cleanDishes,
-        ...(isEdit ? {} : { date, kind, managerIds: managers.map((m) => m.id) }),
+        ...(isEdit ? {} : { date, kind, managerIds: managers.map((m) => m.id), notify }),
       };
       const res = await fetch(isEdit ? `/api/food/menus/${menuId}` : "/api/food/menus", {
         method: isEdit ? "PATCH" : "POST",
@@ -199,6 +200,16 @@ export default function MenuForm({ menuId, kind: kindProp = "KITCHEN" }: { menuI
           {/* Co-managers can only be added once the listing exists in edit mode
               (from its detail page), so we only offer this on create. */}
           {!isEdit && <ManagersField L={L} managers={managers} setManagers={setManagers} />}
+
+          {!isEdit && (
+            <label className="flex items-start gap-2.5 border-t border-gray-200 dark:border-gray-700 pt-4 text-sm text-gray-700 dark:text-gray-300">
+              <input type="checkbox" checked={notify} onChange={(e) => setNotify(e.target.checked)} className="mt-0.5" />
+              <span>
+                Notify all residents
+                <span className="block text-xs text-gray-400 dark:text-gray-500">Sends a push notification when you publish. Uncheck to publish quietly.</span>
+              </span>
+            </label>
+          )}
 
           {err && <p className="bg-red-50 dark:bg-red-900/30 border border-red-200 text-red-700 rounded-lg px-3 py-2 text-sm">{err}</p>}
 

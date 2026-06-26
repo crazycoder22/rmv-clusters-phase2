@@ -92,7 +92,7 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
   if (!body) return NextResponse.json({ error: "Invalid body" }, { status: 400 });
 
-  const { title, description, date, orderByAt, pickupInfo, items, kind: rawKind, managerIds } = body as {
+  const { title, description, date, orderByAt, pickupInfo, items, kind: rawKind, managerIds, notify: notifyRaw } = body as {
     title?: string;
     description?: string | null;
     date?: string;
@@ -100,6 +100,7 @@ export async function POST(request: Request) {
     pickupInfo?: string | null;
     kind?: string;
     managerIds?: string[];
+    notify?: boolean;
     items?: Array<{
       name?: string;
       description?: string | null;
@@ -215,7 +216,10 @@ export async function POST(request: Request) {
   // following their favourite chefs we can narrow this to followers only
   // (the ChefFollow rows + the per-chef query below are already in place).
   // Best-effort — never block menu creation on a push failure.
-  try {
+  // Skipped when the publisher opts out (notify=false). Defaults to true so
+  // older app builds that don't send the flag still broadcast as before.
+  const notify = notifyRaw !== false;
+  if (notify) try {
     const residents = await prisma.resident.findMany({
       where: { isApproved: true, id: { not: me.id } },
       select: { id: true },
