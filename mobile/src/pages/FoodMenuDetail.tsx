@@ -866,6 +866,10 @@ function ChefOrderCard({
           <button type="button" onClick={onConfirm} disabled={busy} className="rounded-full px-3 py-0.5 text-[10px] font-bold text-white active:opacity-90 disabled:opacity-50" style={{ background: "var(--success)" }}>
             {busy ? "…" : "Confirm received"}
           </button>
+        ) : order.status !== "CANCELLED" ? (
+          <button type="button" onClick={onConfirm} disabled={busy} className="rounded-full px-3 py-0.5 text-[10px] font-bold active:opacity-90 disabled:opacity-50" style={{ background: "var(--success-soft)", color: "var(--success)" }}>
+            {busy ? "…" : "Mark paid (cash)"}
+          </button>
         ) : (
           <span className="rounded-full px-2 py-0.5 text-[10px]" style={{ background: "var(--surface-3)", color: "var(--text-3)" }}>unpaid</span>
         )}

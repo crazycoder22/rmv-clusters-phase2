@@ -49,6 +49,8 @@ export async function PATCH(
     select: {
       id: true,
       buyerId: true,
+      buyerPaid: true,
+      buyerPaidAt: true,
       menuId: true,
       menu: { select: { chefId: true, title: true, kind: true } },
     },
@@ -97,9 +99,17 @@ export async function PATCH(
         where = { id, chefPaid: false, status: { not: "CANCELLED" } };
         data = { buyerPaid: true, buyerPaidAt: now, chefPaid: true, chefPaidAt: now, status: "CONFIRMED" };
       } else {
-        // Can only confirm a payment the buyer has claimed.
-        where = { id, buyerPaid: true, chefPaid: false, status: { not: "CANCELLED" } };
-        data = { chefPaid: true, chefPaidAt: now, status: "CONFIRMED" };
+        // Chef confirms payment. Works whether the buyer claimed "I paid"
+        // online OR paid cash in person (buyerPaid never set) — in the cash
+        // case we also stamp buyerPaid so the order reads fully settled.
+        where = { id, chefPaid: false, status: { not: "CANCELLED" } };
+        data = {
+          buyerPaid: true,
+          buyerPaidAt: order.buyerPaidAt ?? now,
+          chefPaid: true,
+          chefPaidAt: now,
+          status: "CONFIRMED",
+        };
         pushTo = order.buyerId;
         pushTitle = "✅ Payment received";
         pushBody = `Your payment for "${order.menu.title}" was confirmed`;
