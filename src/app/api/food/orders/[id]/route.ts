@@ -42,6 +42,10 @@ export async function PATCH(
   ) {
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   }
+  // Optional payment method on confirm_paid ("cash" | "online"); defaults to
+  // "online" (the buyer-claimed-UPI path doesn't send one).
+  const method: "cash" | "online" =
+    body?.method === "cash" || body?.method === "online" ? body.method : "online";
 
   // Need to know my role relative to this order.
   const order = await prisma.foodOrder.findUnique({
@@ -97,7 +101,7 @@ export async function PATCH(
       if (isManual) {
         // No buyer claim step — the chef marks the offline order settled.
         where = { id, chefPaid: false, status: { not: "CANCELLED" } };
-        data = { buyerPaid: true, buyerPaidAt: now, chefPaid: true, chefPaidAt: now, status: "CONFIRMED" };
+        data = { buyerPaid: true, buyerPaidAt: now, chefPaid: true, chefPaidAt: now, status: "CONFIRMED", paymentMethod: method };
       } else {
         // Chef confirms payment. Works whether the buyer claimed "I paid"
         // online OR paid cash in person (buyerPaid never set) — in the cash
@@ -109,6 +113,7 @@ export async function PATCH(
           chefPaid: true,
           chefPaidAt: now,
           status: "CONFIRMED",
+          paymentMethod: method,
         };
         pushTo = order.buyerId;
         pushTitle = "✅ Payment received";
@@ -120,10 +125,10 @@ export async function PATCH(
       if (!isChef) return forbidden();
       if (isManual) {
         where = { id, chefPaid: true };
-        data = { buyerPaid: false, buyerPaidAt: null, chefPaid: false, chefPaidAt: null, status: "PLACED" };
+        data = { buyerPaid: false, buyerPaidAt: null, chefPaid: false, chefPaidAt: null, status: "PLACED", paymentMethod: null };
       } else {
         where = { id, chefPaid: true };
-        data = { chefPaid: false, chefPaidAt: null };
+        data = { chefPaid: false, chefPaidAt: null, paymentMethod: null };
       }
       break;
 

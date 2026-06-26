@@ -54,6 +54,7 @@ interface Order {
   totalAmount: number;
   buyerPaid: boolean;
   chefPaid: boolean;
+  paymentMethod?: string | null;
   items: OrderLine[];
   buyer?: { name: string; block: number; flatNumber: string; phone: string };
   manual?: boolean;
@@ -198,10 +199,10 @@ export default function MenuDetail({ section = "KITCHEN" }: { section?: FoodKind
     }
   }
 
-  async function orderAction(orderId: string, action: string) {
+  async function orderAction(orderId: string, action: string, method?: "cash" | "online") {
     setBusyOrderId(orderId);
     try {
-      const res = await api(`/api/food/orders/${orderId}`, "PATCH", { action });
+      const res = await api(`/api/food/orders/${orderId}`, "PATCH", { action, ...(method ? { method } : {}) });
       if (res.ok) await refresh();
     } finally {
       setBusyOrderId(null);
@@ -516,7 +517,7 @@ export default function MenuDetail({ section = "KITCHEN" }: { section?: FoodKind
             ) : (
               <div className="space-y-2">
                 {menu.orders.map((o) => (
-                  <ChefOrderCard key={o.id} order={o} busy={busyOrderId === o.id} onAction={(a) => orderAction(o.id, a)} />
+                  <ChefOrderCard key={o.id} order={o} busy={busyOrderId === o.id} onAction={(a, m) => orderAction(o.id, a, m)} />
                 ))}
               </div>
             )}
@@ -749,7 +750,7 @@ function CoManagers({
   );
 }
 
-function ChefOrderCard({ order, busy, onAction }: { order: Order; busy: boolean; onAction: (a: string) => void }) {
+function ChefOrderCard({ order, busy, onAction }: { order: Order; busy: boolean; onAction: (a: string, method?: "cash" | "online") => void }) {
   return (
     <div className={`bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 ${order.status === "CANCELLED" ? "opacity-60" : ""}`}>
       <div className="flex items-start justify-between gap-2">
@@ -771,18 +772,20 @@ function ChefOrderCard({ order, busy, onAction }: { order: Order; busy: boolean;
         <span className={`text-xs font-semibold rounded-full px-2 py-0.5 ${order.status === "CONFIRMED" ? "text-green-700 bg-green-100" : order.status === "CANCELLED" ? "text-red-700 bg-red-100" : "text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700"}`}>{order.status}</span>
         {order.chefPaid ? (
           <span className="inline-flex items-center gap-2">
-            <span className="text-xs font-semibold text-green-600">{order.manual ? "Paid ✓" : "Received ✓"}</span>
+            <span className="text-xs font-semibold text-green-600">
+              {order.manual ? "Paid ✓" : "Received ✓"}{order.paymentMethod ? ` · ${order.paymentMethod === "cash" ? "Cash" : "Online"}` : ""}
+            </span>
             <button type="button" onClick={() => onAction("unconfirm_paid")} disabled={busy} className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600">undo</button>
           </span>
-        ) : order.manual ? (
-          // No buyer to claim payment — the chef marks the offline order paid.
-          order.status !== "CANCELLED" ? (
-            <button type="button" onClick={() => onAction("confirm_paid")} disabled={busy} className="text-xs font-semibold bg-green-600 text-white rounded-md px-3 py-1 hover:bg-green-700 disabled:opacity-50">Mark paid</button>
-          ) : null
-        ) : order.buyerPaid ? (
-          <button type="button" onClick={() => onAction("confirm_paid")} disabled={busy} className="text-xs font-semibold bg-green-600 text-white rounded-md px-3 py-1 hover:bg-green-700 disabled:opacity-50">Confirm received</button>
+        ) : order.buyerPaid && !order.manual ? (
+          // Buyer claimed they paid online — chef just confirms receipt.
+          <button type="button" onClick={() => onAction("confirm_paid", "online")} disabled={busy} className="text-xs font-semibold bg-green-600 text-white rounded-md px-3 py-1 hover:bg-green-700 disabled:opacity-50">Confirm received</button>
         ) : order.status !== "CANCELLED" ? (
-          <button type="button" onClick={() => onAction("confirm_paid")} disabled={busy} className="text-xs font-semibold border border-green-300 dark:border-green-800 text-green-700 dark:text-green-400 rounded-md px-3 py-1 hover:bg-green-50 dark:hover:bg-green-900/20 disabled:opacity-50">Mark paid</button>
+          // Offline order, or online order not yet claimed — record the method.
+          <span className="inline-flex items-center gap-1.5">
+            <button type="button" onClick={() => onAction("confirm_paid", "cash")} disabled={busy} className="text-xs font-semibold bg-green-600 text-white rounded-md px-3 py-1 hover:bg-green-700 disabled:opacity-50">Paid (Cash)</button>
+            <button type="button" onClick={() => onAction("confirm_paid", "online")} disabled={busy} className="text-xs font-semibold border border-green-300 dark:border-green-800 text-green-700 dark:text-green-400 rounded-md px-3 py-1 hover:bg-green-50 dark:hover:bg-green-900/20 disabled:opacity-50">Paid (Online)</button>
+          </span>
         ) : (
           <span className="text-xs text-gray-400 dark:text-gray-500">unpaid</span>
         )}
@@ -817,7 +820,7 @@ function buildOrderListText(menu: MenuDetailData): string {
     const who = o.buyer
       ? `${o.buyer.name} (B${o.buyer.block}-${o.buyer.flatNumber})`
       : `${o.manualBuyerName ?? "Offline"}${o.manualBuyerFlat ? ` (${o.manualBuyerFlat})` : ""} (offline)`;
-    const pay = o.chefPaid ? "✅ paid" : o.buyerPaid ? "⏳ paid (unconfirmed)" : "❌ unpaid";
+    const pay = o.chefPaid ? `✅ paid${o.paymentMethod ? ` (${o.paymentMethod})` : ""}` : o.buyerPaid ? "⏳ paid (unconfirmed)" : "❌ unpaid";
     lines.push(`${i + 1}. ${who}`);
     lines.push(`   ${o.items.map(lineText).join(", ")} · ₹${o.totalAmount} · ${pay}`);
     if (o.buyer?.phone) lines.push(`   📞 ${o.buyer.phone}`);

@@ -44,6 +44,7 @@ interface Order {
   totalAmount: number;
   buyerPaid: boolean;
   chefPaid: boolean;
+  paymentMethod?: string | null;
   createdAt: string;
   items: OrderLine[];
   buyer?: { name: string; block: number; flatNumber: string; phone: string };
@@ -181,13 +182,13 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
     }
   }
 
-  async function orderAction(orderId: string, action: string) {
+  async function orderAction(orderId: string, action: string, method?: "cash" | "online") {
     setBusyOrderId(orderId);
     try {
       const res = await apiFetch(`/api/food/orders/${orderId}`, {
         method: "PATCH",
         token,
-        body: JSON.stringify({ action }),
+        body: JSON.stringify({ action, ...(method ? { method } : {}) }),
       });
       if (res.ok) await refresh();
     } finally {
@@ -572,7 +573,7 @@ export default function FoodMenuDetail({ section = "KITCHEN" }: { section?: Food
                     key={o.id}
                     order={o}
                     busy={busyOrderId === o.id}
-                    onConfirm={() => orderAction(o.id, "confirm_paid")}
+                    onConfirm={(m) => orderAction(o.id, "confirm_paid", m)}
                     onUnconfirm={() => orderAction(o.id, "unconfirm_paid")}
                     onCancel={() => orderAction(o.id, "cancel")}
                   />
@@ -836,7 +837,7 @@ function ChefOrderCard({
 }: {
   order: Order;
   busy: boolean;
-  onConfirm: () => void;
+  onConfirm: (method?: "cash" | "online") => void;
   onUnconfirm: () => void;
   onCancel: () => void;
 }) {
@@ -863,23 +864,24 @@ function ChefOrderCard({
         <span className="rounded-full px-2 py-0.5 text-[10px] font-bold" style={order.status === "CONFIRMED" ? { background: "var(--success-soft)", color: "var(--success)" } : order.status === "CANCELLED" ? { background: "var(--danger-soft)", color: "var(--danger)" } : { background: "var(--surface-3)", color: "var(--text-2)" }}>{order.status}</span>
         {order.chefPaid ? (
           <span className="inline-flex items-center gap-2">
-            <span className="rounded-full px-2 py-0.5 text-[10px] font-bold" style={{ background: "var(--success-soft)", color: "var(--success)" }}>{order.manual ? "PAID ✓" : "RECEIVED ✓"}</span>
+            <span className="rounded-full px-2 py-0.5 text-[10px] font-bold" style={{ background: "var(--success-soft)", color: "var(--success)" }}>
+              {order.manual ? "PAID ✓" : "RECEIVED ✓"}{order.paymentMethod ? ` · ${order.paymentMethod === "cash" ? "CASH" : "ONLINE"}` : ""}
+            </span>
             <button type="button" onClick={onUnconfirm} disabled={busy} className="text-[10px] active:opacity-70" style={{ color: "var(--text-3)" }}>undo</button>
           </span>
-        ) : order.manual ? (
-          order.status !== "CANCELLED" ? (
-            <button type="button" onClick={onConfirm} disabled={busy} className="rounded-full px-3 py-0.5 text-[10px] font-bold text-white active:opacity-90 disabled:opacity-50" style={{ background: "var(--success)" }}>
-              {busy ? "…" : "Mark paid"}
-            </button>
-          ) : null
-        ) : order.buyerPaid ? (
-          <button type="button" onClick={onConfirm} disabled={busy} className="rounded-full px-3 py-0.5 text-[10px] font-bold text-white active:opacity-90 disabled:opacity-50" style={{ background: "var(--success)" }}>
+        ) : order.buyerPaid && !order.manual ? (
+          <button type="button" onClick={() => onConfirm("online")} disabled={busy} className="rounded-full px-3 py-0.5 text-[10px] font-bold text-white active:opacity-90 disabled:opacity-50" style={{ background: "var(--success)" }}>
             {busy ? "…" : "Confirm received"}
           </button>
         ) : order.status !== "CANCELLED" ? (
-          <button type="button" onClick={onConfirm} disabled={busy} className="rounded-full px-3 py-0.5 text-[10px] font-bold active:opacity-90 disabled:opacity-50" style={{ background: "var(--success-soft)", color: "var(--success)" }}>
-            {busy ? "…" : "Mark paid"}
-          </button>
+          <span className="inline-flex items-center gap-1.5">
+            <button type="button" onClick={() => onConfirm("cash")} disabled={busy} className="rounded-full px-3 py-0.5 text-[10px] font-bold text-white active:opacity-90 disabled:opacity-50" style={{ background: "var(--success)" }}>
+              {busy ? "…" : "Paid (Cash)"}
+            </button>
+            <button type="button" onClick={() => onConfirm("online")} disabled={busy} className="rounded-full px-3 py-0.5 text-[10px] font-bold active:opacity-90 disabled:opacity-50" style={{ background: "var(--success-soft)", color: "var(--success)" }}>
+              {busy ? "…" : "Paid (Online)"}
+            </button>
+          </span>
         ) : (
           <span className="rounded-full px-2 py-0.5 text-[10px]" style={{ background: "var(--surface-3)", color: "var(--text-3)" }}>unpaid</span>
         )}
@@ -908,7 +910,7 @@ function buildOrderListText(menu: MenuDetail): string {
     const who = o.buyer
       ? `${o.buyer.name} (B${o.buyer.block}-${o.buyer.flatNumber})`
       : `${o.manualBuyerName ?? "Offline"}${o.manualBuyerFlat ? ` (${o.manualBuyerFlat})` : ""} (offline)`;
-    const pay = o.chefPaid ? "✅ paid" : o.buyerPaid ? "⏳ paid (unconfirmed)" : "❌ unpaid";
+    const pay = o.chefPaid ? `✅ paid${o.paymentMethod ? ` (${o.paymentMethod})` : ""}` : o.buyerPaid ? "⏳ paid (unconfirmed)" : "❌ unpaid";
     lines.push(`${i + 1}. ${who}`);
     lines.push(`   ${o.items.map(lineText).join(", ")} · ₹${o.totalAmount} · ${pay}`);
     if (o.buyer?.phone) lines.push(`   📞 ${o.buyer.phone}`);

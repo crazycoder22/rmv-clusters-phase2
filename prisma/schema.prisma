@@ -2057,6 +2057,7 @@ model FoodOrder {
   buyerPaidAt DateTime?
   chefPaid    Boolean         @default(false) // chef's "received" confirmation
   chefPaidAt  DateTime?
+  paymentMethod String?       // "cash" | "online" — how a confirmed order was settled
   cancelledBy String?         // "buyer" | "chef" — for dispute clarity
   items       FoodOrderItem[]
   createdAt   DateTime        @default(now())

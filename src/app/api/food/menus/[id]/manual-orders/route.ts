@@ -114,6 +114,7 @@ export async function POST(
           buyerPaidAt: paid ? now : null,
           chefPaid: paid,
           chefPaidAt: paid ? now : null,
+          paymentMethod: paid ? "cash" : null,
           status: paid ? "CONFIRMED" : "PLACED",
           items: { create: lineData },
         },

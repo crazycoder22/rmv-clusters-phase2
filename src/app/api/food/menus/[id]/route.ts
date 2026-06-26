@@ -136,6 +136,7 @@ export async function GET(
       buyerPaidAt: o.buyerPaidAt,
       chefPaid: o.chefPaid,
       chefPaidAt: o.chefPaidAt,
+      paymentMethod: o.paymentMethod,
       createdAt: o.createdAt,
       // Offline orders the chef logged manually (no buyer account).
       manual: !o.buyerId,
