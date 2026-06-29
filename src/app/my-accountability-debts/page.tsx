@@ -49,7 +49,9 @@ export default function MyAccountabilityDebtsPage() {
     );
   }
 
-  const debts = data?.debts ?? [];
+  // Only outstanding items are shown — once an admin marks a debt Paid (settled)
+  // or Waived it drops off the resident's view entirely.
+  const outstanding = (data?.debts ?? []).filter((d) => d.status === "OWED");
   const totalOwed = data?.totalOwed ?? 0;
 
   return (
@@ -72,13 +74,13 @@ export default function MyAccountabilityDebtsPage() {
         </p>
         <p className="mt-1 text-xs text-gray-500">
           <Scale size={12} className="-mt-0.5 mr-0.5 inline" />
-          across {debts.filter((d) => d.status === "OWED").length}{" "}
-          {debts.filter((d) => d.status === "OWED").length === 1 ? "item" : "items"}
+          across {outstanding.length}{" "}
+          {outstanding.length === 1 ? "item" : "items"}
         </p>
       </section>
 
-      {/* List */}
-      {debts.length === 0 ? (
+      {/* List — outstanding only; settled (paid/waived) items are hidden */}
+      {outstanding.length === 0 ? (
         <div className="mt-6 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 p-8 text-center">
           <CheckCircle2 size={32} className="mx-auto mb-2 text-emerald-300" />
           <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -90,7 +92,7 @@ export default function MyAccountabilityDebtsPage() {
         </div>
       ) : (
         <section className="mt-5 space-y-2">
-          {debts.map((d) => (
+          {outstanding.map((d) => (
             <div
               key={d.id}
               className="rounded-xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3"
