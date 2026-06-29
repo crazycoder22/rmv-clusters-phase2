@@ -235,6 +235,155 @@ export async function upsertDailySteps(
   return { saved, skipped, deleted };
 }
 
+// ─── Shared step-challenge completion assessment ────────────────────────────
+// The dashboard (src/app/api/events/[id]/dashboard/route.ts) and the
+// accountability-debt generator both need the same "did this participant
+// complete the challenge?" answer. The rule: 14-day window from the
+// announcement date, merge event StepEntry + personal ResidentDailySteps taking
+// the MAX per date, count days where merged steps >= the participant's own goal,
+// and require >= REQUIRED_DAYS of 14. Keep this the single source of truth.
+
+export const CHALLENGE_WINDOW_DAYS = 14;
+export const REQUIRED_DAYS_TO_COMPLETE = 12;
+
+/**
+ * Merge any number of {date, steps} sources into one row-per-date list, taking
+ * the max steps per date, scoped to [windowStartIso, windowEndIso). Dates are
+ * compared as YYYY-MM-DD strings. Used so an admin's higher manual correction
+ * wins and personal-tracker data fills gaps the event sync missed.
+ */
+export function mergeDailyMax(
+  sources: { date: Date; steps: number }[][],
+  windowStartIso: string,
+  windowEndIso: string
+): { date: string; steps: number }[] {
+  const byDate = new Map<string, number>();
+  for (const rows of sources) {
+    for (const d of rows) {
+      const k = d.date.toISOString().slice(0, 10);
+      if (k >= windowStartIso && k < windowEndIso) {
+        byDate.set(k, Math.max(byDate.get(k) ?? 0, d.steps));
+      }
+    }
+  }
+  return [...byDate.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, steps]) => ({ date, steps }));
+}
+
+export interface ParticipantAssessment {
+  rsvpId: string;
+  residentId: string;
+  name: string;
+  dailyGoal: number;
+  totalSteps: number;
+  daysTracked: number;
+  daysGoalMet: number;
+  hasData: boolean;
+  completed: boolean;
+}
+
+/**
+ * Assess every resident RSVP on a step-challenge announcement: their merged
+ * daily steps, days-goal-met, and whether they completed (goal set AND met on
+ * >= requiredDays of the 14-day window). Self-contained — does its own queries —
+ * so callers (dashboard, debt generator, verification scripts) get one
+ * consistent answer. Guest RSVPs are out of scope (no residentId / personal
+ * tracker), matching how the forfeit ledger is keyed to residents.
+ */
+export async function assessStepCompletion(
+  announcementId: string,
+  opts: { requiredDays?: number } = {}
+): Promise<ParticipantAssessment[]> {
+  const requiredDays = opts.requiredDays ?? REQUIRED_DAYS_TO_COMPLETE;
+
+  const announcement = await prisma.announcement.findUnique({
+    where: { id: announcementId },
+    include: {
+      eventConfig: {
+        include: {
+          customFields: { orderBy: { sortOrder: "asc" } },
+          rsvps: {
+            include: {
+              resident: { select: { name: true } },
+              fieldResponses: true,
+            },
+          },
+        },
+      },
+    },
+  });
+  const ec = announcement?.eventConfig;
+  if (!ec) return [];
+
+  const windowStart = new Date(announcement!.date);
+  windowStart.setUTCHours(0, 0, 0, 0);
+  const windowEnd = new Date(windowStart);
+  windowEnd.setUTCDate(windowEnd.getUTCDate() + CHALLENGE_WINDOW_DAYS);
+  const wsIso = windowStart.toISOString().slice(0, 10);
+  const weIso = windowEnd.toISOString().slice(0, 10);
+
+  const goalField = ec.customFields.find((cf) => cf.fieldType === "select");
+
+  // Event step entries keyed by rsvpId.
+  const stepEntries = await prisma.stepEntry.findMany({
+    where: { eventConfigId: ec.id, rsvpId: { not: null } },
+    select: { rsvpId: true, date: true, steps: true },
+  });
+  const eventByRsvp = new Map<string, { date: Date; steps: number }[]>();
+  for (const se of stepEntries) {
+    if (!se.rsvpId) continue;
+    (eventByRsvp.get(se.rsvpId) ??
+      eventByRsvp.set(se.rsvpId, []).get(se.rsvpId)!).push({
+      date: se.date,
+      steps: se.steps,
+    });
+  }
+
+  // Personal always-on tracker keyed by residentId, scoped to the window.
+  const residentIds = ec.rsvps.map((r) => r.residentId);
+  const personalDaily = residentIds.length
+    ? await prisma.residentDailySteps.findMany({
+        where: { residentId: { in: residentIds }, date: { gte: windowStart, lt: windowEnd } },
+        select: { residentId: true, date: true, steps: true },
+      })
+    : [];
+  const personalByResident = new Map<string, { date: Date; steps: number }[]>();
+  for (const p of personalDaily) {
+    (personalByResident.get(p.residentId) ??
+      personalByResident.set(p.residentId, []).get(p.residentId)!).push({
+      date: p.date,
+      steps: p.steps,
+    });
+  }
+
+  return ec.rsvps.map((rsvp) => {
+    const goalResponse = goalField
+      ? rsvp.fieldResponses.find((fr) => fr.customFieldId === goalField.id)
+      : undefined;
+    const dailyGoal = parseGoal(goalResponse?.value || "0");
+    const merged = mergeDailyMax(
+      [eventByRsvp.get(rsvp.id) || [], personalByResident.get(rsvp.residentId) || []],
+      wsIso,
+      weIso
+    );
+    const totalSteps = merged.reduce((s, d) => s + d.steps, 0);
+    const daysGoalMet =
+      dailyGoal > 0 ? merged.filter((d) => d.steps >= dailyGoal).length : 0;
+    return {
+      rsvpId: rsvp.id,
+      residentId: rsvp.residentId,
+      name: rsvp.resident?.name ?? "",
+      dailyGoal,
+      totalSteps,
+      daysTracked: merged.length,
+      daysGoalMet,
+      hasData: merged.length > 0,
+      completed: dailyGoal > 0 && daysGoalMet >= requiredDays,
+    };
+  });
+}
+
 export interface DayBucket {
   date: string; // YYYY-MM-DD
   steps: number;

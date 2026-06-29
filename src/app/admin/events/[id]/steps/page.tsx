@@ -311,6 +311,7 @@ export default function AdminStepsPage({
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"" | "saved" | "error">("");
   const [emailing, setEmailing] = useState(false);
+  const [assessing, setAssessing] = useState(false);
   const [emailStatus, setEmailStatus] = useState<{
     sent: number;
     failed: number;
@@ -430,6 +431,59 @@ export default function AdminStepsPage({
       setEmailing(false);
       setShowEmailConfirm(false);
       setEmailTarget(null);
+    }
+  };
+
+  const handleAssessDebts = async () => {
+    setAssessing(true);
+    try {
+      const dry = await fetch(
+        `/api/admin/events/${id}/accountability-debts/generate`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ dryRun: true }),
+        }
+      );
+      if (!dry.ok) {
+        alert("Failed to assess accountability debts.");
+        return;
+      }
+      const d = await dry.json();
+      if (d.totals.chargeCount === 0) {
+        alert("No one to charge — everyone with step data completed their goal.");
+        return;
+      }
+      const names = d.wouldCharge
+        .map(
+          (p: { name: string; daysGoalMet: number }) =>
+            `• ${p.name} (${p.daysGoalMet}/14 days)`
+        )
+        .join("\n");
+      const ok = confirm(
+        `Add ₹${d.amount} Accountability Debt to ${d.totals.chargeCount} participant(s) who missed their goal?\n` +
+          `Total: ₹${d.totals.chargeAmount}\n` +
+          `(${d.totals.skippedNoData} registrant(s) with no step data are skipped.)\n\n${names}`
+      );
+      if (!ok) return;
+      const commit = await fetch(
+        `/api/admin/events/${id}/accountability-debts/generate`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ dryRun: false }),
+        }
+      );
+      if (commit.ok) {
+        const c = await commit.json();
+        alert(
+          `Done. Created ${c.created} new debt(s); ${c.alreadyExisted} already existed.`
+        );
+      } else {
+        alert("Failed to create accountability debts.");
+      }
+    } finally {
+      setAssessing(false);
     }
   };
 
@@ -702,6 +756,14 @@ export default function AdminStepsPage({
         {/* Import buttons */}
         {participants.length > 0 && (
           <div className="ml-auto flex gap-2">
+            <button
+              onClick={handleAssessDebts}
+              disabled={assessing}
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-rose-300 rounded-lg text-sm font-medium text-rose-700 hover:bg-rose-50 transition-colors disabled:opacity-50"
+              title="Add ₹300 Accountability Debt to participants who missed their goal"
+            >
+              {assessing ? "Assessing…" : "Assess Debts"}
+            </button>
             <input
               ref={fileInputRef}
               type="file"

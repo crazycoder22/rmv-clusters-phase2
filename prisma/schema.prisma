@@ -146,6 +146,7 @@ model Resident {
   amenityBookings          AmenityBooking[]        @relation("AmenityBookingsByBooker")
   dailySteps               ResidentDailySteps[]
   stepChallengePartnerOf   StepChallengeGoal[]     @relation("StepChallengePartner")
+  accountabilityDebts      AccountabilityDebt[]
   pageViews                PageView[]              @relation("PageViews")
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
@@ -283,6 +284,39 @@ model StepChallengeGoal {
 
   @@index([eventConfigId])
   @@index([partnerId])
+}
+
+// Generic per-resident debt ledger. Any initiative can add a line item (amount +
+// free-text reason) against a resident; residents see their own total + items,
+// admins manage them on a dedicated page. NOT coupled to step challenges — the
+// optional sourceType/sourceId pair is a loose tag so generators (e.g. the
+// step-up forfeit) can upsert idempotently while manual rows leave them null.
+enum AccountabilityDebtStatus {
+  OWED
+  PAID
+  WAIVED
+}
+
+model AccountabilityDebt {
+  id         String                   @id @default(cuid())
+  residentId String
+  resident   Resident                 @relation(fields: [residentId], references: [id], onDelete: Cascade)
+  amount     Int // rupees, e.g. 300
+  reason     String // free text, e.g. "Mini Step-Up 2 — goal not completed"
+  status     AccountabilityDebtStatus @default(OWED)
+  sourceType String? // e.g. "stepup_event"; null for manual rows
+  sourceId   String? // e.g. eventConfigId; null for manual rows
+  note       String? // admin note on settle/waive
+  createdBy  String? // admin email/id who added it
+  createdAt  DateTime                 @default(now())
+  paidAt     DateTime?
+  updatedAt  DateTime                 @updatedAt
+
+  // Generator idempotency. Manual rows leave source* null; Postgres treats NULLs
+  // as distinct so admins can still add many manual line items per resident.
+  @@unique([sourceType, sourceId, residentId])
+  @@index([residentId])
+  @@index([status])
 }
 
 model RsvpItem {

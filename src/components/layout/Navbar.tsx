@@ -86,6 +86,7 @@ const navGroups: NavGroup[] = [
       { href: "/groups", label: "Groups" },
       { href: "/my-steps", label: "My Steps" },
       { href: "/my-contributions", label: "My Contributions" },
+      { href: "/my-accountability-debts", label: "My Debts" },
       { href: "/initiatives", label: "Initiatives" },
       { href: "/referendums", label: "Referendums" },
       { href: "/issues", label: "Issues" },
@@ -257,6 +258,11 @@ export default function Navbar() {
       href: "/admin/residents",
       label: "Residents",
       match: (p) => p.startsWith("/admin/residents"),
+    });
+    residentLinks.push({
+      href: "/admin/accountability-debts",
+      label: "Accountability Debts",
+      match: (p) => p.startsWith("/admin/accountability-debts"),
     });
   }
   if (canManageVisitors(roles)) {
