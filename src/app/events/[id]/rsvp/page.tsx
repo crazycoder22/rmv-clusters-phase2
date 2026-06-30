@@ -545,15 +545,11 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
       )}
 
       {/* Deadline banner */}
-      <div className={`rounded-lg p-3 mb-6 text-sm ${
-        deadlinePassed
-          ? "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400"
-          : "bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400"
-      }`}>
-        {deadlinePassed
-          ? "RSVP deadline has passed. You can no longer submit or modify your response."
-          : `RSVP by: ${new Date(eventConfig.rsvpDeadline).toLocaleString("en-IN", { dateStyle: "long", timeStyle: "short" })}`}
-      </div>
+      {deadlinePassed && (
+        <div className="rounded-lg p-3 mb-6 text-sm bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400">
+          RSVP deadline has passed. You can no longer submit or modify your response.
+        </div>
+      )}
 
       {/* Payment status */}
       {(hasFood || hasEntranceFee) && myRsvp && (
@@ -696,12 +692,7 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
           <div className="mb-6">
             <RsvpSummary menuItems={[]} plates={{}} entranceFee={entranceFee} entranceFeeLabel={eventConfig?.entranceFeeLabel || "Entrance Fee"} />
           </div>
-        ) : (
-          <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-6 mb-6 text-center">
-            <p className="text-blue-800 dark:text-blue-300 font-medium">Confirm your attendance for this event</p>
-            <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">No food ordering for this event — just RSVP to confirm.</p>
-          </div>
-        )}
+        ) : null}
 
         {/* Payment QR Code */}
         {hasEntranceFee && !eventConfig?.requirePayment && (
@@ -719,7 +710,6 @@ export default function RsvpPage({ params }: { params: Promise<{ id: string }> }
         {/* Custom Fields */}
         {hasCustomFields && !deadlinePassed && (
           <div className="mb-6">
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Additional Information</h2>
             <div className="space-y-4">
               {customFields.map((cf) => (
                 <div key={cf.id}>
